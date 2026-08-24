@@ -1,4 +1,5 @@
 import type { HistoryEvent, Vehicle } from "@/lib/types";
+import { formatNumber } from "@/lib/format";
 import { RAW, type RawListing } from "./raw";
 import { SELLERS } from "./sellers";
 import { int, NOW, pick, pickMany, rng } from "./seed";
@@ -183,7 +184,7 @@ function buildVehicle(raw: RawListing, index: number): Vehicle {
 
   const description = [
     pick(r, isMoto ? DESC_MOTO_OPENERS : DESC_OPENERS),
-    `${raw.make} ${raw.model} ${raw.version} موديل ${raw.year}، قاطعة ${raw.km.toLocaleString("fr-FR").replace(/ | /g, " ")} كيلومتر.`,
+    `${raw.make} ${raw.model} ${raw.version} موديل ${raw.year}، قاطعة ${formatNumber(raw.km)} كيلومتر.`,
     serviceBook ? "دفتر الصيانة متوفر بجميع الفواتير." : "الصيانة كتدار عند ميكانيسيان ثقة.",
     pick(r, DESC_CLOSERS),
   ].join(" ");

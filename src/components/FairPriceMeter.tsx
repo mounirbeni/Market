@@ -2,6 +2,7 @@
 
 import type { FairPrice } from "@/lib/market";
 import { Price } from "./Price";
+import { formatNumber } from "@/lib/format";
 
 const TONES: Record<string, { color: string; icon: string }> = {
   "tres-bas": { color: "var(--color-atlas-400)", icon: "▼▼" },
@@ -14,6 +15,19 @@ const TONES: Record<string, { color: string; icon: string }> = {
 export function FairPriceTag({ fp }: { fp: FairPrice }) {
   const tone = TONES[fp.verdict];
   const pct = Math.round(Math.abs(fp.delta) * 100);
+
+  if (fp.weak) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold"
+        style={{ background: "var(--bg-inset)", color: "var(--text-dim)" }}
+        title="عدد الإعلانات المشابهة غير كافٍ لحساب ثمن مرجعي دقيق"
+      >
+        مراجع محدودة
+      </span>
+    );
+  }
+
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold"
@@ -21,7 +35,7 @@ export function FairPriceTag({ fp }: { fp: FairPrice }) {
         background: `color-mix(in oklab, ${tone.color} 15%, transparent)`,
         color: tone.color,
       }}
-      title={`الثمن المرجعي: ${fp.estimate.mid.toLocaleString("fr-FR")} د.م`}
+      title={`الثمن المرجعي: ${formatNumber(fp.estimate.mid)} د.م`}
     >
       <span className="num text-[9px]">{tone.icon}</span>
       {fp.verdict === "juste" ? "ثمن عادل" : `${pct}٪ ${fp.delta < 0 ? "تحت" : "فوق"} السوق`}
@@ -34,6 +48,15 @@ export function FairPriceMeter({ fp, price }: { fp: FairPrice; price: number }) 
   const pos = Math.max(3, Math.min(97, fp.position * 100));
   return (
     <div className="card p-5" style={{ background: "var(--bg-inset)" }}>
+      {fp.weak && (
+        <p
+          className="mb-4 rounded-lg p-2.5 text-[11px] leading-relaxed"
+          style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}
+        >
+          ⓘ ماكايناش بزاف ديال الإعلانات المشابهة لهاد المركبة، لهذا هاد الثمن المرجعي
+          تقريبي — خدو كمؤشر أولي فقط.
+        </p>
+      )}
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-extrabold">مؤشر الثمن العادل</h3>

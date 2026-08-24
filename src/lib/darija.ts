@@ -4,6 +4,7 @@
  */
 import { CITIES } from "./cities";
 import { VEHICLES } from "./data/vehicles";
+import { formatNumber } from "./format";
 
 export interface ParsedQuery {
   kind?: "car" | "moto";
@@ -67,6 +68,8 @@ const MAKE_ALIASES: Record<string, string[]> = {
   Suzuki: ["سوزوكي", "suzuki"],
   Chevrolet: ["شفروليه", "شيفروليه", "chevrolet"],
   Mitsubishi: ["ميتسوبيشي", "mitsubishi"],
+  Isuzu: ["ايسوزو", "isuzu"],
+  Kymco: ["كيمكو", "kymco"],
   Tesla: ["تيسلا", "tesla"],
   Yamaha: ["ياماها", "yamaha"],
   Honda: ["هوندا", "honda"],
@@ -154,6 +157,22 @@ const MODEL_ALIASES: Record<string, string[]> = {
   "TRK 502": ["trk"],
   "Africa Twin": ["افريكا توين", "africa twin"],
   "Iron 883": ["ايرون", "883"],
+  Ranger: ["رانجر", "ranger"],
+  "D-Max": ["dmax", "d-max"],
+  Zoe: ["زوي", "zoe"],
+  Spring: ["سبرينك", "spring"],
+  Kona: ["كونا", "kona"],
+  Caddy: ["كادي", "caddy"],
+  "Ténéré 700": ["تينيري", "tenere"],
+  "Ninja 650": ["نينجا", "ninja"],
+  R6: ["r6"],
+  "CBR 600RR": ["cbr"],
+  "Forza 125": ["فورزا", "forza"],
+  "Agility 125": ["اجيليتي", "agility"],
+  Django: ["دجانكو", "django"],
+  "F 850 GS": ["f850", "850 gs"],
+  "Meteor 350": ["ميتيور", "meteor"],
+  Pulsar: ["بولسار", "pulsar"],
 };
 
 const FUEL_ALIASES: Record<string, string[]> = {
@@ -313,7 +332,7 @@ export function parseDarija(input: string): ParsedQuery {
     }
     if (t.unit === "km") {
       q.kmMax = t.value < 1000 ? t.value * 1000 : t.value;
-      q.chips.push({ label: `أقل من ${q.kmMax.toLocaleString("fr-FR")} كم`, kind: "الكيلومتراج" });
+      q.chips.push({ label: `أقل من ${formatNumber(q.kmMax)} كم`, kind: "الكيلومتراج" });
       continue;
     }
     let dh: number | undefined;
@@ -326,10 +345,10 @@ export function parseDarija(input: string): ParsedQuery {
     if (dh === undefined) continue;
     if (ctx === "min") {
       q.priceMin = dh;
-      q.chips.push({ label: `من ${dh.toLocaleString("fr-FR")} د.م`, kind: "الثمن" });
+      q.chips.push({ label: `من ${formatNumber(dh)} د.م`, kind: "الثمن" });
     } else {
       q.priceMax = dh;
-      q.chips.push({ label: `حتى ${dh.toLocaleString("fr-FR")} د.م`, kind: "الثمن" });
+      q.chips.push({ label: `حتى ${formatNumber(dh)} د.م`, kind: "الثمن" });
     }
   }
 
@@ -350,10 +369,10 @@ export function parseDarija(input: string): ParsedQuery {
 
 /** أمثلة تُعرض للمستخدم */
 export const SEARCH_EXAMPLES = [
-  "كليو ديزل تحت 12 مليون فكازا",
-  "دوستر 2018 أوتوماتيك",
-  "سكوتر 125 رخيص فمراكش",
+  "كليو ديزل تحت 13 مليون فكازا",
+  "دوستر ديزل من 2018",
+  "سكوتر 125 رخيص فكازا",
   "golf tdi moins de 180000 dh",
   "طوموبيل بنزين أقل من 100000 كم",
-  "MT-07 فالرباط",
+  "MT-07 فكازا",
 ];

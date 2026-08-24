@@ -1,9 +1,10 @@
 /** تنسيق الأرقام والأسعار حسب العادة المغربية */
 
-const nf = new Intl.NumberFormat("fr-MA", { maximumFractionDigits: 0 });
-
+/** فصل الآلاف بمسافة عادية — أوضح من النقطة في السياق العربي */
 export function formatNumber(n: number): string {
-  return nf.format(Math.round(n)).replace(/ | /g, " ");
+  const r = Math.round(n);
+  const sign = r < 0 ? "-" : "";
+  return sign + String(Math.abs(r)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 /** بالدرهم: 128 000 */

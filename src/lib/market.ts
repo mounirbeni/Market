@@ -1,6 +1,7 @@
-import type { Condition, Vehicle } from "./types";
+import type { Condition, Seller, Vehicle } from "./types";
 import { VEHICLES } from "./data/vehicles";
 import { sellerById } from "./data/sellers";
+import { formatNumber } from "./format";
 
 export const CURRENT_YEAR = 2026;
 
@@ -11,10 +12,47 @@ const COND_MULT: Record<Condition, number> = {
   moyen: 0.85,
 };
 
-/** نسبة الاحتفاظ بالقيمة كل سنة */
-const DEPRECIATION = { car: 0.9, moto: 0.925 };
-/** أثر الكيلومتراج: تراجع القيمة لكل 50 ألف كم */
-const KM_RATE = { car: 0.055, moto: 0.075 };
+/** فئة الماركة: 1 اقتصادية · 2 عامة · 3 راقية */
+const BRAND_TIER: Record<string, 1 | 2 | 3> = {
+  Dacia: 1, Fiat: 1, Chevrolet: 1, Suzuki: 1, Docker: 1, Bajaj: 1, Haojue: 1,
+  SYM: 1, MBK: 1, Peugeot: 2, Renault: 2, "Citroën": 2, Volkswagen: 2,
+  Hyundai: 2, Kia: 2, Toyota: 2, Ford: 2, Seat: 2, Skoda: 2, Nissan: 2,
+  Opel: 2, Mitsubishi: 2, Jeep: 2, Isuzu: 2, Kymco: 1, Yamaha: 2, Honda: 2, Kawasaki: 2,
+  Benelli: 2, Vespa: 2, "Royal Enfield": 2, Mercedes: 3, BMW: 3, Audi: 3,
+  "Land Rover": 3, Tesla: 3, "Harley-Davidson": 3, KTM: 3,
+};
+
+const tier = (make: string): 1 | 2 | 3 => BRAND_TIER[make] ?? 2;
+
+/** مجموعات الهيكل: المقارنة داخل نفس المجموعة أدقّ بكثير */
+const BODY_GROUP: Record<string, string> = {
+  citadine: "std", berline: "std", cabriolet: "std",
+  suv: "family", break: "family",
+  utilitaire: "util",
+  scooter: "scoot", roadster: "road", sportive: "sport",
+  trail: "trail", custom: "custom",
+};
+const bodyGroup = (b: string) => BODY_GROUP[b] ?? b;
+
+/**
+ * منحنى الاحتفاظ بالقيمة حسب العمر.
+ * الانخفاض سريع في السنوات الأولى ثم يتباطأ — كما هو الحال في السوق المغربي.
+ */
+function valueCurve(age: number, kind: "car" | "moto"): number {
+  const k = kind === "car" ? 0.115 : 0.085;
+  return 1 / (1 + k * Math.pow(Math.max(0, age), 1.15));
+}
+
+/** فارق القيمة حسب نوع الوقود لنفس الموديل */
+const FUEL_VALUE: Record<string, number> = {
+  diesel: 1.06,
+  essence: 1,
+  hybride: 1.12,
+  electrique: 1.15,
+};
+
+/** أثر الكيلومتراج: تراجع القيمة لكل شريحة */
+const KM_RATE = { car: 0.1, moto: 0.09 };
 const KM_STEP = { car: 50000, moto: 20000 };
 
 export interface EstimateInput {
@@ -27,6 +65,8 @@ export interface EstimateInput {
   gearbox?: string;
   body?: string;
   condition?: Condition;
+  /** القوة الجبائية للسيارات أو سعة المحرك للدراجات */
+  power?: number;
 }
 
 export interface Estimate {
@@ -39,15 +79,42 @@ export interface Estimate {
   comparables: Vehicle[];
 }
 
+function powerOf(v: Vehicle): number {
+  return v.kind === "moto" ? (v.displacement ?? 125) : v.fiscalPower;
+}
+
 function similarity(target: EstimateInput, c: Vehicle): number {
   if (c.kind !== target.kind) return 0;
-  let w = 0.12;
-  if (c.make === target.make) w = 0.45;
+
+  const tierGap = Math.abs(tier(c.make) - tier(target.make));
+  let w: number;
   if (target.model && c.make === target.make && c.model === target.model) w = 1;
-  if (w < 0.45 && target.body && c.body === target.body) w = 0.3;
-  if (target.fuel && c.fuel === target.fuel) w *= 1.15;
+  else if (c.make === target.make) w = 0.5;
+  else if (tierGap === 0 && target.body && c.body === target.body) w = 0.26;
+  else if (tierGap === 0) w = 0.1;
+  else if (tierGap === 1) w = 0.035;
+  else return 0;
+
+  if (target.fuel) w *= c.fuel === target.fuel ? 1.15 : 0.85;
+
+  if (target.body) {
+    if (c.body === target.body) w *= 1.1;
+    else if (bodyGroup(c.body) === bodyGroup(target.body)) w *= 0.8;
+    else w *= 0.3;
+  }
+
+  // القوة/سعة المحرك: أهم محدّد للثمن داخل نفس الفئة
+  if (target.power) {
+    const cp = powerOf(c);
+    if (target.kind === "moto") {
+      w *= Math.max(0.04, 1 - Math.abs(Math.log(cp / target.power)) * 0.85);
+    } else {
+      w *= Math.max(0.1, 1 - Math.abs(cp - target.power) * 0.11);
+    }
+  }
+
   const yearGap = Math.abs(c.year - target.year);
-  w *= Math.max(0.35, 1 - yearGap * 0.09);
+  w *= Math.max(0.25, 1 - yearGap * 0.11);
   return w;
 }
 
@@ -56,16 +123,18 @@ export function estimateValue(
   target: EstimateInput,
   { excludeId }: { excludeId?: string } = {},
 ): Estimate {
-  const dep = DEPRECIATION[target.kind];
   const kmRate = KM_RATE[target.kind];
   const kmStep = KM_STEP[target.kind];
   const targetCond = COND_MULT[target.condition ?? "tres-bon"];
+  const targetAge = CURRENT_YEAR - target.year;
+  const targetCurve = valueCurve(targetAge, target.kind);
+  const targetFuel = FUEL_VALUE[target.fuel ?? "essence"] ?? 1;
 
   const scored = VEHICLES.filter((v) => v.id !== excludeId)
     .map((c) => ({ c, w: similarity(target, c) }))
-    .filter((x) => x.w > 0.1)
+    .filter((x) => x.w >= 0.03)
     .sort((a, b) => b.w - a.w)
-    .slice(0, 24);
+    .slice(0, 18);
 
   if (!scored.length) {
     return { low: 0, mid: 0, high: 0, confidence: 0, sampleSize: 0, comparables: [] };
@@ -73,17 +142,27 @@ export function estimateValue(
 
   const adjusted = scored.map(({ c, w }) => {
     let p = c.price;
-    // تعديل السنة
-    p *= Math.pow(dep, c.year - target.year);
-    // تعديل الكيلومتراج
-    p *= 1 + (kmRate * (c.km - target.km)) / kmStep;
+    // تعديل العمر عبر منحنى الاحتفاظ بالقيمة
+    p *= targetCurve / valueCurve(CURRENT_YEAR - c.year, c.kind);
+    // تعديل الكيلومتراج (محدود حتى لا ينفجر على الفوارق الكبيرة)
+    const kmAdj = 1 + (kmRate * (c.km - target.km)) / kmStep;
+    p *= Math.max(0.6, Math.min(1.45, kmAdj));
     // تعديل الحالة
     p *= targetCond / COND_MULT[c.condition];
+    // نوع الوقود
+    p *= targetFuel / (FUEL_VALUE[c.fuel] ?? 1);
+    // القوة / سعة المحرك
+    if (target.power) {
+      const ratio = target.power / powerOf(c);
+      const exp = target.kind === "moto" ? 0.5 : 0.45;
+      p *= Math.max(0.55, Math.min(1.9, Math.pow(ratio, exp)));
+    }
     // ناقل السرعة
     if (target.gearbox && target.gearbox !== c.gearbox) {
       p *= target.gearbox === "automatique" ? 1.05 : 0.95;
     }
-    return { p: Math.max(3000, p), w };
+    // تركيز الوزن على أقرب المشابهات
+    return { p: Math.max(3000, p), w: w * w };
   });
 
   // متوسط مرجّح مع تحييد القيم الشاذة
@@ -95,13 +174,17 @@ export function estimateValue(
   const variance =
     trimmed.reduce((s, x) => s + x.w * Math.pow(x.p - mid, 2), 0) / totalW;
   const sd = Math.sqrt(variance);
-  const relSd = Math.min(0.28, sd / mid);
+  const relSd = Math.min(0.32, sd / mid);
 
+  // التغطية: هل وُجدت مشابهة قوية (نفس الموديل/الماركة) وكم عددها؟
+  const topW = Math.max(...scored.map((x) => x.w));
+  const support = scored.reduce((sum, x) => sum + x.w, 0);
+  const coverage = Math.min(1, topW * 0.75 + Math.min(1, support / 2.5) * 0.45);
   const confidence = Math.max(
-    0.25,
-    Math.min(0.97, (totalW / 6) * 0.6 + (1 - relSd / 0.28) * 0.4),
+    0.2,
+    Math.min(0.97, coverage * 0.62 + (1 - relSd / 0.32) * 0.38),
   );
-  const spread = Math.max(0.06, Math.min(0.2, relSd * 0.9));
+  const spread = Math.max(0.06, Math.min(0.24, relSd * 0.95));
 
   return {
     low: Math.round((mid * (1 - spread)) / 500) * 500,
@@ -122,6 +205,8 @@ export type PriceVerdict =
 
 export interface FairPrice {
   estimate: Estimate;
+  /** مراجع غير كافية: نعرض التقدير كمؤشر أولي فقط */
+  weak: boolean;
   /** فرق السعر عن المرجع بالنسبة المئوية */
   delta: number;
   deltaDh: number;
@@ -151,11 +236,13 @@ export function fairPrice(v: Vehicle): FairPrice {
       gearbox: v.gearbox,
       body: v.body,
       condition: v.condition,
+      power: v.kind === "moto" ? v.displacement : v.fiscalPower,
     },
     { excludeId: v.id },
   );
 
   const delta = estimate.mid ? (v.price - estimate.mid) / estimate.mid : 0;
+  const weak = estimate.confidence < 0.5 || estimate.sampleSize < 3;
   const verdict: PriceVerdict =
     delta <= -0.14 ? "tres-bas"
       : delta <= -0.045 ? "bas"
@@ -168,10 +255,11 @@ export function fairPrice(v: Vehicle): FairPrice {
 
   return {
     estimate,
+    weak,
     delta,
     deltaDh: Math.round(v.price - estimate.mid),
     verdict,
-    label: VERDICTS[verdict],
+    label: weak ? "مراجع محدودة" : VERDICTS[verdict],
     position,
   };
 }
@@ -200,8 +288,11 @@ function kmPerYear(v: Vehicle) {
   return v.km / Math.max(1, CURRENT_YEAR - v.year);
 }
 
-export function trustScore(v: Vehicle): TrustResult {
-  const seller = sellerById(v.sellerId);
+export function trustScore(
+  v: Vehicle,
+  sellerOverride?: Seller,
+): TrustResult {
+  const seller = sellerOverride ?? sellerById(v.sellerId);
   const parts: TrustPart[] = [];
   const flags: TrustResult["flags"] = [];
   const strengths: string[] = [];
@@ -286,7 +377,7 @@ export function trustScore(v: Vehicle): TrustResult {
     coherence += 3;
     flags.push({
       level: "warn",
-      text: `كيلومتراج منخفض بشكل غير معتاد (${Math.round(kpy).toLocaleString("fr-FR")} كم/سنة) — يُنصح بالتحقق من العدّاد`,
+      text: `كيلومتراج منخفض بشكل غير معتاد (${formatNumber(kpy)} كم/سنة) — يُنصح بالتحقق من العدّاد`,
     });
   } else {
     coherence += 5;
@@ -294,7 +385,8 @@ export function trustScore(v: Vehicle): TrustResult {
   }
 
   const fp = fairPrice(v);
-  if (fp.verdict === "juste" || fp.verdict === "bas" || fp.verdict === "haut") coherence += 6;
+  if (fp.weak) coherence += 4;
+  else if (fp.verdict === "juste" || fp.verdict === "bas" || fp.verdict === "haut") coherence += 6;
   else if (fp.verdict === "tres-bas") {
     coherence += 2;
     flags.push({
@@ -307,7 +399,7 @@ export function trustScore(v: Vehicle): TrustResult {
     label: "اتساق المعطيات",
     score: coherence,
     max: 14,
-    detail: `${Math.round(kpy).toLocaleString("fr-FR")} كم/سنة · ${fp.label}`,
+    detail: `${formatNumber(kpy)} كم/سنة · ${fp.label}`,
   });
 
   // 6) الفحص المستقل — 10
