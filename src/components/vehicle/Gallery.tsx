@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { VehicleArt } from "@/components/VehicleArt";
+import { artShape } from "@/lib/artshape";
 import type { Vehicle } from "@/lib/types";
 import { useApp } from "@/store/app";
 
@@ -19,7 +20,7 @@ export function Gallery({ v }: { v: Vehicle }) {
           <VehicleArt
             id={v.id}
             kind={v.kind}
-            body={v.body}
+            body={artShape(v)}
             variant={active}
             className="h-full w-full"
             label={`${v.make} ${v.model} — صورة ${active + 1}`}
@@ -81,7 +82,7 @@ export function Gallery({ v }: { v: Vehicle }) {
             className="h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition"
             style={{ borderColor: active === i ? "var(--accent)" : "transparent" }}
           >
-            <VehicleArt id={v.id} kind={v.kind} body={v.body} variant={i} className="h-full w-full" />
+            <VehicleArt id={v.id} kind={v.kind} body={artShape(v)} variant={i} className="h-full w-full" />
           </button>
         ))}
       </div>

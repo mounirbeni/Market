@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useApp } from "@/store/app";
 import { vehicleById } from "@/lib/data/vehicles";
 import { VehicleArt } from "./VehicleArt";
+import { artShape } from "@/lib/artshape";
 
 export function CompareBar() {
   const { compare, toggleCompare, clearCompare, ready } = useApp();
@@ -25,7 +26,7 @@ export function CompareBar() {
           {items.map((v) => (
             <div key={v!.id} className="relative shrink-0">
               <div className="h-11 w-16 overflow-hidden rounded-lg">
-                <VehicleArt id={v!.id} kind={v!.kind} body={v!.body} className="h-full w-full" />
+                <VehicleArt id={v!.id} kind={v!.kind} body={artShape(v!)} className="h-full w-full" />
               </div>
               <button
                 onClick={() => toggleCompare(v!.id)}

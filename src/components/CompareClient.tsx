@@ -9,6 +9,7 @@ import { computeTco } from "@/lib/tco";
 import { AR, formatNumber } from "@/lib/format";
 import { cityName } from "@/lib/cities";
 import { VehicleArt } from "@/components/VehicleArt";
+import { artShape } from "@/lib/artshape";
 import { TrustRing } from "@/components/TrustBadge";
 import { Price } from "@/components/Price";
 import type { Vehicle } from "@/lib/types";
@@ -109,7 +110,7 @@ export function CompareClient() {
                 <th key={v.id} className="p-2 align-bottom" style={{ width: `${70 / items.length}%` }}>
                   <div className="card overflow-hidden">
                     <div className="relative aspect-[16/10]">
-                      <VehicleArt id={v.id} kind={v.kind} body={v.body} className="h-full w-full" />
+                      <VehicleArt id={v.id} kind={v.kind} body={artShape(v)} className="h-full w-full" />
                       <button
                         onClick={() => toggleCompare(v.id)}
                         aria-label={`إزالة ${v.make} ${v.model}`}

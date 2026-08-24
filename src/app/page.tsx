@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SmartSearch } from "@/components/SmartSearch";
 import { VehicleCard } from "@/components/VehicleCard";
 import { VehicleArt } from "@/components/VehicleArt";
+import { artShape } from "@/lib/artshape";
 import { TrustRing } from "@/components/TrustBadge";
 import { applyFilters } from "@/lib/search";
 import { VEHICLES } from "@/lib/data/vehicles";
@@ -65,6 +66,7 @@ export default function HomePage() {
     { key: "citadine", label: "مدينية", kind: "car" },
     { key: "berline", label: "صالون", kind: "car" },
     { key: "suv", label: "دفع رباعي", kind: "car" },
+    { key: "pickup", label: "بيك أب", kind: "car" },
     { key: "utilitaire", label: "نفعية", kind: "car" },
     { key: "scooter", label: "سكوتر", kind: "moto" },
     { key: "trail", label: "طرق وعرة", kind: "moto" },
@@ -269,11 +271,17 @@ export default function HomePage() {
         <h2 className="section-title mb-6">تصفّح حسب النوع</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {bodies.map((b) => {
-            const n = VEHICLES.filter((v) => v.body === b.key).length;
+            const n = VEHICLES.filter((v) =>
+              b.key === "pickup"
+                ? artShape(v) === "pickup"
+                : b.key === "utilitaire"
+                  ? v.body === "utilitaire" && artShape(v) !== "pickup"
+                  : v.body === b.key,
+            ).length;
             return (
               <Link
                 key={b.key}
-                href={`/vehicles?body=${b.key}&kind=${b.kind}`}
+                href={`/vehicles?body=${b.key === "pickup" ? "utilitaire" : b.key}&kind=${b.kind}`}
                 className="card card-hover overflow-hidden"
               >
                 <div className="aspect-[16/9]">

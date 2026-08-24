@@ -9,6 +9,7 @@ import { cityName } from "@/lib/cities";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { useApp } from "@/store/app";
 import { VehicleArt } from "./VehicleArt";
+import { artShape } from "@/lib/artshape";
 import { TrustPill } from "./TrustBadge";
 import { FairPriceTag } from "./FairPriceMeter";
 import { Price } from "./Price";
@@ -27,7 +28,7 @@ export function VehicleCard({ v, compact = false }: { v: Vehicle; compact?: bool
           <VehicleArt
             id={v.id}
             kind={v.kind}
-            body={v.body}
+            body={artShape(v)}
             className="h-full w-full transition-transform duration-700 group-hover:scale-105"
             label={`${v.make} ${v.model} ${v.year}`}
           />
