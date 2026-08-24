@@ -103,7 +103,7 @@ export function VehiclesClient() {
           </div>
         </aside>
 
-        <div>
+        <div className="min-w-0">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-xl font-black">{title}</h1>

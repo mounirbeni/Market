@@ -67,13 +67,13 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
             boxShadow: value ? "0 0 0 4px color-mix(in oklab, var(--accent) 12%, transparent)" : "none",
           }}
         >
-          <span className="pr-3 text-xl" aria-hidden="true">🔎</span>
+          <span className="shrink-0 pr-3 text-xl" aria-hidden="true">🔎</span>
           <input
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="قول لينا شنو كتقلّب عليه… مثلاً: كليو ديزل تحت 12 مليون فكازا"
             aria-label="البحث بالدارجة"
-            className={`flex-1 bg-transparent outline-none ${big ? "py-3 text-base" : "py-2 text-sm"}`}
+            className={`min-w-0 flex-1 bg-transparent outline-none ${big ? "py-3 text-base" : "py-2 text-sm"}`}
             style={{ color: "var(--text)" }}
           />
           {value && (
@@ -86,7 +86,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
               ×
             </button>
           )}
-          <button type="submit" className={`btn btn-primary ${big ? "" : "btn-sm"}`}>
+          <button type="submit" className={`btn btn-primary shrink-0 ${big ? "" : "btn-sm"}`}>
             بحث
           </button>
         </div>

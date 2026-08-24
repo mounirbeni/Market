@@ -310,7 +310,7 @@ export default function HomePage() {
             <div>
               <h2 className="section-title">مفحوصة من طرف طريق</h2>
               <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                ١٢٠ نقطة فحص ميكانيكي وهيكلي، بتقرير مفصّل مرفق بالإعلان.
+                <span className="num">120</span> نقطة فحص ميكانيكي وهيكلي، بتقرير مفصّل مرفق بالإعلان.
               </p>
             </div>
             <Link href="/inspection" className="btn btn-ghost btn-sm">كيفاش؟</Link>

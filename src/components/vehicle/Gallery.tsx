@@ -14,7 +14,7 @@ export function Gallery({ v }: { v: Vehicle }) {
   const cmp = inCompare(v.id);
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="card relative overflow-hidden">
         <div className="aspect-[16/10]">
           <VehicleArt
@@ -67,12 +67,12 @@ export function Gallery({ v }: { v: Vehicle }) {
           </button>
         </div>
 
-        <span className="num absolute bottom-3 left-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur">
+        <span className="num absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] text-white backdrop-blur">
           {active + 1} / {shots}
         </span>
       </div>
 
-      <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1">
+      <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto no-scrollbar pb-1">
         {Array.from({ length: shots }).map((_, i) => (
           <button
             key={i}

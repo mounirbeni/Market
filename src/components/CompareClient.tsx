@@ -101,7 +101,7 @@ export function CompareClient() {
         <button onClick={clearCompare} className="btn btn-ghost btn-sm">مسح الكل</button>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="min-w-0 overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-right">
           <thead>
             <tr>

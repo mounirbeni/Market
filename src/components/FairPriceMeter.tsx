@@ -45,7 +45,7 @@ export function FairPriceTag({ fp }: { fp: FairPrice }) {
 
 export function FairPriceMeter({ fp, price }: { fp: FairPrice; price: number }) {
   const tone = TONES[fp.verdict];
-  const pos = Math.max(3, Math.min(97, fp.position * 100));
+  const pos = Math.max(14, Math.min(86, fp.position * 100));
   return (
     <div className="card p-5" style={{ background: "var(--bg-inset)" }}>
       {fp.weak && (
@@ -83,7 +83,7 @@ export function FairPriceMeter({ fp, price }: { fp: FairPrice; price: number }) 
         }}
       >
         <div
-          className="absolute -top-7 flex -translate-x-1/2 flex-col items-center"
+          className="absolute -top-7 flex flex-col items-center"
           style={{ right: `${pos}%`, transform: "translateX(50%)" }}
         >
           <span

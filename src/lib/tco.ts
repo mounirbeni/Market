@@ -137,7 +137,7 @@ export function computeTco(v: Vehicle, opts: TcoOptions): TcoResult {
       key: "fuel",
       label: v.fuel === "electrique" ? "الشحن الكهربائي" : "المحروقات",
       perYear: fuelCost(v, kmPerYear, opts.fuelPrices),
-      hint: `${v.consumption} ${v.fuel === "electrique" ? "ك.و.س" : "ل"}/١٠٠كم`,
+      hint: `${v.consumption} ${v.fuel === "electrique" ? "ك.و.س" : "ل"}/100كم`,
     },
     {
       key: "insurance",

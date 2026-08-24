@@ -409,9 +409,9 @@ export function trustScore(
     label: "فحص TRIQ المستقل",
     score: inspection,
     max: 10,
-    detail: v.inspected ? "١٢٠ نقطة فحص · تقرير متاح" : "لم يُطلب فحص بعد",
+    detail: v.inspected ? "120 نقطة فحص · تقرير متاح" : "لم يُطلب فحص بعد",
   });
-  if (v.inspected) strengths.push("خضعت لفحص مستقل من ١٢٠ نقطة");
+  if (v.inspected) strengths.push("خضعت لفحص مستقل من 120 نقطة");
 
   const score = Math.round(parts.reduce((s, p) => s + p.score, 0));
   const grade: TrustResult["grade"] =

@@ -22,7 +22,7 @@ export function CompareBar() {
           borderColor: "var(--color-majorelle-400)",
         }}
       >
-        <div className="flex flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
           {items.map((v) => (
             <div key={v!.id} className="relative shrink-0">
               <div className="h-11 w-16 overflow-hidden rounded-lg">

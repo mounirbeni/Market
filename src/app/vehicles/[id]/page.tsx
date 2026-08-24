@@ -119,7 +119,7 @@ export default async function VehiclePage({
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         {/* ---------- العمود الرئيسي ---------- */}
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Gallery v={v} />
 
           <header className="card p-5">
@@ -199,7 +199,7 @@ export default async function VehiclePage({
         </div>
 
         {/* ---------- العمود الجانبي ---------- */}
-        <aside className="space-y-6 lg:sticky lg:top-20 lg:h-fit">
+        <aside className="min-w-0 space-y-6 lg:sticky lg:top-20 lg:h-fit">
           <SellerCard seller={seller} v={v} />
           <TrustPanel trust={trust} />
 
