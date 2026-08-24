@@ -1,0 +1,304 @@
+@import "tailwindcss";
+
+/* ============================================================
+   TRIQ — نظام التصميم
+   لوحة مستوحاة من الزليج المغربي: ليل الأطلس + زعفران + طين مراكش
+   ============================================================ */
+
+@theme {
+  --color-ink-950: #070a0f;
+  --color-ink-900: #0b0f16;
+  --color-ink-850: #10151e;
+  --color-ink-800: #151b26;
+  --color-ink-700: #1e2634;
+  --color-ink-600: #2b3546;
+  --color-ink-500: #465269;
+  --color-ink-400: #6d7a92;
+  --color-ink-300: #9aa6bb;
+  --color-ink-200: #c6cede;
+  --color-ink-100: #e6eaf2;
+  --color-ink-50: #f5f7fb;
+
+  --color-saffron-400: #f5c765;
+  --color-saffron-500: #e9b44c;
+  --color-saffron-600: #c9942f;
+
+  --color-clay-400: #e07b57;
+  --color-clay-500: #c75b39;
+  --color-clay-600: #a4432a;
+
+  --color-atlas-400: #24b183;
+  --color-atlas-500: #0e8f66;
+  --color-atlas-600: #0a6f50;
+
+  --color-majorelle-400: #6f7ff0;
+  --color-majorelle-500: #4f5fd8;
+
+  --font-sans: var(--font-arabic), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-latin), ui-monospace, monospace;
+
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- الوضع الليلي (افتراضي) والنهاري ---------- */
+:root {
+  --bg: var(--color-ink-950);
+  --bg-raised: var(--color-ink-900);
+  --bg-card: var(--color-ink-850);
+  --bg-inset: var(--color-ink-800);
+  --line: color-mix(in oklab, var(--color-ink-600) 70%, transparent);
+  --line-soft: color-mix(in oklab, var(--color-ink-600) 40%, transparent);
+  --text: var(--color-ink-50);
+  --text-muted: var(--color-ink-300);
+  --text-dim: var(--color-ink-400);
+  --accent: var(--color-saffron-500);
+  --accent-ink: #1a1204;
+  --zellige-opacity: 0.05;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #fbf8f2;
+  --bg-raised: #ffffff;
+  --bg-card: #ffffff;
+  --bg-inset: #f2eee5;
+  --line: #e0d8c8;
+  --line-soft: #ece5d8;
+  --text: #12161d;
+  --text-muted: #4d5666;
+  --text-dim: #6f7a8c;
+  --accent: var(--color-saffron-600);
+  --accent-ink: #ffffff;
+  --zellige-opacity: 0.045;
+  color-scheme: light;
+}
+
+@layer base {
+  * {
+    border-color: var(--line-soft);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "kern";
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* الأرقام دائماً لاتينية ومن اليسار لليمين حتى داخل نص عربي */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    unicode-bidi: isolate;
+    display: inline-block;
+  }
+
+  ::selection {
+    background: var(--color-saffron-500);
+    color: #12161d;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-saffron-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  input, select, textarea, button { font-family: inherit; }
+
+  /* شريط تمرير خفيف */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 99px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+/* ============================================================
+   النقشة الزليجية — البصمة البصرية للموقع
+   ============================================================ */
+.zellige {
+  position: relative;
+  isolation: isolate;
+}
+.zellige::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: var(--zellige-opacity);
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23e9b44c' stroke-width='1.1'%3E%3Cpath d='M40 0 L80 40 L40 80 L0 40 Z'/%3E%3Cpath d='M40 14 L66 40 L40 66 L14 40 Z'/%3E%3Cpath d='M0 0 L14 14 M80 0 L66 14 M0 80 L14 66 M80 80 L66 66'/%3E%3Ccircle cx='40' cy='40' r='7'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 80px 80px;
+  pointer-events: none;
+}
+
+/* توهج خلفي ناعم */
+.glow-saffron {
+  background: radial-gradient(
+    60% 50% at 50% 0%,
+    color-mix(in oklab, var(--color-saffron-500) 22%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+/* ============================================================
+   مكوّنات متكررة
+   ============================================================ */
+@layer components {
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-lg);
+  }
+
+  .card-hover {
+    transition: transform 0.35s var(--ease-out-soft), border-color 0.35s,
+      box-shadow 0.35s;
+  }
+  .card-hover:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in oklab, var(--color-saffron-500) 45%, transparent);
+    box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.75);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 99px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.75rem 1.4rem;
+    transition: all 0.22s var(--ease-out-soft);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+  }
+  .btn-ghost {
+    border: 1px solid var(--line);
+    color: var(--text);
+  }
+  .btn-ghost:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .btn-sm { padding: 0.5rem 0.95rem; font-size: 0.8rem; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 99px;
+    border: 1px solid var(--line);
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--bg-inset);
+  }
+
+  .field {
+    width: 100%;
+    background: var(--bg-inset);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius-sm);
+    padding: 0.65rem 0.85rem;
+    color: var(--text);
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+  }
+  .field:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
+  .field::placeholder { color: var(--text-dim); }
+
+  .label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .divider-zellige {
+    height: 1px;
+    background: linear-gradient(
+      to left,
+      transparent,
+      var(--line),
+      transparent
+    );
+  }
+}
+
+/* ============================================================
+   حركات
+   ============================================================ */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-rise { animation: rise 0.6s var(--ease-out-soft) both; }
+
+@keyframes marquee-rtl {
+  from { transform: translateX(0); }
+  to { transform: translateX(50%); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-rtl 42s linear infinite;
+}
+.marquee-track:hover { animation-play-state: paused; }
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-atlas-400) 55%, transparent); }
+  70% { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.pulse-ring { animation: pulse-ring 2.4s infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* إخفاء شريط التمرير الأفقي للقوائم */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
