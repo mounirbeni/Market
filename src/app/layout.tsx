@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Arabic, Noto_Kufi_Arabic, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/store/app";
+import { SessionProvider } from "@/store/session";
+import { getCurrentUser } from "@/lib/auth";
+import { unreadCount } from "@/lib/db/chat";
 import { Header, MobileNav } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CompareBar } from "@/components/CompareBar";
@@ -70,13 +73,18 @@ export const viewport: Viewport = {
 /** يمنع وميض الوضع الفاتح/الداكن قبل التحميل */
 const themeScript = `(function(){try{var s=localStorage.getItem('triq:v1');var t=s?JSON.parse(s).theme:'light';document.documentElement.setAttribute('data-theme',t||'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // الجلسة كتتقرا من الكوكي فالخادم — هي المصدر الوحيد للحقيقة
+  const user = await getCurrentUser();
+  const unread = user ? await unreadCount(user.id).catch(() => 0) : 0;
+
   return (
     <html lang="ar" dir="rtl" data-theme="light" className={`${body.variable} ${kufi.variable} ${num.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-screen antialiased">
+        <SessionProvider user={user} unread={unread}>
         <AppProvider>
           <a
             href="#main"
@@ -90,6 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <CompareBar />
           <MobileNav />
         </AppProvider>
+        </SessionProvider>
       </body>
     </html>
   );

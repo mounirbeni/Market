@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { useApp } from "@/store/app";
+import { useSession } from "@/store/session";
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, Info, Phone, ShieldCheck } from "@/components/icons";
 
 /* ============================================================
@@ -33,7 +33,14 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const router = useRouter();
-  const { signIn } = useApp();
+  const params = useSearchParams();
+  const { refresh } = useSession();
+
+  /** وجهة ما بعد الدخول — داخلية فقط، ماكنقبلوش روابط خارجية */
+  const next = (() => {
+    const raw = params.get("next") ?? "";
+    return raw.startsWith("/") && !raw.startsWith("//") ? raw : "/dashboard";
+  })();
 
   async function requestCode(e: React.FormEvent) {
     e.preventDefault();
@@ -54,9 +61,8 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
     setErr(""); setBusy(true);
     try {
       await post("/api/auth/verify-otp", { phone, code, name });
-      // نسخة محلية للواجهة (الشارة فالهيدر) — المصدر الحقيقي هو الكوكي
-      signIn({ name: name.trim() || "مستعمل طريق", role: "buyer", phone });
-      router.push("/dashboard");
+      await refresh();
+      router.push(next);
       router.refresh();
     } catch (e) {
       setErr((e as Error).message);

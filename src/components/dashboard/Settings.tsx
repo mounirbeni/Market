@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useApp } from "@/store/app";
+import { useSession } from "@/store/session";
 import {
   BadgeCheck, Bell, IdCard, Info, Lock2, Message, Phone, ShieldCheck, Users,
 } from "@/components/icons";
 
 export function DashboardSettings() {
-  const { user, signOut, unit, setUnit, theme, toggleTheme } = useApp();
+  const { unit, setUnit, theme, toggleTheme } = useApp();
+  const { user, signOut } = useSession();
   const [name, setName] = useState(user?.name ?? "");
   const [alerts, setAlerts] = useState({ priceDrops: true, messages: true, listings: true, newsletter: false });
 
@@ -116,7 +118,7 @@ export function DashboardSettings() {
             </button>
           </div>
           <div className="border-t pt-3" style={{ borderColor: "var(--line-soft)" }}>
-            <button onClick={signOut} className="btn btn-ghost btn-sm" style={{ color: "var(--bad)" }}>
+            <button onClick={() => void signOut()} className="btn btn-ghost btn-sm" style={{ color: "var(--bad)" }}>
               تسجيل الخروج
             </button>
           </div>

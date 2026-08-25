@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useApp } from "@/store/app";
+import { useSession } from "@/store/session";
 import { THREADS } from "@/lib/data/threads";
 import {
   BadgeCheck, Calendar, Car, Chart, Heart, Message, Plus, Sliders, Users,
@@ -20,7 +21,8 @@ const NAV = [
 
 export function DashboardShell({ title, children }: { title: string; children: ReactNode }) {
   const pathname = usePathname();
-  const { user, signOut, favorites, ready } = useApp();
+  const { favorites, ready } = useApp();
+  const { user, signOut } = useSession();
   const unread = THREADS.reduce((s, t) => s + t.unread, 0);
 
   if (!ready) return null;
@@ -66,10 +68,12 @@ export function DashboardShell({ title, children }: { title: string; children: R
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="truncate text-[13px] font-bold">{user.name}</span>
-                  <BadgeCheck size={13} style={{ color: "var(--good)" }} />
+                  {user.phone_verified && (
+                    <BadgeCheck size={13} style={{ color: "var(--good)" }} aria-label="رقم موثّق" />
+                  )}
                 </div>
                 <span className="text-[10.5px]" style={{ color: "var(--text-dim)" }}>
-                  {user.role === "seller" ? "بائع" : "مشترٍ"} ·{" "}
+                  {user.type === "professionnel" ? "محترف" : "خاص"} ·{" "}
                   <span className="num" dir="ltr">{user.phone}</span>
                 </span>
               </div>
@@ -108,7 +112,7 @@ export function DashboardShell({ title, children }: { title: string; children: R
 
             <div className="border-t p-3" style={{ borderColor: "var(--line-soft)" }}>
               <Link href="/sell" className="btn btn-primary btn-sm w-full"><Plus size={14} /> إعلان جديد</Link>
-              <button onClick={signOut} className="btn btn-ghost btn-sm mt-2 w-full">تسجيل الخروج</button>
+              <button onClick={() => void signOut()} className="btn btn-ghost btn-sm mt-2 w-full">تسجيل الخروج</button>
             </div>
           </div>
         </aside>

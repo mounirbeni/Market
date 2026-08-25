@@ -14,12 +14,6 @@ export interface SavedSearch {
   alert: boolean;
 }
 
-export interface SessionUser {
-  name: string;
-  role: "buyer" | "seller";
-  phone: string;
-}
-
 interface AppState {
   ready: boolean;
   unit: Unit;
@@ -45,11 +39,6 @@ interface AppState {
   recent: string[];
   pushRecent: (id: string) => void;
 
-  /** جلسة تجريبية محفوظة محلياً */
-  user: SessionUser | null;
-  signIn: (u: SessionUser) => void;
-  signOut: () => void;
-
   /** مركبات مفعّل عليها تنبيه انخفاض السعر */
   priceWatch: string[];
   togglePriceWatch: (id: string) => void;
@@ -71,7 +60,6 @@ interface Persisted {
   compare: string[];
   searches: SavedSearch[];
   recent: string[];
-  user: SessionUser | null;
   priceWatch: string[];
   readNotifications: string[];
 }
@@ -83,7 +71,6 @@ const initial: Persisted = {
   compare: [],
   searches: [],
   recent: [],
-  user: null,
   priceWatch: [],
   readNotifications: [],
 };
@@ -168,9 +155,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const signIn = useCallback((user: SessionUser) => setState((s) => ({ ...s, user })), []);
-  const signOut = useCallback(() => setState((s) => ({ ...s, user: null })), []);
-
   const markRead = useCallback((id: string) => {
     setState((s) =>
       s.readNotifications.includes(id)
@@ -193,13 +177,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       inCompare: (id) => state.compare.includes(id),
       searches: state.searches, saveSearch, removeSearch,
       recent: state.recent, pushRecent,
-      user: state.user, signIn, signOut,
       priceWatch: state.priceWatch, togglePriceWatch,
       isWatched: (id) => state.priceWatch.includes(id),
       readNotifications: state.readNotifications, markRead, markAllRead,
     }),
     [ready, state, setUnit, toggleUnit, toggleTheme, toggleFavorite, toggleCompare,
-      clearCompare, saveSearch, removeSearch, pushRecent, signIn, signOut,
+      clearCompare, saveSearch, removeSearch, pushRecent,
       togglePriceWatch, markRead, markAllRead],
   );
 

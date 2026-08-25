@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApp } from "@/store/app";
+import { useSession } from "@/store/session";
 import { Logo } from "./Logo";
 import { UnitToggle } from "./Price";
 import { NOTIFICATIONS } from "@/lib/data/notifications";
@@ -63,7 +64,8 @@ function NavIconButton({
 }
 
 export function Header() {
-  const { favorites, compare, theme, toggleTheme, user, readNotifications } = useApp();
+  const { favorites, compare, theme, toggleTheme, readNotifications } = useApp();
+  const { user } = useSession();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
@@ -209,7 +211,8 @@ export function Header() {
 /** شريط تنقّل سفلي للهاتف */
 export function MobileNav() {
   const pathname = usePathname();
-  const { favorites, user } = useApp();
+  const { favorites } = useApp();
+  const { user } = useSession();
 
   const items = [
     { href: "/", label: "الرئيسية", Icon: ShieldCheck },
