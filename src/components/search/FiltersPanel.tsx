@@ -24,41 +24,41 @@ interface Props {
 }
 
 const CONDITIONS = [
-  { value: "excellent", label: "ممتازة" },
-  { value: "tres-bon", label: "جيدة جداً" },
-  { value: "bon", label: "جيدة" },
-  { value: "moyen", label: "متوسطة" },
+  { value: "excellent", label: "ممتازة", fr: "Excellent" },
+  { value: "tres-bon", label: "جيدة جداً", fr: "Très bon" },
+  { value: "bon", label: "جيدة", fr: "Bon" },
+  { value: "moyen", label: "متوسطة", fr: "Moyen" },
 ];
 
 const CAR_BODIES = [
-  { value: "citadine", label: "مدينية" },
-  { value: "berline", label: "صالون" },
-  { value: "suv", label: "دفع رباعي" },
-  { value: "break", label: "بريك" },
-  { value: "utilitaire", label: "نفعية" },
-  { value: "cabriolet", label: "مكشوفة" },
+  { value: "citadine", label: "مدينية", fr: "Citadine" },
+  { value: "berline", label: "صالون", fr: "Berline" },
+  { value: "suv", label: "دفع رباعي", fr: "SUV" },
+  { value: "break", label: "بريك", fr: "Break" },
+  { value: "utilitaire", label: "نفعية", fr: "Utilitaire" },
+  { value: "cabriolet", label: "مكشوفة", fr: "Cabriolet" },
 ];
 
 const MOTO_BODIES = [
-  { value: "scooter", label: "سكوتر" },
-  { value: "roadster", label: "رودستر" },
-  { value: "trail", label: "طرق وعرة" },
-  { value: "sportive", label: "رياضية" },
-  { value: "custom", label: "كوستوم" },
+  { value: "scooter", label: "سكوتر", fr: "Scooter" },
+  { value: "roadster", label: "رودستر", fr: "Roadster" },
+  { value: "trail", label: "طرق وعرة", fr: "Trail" },
+  { value: "sportive", label: "رياضية", fr: "Sportive" },
+  { value: "custom", label: "كوستوم", fr: "Custom" },
 ];
 
 const MOTO_SET = new Set(MOTO_BODIES.map((b) => b.value));
 
 const FUELS = [
-  { value: "diesel", label: "ديزل", Icon: Droplet },
-  { value: "essence", label: "بنزين", Icon: Fuel },
-  { value: "hybride", label: "هجين", Icon: Leaf },
-  { value: "electrique", label: "كهربائي", Icon: Bolt },
+  { value: "diesel", label: "ديزل", fr: "Diesel", Icon: Droplet },
+  { value: "essence", label: "بنزين", fr: "Essence", Icon: Fuel },
+  { value: "hybride", label: "هجين", fr: "Hybride", Icon: Leaf },
+  { value: "electrique", label: "كهربائي", fr: "Électrique", Icon: Bolt },
 ];
 
 const GEARBOXES = [
-  { value: "manuelle", label: "يدوية", Icon: Gearbox },
-  { value: "automatique", label: "أوتوماتيك", Icon: Gearbox },
+  { value: "manuelle", label: "يدوية", fr: "Manuelle", Icon: Gearbox },
+  { value: "automatique", label: "أوتوماتيك", fr: "Automatique", Icon: Gearbox },
 ];
 
 const PRICE_MAX = 600000;
@@ -331,7 +331,7 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
           <ChipToggles
             value={filters.city}
             onChange={(c) => set({ city: c })}
-            options={cityList.map((c) => ({ value: c.slug, label: c.ar, count: c.n }))}
+            options={cityList.map((c) => ({ value: c.slug, label: c.ar, fr: c.fr, count: c.n }))}
           />
           {CITIES.length > 8 && (
             <button

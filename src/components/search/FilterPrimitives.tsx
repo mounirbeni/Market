@@ -107,7 +107,7 @@ export function IconTiles({
   columns = 3,
 }: {
   value: string;
-  options: { value: string; label: string; render: (on: boolean) => ReactNode; count: number }[];
+  options: { value: string; label: string; fr?: string; render: (on: boolean) => ReactNode; count: number }[];
   onChange: (v: string) => void;
   columns?: number;
 }) {
@@ -131,6 +131,9 @@ export function IconTiles({
           >
             {o.render(on)}
             <span className="text-[10.5px] font-bold leading-none">{o.label}</span>
+            {o.fr && (
+              <span className="text-[8.5px] leading-none opacity-50" dir="ltr">{o.fr}</span>
+            )}
             <span className="num text-[9px] leading-none opacity-60">{o.count}</span>
           </button>
         );
@@ -146,7 +149,7 @@ export function ChipToggles({
   onChange,
 }: {
   value: string;
-  options: { value: string; label: string; Icon?: IconCmp; count?: number }[];
+  options: { value: string; label: string; fr?: string; Icon?: IconCmp; count?: number }[];
   onChange: (v: string) => void;
 }) {
   return (
@@ -169,6 +172,11 @@ export function ChipToggles({
           >
             {o.Icon && <o.Icon size={13} />}
             {o.label}
+            {o.fr && (
+              <span className="opacity-45" dir="ltr" style={{ fontSize: "0.85em" }}>
+                {o.fr}
+              </span>
+            )}
             {o.count !== undefined && <span className="num opacity-55">{o.count}</span>}
           </button>
         );

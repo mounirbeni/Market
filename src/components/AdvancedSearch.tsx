@@ -107,13 +107,13 @@ export function AdvancedSearch() {
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="الماركة" Icon={BadgeCheck}>
-              <select className="field" value={f.make ?? ""} onChange={(e) => set({ make: e.target.value, model: "" })}>
+              <select className="field" dir="ltr" style={{ textAlign: "left" }} value={f.make ?? ""} onChange={(e) => set({ make: e.target.value, model: "" })}>
                 <option value="">كل الماركات</option>
                 {makes.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>
             </Field>
             <Field label="الموديل" Icon={Car}>
-              <select className="field" value={f.model ?? ""} onChange={(e) => set({ model: e.target.value })} disabled={!f.make}>
+              <select className="field" dir="ltr" style={{ textAlign: "left" }} value={f.model ?? ""} onChange={(e) => set({ model: e.target.value })} disabled={!f.make}>
                 <option value="">{f.make ? `كل موديلات ${f.make}` : "اختر الماركة أولاً"}</option>
                 {models.map((m) => <option key={m} value={m}>{m}</option>)}
               </select>

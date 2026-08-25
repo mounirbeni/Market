@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AdvancedSearch } from "@/components/AdvancedSearch";
+import { SmartSearch } from "@/components/SmartSearch";
 import { Search } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -20,6 +22,13 @@ export default function SearchPage() {
           فتعرف واش المعايير ديالك واقعية قبل ما تشوف النتائج.
         </p>
       </header>
+
+      <div className="mb-8">
+        <Suspense fallback={null}>
+          <SmartSearch big />
+        </Suspense>
+      </div>
+
       <AdvancedSearch />
     </div>
   );
