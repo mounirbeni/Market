@@ -1,22 +1,34 @@
-export function Logo({ size = 34 }: { size?: number }) {
+export function Logo({ size = 36, compact = false }: { size?: number; compact?: boolean }) {
   return (
     <span className="inline-flex items-center gap-2.5">
-      <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
+      <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" className="shrink-0">
         <defs>
-          <linearGradient id="lg-triq" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#f5c765" />
-            <stop offset="100%" stopColor="#c75b39" />
+          <linearGradient id="triq-mark" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#f7d68a" />
+            <stop offset="52%" stopColor="#e3a52f" />
+            <stop offset="100%" stopColor="#d4573a" />
           </linearGradient>
         </defs>
-        <path d="M24 2 L46 24 L24 46 L2 24 Z" fill="url(#lg-triq)" />
-        <path d="M24 9 L39 24 L24 39 L9 24 Z" fill="none" stroke="#0b0f16" strokeWidth="2" opacity="0.55" />
-        <path d="M15 28 L24 19 L33 28" fill="none" stroke="#0b0f16" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="24" cy="33" r="2.6" fill="#0b0f16" />
+        {/* نجمة زليجية ثمانية */}
+        <path
+          d="M24 1.5 30.6 8.1 39.9 8.1 39.9 17.4 46.5 24 39.9 30.6 39.9 39.9 30.6 39.9 24 46.5 17.4 39.9 8.1 39.9 8.1 30.6 1.5 24 8.1 17.4 8.1 8.1 17.4 8.1Z"
+          fill="url(#triq-mark)"
+        />
+        {/* الطريق */}
+        <path d="M17 33 L24 15 L31 33" fill="none" stroke="#0b0f16" strokeWidth="2.6" strokeLinejoin="round" opacity="0.9" />
+        <path d="M24 20.5v2.5M24 26v2.5M24 31v2" stroke="#0b0f16" strokeWidth="2.2" strokeLinecap="round" opacity="0.9" />
       </svg>
-      <span className="flex flex-col leading-none">
-        <span className="text-lg font-black tracking-tight">طريق</span>
-        <span className="num text-[9px] tracking-[0.35em] opacity-55">TRIQ</span>
-      </span>
+      {!compact && (
+        <span className="flex flex-col leading-none">
+          <span
+            className="text-[19px] font-extrabold tracking-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            طريق
+          </span>
+          <span className="num mt-1 text-[8.5px] tracking-[0.42em] opacity-45">TRIQ</span>
+        </span>
+      )}
     </span>
   );
 }

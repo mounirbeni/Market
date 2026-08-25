@@ -9,21 +9,31 @@ import { hashCode } from "@/lib/data/seed";
    إطار العمل: 400×250، الأرض عند y=205، المركبة متجهة نحو اليمين
    ============================================================ */
 
-const PALETTES: [string, string][] = [
-  ["#0f2f3d", "#123a2f"],
-  ["#2a1a3d", "#3d1f33"],
-  ["#33240f", "#3d2b12"],
-  ["#0e2a44", "#152c53"],
-  ["#3a1717", "#2a1330"],
-  ["#12312b", "#1c3a1e"],
+/** خلفية استوديو موحّدة — تنويع محدود في درجة اللون فقط */
+const BACKDROPS: [string, string, string][] = [
+  ["#1c2430", "#11161e", "#e3a52f"],
+  ["#1b2630", "#101820", "#159aa6"],
+  ["#20222e", "#14151d", "#5b63f0"],
+  ["#262124", "#171316", "#d4573a"],
+  ["#1b2724", "#101714", "#12a97c"],
 ];
 
-const PAINTS: [string, string, string][] = [
-  ["#f4f6fa", "#ccd4e2", "#8b97ab"],
-  ["#c9d3e4", "#93a1b8", "#5d6a80"],
-  ["#e6dccb", "#c2b49c", "#877b66"],
-  ["#cfd8d6", "#9fb0ad", "#68797a"],
-];
+/** ألوان الطلاء الحقيقية حسب اللون المعلن */
+const PAINTS: Record<string, [string, string, string]> = {
+  "أبيض": ["#fbfcfe", "#dde3ec", "#a3adbd"],
+  "أسود": ["#414958", "#262d3a", "#12161e"],
+  "أسود مطفي": ["#333a45", "#212730", "#12161e"],
+  "رمادي": ["#a8b2c1", "#78838f", "#4a535f"],
+  "فضي": ["#dbe1ea", "#adb6c4", "#767f8d"],
+  "أزرق ليلي": ["#4570b4", "#2a4a86", "#172a53"],
+  "أزرق": ["#4c83d0", "#2f5da4", "#1c3a6d"],
+  "أحمر": ["#e2564a", "#b8342b", "#7c1c17"],
+  "بيج": ["#ece0c9", "#cdb995", "#96835f"],
+  "بني": ["#9a6f4d", "#6f4c31", "#43301f"],
+  "برتقالي": ["#f5923f", "#d2681d", "#8f4512"],
+};
+
+const PAINT_FALLBACK: [string, string, string] = ["#dbe1ea", "#adb6c4", "#767f8d"];
 
 /* ---------------- السيارات ---------------- */
 
@@ -286,21 +296,25 @@ export interface VehicleArtProps {
   id: string;
   kind: VehicleKind;
   body: ArtShape;
+  /** لون الطلاء المعلن — يُرسم كما هو */
+  color?: string;
   /** رقم الصورة داخل المعرض — يغيّر الزاوية والإضاءة */
   variant?: number;
   className?: string;
   label?: string;
 }
 
-export function VehicleArt({ id, kind, body, variant = 0, className, label }: VehicleArtProps) {
+export function VehicleArt({ id, kind, body, color, variant = 0, className, label }: VehicleArtProps) {
   const h = hashCode(id);
-  const [c1, c2] = PALETTES[h % PALETTES.length];
-  const [p1, p2, p3] = PAINTS[(h >>> 4) % PAINTS.length];
+  const [bg1, bg2, tint] = BACKDROPS[h % BACKDROPS.length];
+  const [p1, p2, p3] = (color && PAINTS[color]) || PAINT_FALLBACK;
+  const isDarkPaint = p3 === "#12161e" || p3 === "#43301f";
   const uid = `${id}-${variant}`;
   const isMoto = kind === "moto";
 
-  const zoom = 1 + (variant % 3) * 0.08;
-  const shiftX = ((variant % 4) - 1.5) * 14;
+  // الصورة الأولى لقطة نظيفة مركزية، والباقي بزوايا مختلفة
+  const zoom = variant === 0 ? 0.95 : 0.95 + (variant % 3) * 0.08;
+  const shiftX = variant === 0 ? 0 : ((variant % 4) - 1.5) * 12;
 
   const spec = CAR_SPECS[carKey(body, kind)];
   const moto = motoArt(body);
@@ -317,36 +331,51 @@ export function VehicleArt({ id, kind, body, variant = 0, className, label }: Ve
       preserveAspectRatio="xMidYMid slice"
     >
       <defs>
-        <linearGradient id={`bg-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={c1} />
-          <stop offset="100%" stopColor={c2} />
+        <linearGradient id={`bg-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={bg1} />
+          <stop offset="62%" stopColor={bg2} />
+          <stop offset="100%" stopColor={bg1} />
         </linearGradient>
-        <radialGradient id={`glow-${uid}`} cx="50%" cy="12%" r="72%">
-          <stop offset="0%" stopColor="#e9b44c" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#e9b44c" stopOpacity="0" />
+        <radialGradient id={`spot-${uid}`} cx="50%" cy="8%" r="78%">
+          <stop offset="0%" stopColor={tint} stopOpacity="0.26" />
+          <stop offset="55%" stopColor={tint} stopOpacity="0.05" />
+          <stop offset="100%" stopColor={tint} stopOpacity="0" />
         </radialGradient>
+        <linearGradient id={`floor-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#000" stopOpacity="0" />
+          <stop offset="100%" stopColor="#000" stopOpacity="0.4" />
+        </linearGradient>
         <linearGradient id={`paint-${uid}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={p1} />
-          <stop offset="55%" stopColor={p2} />
+          <stop offset="18%" stopColor={p1} />
+          <stop offset="52%" stopColor={p2} />
           <stop offset="100%" stopColor={p3} />
         </linearGradient>
-        <pattern id={`zell-${uid}`} width="40" height="40" patternUnits="userSpaceOnUse">
-          <g fill="none" stroke="#e9b44c" strokeOpacity="0.15" strokeWidth="0.8">
-            <path d="M20 0 L40 20 L20 40 L0 20 Z" />
-            <path d="M20 8 L32 20 L20 32 L8 20 Z" />
-            <circle cx="20" cy="20" r="3" />
+        <linearGradient id={`gl-${uid}`} x1="0.1" y1="0" x2="0.7" y2="1">
+          <stop offset="0%" stopColor="#39445c" />
+          <stop offset="55%" stopColor="#1d2431" />
+          <stop offset="100%" stopColor="#141a24" />
+        </linearGradient>
+        <pattern id={`zell-${uid}`} width="28" height="28" patternUnits="userSpaceOnUse">
+          <g fill="none" stroke={tint} strokeOpacity="0.06" strokeWidth="0.6">
+            <path d="M14 0 L28 14 L14 28 L0 14 Z" />
+            <path d="M14 5.5 L22.5 14 L14 22.5 L5.5 14 Z" />
+            <circle cx="14" cy="14" r="2" />
           </g>
         </pattern>
       </defs>
 
       <rect width="400" height="250" fill={`url(#bg-${uid})`} />
       <rect width="400" height="250" fill={`url(#zell-${uid})`} />
-      <rect width="400" height="250" fill={`url(#glow-${uid})`} />
+      <rect width="400" height="250" fill={`url(#spot-${uid})`} />
+      {/* أرضية الاستوديو */}
+      <rect y="196" width="400" height="54" fill={`url(#floor-${uid})`} />
+      <line x1="0" y1="196" x2="400" y2="196" stroke={tint} strokeOpacity="0.13" strokeWidth="1" />
 
       <g
         transform={`translate(${shiftX} 0) scale(${zoom}) translate(${(1 - zoom) * 200} ${(1 - zoom) * 150})`}
       >
-        <ellipse cx="204" cy="212" rx="162" ry="12" fill="#000" opacity="0.34" />
+        <ellipse cx="204" cy="207" rx="168" ry="10" fill="#000" opacity="0.42" />
 
         {isMoto ? (
           <>
@@ -398,12 +427,12 @@ export function VehicleArt({ id, kind, body, variant = 0, className, label }: Ve
             <path
               d={carPath(spec)}
               fill={`url(#paint-${uid})`}
-              stroke="#0b0f16"
-              strokeWidth="2.6"
+              stroke={isDarkPaint ? "#5d6a80" : "#0b0f16"}
+              strokeWidth={isDarkPaint ? 2 : 2.6}
               strokeLinejoin="round"
             />
             {carWindows(spec).map((d, i) => (
-              <path key={i} d={d} fill="#1b2534" stroke="#0b0f16" strokeWidth="1.6" />
+              <path key={i} d={d} fill={`url(#gl-${uid})`} stroke="#0b0f16" strokeWidth="1.6" />
             ))}
 
             {/* أقواس العجلات */}
@@ -432,9 +461,75 @@ export function VehicleArt({ id, kind, body, variant = 0, className, label }: Ve
         )}
       </g>
 
-      <text x="16" y="236" fill="#e9b44c" opacity="0.45" fontSize="11" fontFamily="monospace" letterSpacing="3">
+      <text
+        x="16"
+        y="234"
+        fill={tint}
+        opacity="0.3"
+        fontSize="8"
+        fontFamily="monospace"
+        letterSpacing="3"
+        direction="ltr"
+        textAnchor="start"
+      >
         TRIQ
       </text>
+    </svg>
+  );
+}
+
+/* ============================================================
+   ظلّ المركبة كأيقونة — يُستعمل في الفلاتر والتصنيفات
+   ============================================================ */
+export function VehicleGlyph({
+  shape,
+  kind,
+  size = 28,
+  strokeWidth = 13,
+  className,
+  style,
+}: {
+  shape: ArtShape;
+  kind: VehicleKind;
+  size?: number;
+  strokeWidth?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const isMoto = kind === "moto";
+  const spec = CAR_SPECS[carKey(shape, kind)];
+  const moto = motoArt(shape);
+
+  return (
+    <svg
+      viewBox="0 0 400 250"
+      width={size * 1.6}
+      height={size}
+      className={className}
+      style={style}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinejoin="round"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      {isMoto ? (
+        <>
+          <circle cx={moto.rearWheel[0]} cy={moto.rearWheel[1]} r={moto.rearWheel[2]} />
+          <circle cx={moto.frontWheel[0]} cy={moto.frontWheel[1]} r={moto.frontWheel[2]} />
+          <path d={`M${moto.frontWheel[0]} ${moto.frontWheel[1]} L${moto.fork[0]} ${moto.fork[1]}`} />
+          <path d={`M${moto.rearWheel[0]} ${moto.rearWheel[1]} L${moto.swingarmTo[0]} ${moto.swingarmTo[1]}`} />
+          <path d={moto.bodywork} />
+          {moto.engine && <path d={moto.engine} />}
+        </>
+      ) : (
+        <>
+          <path d={carPath(spec)} />
+          <circle cx={spec.rearWheelX} cy={spec.axleY} r={spec.wheelR} />
+          <circle cx={spec.frontWheelX} cy={spec.axleY} r={spec.wheelR} />
+        </>
+      )}
     </svg>
   );
 }

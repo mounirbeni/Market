@@ -1,57 +1,76 @@
-import type { TrustResult } from "@/lib/market";
-import { trustColor } from "@/lib/market";
+import { trustColor, type TrustResult } from "@/lib/market";
 import { TrustRing } from "@/components/TrustBadge";
+import {
+  AlertTriangle, BadgeCheck, Camera, Check, FileText, IdCard, Info,
+  ShieldAlert, Timer, Wrench,
+} from "@/components/icons";
+import type { IconProps } from "@/components/icons";
 
-const FLAG_STYLE = {
-  danger: { bg: "var(--color-clay-500)", icon: "⚠" },
-  warn: { bg: "var(--color-saffron-600)", icon: "!" },
-  info: { bg: "var(--color-majorelle-500)", icon: "i" },
+const PART_ICONS: Record<string, (p: IconProps) => React.JSX.Element> = {
+  seller: IdCard,
+  docs: FileText,
+  history: Timer,
+  transparency: Camera,
+  coherence: BadgeCheck,
+  inspection: Wrench,
+};
+
+const FLAG_TONE = {
+  danger: { color: "var(--bad)", Icon: ShieldAlert },
+  warn: { color: "var(--warn)", Icon: AlertTriangle },
+  info: { color: "var(--data)", Icon: Info },
 } as const;
 
 export function TrustPanel({ trust }: { trust: TrustResult }) {
   const color = trustColor(trust.score);
+
   return (
-    <section className="card p-5">
-      <div className="flex items-start gap-4">
-        <TrustRing score={trust.score} grade={trust.grade} size={78} stroke={6} />
+    <section className="card overflow-hidden">
+      <div
+        className="flex items-start gap-4 border-b p-5"
+        style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
+      >
+        <TrustRing score={trust.score} grade={trust.grade} size={74} stroke={6} />
         <div className="min-w-0">
-          <h2 className="text-base font-extrabold">مؤشر الثقة</h2>
-          <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            تنقيط مستقل على <span className="num">100</span> نقطة، محسوب من معطيات الإعلان
-            والبائع وسجل المركبة. ماشي تقييم للمركبة، بل لمستوى الشفافية والتحقق.
+          <h2 className="text-[15px] font-bold">مؤشر الثقة</h2>
+          <p className="mt-1 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            تنقيط مستقل على <span className="num">100</span> نقطة من معطيات الإعلان والبائع
+            وسجل المركبة. ماشي تقييم للمركبة، بل لمستوى الشفافية والتحقق.
           </p>
         </div>
       </div>
 
-      <div className="mt-5 space-y-3">
-        {trust.parts.map((p) => (
-          <div key={p.key}>
-            <div className="flex items-baseline justify-between gap-2 text-xs">
-              <span className="font-bold">{p.label}</span>
-              <span className="num shrink-0" style={{ color: "var(--text-dim)" }}>
-                {p.score}/{p.max}
-              </span>
+      <div className="space-y-3.5 p-5">
+        {trust.parts.map((p) => {
+          const Icon = PART_ICONS[p.key] ?? BadgeCheck;
+          const pct = (p.score / p.max) * 100;
+          return (
+            <div key={p.key}>
+              <div className="flex items-center gap-2">
+                <Icon size={14} style={{ color: "var(--text-dim)" }} />
+                <span className="flex-1 text-[12px] font-bold">{p.label}</span>
+                <span className="num text-[11px]" style={{ color: "var(--text-dim)" }}>
+                  {p.score}/{p.max}
+                </span>
+              </div>
+              <div className="meter mt-1.5" style={{ height: 5 }}>
+                <i style={{ width: `${pct}%`, background: color }} />
+              </div>
+              <p className="mt-1 pr-5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>{p.detail}</p>
             </div>
-            <div className="mt-1.5 h-2 overflow-hidden rounded-full" style={{ background: "var(--bg-inset)" }}>
-              <div
-                className="h-2 rounded-full transition-all"
-                style={{ width: `${(p.score / p.max) * 100}%`, background: color }}
-              />
-            </div>
-            <p className="mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>{p.detail}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {trust.strengths.length > 0 && (
-        <div className="mt-5 border-t pt-4" style={{ borderColor: "var(--line-soft)" }}>
-          <h3 className="mb-2 text-xs font-extrabold" style={{ color: "var(--color-atlas-400)" }}>
-            نقط القوة
+        <div className="border-t px-5 py-4" style={{ borderColor: "var(--line-soft)" }}>
+          <h3 className="mb-2.5 flex items-center gap-1.5 text-[11px] font-extrabold" style={{ color: "var(--good)" }}>
+            <BadgeCheck size={13} /> نقط القوة
           </h3>
           <ul className="space-y-1.5">
             {trust.strengths.map((s, i) => (
-              <li key={i} className="flex gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-                <span style={{ color: "var(--color-atlas-400)" }}>✓</span> {s}
+              <li key={i} className="flex gap-2 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                <Check size={13} className="mt-px shrink-0" style={{ color: "var(--good)" }} /> {s}
               </li>
             ))}
           </ul>
@@ -59,22 +78,16 @@ export function TrustPanel({ trust }: { trust: TrustResult }) {
       )}
 
       {trust.flags.length > 0 && (
-        <div className="mt-5 border-t pt-4" style={{ borderColor: "var(--line-soft)" }}>
-          <h3 className="mb-2 text-xs font-extrabold" style={{ color: "var(--color-clay-400)" }}>
-            نقط تستاهل انتباهك
+        <div className="border-t px-5 py-4" style={{ borderColor: "var(--line-soft)" }}>
+          <h3 className="mb-2.5 flex items-center gap-1.5 text-[11px] font-extrabold" style={{ color: "var(--bad)" }}>
+            <AlertTriangle size={13} /> نقط تستاهل انتباهك
           </h3>
           <ul className="space-y-2">
             {trust.flags.map((f, i) => {
-              const st = FLAG_STYLE[f.level];
+              const { color: c, Icon } = FLAG_TONE[f.level];
               return (
-                <li key={i} className="flex gap-2 text-xs leading-relaxed">
-                  <span
-                    className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full text-[9px] font-bold text-white"
-                    style={{ background: st.bg }}
-                    aria-hidden="true"
-                  >
-                    {st.icon}
-                  </span>
+                <li key={i} className="flex gap-2 text-[11.5px] leading-relaxed">
+                  <Icon size={13} className="mt-px shrink-0" style={{ color: c }} />
                   <span style={{ color: "var(--text-muted)" }}>{f.text}</span>
                 </li>
               );

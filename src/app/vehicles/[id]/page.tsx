@@ -18,16 +18,19 @@ import { FairPriceMeter } from "@/components/FairPriceMeter";
 import { VehicleCard } from "@/components/VehicleCard";
 import { Price } from "@/components/Price";
 import { TrustRing } from "@/components/TrustBadge";
+import {
+  BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Door, Engine,
+  Eye, FUEL_ICONS, Fuel, Gauge, Gearbox, Heart, MapPin, Palette, Road,
+  Scale, Sparkle, TrendingDown, Users,
+} from "@/components/icons";
+import { VehicleGlyph } from "@/components/VehicleArt";
+import { artShape } from "@/lib/artshape";
 
 export function generateStaticParams() {
   return VEHICLES.map((v) => ({ id: v.id }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const v = vehicleById(id);
   if (!v) return { title: "إعلان غير موجود" };
@@ -39,11 +42,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function VehiclePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function VehiclePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const v = vehicleById(id);
   if (!v) notFound();
@@ -52,28 +51,23 @@ export default async function VehiclePage({
   const trust = trustOf(v);
   const fp = fairPriceOf(v);
   const similar = similarVehicles(v);
+  const FuelIcon = FUEL_ICONS[v.fuel];
 
-  const specs: [string, string][] = [
-    ["السنة", String(v.year)],
-    ["الكيلومتراج", formatKm(v.km)],
-    ["الوقود", AR.fuel[v.fuel]],
-    ["ناقل السرعة", AR.gearbox[v.gearbox]],
-    ["الهيكل", AR.body[v.body]],
-    ["الحالة", AR.condition[v.condition]],
-    ["اللون", v.color],
+  const specs = [
+    { Icon: Calendar, label: "السنة", value: String(v.year) },
+    { Icon: Gauge, label: "الكيلومتراج", value: `${formatNumber(v.km)} كم` },
+    { Icon: FuelIcon, label: "الوقود", value: AR.fuel[v.fuel] },
+    { Icon: Gearbox, label: "ناقل السرعة", value: AR.gearbox[v.gearbox] },
+    { Icon: BadgeCheck, label: "الحالة", value: AR.condition[v.condition] },
+    { Icon: Palette, label: "اللون", value: v.color },
+    { Icon: Users, label: "عدد الملاّك", value: String(v.owners) },
+    { Icon: Engine, label: "القوة الجبائية", value: `${v.fiscalPower} حصان` },
     ...(v.kind === "car"
-      ? ([
-          ["القوة الجبائية", `${v.fiscalPower} حصان`],
-          ["الأبواب", String(v.doors ?? "-")],
-          ["الاستهلاك", `${v.consumption} ل/100كم`],
-        ] as [string, string][])
-      : ([
-          ["سعة المحرك", `${v.displacement} سم³`],
-          ["القوة الجبائية", `${v.fiscalPower} حصان`],
-          ["الاستهلاك", `${v.consumption} ل/100كم`],
-        ] as [string, string][])),
-    ["عدد الملاّك", String(v.owners)],
-    ["الفحص التقني", `صالح إلى ${formatDate(v.technicalControl)}`],
+      ? [{ Icon: Door, label: "الأبواب", value: String(v.doors ?? "-") }]
+      : [{ Icon: Engine, label: "سعة المحرك", value: `${v.displacement} سم³` }]),
+    { Icon: Fuel, label: "الاستهلاك", value: `${v.consumption} ل/100كم` },
+    { Icon: ClipboardCheck, label: "الفحص التقني", value: `صالح إلى ${formatDate(v.technicalControl)}` },
+    { Icon: MapPin, label: "المدينة", value: cityName(v.city) },
   ];
 
   const jsonLd = {
@@ -97,98 +91,120 @@ export default async function VehiclePage({
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    <div className="mx-auto max-w-[1400px] px-4 py-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <nav className="mb-4 flex flex-wrap items-center gap-1.5 text-[11px]" style={{ color: "var(--text-dim)" }}>
-        <Link href="/" className="hover:text-[var(--accent)]">الرئيسية</Link>
-        <span>›</span>
-        <Link href={`/vehicles?kind=${v.kind}`} className="hover:text-[var(--accent)]">
+      <nav className="mb-5 flex flex-wrap items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
+        <Link href="/" className="transition hover:text-[var(--brand)]">الرئيسية</Link>
+        <ChevronLeft size={12} />
+        <Link href={`/vehicles?kind=${v.kind}`} className="transition hover:text-[var(--brand)]">
           {v.kind === "car" ? "سيارات" : "دراجات نارية"}
         </Link>
-        <span>›</span>
-        <Link href={`/vehicles?kind=${v.kind}&make=${v.make}`} className="hover:text-[var(--accent)]">
+        <ChevronLeft size={12} />
+        <Link href={`/vehicles?kind=${v.kind}&make=${v.make}`} className="transition hover:text-[var(--brand)]">
           {v.make}
         </Link>
-        <span>›</span>
-        <span style={{ color: "var(--text-muted)" }}>{v.model} {v.year}</span>
+        <ChevronLeft size={12} />
+        <span style={{ color: "var(--text-muted)" }}>{v.model} <span className="num">{v.year}</span></span>
       </nav>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_390px]">
         {/* ---------- العمود الرئيسي ---------- */}
         <div className="min-w-0 space-y-6">
           <Gallery v={v} />
 
-          <header className="card p-5">
-            <div className="flex flex-wrap items-start justify-between gap-4">
+          <header className="card overflow-hidden">
+            <div className="flex flex-wrap items-start justify-between gap-4 p-5">
               <div className="min-w-0">
-                <h1 className="text-2xl font-black leading-tight">
-                  {v.make} {v.model}
-                </h1>
+                <div className="flex items-center gap-2.5">
+                  <VehicleGlyph shape={artShape(v)} kind={v.kind} size={26} strokeWidth={11} className="shrink-0" style={{ color: "var(--text-dim)" }} />
+                  <h1 className="text-2xl font-extrabold tracking-tight">{v.make} {v.model}</h1>
+                </div>
                 <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>{v.version}</p>
-                <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
-                  <span className="chip"><span className="num">{v.year}</span></span>
-                  <span className="chip"><span className="num">{formatNumber(v.km)}</span> كم</span>
-                  <span className="chip">{AR.fuel[v.fuel]}</span>
-                  <span className="chip">{AR.gearbox[v.gearbox]}</span>
-                  <span className="chip">📍 {cityName(v.city)}</span>
+                <div className="mt-3.5 flex flex-wrap gap-1.5">
+                  <span className="chip"><Calendar size={12} /><span className="num">{v.year}</span></span>
+                  <span className="chip"><Gauge size={12} /><span className="num">{formatNumber(v.km)}</span> كم</span>
+                  <span className="chip"><FuelIcon size={12} />{AR.fuel[v.fuel]}</span>
+                  <span className="chip"><Gearbox size={12} />{AR.gearbox[v.gearbox]}</span>
+                  <span className="chip"><MapPin size={12} />{cityName(v.city)}</span>
                 </div>
               </div>
-              <TrustRing score={trust.score} grade={trust.grade} size={64} />
+              <TrustRing score={trust.score} grade={trust.grade} size={62} />
             </div>
 
-            <div className="mt-5 flex flex-wrap items-end justify-between gap-3 border-t pt-4"
-              style={{ borderColor: "var(--line-soft)" }}>
+            <div
+              className="flex flex-wrap items-end justify-between gap-3 border-t p-5"
+              style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
+            >
               <div>
-                <Price value={v.price} className="text-3xl font-black" />
-                <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                  {v.negotiable && <span className="chip">قابل للنقاش</span>}
-                  {v.exchangeAccepted && <span className="chip">يقبل التبادل</span>}
+                <Price value={v.price} className="text-3xl font-extrabold tracking-tight" />
+                <div className="mt-2 flex flex-wrap gap-1.5 text-[11px]">
+                  {v.negotiable && <span className="tag tag-mute"><Check size={10} /> قابل للنقاش</span>}
+                  {v.exchangeAccepted && <span className="tag tag-mute"><Scale size={10} /> يقبل التبادل</span>}
                   {v.priceDrops.length > 0 && (
-                    <span className="chip !text-[var(--color-atlas-400)]">
-                      انخفض <span className="num">{formatNumber(v.priceDrops.reduce((a, b) => a + b, 0))}</span> د.م
+                    <span className="tag tag-good">
+                      <TrendingDown size={10} /> انخفض <span className="num">{formatNumber(v.priceDrops.reduce((a, b) => a + b, 0))}</span> د.م
                     </span>
                   )}
                 </div>
               </div>
-              <div className="text-left text-[11px]" style={{ color: "var(--text-dim)" }}>
-                <div>نُشر {timeAgo(v.publishedAt, NOW)}</div>
-                <div className="num">{formatNumber(v.views)} مشاهدة · {v.saves} حفظ</div>
+              <div className="flex gap-4 text-[11px]" style={{ color: "var(--text-dim)" }}>
+                <span className="flex items-center gap-1"><Eye size={12} /><span className="num">{formatNumber(v.views)}</span></span>
+                <span className="flex items-center gap-1"><Heart size={12} /><span className="num">{v.saves}</span></span>
+                <span>نُشر {timeAgo(v.publishedAt, NOW)}</span>
               </div>
             </div>
           </header>
 
-          <FairPriceMeter fp={fp} price={v.price} />
+          <FairPriceMeter fp={fp} />
 
+          {/* المواصفات */}
           <section className="card p-5">
-            <h2 className="text-base font-extrabold">المواصفات</h2>
-            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
-              {specs.map(([k, val]) => (
-                <div key={k} className="border-b pb-2" style={{ borderColor: "var(--line-soft)" }}>
-                  <dt className="text-[11px]" style={{ color: "var(--text-dim)" }}>{k}</dt>
-                  <dd className="mt-0.5 text-sm font-bold">
-                    {/\d/.test(val) ? <span className="num">{val}</span> : val}
-                  </dd>
+            <header className="mb-5 flex items-start gap-2.5">
+              <Road size={18} style={{ color: "var(--brand)" }} className="mt-0.5 shrink-0" />
+              <div>
+                <h2 className="text-[15px] font-bold">المواصفات</h2>
+                <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
+                  كل المعطيات التقنية كما صرّح بها البائع.
+                </p>
+              </div>
+            </header>
+
+            <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {specs.map((s) => (
+                <div
+                  key={s.label}
+                  className="flex items-center gap-2.5 rounded-xl p-2.5"
+                  style={{ background: "var(--surface-3)" }}
+                >
+                  <s.Icon size={16} className="shrink-0" style={{ color: "var(--text-dim)" }} />
+                  <div className="min-w-0">
+                    <dt className="text-[10px]" style={{ color: "var(--text-dim)" }}>{s.label}</dt>
+                    <dd className="truncate text-[12.5px] font-bold">
+                      {/\d/.test(s.value) ? <span className="num">{s.value}</span> : s.value}
+                    </dd>
+                  </div>
                 </div>
               ))}
             </dl>
 
             {v.equipment.length > 0 && (
               <>
-                <h3 className="mt-6 mb-3 text-sm font-extrabold">التجهيزات</h3>
+                <h3 className="mt-6 mb-3 flex items-center gap-1.5 text-[13px] font-bold">
+                  <Sparkle size={14} style={{ color: "var(--brand)" }} /> التجهيزات
+                </h3>
                 <div className="flex flex-wrap gap-1.5">
                   {v.equipment.map((e) => (
-                    <span key={e} className="chip">✓ {e}</span>
+                    <span key={e} className="chip chip-plain">
+                      <Check size={11} style={{ color: "var(--good)" }} /> {e}
+                    </span>
                   ))}
                 </div>
               </>
             )}
 
-            <h3 className="mt-6 mb-2 text-sm font-extrabold">وصف البائع</h3>
-            <p className="text-sm leading-loose" style={{ color: "var(--text-muted)" }}>
+            <h3 className="mt-6 mb-2 text-[13px] font-bold">وصف البائع</h3>
+            <p className="text-[13px] leading-loose" style={{ color: "var(--text-muted)" }}>
               {v.description}
             </p>
           </section>
@@ -199,25 +215,27 @@ export default async function VehiclePage({
         </div>
 
         {/* ---------- العمود الجانبي ---------- */}
-        <aside className="min-w-0 space-y-6 lg:sticky lg:top-20 lg:h-fit">
+        <aside className="min-w-0 space-y-6 lg:sticky lg:top-[84px] lg:h-fit">
           <SellerCard seller={seller} v={v} />
           <TrustPanel trust={trust} />
 
           {fp.estimate.comparables.length > 0 && (
             <section className="card p-5">
-              <h2 className="text-sm font-extrabold">إعلانات استُعملت في الحساب</h2>
+              <h2 className="flex items-center gap-2 text-[13px] font-bold">
+                <Scale size={15} style={{ color: "var(--brand)" }} /> إعلانات استُعملت في الحساب
+              </h2>
               <p className="mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
                 الثمن المرجعي محسوب من هاد المركبات المشابهة بعد التعديل.
               </p>
-              <ul className="mt-3 space-y-2">
+              <ul className="mt-3 space-y-1">
                 {fp.estimate.comparables.slice(0, 5).map((c) => (
                   <li key={c.id}>
                     <Link
                       href={`/vehicles/${c.id}`}
-                      className="flex items-center justify-between gap-2 rounded-lg p-2 text-xs transition hover:bg-[var(--bg-inset)]"
+                      className="flex items-center justify-between gap-2 rounded-lg p-2 text-[11.5px] transition hover:bg-[var(--surface-3)]"
                     >
                       <span className="truncate">
-                        {c.make} {c.model} <span className="num opacity-60">{c.year}</span>
+                        {c.make} {c.model} <span className="num opacity-55">{c.year}</span>
                       </span>
                       <span className="num shrink-0 font-bold">{formatNumber(c.price)} د.م</span>
                     </Link>
@@ -230,12 +248,10 @@ export default async function VehiclePage({
       </div>
 
       {similar.length > 0 && (
-        <section className="mt-14">
-          <h2 className="section-title mb-6">مركبات مشابهة</h2>
+        <section className="mt-16">
+          <h2 className="h-section mb-6">مركبات مشابهة</h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {similar.map((s) => (
-              <VehicleCard key={s.id} v={s} compact />
-            ))}
+            {similar.map((s) => <VehicleCard key={s.id} v={s} compact />)}
           </div>
         </section>
       )}

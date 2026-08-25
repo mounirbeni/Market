@@ -11,7 +11,7 @@ export default function ComparePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <header className="mb-8">
-        <h1 className="section-title">المقارنة</h1>
+        <h1 className="h-page">المقارنة</h1>
         <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
           ماشي غير المواصفات — قارن الثقة، الثمن مقابل السوق، وشحال غادي تصرف فالسنة.
         </p>

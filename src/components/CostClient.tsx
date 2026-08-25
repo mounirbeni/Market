@@ -7,6 +7,7 @@ import { computeTco } from "@/lib/tco";
 import { TcoCalculator } from "@/components/vehicle/TcoCalculator";
 import { CreditSimulator } from "@/components/vehicle/CreditSimulator";
 import { formatNumber } from "@/lib/format";
+import { Car, Chart, Coins, Moto, TrendingDown, TrendingUp } from "@/components/icons";
 
 export function CostClient() {
   const [id, setId] = useState("c003");
@@ -35,7 +36,7 @@ export function CostClient() {
   return (
     <div className="space-y-10">
       <div className="card p-4">
-        <label className="label" htmlFor="cost-pick">اختر مركبة من السوق</label>
+        <label className="label" htmlFor="cost-pick"><Car size={13} /> اختر مركبة من السوق</label>
         <select
           id="cost-pick"
           className="field"
@@ -55,7 +56,7 @@ export function CostClient() {
       <section className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-extrabold">ترتيب المركبات حسب تكلفة الاستعمال</h2>
+            <h2 className="flex items-center gap-2 text-[15px] font-bold"><Chart size={17} style={{ color: "var(--brand)" }} /> ترتيب المركبات حسب تكلفة الاستعمال</h2>
             <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
               التكلفة السنوية (بدون خسارة القيمة) على أساس{" "}
               <span className="num">{kind === "moto" ? "8 000" : "15 000"}</span> كم في السنة
@@ -63,33 +64,33 @@ export function CostClient() {
             </p>
           </div>
           <div className="flex gap-1.5">
-            {([["car", "سيارات"], ["moto", "دراجات"]] as const).map(([k, l]) => (
+            {([["car", "سيارات", Car], ["moto", "دراجات", Moto]] as const).map(([k, l, I]) => (
               <button
                 key={k}
                 onClick={() => setKind(k)}
                 aria-pressed={kind === k}
                 className="chip transition"
                 style={{
-                  background: kind === k ? "var(--accent)" : "var(--bg-inset)",
-                  color: kind === k ? "var(--accent-ink)" : "var(--text-muted)",
+                  background: kind === k ? "var(--brand)" : "var(--surface-3)",
+                  color: kind === k ? "var(--brand-ink)" : "var(--text-muted)",
                   borderColor: "transparent",
                 }}
               >
-                {l}
+                <I size={13} /> {l}
               </button>
             ))}
           </div>
         </div>
 
-        <h3 className="mt-6 mb-3 text-xs font-extrabold" style={{ color: "var(--color-atlas-400)" }}>
-          الأرخص في الاستعمال
+        <h3 className="mt-7 mb-4 flex items-center gap-1.5 text-[12px] font-bold" style={{ color: "var(--good)" }}>
+          <TrendingDown size={14} /> الأرخص في الاستعمال
         </h3>
         <ul className="space-y-2.5">
           {cheapest.map((r, i) => (
             <li key={r.v.id}>
               <Link href={`/vehicles/${r.v.id}`} className="group block">
                 <div className="flex items-baseline justify-between gap-2 text-xs">
-                  <span className="truncate font-bold group-hover:text-[var(--accent)]">
+                  <span className="truncate font-bold group-hover:text-[var(--brand)]">
                     <span className="num opacity-50">{i + 1}.</span> {r.v.make} {r.v.model}{" "}
                     <span className="num opacity-60">{r.v.year}</span>
                   </span>
@@ -97,12 +98,12 @@ export function CostClient() {
                     {formatNumber(r.tco.perYear)} د.م/سنة
                   </span>
                 </div>
-                <div className="mt-1 h-1.5 rounded-full" style={{ background: "var(--bg-inset)" }}>
+                <div className="mt-1 h-1.5 rounded-full" style={{ background: "var(--surface-3)" }}>
                   <div
                     className="h-1.5 rounded-full"
                     style={{
                       width: `${(r.tco.perYear / maxYear) * 100}%`,
-                      background: "var(--color-atlas-500)",
+                      background: "var(--good)",
                     }}
                   />
                 </div>
@@ -114,27 +115,27 @@ export function CostClient() {
           ))}
         </ul>
 
-        <h3 className="mt-8 mb-3 text-xs font-extrabold" style={{ color: "var(--color-clay-400)" }}>
-          الأغلى في الاستعمال
+        <h3 className="mt-8 mb-4 flex items-center gap-1.5 text-[12px] font-bold" style={{ color: "var(--bad)" }}>
+          <TrendingUp size={14} /> الأغلى في الاستعمال
         </h3>
         <ul className="space-y-2.5">
           {priciest.map((r) => (
             <li key={r.v.id}>
               <Link href={`/vehicles/${r.v.id}`} className="group block">
                 <div className="flex items-baseline justify-between gap-2 text-xs">
-                  <span className="truncate font-bold group-hover:text-[var(--accent)]">
+                  <span className="truncate font-bold group-hover:text-[var(--brand)]">
                     {r.v.make} {r.v.model} <span className="num opacity-60">{r.v.year}</span>
                   </span>
                   <span className="num shrink-0 font-extrabold">
                     {formatNumber(r.tco.perYear)} د.م/سنة
                   </span>
                 </div>
-                <div className="mt-1 h-1.5 rounded-full" style={{ background: "var(--bg-inset)" }}>
+                <div className="mt-1 h-1.5 rounded-full" style={{ background: "var(--surface-3)" }}>
                   <div
                     className="h-1.5 rounded-full"
                     style={{
                       width: `${(r.tco.perYear / maxYear) * 100}%`,
-                      background: "var(--color-clay-500)",
+                      background: "var(--bad)",
                     }}
                   />
                 </div>

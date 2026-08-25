@@ -15,12 +15,12 @@ export function Price({
   const { unit } = useApp();
   const abs = Math.abs(value);
   const prefix = sign ? (value > 0 ? "+" : value < 0 ? "−" : "") : "";
+  const parts = formatPrice(abs, unit).split(" ");
+  const suffix = parts.pop();
   return (
-    <span className={className}>
-      <span className="num">{prefix}{formatPrice(abs, unit).split(" ").slice(0, -1).join(" ")}</span>{" "}
-      <span className="text-[0.75em] opacity-70">
-        {unit === "million" ? "مليون" : "د.م"}
-      </span>
+    <span className={className} style={{ direction: "rtl" }}>
+      <span className="num">{prefix}{parts.join(" ")}</span>
+      <span className="mr-1 text-[0.7em] font-semibold opacity-60">{suffix}</span>
     </span>
   );
 }
@@ -29,8 +29,8 @@ export function UnitToggle({ compact = false }: { compact?: boolean }) {
   const { unit, setUnit } = useApp();
   return (
     <div
-      className="inline-flex items-center rounded-full border p-0.5 text-xs"
-      style={{ borderColor: "var(--line)" }}
+      className="inline-flex items-center rounded-lg border p-0.5 text-[11px]"
+      style={{ borderColor: "var(--line)", background: "var(--surface-3)" }}
       role="group"
       aria-label="وحدة عرض الثمن"
     >
@@ -39,10 +39,10 @@ export function UnitToggle({ compact = false }: { compact?: boolean }) {
           key={u}
           onClick={() => setUnit(u)}
           aria-pressed={unit === u}
-          className="rounded-full px-2.5 py-1 font-bold transition"
+          className="rounded-md px-2.5 py-1 font-bold transition"
           style={{
-            background: unit === u ? "var(--accent)" : "transparent",
-            color: unit === u ? "var(--accent-ink)" : "var(--text-muted)",
+            background: unit === u ? "var(--brand)" : "transparent",
+            color: unit === u ? "var(--brand-ink)" : "var(--text-dim)",
           }}
         >
           {u === "dh" ? "درهم" : compact ? "مليون" : "بالمليون"}

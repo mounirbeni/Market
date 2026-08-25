@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useApp } from "@/store/app";
 import { vehicleById } from "@/lib/data/vehicles";
 import { VehicleArt } from "./VehicleArt";
+import { Close, Scale, Trash } from "./icons";
 import { artShape } from "@/lib/artshape";
 
 export function CompareBar() {
@@ -17,24 +18,24 @@ export function CompareBar() {
       <div
         className="mx-auto flex max-w-3xl items-center gap-3 rounded-2xl border p-2.5 shadow-2xl"
         style={{
-          background: "color-mix(in oklab, var(--bg-card) 92%, transparent)",
+          background: "color-mix(in oklab, var(--surface-1) 94%, transparent)",
           backdropFilter: "blur(16px)",
-          borderColor: "var(--color-majorelle-400)",
+          borderColor: "var(--data)",
         }}
       >
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto no-scrollbar">
           {items.map((v) => (
             <div key={v!.id} className="relative shrink-0">
               <div className="h-11 w-16 overflow-hidden rounded-lg">
-                <VehicleArt id={v!.id} kind={v!.kind} body={artShape(v!)} className="h-full w-full" />
+                <VehicleArt id={v!.id} kind={v!.kind} body={artShape(v!)} color={v!.color} className="h-full w-full" />
               </div>
               <button
                 onClick={() => toggleCompare(v!.id)}
                 aria-label={`إزالة ${v!.make} من المقارنة`}
-                className="absolute -top-1.5 -left-1.5 grid h-4 w-4 place-items-center rounded-full text-[10px] font-bold"
-                style={{ background: "var(--color-clay-500)", color: "#fff" }}
+                className="absolute -top-1.5 -left-1.5 grid h-4 w-4 place-items-center rounded-full"
+                style={{ background: "var(--bad)", color: "#fff" }}
               >
-                ×
+                <Close size={10} />
               </button>
             </div>
           ))}
@@ -49,14 +50,14 @@ export function CompareBar() {
           ))}
         </div>
         <button onClick={clearCompare} className="btn btn-ghost btn-sm">
-          مسح
+          <Trash size={13} /> مسح
         </button>
         <Link
           href="/compare"
           className="btn btn-sm"
-          style={{ background: "var(--color-majorelle-500)", color: "#fff" }}
+          style={{ background: "var(--data)", color: "#fff" }}
         >
-          قارن (<span className="num">{items.length}</span>)
+          <Scale size={14} /> قارن <span className="num">({items.length})</span>
         </Link>
       </div>
     </div>

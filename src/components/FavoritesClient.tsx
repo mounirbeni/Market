@@ -8,6 +8,7 @@ import { VehicleCard } from "@/components/VehicleCard";
 import { computeTco } from "@/lib/tco";
 import { formatNumber } from "@/lib/format";
 import type { Vehicle } from "@/lib/types";
+import { Bell, Calculator, Car, Coins, Heart, Search, Trash, TrendingDown } from "@/components/icons";
 
 export function FavoritesClient() {
   const { favorites, searches, removeSearch, ready } = useApp();
@@ -41,30 +42,36 @@ export function FavoritesClient() {
   return (
     <div className="space-y-12">
       <section>
-        <h2 className="section-title mb-5">المفضلة</h2>
+        <h2 className="h-section mb-5">المفضلة</h2>
 
         {items.length === 0 ? (
           <div className="card p-12 text-center">
-            <p className="text-4xl">🤍</p>
-            <h3 className="mt-4 text-lg font-extrabold">ما زال ماحفظتي حتى مركبة</h3>
+            <span
+              className="mx-auto grid h-16 w-16 place-items-center rounded-2xl"
+              style={{ background: "var(--bad-soft)", color: "var(--bad)" }}
+            >
+              <Heart size={30} />
+            </span>
+            <h3 className="mt-5 text-lg font-bold">ما زال ماحفظتي حتى مركبة</h3>
             <p className="mx-auto mt-2 max-w-sm text-sm" style={{ color: "var(--text-muted)" }}>
               كليكي على القلب فأي إعلان باش تلقاه هنا من بعد، وتقارن بيناتهم بسهولة.
             </p>
-            <Link href="/vehicles" className="btn btn-primary mt-6">تصفح المركبات</Link>
+            <Link href="/vehicles" className="btn btn-primary mt-6"><Car size={16} /> تصفح المركبات</Link>
           </div>
         ) : (
           <>
             {stats && (
               <div className="card mb-5 grid grid-cols-2 gap-4 p-4 sm:grid-cols-4">
                 {[
-                  { l: "عدد المحفوظات", v: String(items.length) },
-                  { l: "الأرخص", v: `${formatNumber(stats.min)} د.م` },
-                  { l: "المتوسط", v: `${formatNumber(stats.avg)} د.م` },
-                  { l: "أقل تكلفة استعمال", v: `${formatNumber(stats.cheapestRun)} د.م/سنة` },
+                  { l: "عدد المحفوظات", v: String(items.length), Icon: Heart },
+                  { l: "الأرخص", v: `${formatNumber(stats.min)} د.م`, Icon: TrendingDown },
+                  { l: "المتوسط", v: `${formatNumber(stats.avg)} د.م`, Icon: Coins },
+                  { l: "أقل تكلفة استعمال", v: `${formatNumber(stats.cheapestRun)} د.م/سنة`, Icon: Calculator },
                 ].map((s) => (
-                  <div key={s.l} className="text-center">
-                    <div className="num text-sm font-black" style={{ color: "var(--accent)" }}>{s.v}</div>
-                    <div className="mt-1 text-[10px]" style={{ color: "var(--text-dim)" }}>{s.l}</div>
+                  <div key={s.l} className="flex flex-col items-center gap-1 text-center">
+                    <s.Icon size={16} style={{ color: "var(--brand)" }} />
+                    <div className="num text-sm font-extrabold" style={{ color: "var(--brand)" }}>{s.v}</div>
+                    <div className="text-[10px]" style={{ color: "var(--text-dim)" }}>{s.l}</div>
                   </div>
                 ))}
               </div>
@@ -79,14 +86,22 @@ export function FavoritesClient() {
       </section>
 
       <section>
-        <h2 className="section-title mb-2">البحوث المحفوظة</h2>
+        <h2 className="h-section mb-2">البحوث المحفوظة</h2>
         <p className="mb-5 text-sm" style={{ color: "var(--text-muted)" }}>
           البحوث اللي سجّلتي. فالنسخة الكاملة كتوصلك إشعارات ملي تدخل مركبة مطابقة.
         </p>
 
         {searches.length === 0 ? (
-          <div className="card p-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-            ماكاين حتى بحث محفوظ. من صفحة النتائج، كليكي على «🔔 احفظ البحث».
+          <div className="card flex flex-col items-center p-10 text-center">
+            <span
+              className="grid h-12 w-12 place-items-center rounded-xl"
+              style={{ background: "var(--surface-3)", color: "var(--text-dim)" }}
+            >
+              <Search size={22} />
+            </span>
+            <p className="mt-4 text-sm" style={{ color: "var(--text-muted)" }}>
+              ماكاين حتى بحث محفوظ. من صفحة النتائج، كليكي على «احفظ البحث».
+            </p>
           </div>
         ) : (
           <ul className="space-y-2">
@@ -94,7 +109,7 @@ export function FavoritesClient() {
               <li key={s.id} className="card flex items-center justify-between gap-3 p-3">
                 <Link
                   href={`/vehicles?${s.query}`}
-                  className="min-w-0 flex-1 text-sm font-bold transition hover:text-[var(--accent)]"
+                  className="min-w-0 flex-1 text-sm font-bold transition hover:text-[var(--brand)]"
                 >
                   <span className="block truncate">{s.label}</span>
                   <span className="block truncate text-[11px] font-normal" style={{ color: "var(--text-dim)" }}>
@@ -102,14 +117,14 @@ export function FavoritesClient() {
                   </span>
                 </Link>
                 {s.alert && (
-                  <span className="chip !text-[var(--color-atlas-400)]">🔔 تنبيه مفعّل</span>
+                  <span className="tag tag-good"><Bell size={11} /> تنبيه مفعّل</span>
                 )}
                 <button
                   onClick={() => removeSearch(s.id)}
                   className="btn btn-ghost btn-sm"
                   aria-label={`حذف ${s.label}`}
                 >
-                  حذف
+                  <Trash size={13} /> حذف
                 </button>
               </li>
             ))}

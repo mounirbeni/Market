@@ -6,15 +6,58 @@ import { useEffect, useState } from "react";
 import { useApp } from "@/store/app";
 import { Logo } from "./Logo";
 import { UnitToggle } from "./Price";
+import {
+  Calculator, Car, Close, Heart, Menu, Moon, Moto, Scale,
+  ShieldCheck, Sun, Wallet, Wrench,
+} from "./icons";
 
 const NAV = [
-  { href: "/vehicles?kind=car", label: "سيارات" },
-  { href: "/vehicles?kind=moto", label: "دراجات نارية" },
-  { href: "/estimate", label: "قيّم مركبتك" },
-  { href: "/cost", label: "التكلفة الحقيقية" },
-  { href: "/inspection", label: "الفحص المستقل" },
-  { href: "/safety", label: "البيع الآمن" },
+  { href: "/vehicles?kind=car", label: "سيارات", Icon: Car },
+  { href: "/vehicles?kind=moto", label: "دراجات نارية", Icon: Moto },
+  { href: "/estimate", label: "قيّم مركبتك", Icon: Wallet },
+  { href: "/cost", label: "التكلفة الحقيقية", Icon: Calculator },
+  { href: "/inspection", label: "الفحص المستقل", Icon: Wrench },
+  { href: "/safety", label: "البيع الآمن", Icon: ShieldCheck },
 ];
+
+function IconButton({
+  onClick, label, children, active, count, href,
+}: {
+  onClick?: () => void;
+  label: string;
+  children: React.ReactNode;
+  active?: boolean;
+  count?: number;
+  href?: string;
+}) {
+  const cls = "relative grid h-9 w-9 place-items-center rounded-lg border transition";
+  const style = {
+    borderColor: active ? "var(--brand)" : "var(--line)",
+    color: active ? "var(--brand)" : "var(--text-muted)",
+    background: active ? "var(--brand-soft)" : "transparent",
+  };
+  const badge = count && count > 0 ? (
+    <span
+      className="num absolute -top-1.5 -left-1.5 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9.5px] font-bold"
+      style={{ background: "var(--brand)", color: "var(--brand-ink)" }}
+    >
+      {count}
+    </span>
+  ) : null;
+
+  if (href) {
+    return (
+      <Link href={href} aria-label={label} className={cls} style={style}>
+        {children}{badge}
+      </Link>
+    );
+  }
+  return (
+    <button onClick={onClick} aria-label={label} className={cls} style={style}>
+      {children}{badge}
+    </button>
+  );
+}
 
 export function Header() {
   const { favorites, compare, theme, toggleTheme } = useApp();
@@ -25,7 +68,7 @@ export function Header() {
   useEffect(() => setOpen(false), [pathname]);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -33,86 +76,52 @@ export function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 transition-all"
+      className="sticky top-0 z-50 transition-all duration-300"
       style={{
-        background: scrolled ? "color-mix(in oklab, var(--bg) 88%, transparent)" : "transparent",
-        backdropFilter: scrolled ? "blur(14px)" : "none",
+        background: scrolled ? "color-mix(in oklab, var(--bg) 82%, transparent)" : "transparent",
+        backdropFilter: scrolled ? "blur(16px) saturate(140%)" : "none",
         borderBottom: `1px solid ${scrolled ? "var(--line-soft)" : "transparent"}`,
       }}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4">
-        <Link href="/" aria-label="الصفحة الرئيسية">
+      <div className="mx-auto flex h-[68px] max-w-[1400px] items-center gap-3 px-4">
+        <Link href="/" aria-label="الصفحة الرئيسية" className="shrink-0">
           <Logo />
         </Link>
 
-        <nav className="mr-4 hidden items-center gap-1 lg:flex">
-          {NAV.map((n) => (
-            <Link
-              key={n.href}
-              href={n.href}
-              className="rounded-full px-3 py-2 text-[13px] font-bold transition hover:bg-[var(--bg-inset)]"
-              style={{ color: "var(--text-muted)" }}
-            >
-              {n.label}
-            </Link>
-          ))}
+        <nav className="mr-5 hidden items-center gap-0.5 lg:flex">
+          {NAV.map(({ href, label, Icon }) => {
+            const active = pathname === href.split("?")[0] && href.includes(pathname);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-semibold transition"
+                style={{ color: active ? "var(--text)" : "var(--text-muted)" }}
+              >
+                <Icon size={15} style={{ opacity: 0.75 }} />
+                {label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="mr-auto flex items-center gap-2">
-          <div className="hidden sm:block">
-            <UnitToggle compact />
-          </div>
+          <div className="hidden sm:block"><UnitToggle compact /></div>
 
-          <button
-            onClick={toggleTheme}
-            aria-label="تبديل الوضع الليلي"
-            className="grid h-9 w-9 place-items-center rounded-full border transition hover:border-[var(--accent)]"
-            style={{ borderColor: "var(--line)" }}
-          >
-            {theme === "dark" ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-              </svg>
-            )}
-          </button>
+          <IconButton onClick={toggleTheme} label="تبديل الوضع الليلي">
+            {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+          </IconButton>
 
-          <Link
-            href="/favorites"
-            className="relative grid h-9 w-9 place-items-center rounded-full border transition hover:border-[var(--accent)]"
-            style={{ borderColor: "var(--line)" }}
-            aria-label="المفضلة"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8z" />
-            </svg>
-            {favorites.length > 0 && (
-              <span className="num absolute -top-1 -left-1 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[10px] font-bold"
-                style={{ background: "var(--color-clay-500)", color: "#fff" }}>
-                {favorites.length}
-              </span>
-            )}
-          </Link>
+          <IconButton href="/favorites" label="المفضلة" count={favorites.length} active={favorites.length > 0}>
+            <Heart size={17} filled={favorites.length > 0} />
+          </IconButton>
 
           {compare.length > 0 && (
-            <Link
-              href="/compare"
-              className="relative hidden h-9 w-9 place-items-center rounded-full border sm:grid"
-              style={{ borderColor: "var(--color-majorelle-400)", color: "var(--color-majorelle-400)" }}
-              aria-label="المقارنة"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 7h16M4 12h10M4 17h6" />
-              </svg>
-              <span className="num absolute -top-1 -left-1 grid h-4 w-4 place-items-center rounded-full text-[10px] font-bold"
-                style={{ background: "var(--color-majorelle-500)", color: "#fff" }}>
-                {compare.length}
-              </span>
-            </Link>
+            <div className="hidden sm:block">
+              <IconButton href="/compare" label="المقارنة" count={compare.length} active>
+                <Scale size={17} />
+              </IconButton>
+            </div>
           )}
 
           <Link href="/sell" className="btn btn-primary btn-sm hidden md:inline-flex">
@@ -123,39 +132,36 @@ export function Header() {
             onClick={() => setOpen((o) => !o)}
             aria-label="القائمة"
             aria-expanded={open}
-            className="grid h-9 w-9 place-items-center rounded-full border lg:hidden"
-            style={{ borderColor: "var(--line)" }}
+            className="grid h-9 w-9 place-items-center rounded-lg border lg:hidden"
+            style={{ borderColor: "var(--line)", color: "var(--text-muted)" }}
           >
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-            </svg>
+            {open ? <Close size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </div>
 
       {open && (
         <div
-          className="border-t lg:hidden"
-          style={{ background: "var(--bg-raised)", borderColor: "var(--line-soft)" }}
+          className="border-t lg:hidden animate-fade"
+          style={{ background: "var(--surface-1)", borderColor: "var(--line-soft)" }}
         >
-          <div className="mx-auto max-w-7xl px-4 py-3">
+          <div className="mx-auto max-w-[1400px] px-4 py-3">
             <div className="grid grid-cols-2 gap-2">
-              {NAV.map((n) => (
+              {NAV.map(({ href, label, Icon }) => (
                 <Link
-                  key={n.href}
-                  href={n.href}
-                  className="rounded-lg px-3 py-2.5 text-sm font-bold"
-                  style={{ background: "var(--bg-inset)" }}
+                  key={href}
+                  href={href}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-[13px] font-bold"
+                  style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
                 >
-                  {n.label}
+                  <Icon size={16} style={{ color: "var(--brand)" }} />
+                  {label}
                 </Link>
               ))}
             </div>
-            <div className="mt-3 flex items-center justify-between">
+            <div className="mt-3 flex items-center justify-between gap-3">
               <UnitToggle />
-              <Link href="/sell" className="btn btn-primary btn-sm">
-                بيع مركبتك
-              </Link>
+              <Link href="/sell" className="btn btn-primary btn-sm">بيع مركبتك</Link>
             </div>
           </div>
         </div>

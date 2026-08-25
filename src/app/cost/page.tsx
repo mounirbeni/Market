@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CostClient } from "@/components/CostClient";
+import { Calculator, Coins, Info } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "حاسبة التكلفة الحقيقية للسيارة في المغرب",
@@ -18,8 +19,8 @@ export default function CostPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <header className="mb-8 max-w-2xl">
-        <span className="chip">الأداة اللي ماكاينة فحتى موقع مغربي</span>
-        <h1 className="section-title mt-4">ثمن الشراء ماشي هو التكلفة</h1>
+        <span className="eyebrow"><Calculator size={13} /> الأداة اللي ماكاينة فحتى موقع مغربي</span>
+        <h1 className="h-page mt-4">ثمن الشراء ماشي هو التكلفة</h1>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
           سيارة رخيصة ممكن تكون غالية فالاستعمال. هنا كتشوف بالضبط شحال غادي تصرف
           فالسنة: الضريبة، التأمين، المازوط، الصيانة، الإطارات، الفحص التقني وخسارة
@@ -30,8 +31,8 @@ export default function CostPage() {
       <CostClient />
 
       <section className="card mt-10 p-5">
-        <h2 className="text-base font-extrabold">
-          جدول الضريبة الخصوصية السنوية (الفينيات)
+        <h2 className="flex items-center gap-2 text-[15px] font-bold">
+          <Coins size={17} style={{ color: "var(--brand)" }} /> جدول الضريبة الخصوصية السنوية (الفينيات)
         </h2>
         <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
           التعريفة كتحدد حسب القوة الجبائية ونوع الوقود. الديزل كيأدي أكثر من البنزين.
@@ -56,7 +57,8 @@ export default function CostPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-[11px]" style={{ color: "var(--text-dim)" }}>
+        <p className="mt-3 flex gap-2 text-[11px]" style={{ color: "var(--text-dim)" }}>
+          <Info size={13} className="mt-px shrink-0" />
           المركبات الكهربائية معفية. الدراجات النارية كتأدي حسب سعة المحرك.
           التعريفات إرشادية — تحقق من الموقع الرسمي للإدارة العامة للضرائب.
         </p>

@@ -422,8 +422,8 @@ export function trustScore(
 
 export function trustColor(score: number): string {
   if (score >= 86) return "var(--color-atlas-400)";
-  if (score >= 74) return "var(--color-saffron-400)";
-  if (score >= 60) return "var(--color-saffron-600)";
+  if (score >= 74) return "var(--color-gold-400)";
+  if (score >= 60) return "var(--color-gold-500)";
   if (score >= 45) return "var(--color-clay-400)";
   return "var(--color-clay-500)";
 }

@@ -82,14 +82,14 @@ export function SafetyChecklist() {
       <div className="card mb-5 p-4">
         <div className="flex items-center justify-between text-xs">
           <span className="font-extrabold">تقدّمك في اللائحة</span>
-          <span className="num font-bold" style={{ color: "var(--accent)" }}>
+          <span className="num font-bold" style={{ color: "var(--brand)" }}>
             {checked} / {total}
           </span>
         </div>
-        <div className="mt-2 h-2 rounded-full" style={{ background: "var(--bg-inset)" }}>
+        <div className="mt-2 h-2 rounded-full" style={{ background: "var(--surface-3)" }}>
           <div
             className="h-2 rounded-full transition-all"
-            style={{ width: `${(checked / total) * 100}%`, background: "var(--accent)" }}
+            style={{ width: `${(checked / total) * 100}%`, background: "var(--brand)" }}
           />
         </div>
         {checked > 0 && (
@@ -118,7 +118,7 @@ export function SafetyChecklist() {
                         type="checkbox"
                         checked={on}
                         onChange={(e) => setDone((p) => ({ ...p, [id]: e.target.checked }))}
-                        className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent)]"
+                        className="mt-0.5 h-4 w-4 shrink-0 "
                       />
                       <span
                         style={{

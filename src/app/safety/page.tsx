@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SafetyChecklist } from "@/components/SafetyChecklist";
+import { AlertTriangle, ArrowLeft, BadgeCheck, ClipboardCheck, FileText, ShieldCheck, Wrench } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "دليل البيع والشراء الآمن",
@@ -54,8 +55,8 @@ export default function SafetyPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <header className="mb-12 max-w-2xl">
-        <span className="chip">حماية · نصائح ميدانية</span>
-        <h1 className="section-title mt-4">شري بلا ما تتغلّط</h1>
+        <span className="eyebrow"><ShieldCheck size={13} /> حماية · نصائح ميدانية</span>
+        <h1 className="h-page mt-4">شري بلا ما تتغلّط</h1>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
           أغلب المشاكل فسوق المستعمل ماشي فالمركبة — فالطريقة. هاد الدليل فيه اللائحة
           اللي كيتبعوها المحترفين، والنصب اللي كيتكرر بزاف فالمغرب.
@@ -63,7 +64,7 @@ export default function SafetyPage() {
       </header>
 
       <section className="mb-14">
-        <h2 className="section-title mb-2">لائحة التحقق</h2>
+        <h2 className="h-section mb-2 flex items-center gap-2.5"><ClipboardCheck size={22} style={{ color: "var(--brand)" }} /> لائحة التحقق</h2>
         <p className="mb-6 text-sm" style={{ color: "var(--text-muted)" }}>
           صالحة لأي مركبة. كتسجل تلقائياً فالمتصفح ديالك — نقدر تكمل من بعد.
         </p>
@@ -71,16 +72,16 @@ export default function SafetyPage() {
       </section>
 
       <section className="mb-14">
-        <h2 className="section-title mb-6">النصب اللي خاصك تعرفو</h2>
+        <h2 className="h-section mb-6 flex items-center gap-2.5"><AlertTriangle size={22} style={{ color: "var(--bad)" }} /> النصب اللي خاصك تعرفو</h2>
         <div className="grid gap-4 md:grid-cols-2">
           {SCAMS.map((s) => (
             <div key={s.title} className="card p-5">
-              <h3 className="flex items-center gap-2 text-sm font-extrabold" style={{ color: "var(--color-clay-400)" }}>
-                <span aria-hidden="true">⚠</span> {s.title}
+              <h3 className="flex items-center gap-2 text-sm font-bold" style={{ color: "var(--bad)" }}>
+                <AlertTriangle size={15} /> {s.title}
               </h3>
               <p
                 className="mt-3 rounded-lg p-3 text-xs italic leading-relaxed"
-                style={{ background: "var(--bg-inset)", color: "var(--text-dim)" }}
+                style={{ background: "var(--surface-3)", color: "var(--text-dim)" }}
               >
                 {s.sign}
               </p>
@@ -93,7 +94,7 @@ export default function SafetyPage() {
       </section>
 
       <section className="mb-14">
-        <h2 className="section-title mb-6">الوثائق المطلوبة للبيع</h2>
+        <h2 className="h-section mb-6 flex items-center gap-2.5"><FileText size={22} style={{ color: "var(--brand)" }} /> الوثائق المطلوبة للبيع</h2>
         <div className="card overflow-x-auto p-5">
           <table className="w-full min-w-[420px] text-right text-xs">
             <thead>
@@ -119,17 +120,23 @@ export default function SafetyPage() {
         </p>
       </section>
 
-      <section className="card zellige relative overflow-hidden p-10 text-center">
-        <div className="glow-saffron pointer-events-none absolute inset-0" />
+      <section className="card-raised zellige relative overflow-hidden p-10 text-center sm:p-14">
+        <div className="glow pointer-events-none absolute inset-0" />
         <div className="relative">
-          <h2 className="text-2xl font-black">ماتبقاش تخمّن بوحدك</h2>
+          <span
+            className="mx-auto grid h-14 w-14 place-items-center rounded-2xl"
+            style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+          >
+            <Wrench size={26} />
+          </span>
+          <h2 className="h-section mt-5">ماتبقاش تخمّن بوحدك</h2>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
             الفحص المستقل ديال طريق كيدوّز المركبة من <span className="num">120</span> نقطة
             قبل ما تدفع. بثمن أقل من إصلاح واحد صغير.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href="/inspection" className="btn btn-primary">شوف الفحص المستقل</Link>
-            <Link href="/vehicles?verified=1" className="btn btn-ghost">مركبات بوثائق موثقة</Link>
+            <Link href="/inspection" className="btn btn-primary btn-lg"><Wrench size={16} /> شوف الفحص المستقل</Link>
+            <Link href="/vehicles?verified=1" className="btn btn-ghost btn-lg"><BadgeCheck size={16} /> مركبات بوثائق موثقة</Link>
           </div>
         </div>
       </section>

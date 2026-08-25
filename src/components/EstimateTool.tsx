@@ -8,6 +8,10 @@ import { formatNumber } from "@/lib/format";
 import { CITIES } from "@/lib/cities";
 import type { Condition } from "@/lib/types";
 import { Price } from "@/components/Price";
+import {
+  ArrowLeft, BadgeCheck, Calendar, Car, Chart, Coins, Fuel, Gauge, Gearbox,
+  Info, MapPin, Moto, Sparkle, TrendingDown, Wallet,
+} from "@/components/icons";
 
 const CONDITIONS: [Condition, string, string][] = [
   ["excellent", "ممتازة", "كأنها جديدة، بلا خدوش ولا مشاكل"],
@@ -66,34 +70,34 @@ export function EstimateTool() {
     <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
       {/* النموذج */}
       <div className="card h-fit p-5">
-        <h2 className="text-sm font-extrabold">معطيات المركبة</h2>
+        <h2 className="flex items-center gap-2 text-[13px] font-bold"><Sparkle size={15} style={{ color: "var(--brand)" }} /> معطيات المركبة</h2>
 
         <div className="mt-4 grid grid-cols-2 gap-1.5">
-          {([["car", "سيارة"], ["moto", "دراجة نارية"]] as const).map(([k, l]) => (
+          {([["car", "سيارة", Car], ["moto", "دراجة نارية", Moto]] as const).map(([k, l, I]) => (
             <button
               key={k}
               onClick={() => changeKind(k)}
               aria-pressed={kind === k}
-              className="rounded-lg py-2 text-xs font-bold transition"
+              className="flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold transition"
               style={{
-                background: kind === k ? "var(--accent)" : "var(--bg-inset)",
-                color: kind === k ? "var(--accent-ink)" : "var(--text-muted)",
+                background: kind === k ? "var(--brand)" : "var(--surface-3)",
+                color: kind === k ? "var(--brand-ink)" : "var(--text-muted)",
               }}
             >
-              {l}
+              <I size={17} /> {l}
             </button>
           ))}
         </div>
 
         <div className="mt-4 grid gap-3">
           <div>
-            <label className="label" htmlFor="es-make">الماركة</label>
+            <label className="label" htmlFor="es-make"><BadgeCheck size={13} /> الماركة</label>
             <select id="es-make" className="field" value={make} onChange={(e) => changeMake(e.target.value)}>
               {makes.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
           <div>
-            <label className="label" htmlFor="es-model">الموديل</label>
+            <label className="label" htmlFor="es-model"><Car size={13} /> الموديل</label>
             <select id="es-model" className="field" value={model} onChange={(e) => setModel(e.target.value)}>
               {models.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
@@ -101,7 +105,8 @@ export function EstimateTool() {
 
           <div>
             <label className="label" htmlFor="es-year">
-              سنة الصنع: <span className="num" style={{ color: "var(--accent)" }}>{year}</span>
+              <Calendar size={13} /> سنة الصنع
+              <span className="num mr-auto" style={{ color: "var(--brand)" }}>{year}</span>
             </label>
             <input
               id="es-year"
@@ -110,13 +115,14 @@ export function EstimateTool() {
               max={2026}
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="w-full accent-[var(--accent)]"
+              className="w-full "
             />
           </div>
 
           <div>
             <label className="label" htmlFor="es-km">
-              الكيلومتراج: <span className="num" style={{ color: "var(--accent)" }}>{formatNumber(km)} كم</span>
+              <Gauge size={13} /> الكيلومتراج
+              <span className="num mr-auto" style={{ color: "var(--brand)" }}>{formatNumber(km)} كم</span>
             </label>
             <input
               id="es-km"
@@ -126,13 +132,13 @@ export function EstimateTool() {
               step={kind === "moto" ? 1000 : 5000}
               value={km}
               onChange={(e) => setKm(Number(e.target.value))}
-              className="w-full accent-[var(--accent)]"
+              className="w-full "
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label" htmlFor="es-fuel">الوقود</label>
+              <label className="label" htmlFor="es-fuel"><Fuel size={13} /> الوقود</label>
               <select id="es-fuel" className="field" value={fuel} onChange={(e) => setFuel(e.target.value)}>
                 <option value="diesel">ديزل</option>
                 <option value="essence">بنزين</option>
@@ -141,7 +147,7 @@ export function EstimateTool() {
               </select>
             </div>
             <div>
-              <label className="label" htmlFor="es-gb">الناقل</label>
+              <label className="label" htmlFor="es-gb"><Gearbox size={13} /> الناقل</label>
               <select id="es-gb" className="field" value={gearbox} onChange={(e) => setGearbox(e.target.value)}>
                 <option value="manuelle">يدوية</option>
                 <option value="automatique">أوتوماتيك</option>
@@ -150,14 +156,14 @@ export function EstimateTool() {
           </div>
 
           <div>
-            <label className="label" htmlFor="es-city">المدينة</label>
+            <label className="label" htmlFor="es-city"><MapPin size={13} /> المدينة</label>
             <select id="es-city" className="field" value={city} onChange={(e) => setCity(e.target.value)}>
               {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.ar}</option>)}
             </select>
           </div>
 
           <div>
-            <span className="label">الحالة العامة</span>
+            <span className="label"><BadgeCheck size={13} /> الحالة العامة</span>
             <div className="grid gap-1.5">
               {CONDITIONS.map(([k, l, hint]) => (
                 <button
@@ -166,8 +172,8 @@ export function EstimateTool() {
                   aria-pressed={condition === k}
                   className="rounded-lg border p-2.5 text-right transition"
                   style={{
-                    borderColor: condition === k ? "var(--accent)" : "var(--line-soft)",
-                    background: condition === k ? "color-mix(in oklab, var(--accent) 10%, transparent)" : "transparent",
+                    borderColor: condition === k ? "var(--brand)" : "var(--line-soft)",
+                    background: condition === k ? "color-mix(in oklab, var(--brand) 10%, transparent)" : "transparent",
                   }}
                 >
                   <span className="block text-xs font-bold">{l}</span>
@@ -181,14 +187,15 @@ export function EstimateTool() {
 
       {/* النتيجة */}
       <div className="space-y-6">
-        <div className="card zellige relative overflow-hidden p-6 text-center">
-          <div className="glow-saffron pointer-events-none absolute inset-0" />
+        <div className="card-raised zellige relative overflow-hidden p-7 text-center">
+          <div className="glow pointer-events-none absolute inset-0" />
           <div className="relative">
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-              الثمن المقترح ديال {make} {model} <span className="num">{year}</span>
+            <span className="eyebrow mx-auto"><Wallet size={13} /> الثمن المقترح</span>
+            <p className="mt-2 text-[13px] font-bold">
+              {make} {model} <span className="num opacity-60">{year}</span>
             </p>
             <div className="mt-3">
-              <Price value={est.mid} className="text-4xl font-black sm:text-5xl" />
+              <Price value={est.mid} className="text-4xl font-extrabold tracking-tight sm:text-5xl" />
             </div>
             <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
               المجال المعقول:{" "}
@@ -216,12 +223,12 @@ export function EstimateTool() {
             </div>
 
             <div className="mt-6 flex flex-wrap justify-center gap-2">
-              <Link href="/sell" className="btn btn-primary btn-sm">بيع بهاد الثمن</Link>
+              <Link href="/sell" className="btn btn-primary btn-sm"><Coins size={14} /> بيع بهاد الثمن</Link>
               <Link
                 href={`/vehicles?kind=${kind}&make=${make}&model=${encodeURIComponent(model)}`}
                 className="btn btn-ghost btn-sm"
               >
-                شوف الإعلانات المشابهة
+                شوف الإعلانات المشابهة <ArrowLeft size={14} />
               </Link>
             </div>
           </div>
@@ -229,7 +236,7 @@ export function EstimateTool() {
 
         {/* توقع القيمة */}
         <div className="card p-5">
-          <h2 className="text-sm font-extrabold">كيفاش غادي تتغير القيمة</h2>
+          <h2 className="flex items-center gap-2 text-[13px] font-bold"><Chart size={15} style={{ color: "var(--data)" }} /> كيفاش غادي تتغير القيمة</h2>
           <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
             توقّع خسارة القيمة إلى غاية <span className="num">2031</span> بناءً على معدل السوق.
           </p>
@@ -245,8 +252,8 @@ export function EstimateTool() {
                     height: `${(p.value / maxProj) * 110}px`,
                     background:
                       i === 0
-                        ? "var(--accent)"
-                        : `color-mix(in oklab, var(--accent) ${Math.max(18, 85 - i * 14)}%, var(--bg-inset))`,
+                        ? "var(--brand)"
+                        : `color-mix(in oklab, var(--brand) ${Math.max(18, 85 - i * 14)}%, var(--surface-3))`,
                   }}
                 />
                 <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>{p.year}</span>
@@ -258,13 +265,13 @@ export function EstimateTool() {
         {/* المقارنات */}
         {est.comparables.length > 0 && (
           <div className="card p-5">
-            <h2 className="text-sm font-extrabold">إعلانات مشابهة في السوق حالياً</h2>
+            <h2 className="flex items-center gap-2 text-[13px] font-bold"><TrendingDown size={15} style={{ color: "var(--brand)" }} /> إعلانات مشابهة في السوق حالياً</h2>
             <div className="mt-3 divide-y" style={{ borderColor: "var(--line-soft)" }}>
               {est.comparables.map((c) => (
                 <Link
                   key={c.id}
                   href={`/vehicles/${c.id}`}
-                  className="flex items-center justify-between gap-3 py-2.5 text-xs transition hover:text-[var(--accent)]"
+                  className="flex items-center justify-between gap-3 py-2.5 text-xs transition hover:text-[var(--brand)]"
                 >
                   <span className="truncate">
                     {c.make} {c.model} <span className="num opacity-60">{c.year}</span>
@@ -277,7 +284,8 @@ export function EstimateTool() {
           </div>
         )}
 
-        <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
+        <p className="flex gap-2 text-[11px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
+          <Info size={13} className="mt-px shrink-0" />
           التقدير إرشادي ومبني على الإعلانات المتوفرة داخل المنصة ({VEHICLES.length} مركبة).
           الثمن النهائي كيتأثر بحالة المحرك، تاريخ الصيانة، الوثائق والتفاوض.
         </p>

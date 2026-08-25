@@ -1,22 +1,32 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans_Arabic, Space_Grotesk } from "next/font/google";
+import { IBM_Plex_Sans_Arabic, Noto_Kufi_Arabic, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/store/app";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CompareBar } from "@/components/CompareBar";
 
-const arabic = IBM_Plex_Sans_Arabic({
+/** نص المتن */
+const body = IBM_Plex_Sans_Arabic({
   subsets: ["arabic", "latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-arabic",
+  variable: "--font-body",
   display: "swap",
 });
 
-const latin = Space_Grotesk({
+/** العناوين — كوفي معماري يعطي الهوية المغربية */
+const kufi = Noto_Kufi_Arabic({
+  subsets: ["arabic"],
+  weight: ["500", "700", "800"],
+  variable: "--font-kufi",
+  display: "swap",
+});
+
+/** الأرقام والنصوص اللاتينية */
+const num = Space_Grotesk({
   subsets: ["latin"],
-  weight: ["500", "700"],
-  variable: "--font-latin",
+  weight: ["500", "600", "700"],
+  variable: "--font-num",
   display: "swap",
 });
 
@@ -49,8 +59,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#070a0f" },
-    { media: "(prefers-color-scheme: light)", color: "#fbf8f2" },
+    { media: "(prefers-color-scheme: dark)", color: "#06080c" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f4ee" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -61,7 +71,7 @@ const themeScript = `(function(){try{var s=localStorage.getItem('triq:v1');var t
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" data-theme="dark" className={`${arabic.variable} ${latin.variable}`}>
+    <html lang="ar" dir="rtl" data-theme="dark" className={`${body.variable} ${kufi.variable} ${num.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
@@ -69,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppProvider>
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:right-3 focus:z-[100] focus:rounded-lg focus:bg-[var(--accent)] focus:px-4 focus:py-2 focus:font-bold focus:text-[var(--accent-ink)]"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:right-3 focus:z-[100] focus:rounded-lg focus:bg-[var(--brand)] focus:px-4 focus:py-2 focus:font-bold focus:text-[var(--brand-ink)]"
           >
             تخطَّ إلى المحتوى
           </a>

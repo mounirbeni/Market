@@ -7,6 +7,11 @@ import { makesFor, modelsFor } from "@/lib/data/vehicles";
 import { CITIES } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
+import {
+  AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, Calendar, Camera, Car,
+  Check, CircleDot, Coins, FileText, Gauge, Info, MapPin, Moto, Sparkle,
+  Plus, TrendingDown, Wrench,
+} from "@/components/icons";
 import type { Condition, Seller, Vehicle } from "@/lib/types";
 
 const STEPS = ["المركبة", "الحالة والوثائق", "الصور والوصف", "الثمن", "المعاينة"];
@@ -181,11 +186,16 @@ export function SellWizard() {
 
   if (published) {
     return (
-      <div className="card zellige relative overflow-hidden p-12 text-center">
-        <div className="glow-saffron pointer-events-none absolute inset-0" />
+      <div className="card-raised zellige relative overflow-hidden p-12 text-center">
+        <div className="glow pointer-events-none absolute inset-0" />
         <div className="relative">
-          <p className="text-5xl">🎉</p>
-          <h2 className="mt-4 text-2xl font-black">تنشر إعلانك!</h2>
+          <span
+            className="mx-auto grid h-16 w-16 place-items-center rounded-2xl"
+            style={{ background: "var(--good-soft)", color: "var(--good)" }}
+          >
+            <BadgeCheck size={32} />
+          </span>
+          <h2 className="h-section mt-5">تنشر إعلانك!</h2>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
             {d.make} {d.model} {d.year} بثمن {formatNumber(d.price)} د.م، بمؤشر ثقة{" "}
             <b className="num">{trust.score}/100</b>. الإعلانات اللي نقطتها فوق{" "}
@@ -219,11 +229,11 @@ export function SellWizard() {
               >
                 <div
                   className="h-1 rounded-full transition-all"
-                  style={{ background: i <= step ? "var(--accent)" : "var(--bg-inset)" }}
+                  style={{ background: i <= step ? "var(--brand)" : "var(--surface-3)" }}
                 />
                 <span
                   className="mt-1.5 block text-[10px] font-bold"
-                  style={{ color: i <= step ? "var(--accent)" : "var(--text-dim)" }}
+                  style={{ color: i <= step ? "var(--brand)" : "var(--text-dim)" }}
                 >
                   {s}
                 </span>
@@ -238,7 +248,7 @@ export function SellWizard() {
             <div className="space-y-4">
               <h2 className="text-base font-extrabold">شنو غادي تبيع؟</h2>
               <div className="grid grid-cols-2 gap-1.5">
-                {([["car", "سيارة"], ["moto", "دراجة نارية"]] as const).map(([k, l]) => (
+                {([["car", "سيارة", Car], ["moto", "دراجة نارية", Moto]] as const).map(([k, l, I]) => (
                   <button
                     key={k}
                     onClick={() => {
@@ -246,13 +256,13 @@ export function SellWizard() {
                       set({ kind: k, make: m, model: modelsFor(m)[0] ?? "" });
                     }}
                     aria-pressed={d.kind === k}
-                    className="rounded-lg py-3 text-sm font-bold transition"
+                    className="flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition"
                     style={{
-                      background: d.kind === k ? "var(--accent)" : "var(--bg-inset)",
-                      color: d.kind === k ? "var(--accent-ink)" : "var(--text-muted)",
+                      background: d.kind === k ? "var(--brand)" : "var(--surface-3)",
+                      color: d.kind === k ? "var(--brand-ink)" : "var(--text-muted)",
                     }}
                   >
-                    {l}
+                    <I size={18} /> {l}
                   </button>
                 ))}
               </div>
@@ -282,18 +292,20 @@ export function SellWizard() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="label" htmlFor="sw-year">
-                    السنة: <span className="num" style={{ color: "var(--accent)" }}>{d.year}</span>
+                    <Calendar size={13} /> السنة
+                    <span className="num mr-auto" style={{ color: "var(--brand)" }}>{d.year}</span>
                   </label>
                   <input id="sw-year" type="range" min={2000} max={2026} value={d.year}
-                    onChange={(e) => set({ year: Number(e.target.value) })} className="w-full accent-[var(--accent)]" />
+                    onChange={(e) => set({ year: Number(e.target.value) })} className="w-full " />
                 </div>
                 <div>
                   <label className="label" htmlFor="sw-km">
-                    الكيلومتراج: <span className="num" style={{ color: "var(--accent)" }}>{formatNumber(d.km)}</span>
+                    <Gauge size={13} /> الكيلومتراج
+                    <span className="num mr-auto" style={{ color: "var(--brand)" }}>{formatNumber(d.km)}</span>
                   </label>
                   <input id="sw-km" type="range" min={0} max={d.kind === "moto" ? 120000 : 350000}
                     step={d.kind === "moto" ? 1000 : 5000} value={d.km}
-                    onChange={(e) => set({ km: Number(e.target.value) })} className="w-full accent-[var(--accent)]" />
+                    onChange={(e) => set({ km: Number(e.target.value) })} className="w-full " />
                 </div>
               </div>
 
@@ -315,7 +327,7 @@ export function SellWizard() {
                   </select>
                 </div>
                 <div>
-                  <label className="label" htmlFor="sw-city">المدينة</label>
+                  <label className="label" htmlFor="sw-city"><MapPin size={13} /> المدينة</label>
                   <select id="sw-city" className="field" value={d.city} onChange={(e) => set({ city: e.target.value })}>
                     {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.ar}</option>)}
                   </select>
@@ -335,8 +347,8 @@ export function SellWizard() {
                     <button key={c} onClick={() => set({ condition: c })} aria-pressed={d.condition === c}
                       className="rounded-lg py-2 text-xs font-bold transition"
                       style={{
-                        background: d.condition === c ? "var(--accent)" : "var(--bg-inset)",
-                        color: d.condition === c ? "var(--accent-ink)" : "var(--text-muted)",
+                        background: d.condition === c ? "var(--brand)" : "var(--surface-3)",
+                        color: d.condition === c ? "var(--brand-ink)" : "var(--text-muted)",
                       }}>
                       {{ excellent: "ممتازة", "tres-bon": "جيدة جداً", bon: "جيدة", moyen: "متوسطة" }[c]}
                     </button>
@@ -346,10 +358,11 @@ export function SellWizard() {
 
               <div>
                 <label className="label" htmlFor="sw-owners">
-                  عدد الملاّك: <span className="num" style={{ color: "var(--accent)" }}>{d.owners}</span>
+                  عدد الملاّك
+                  <span className="num mr-auto" style={{ color: "var(--brand)" }}>{d.owners}</span>
                 </label>
                 <input id="sw-owners" type="range" min={1} max={5} value={d.owners}
-                  onChange={(e) => set({ owners: Number(e.target.value) })} className="w-full accent-[var(--accent)]" />
+                  onChange={(e) => set({ owners: Number(e.target.value) })} className="w-full " />
               </div>
 
               <div className="space-y-2">
@@ -362,10 +375,10 @@ export function SellWizard() {
                   ["inspected", "بغيت فحص طريق المستقل (250 د.م)", "+10 نقط"],
                 ] as const).map(([key, label, gain]) => (
                   <label key={key} className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2.5"
-                    style={{ background: "var(--bg-inset)" }}>
+                    style={{ background: "var(--surface-3)" }}>
                     <input type="checkbox" checked={Boolean(d[key])}
                       onChange={(e) => set({ [key]: e.target.checked } as Partial<Draft>)}
-                      className="mt-0.5 h-4 w-4 accent-[var(--accent)]" />
+                      className="mt-0.5 h-4 w-4 " />
                     <span className="flex-1 text-xs">{label}</span>
                     <span className="num text-[10px] font-bold" style={{ color: "var(--color-atlas-400)" }}>{gain}</span>
                   </label>
@@ -380,18 +393,19 @@ export function SellWizard() {
               <h2 className="text-base font-extrabold">الصور والوصف</h2>
               <div>
                 <label className="label" htmlFor="sw-photos">
-                  عدد الصور: <span className="num" style={{ color: "var(--accent)" }}>{d.photos}</span>
+                  <Camera size={13} /> عدد الصور
+                  <span className="num mr-auto" style={{ color: "var(--brand)" }}>{d.photos}</span>
                 </label>
                 <input id="sw-photos" type="range" min={1} max={20} value={d.photos}
-                  onChange={(e) => set({ photos: Number(e.target.value) })} className="w-full accent-[var(--accent)]" />
+                  onChange={(e) => set({ photos: Number(e.target.value) })} className="w-full " />
                 <p className="mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
                   الإعلانات ب<span className="num">12</span> صورة فما فوق كتوصل ضعف الاتصالات.
                 </p>
               </div>
 
-              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5" style={{ background: "var(--bg-inset)" }}>
+              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5" style={{ background: "var(--surface-3)" }}>
                 <input type="checkbox" checked={d.hasVideo} onChange={(e) => set({ hasVideo: e.target.checked })}
-                  className="h-4 w-4 accent-[var(--accent)]" />
+                  className="h-4 w-4 " />
                 <span className="flex-1 text-xs">غادي نزيد فيديو قصير (المحرك + جولة حول المركبة)</span>
                 <span className="num text-[10px] font-bold" style={{ color: "var(--color-atlas-400)" }}>+4</span>
               </label>
@@ -415,11 +429,11 @@ export function SellWizard() {
                         equipment: on ? d.equipment.filter((x) => x !== e) : [...d.equipment, e],
                       })} aria-pressed={on} className="chip transition"
                         style={{
-                          background: on ? "var(--accent)" : "var(--bg-inset)",
-                          color: on ? "var(--accent-ink)" : "var(--text-muted)",
+                          background: on ? "var(--brand)" : "var(--surface-3)",
+                          color: on ? "var(--brand-ink)" : "var(--text-muted)",
                           borderColor: "transparent",
                         }}>
-                        {on ? "✓ " : "+ "}{e}
+                        {on ? <Check size={11} /> : <Plus size={11} />}{e}
                       </button>
                     );
                   })}
@@ -432,9 +446,9 @@ export function SellWizard() {
           {step === 3 && (
             <div className="space-y-4">
               <h2 className="text-base font-extrabold">الثمن</h2>
-              <div className="rounded-xl p-4" style={{ background: "var(--bg-inset)" }}>
+              <div className="rounded-xl p-4" style={{ background: "var(--surface-3)" }}>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>الثمن المقترح من السوق</p>
-                <p className="num mt-1 text-2xl font-black" style={{ color: "var(--accent)" }}>
+                <p className="num mt-1 text-2xl font-black" style={{ color: "var(--brand)" }}>
                   {formatNumber(estimate.mid)} د.م
                 </p>
                 <p className="num mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
@@ -443,12 +457,12 @@ export function SellWizard() {
               </div>
 
               <div>
-                <label className="label" htmlFor="sw-price">الثمن ديالك (درهم)</label>
+                <label className="label" htmlFor="sw-price"><Coins size={13} /> الثمن ديالك (درهم)</label>
                 <input id="sw-price" type="number" step="1000" className="field num text-lg font-bold"
                   value={d.price} onChange={(e) => set({ price: Number(e.target.value) || 0 })} />
                 <input type="range" min={Math.round(estimate.low * 0.6)} max={Math.round(estimate.high * 1.5)}
                   step={1000} value={d.price} onChange={(e) => set({ price: Number(e.target.value) })}
-                  className="mt-3 w-full accent-[var(--accent)]" aria-label="مؤشر الثمن" />
+                  className="mt-3 w-full " aria-label="مؤشر الثمن" />
               </div>
 
               <div className="rounded-lg p-3 text-xs leading-relaxed"
@@ -458,17 +472,17 @@ export function SellWizard() {
                       ? "var(--color-atlas-500)"
                       : priceDelta > 0.14
                         ? "var(--color-clay-500)"
-                        : "var(--color-saffron-500)"
+                        : "var(--color-gold-500)"
                   } 14%, transparent)`,
                 }}>
                 {Math.abs(priceDelta) < 0.05 ? (
-                  <>✓ ثمنك فالمجال ديال السوق. الإعلانات المسعّرة بشكل عادل كتباع أسرع بـ<span className="num">40٪</span>.</>
+                  <><Check size={13} className="inline" /> ثمنك فالمجال ديال السوق. الإعلانات المسعّرة بشكل عادل كتباع أسرع بـ<span className="num">40٪</span>.</>
                 ) : priceDelta > 0.14 ? (
-                  <>⚠ ثمنك أعلى بـ<span className="num">{Math.round(priceDelta * 100)}٪</span> من المرجع.
+                  <><AlertTriangle size={13} className="inline" /> ثمنك أعلى بـ<span className="num">{Math.round(priceDelta * 100)}٪</span> من المرجع.
                     كيمكن يبقى الإعلان مدة طويلة بلا اتصالات. جرّب تقرّبو من{" "}
                     <b className="num">{formatNumber(estimate.high)} د.م</b>.</>
                 ) : priceDelta < -0.14 ? (
-                  <>ℹ ثمنك أقل بكثير من السوق. غادي تبيع بسرعة، ولكن ممكن تخسر{" "}
+                  <><Info size={13} className="inline" /> ثمنك أقل بكثير من السوق. غادي تبيع بسرعة، ولكن ممكن تخسر{" "}
                     <b className="num">{formatNumber(estimate.mid - d.price)} د.م</b>.</>
                 ) : (
                   <>الثمن قريب من السوق مع فارق <span className="num">{Math.round(Math.abs(priceDelta) * 100)}٪</span>.</>
@@ -491,8 +505,8 @@ export function SellWizard() {
                   <button key={k} onClick={() => set({ sellerType: k })} aria-pressed={d.sellerType === k}
                     className="rounded-lg py-2 text-xs font-bold transition"
                     style={{
-                      background: d.sellerType === k ? "var(--accent)" : "var(--bg-inset)",
-                      color: d.sellerType === k ? "var(--accent-ink)" : "var(--text-muted)",
+                      background: d.sellerType === k ? "var(--brand)" : "var(--surface-3)",
+                      color: d.sellerType === k ? "var(--brand-ink)" : "var(--text-muted)",
                     }}>
                     {l}
                   </button>
@@ -504,22 +518,22 @@ export function SellWizard() {
                   ["idVerified", "توثيق الهوية بالبطاقة الوطنية", "+8"],
                 ] as const).map(([key, label, gain]) => (
                   <label key={key} className="flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5"
-                    style={{ background: "var(--bg-inset)" }}>
+                    style={{ background: "var(--surface-3)" }}>
                     <input type="checkbox" checked={Boolean(d[key])}
                       onChange={(e) => set({ [key]: e.target.checked } as Partial<Draft>)}
-                      className="h-4 w-4 accent-[var(--accent)]" />
+                      className="h-4 w-4 " />
                     <span className="flex-1 text-xs">{label}</span>
                     <span className="num text-[10px] font-bold" style={{ color: "var(--color-atlas-400)" }}>{gain}</span>
                   </label>
                 ))}
               </div>
 
-              <div className="rounded-xl p-4" style={{ background: "var(--bg-inset)" }}>
+              <div className="rounded-xl p-4" style={{ background: "var(--surface-3)" }}>
                 <h3 className="text-xs font-extrabold">ملخص الإعلان</h3>
                 <p className="mt-2 text-sm font-bold">
                   {d.make} {d.model} {d.version} <span className="num">{d.year}</span>
                 </p>
-                <p className="num mt-1 text-lg font-black" style={{ color: "var(--accent)" }}>
+                <p className="num mt-1 text-lg font-black" style={{ color: "var(--brand)" }}>
                   {formatNumber(d.price)} د.م
                 </p>
                 <p className="num mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
@@ -527,8 +541,7 @@ export function SellWizard() {
                 </p>
               </div>
 
-              <button onClick={() => setPublished(true)} className="btn btn-primary w-full">
-                انشر الإعلان مجاناً
+              <button onClick={() => setPublished(true)} className="btn btn-primary w-full"><Sparkle size={16} /> انشر الإعلان مجاناً
               </button>
             </div>
           )}
@@ -536,10 +549,10 @@ export function SellWizard() {
           {/* التنقل */}
           <div className="mt-6 flex justify-between gap-3 border-t pt-4" style={{ borderColor: "var(--line-soft)" }}>
             <button onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}
-              className="btn btn-ghost btn-sm disabled:opacity-40">السابق</button>
+              className="btn btn-ghost btn-sm"><ArrowRight size={14} /> السابق</button>
             {step < STEPS.length - 1 && (
               <button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} className="btn btn-primary btn-sm">
-                التالي
+                التالي <ArrowLeft size={14} />
               </button>
             )}
           </div>
@@ -565,8 +578,8 @@ export function SellWizard() {
           <ul className="mt-3 space-y-2">
             {tips.map((t) => (
               <li key={t.text} className="flex items-start gap-2 text-[11px]">
-                <span style={{ color: t.done ? "var(--color-atlas-400)" : "var(--text-dim)" }}>
-                  {t.done ? "✓" : "○"}
+                <span className="mt-0.5 shrink-0" style={{ color: t.done ? "var(--good)" : "var(--text-dim)" }}>
+                  {t.done ? <Check size={13} /> : <CircleDot size={13} />}
                 </span>
                 <span className="flex-1" style={{
                   color: t.done ? "var(--text-dim)" : "var(--text-muted)",
