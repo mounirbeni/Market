@@ -74,7 +74,7 @@ export const brandBySlug = (slug: string) => BY_SLUG.get(slug);
  * شوف public/brands/README.md للمصادر وللوضع القانوني.
  */
 export const OFFICIAL_LOGOS = new Set<string>([
-  "audi", "bmw", "chevrolet", "citroen", "dacia", "fiat", "ford",
+  "audi", "bajaj", "bmw", "chevrolet", "citroen", "dacia", "fiat", "ford",
   "harley-davidson", "honda", "hyundai", "isuzu", "jeep", "kia", "ktm",
   "land-rover", "mercedes", "mitsubishi", "nissan", "opel", "peugeot",
   "renault", "royal-enfield", "seat", "skoda", "suzuki", "tesla", "toyota",

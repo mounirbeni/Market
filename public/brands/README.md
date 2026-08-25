@@ -1,6 +1,6 @@
 # شعارات الماركات — Brand logos
 
-هاد المجلد فيه **30 شعار من 38 ماركة**. الباقي كيتعرض بشارة نصية مصمّمة.
+هاد المجلد فيه **31 شعار من 38 ماركة**. الباقي كيتعرض بشارة نصية مصمّمة.
 
 ## الوضع القانوني — قراه قبل الإطلاق
 
@@ -32,27 +32,57 @@ Moteur.ma) هو **الاستعمال الإشاري** (nominative fair use): ك�
 | [Simple Icons](https://simpleicons.org) | CC0 1.0 | 27 |
 | [car-brand-logos](https://www.npmjs.com/package/car-brand-logos) | MIT | Isuzu |
 | [Arcticons](https://arcticons.onnno.nl) | CC0 / GPL-3.0 | Harley-Davidson، Royal Enfield |
+| [theSVG](https://github.com/glincker/thesvg) | MIT | Bajaj |
 
-## الناقصين (8)
+## الناقصين (7)
 
-كيتعرضو بشارة نصية دابا:
+`Benelli` · `Docker` · `Haojue` · `Kawasaki` · `Kymco` · `MBK` · `SYM`
 
-`Bajaj` · `Benelli` · `Docker` · `Haojue` · `Kawasaki` · `Kymco` · `MBK` · `SYM`
+**تحقّقنا من 241 مجموعة أيقونات مفتوحة** (كل فهرس Iconify + Simple Icons +
+theSVG + Arcticons + car-brand-logos). هاد السبعة ماكايناش فحتى وحدة —
+كلهم ماركات دراجات وسكوترات، والمجموعات المفتوحة كتركّز على ماركات السيارات
+والتقنية.
 
 ملاحظة: `Docker` هنا هي ماركة السيارات النفعية المغربية — **ماشي** أداة
-الحاويات. مجموعات الأيقونات كلها عندها `docker` = الحوت، فماخذيناهش.
+الحاويات. المجموعات كلها عندها `docker` = الحوت الأزرق، فماخذيناهش عمداً.
 
-## كيفاش تزيد شعار
+## كيفاش تزيد شعار — أمر واحد
 
-1. حطّ الملف هنا باسم الـslug: `kawasaki.svg` (الـslugs فـ `src/lib/brands.ts`)
-2. زيد الـslug فـ `OFFICIAL_LOGOS` داخل `src/lib/brands.ts`
-3. خلاص — `BrandMark` غادي يعرضو فكل الموقع تلقائياً
+حمّل ملف SVG من مصدر عندك الحق فيه، من بعد:
 
-المصدر الأنظف: **press / media kit ديال الصانع** مع الـBrand Guidelines
-ديالو (مثلاً press.bmwgroup.com، global.toyota/en/newsroom،
-stellantis.com/en/media). ولا API مرخّصة (Brandfetch، Clearbit).
+```bash
+npm run add-logo kawasaki ~/Downloads/kawasaki.svg
+```
+
+السكريبت كيدير كلشي: كينقّي الملف (كيحيّد `<script>` ومعالجات الأحداث
+والصور الخارجية)، كيتأكد من `viewBox`، كيكتبو هنا، وكيسجّلو فـ
+`OFFICIAL_LOGOS`. من بعد `npm run build` وكيبان فكل الموقع.
+
+خيار اللون إلا بغيتي توحّدو:
+
+```bash
+npm run add-logo kawasaki ~/Downloads/kawasaki.svg -- --color "#3fa535"
+```
+
+**فين تلقاهم**: press / media kit ديال الصانع مع الـBrand Guidelines ديالو.
+للسبعة الناقصين:
+
+| الماركة | المصدر |
+|---|---|
+| Kawasaki | khi.co.jp — قسم Corporate / Brand |
+| Benelli | benelli.com — Press |
+| Kymco | kymco.com.tw — Media |
+| SYM | sym-global.com — Downloads |
+| MBK | mbk-scooters.com (مجموعة Yamaha) |
+| Haojue | haojue.com |
+| Docker | الوكيل المغربي مباشرة |
+
+ولا API مرخّصة (Brandfetch، Clearbit) إلا بغيتي حل جاهز بالأداء.
 
 ## كيفاش تحيّد شعار
 
-حيّد الـslug من `OFFICIAL_LOGOS` — الشارة النصية كترجع تلقائياً.
-ماخاصكش تحيّد الملف.
+```bash
+npm run add-logo kawasaki -- --remove
+```
+
+الشارة النصية كترجع تلقائياً.
