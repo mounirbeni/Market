@@ -30,13 +30,8 @@ export function BrandMark({ name, size = 44, variant = "wordmark", className = "
   if (slug && hasOfficialLogo(slug)) {
     return (
       <span
-        className={`grid shrink-0 place-items-center rounded-xl ${className}`}
-        style={{
-          width: size,
-          height: size,
-          background: `color-mix(in oklab, ${accent} 9%, #ffffff)`,
-          border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
-        }}
+        className={`logo-plate grid shrink-0 place-items-center ${className}`}
+        style={{ width: size, height: size }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -65,15 +60,15 @@ export function BrandMark({ name, size = 44, variant = "wordmark", className = "
         minWidth: isMono ? size : size * 1.6,
         height: size,
         padding: isMono ? 0 : `0 ${size * 0.22}px`,
-        background: `color-mix(in oklab, ${accent} 13%, var(--surface-1))`,
-        border: `1px solid color-mix(in oklab, ${accent} 26%, transparent)`,
+        background: "var(--surface-3)",
+        border: "1px solid var(--line-soft)",
       }}
     >
       <bdi
         dir="ltr"
         className="truncate font-extrabold leading-none tracking-tight"
         style={{
-          color: `color-mix(in oklab, ${accent} 78%, var(--text))`,
+          color: `color-mix(in oklab, ${accent} 62%, var(--text))`,
           fontSize: isMono ? size * 0.38 : Math.min(size * 0.4, 15),
           letterSpacing: isMono ? "0.02em" : "-0.01em",
         }}

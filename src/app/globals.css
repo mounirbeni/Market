@@ -600,3 +600,15 @@
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ---------- شعارات الماركات ----------
+   بلا خلفية ملونة: الشعار كيبان مباشرة فوق البطاقة البيضاء.
+   فالوضع الداكن غير كنحطّو لوحة بيضاء حيت بزاف ديال الشعارات كحلة. */
+.logo-plate {
+  background: transparent;
+  border-radius: 10px;
+  transition: background 160ms ease;
+}
+[data-theme="dark"] .logo-plate {
+  background: #fff;
+}
