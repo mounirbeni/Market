@@ -14,9 +14,11 @@ import { TcoCalculator } from "@/components/vehicle/TcoCalculator";
 import { CreditSimulator } from "@/components/vehicle/CreditSimulator";
 import { HistoryTimeline } from "@/components/vehicle/HistoryTimeline";
 import { SellerCard } from "@/components/vehicle/SellerCard";
+import { StickyActionBar } from "@/components/vehicle/StickyActionBar";
 import { FairPriceMeter } from "@/components/FairPriceMeter";
 import { VehicleCard } from "@/components/VehicleCard";
 import { Price } from "@/components/Price";
+import { Mixed } from "@/components/Mixed";
 import { TrustRing } from "@/components/TrustBadge";
 import {
   BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Door, Engine,
@@ -66,7 +68,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
       ? [{ Icon: Door, label: "الأبواب", value: String(v.doors ?? "-") }]
       : [{ Icon: Engine, label: "سعة المحرك", value: `${v.displacement} سم³` }]),
     { Icon: Fuel, label: "الاستهلاك", value: `${v.consumption} ل/100كم` },
-    { Icon: ClipboardCheck, label: "الفحص التقني", value: `صالح إلى ${formatDate(v.technicalControl)}` },
+    { Icon: ClipboardCheck, label: "الفحص التقني", value: formatDate(v.technicalControl) },
     { Icon: MapPin, label: "المدينة", value: cityName(v.city) },
   ];
 
@@ -91,7 +93,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] px-4 py-6">
+    <div className="mx-auto max-w-[1400px] px-4 py-6 pb-24 lg:pb-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <nav className="mb-5 flex flex-wrap items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
@@ -181,7 +183,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
                   <div className="min-w-0">
                     <dt className="text-[10px]" style={{ color: "var(--text-dim)" }}>{s.label}</dt>
                     <dd className="truncate text-[12.5px] font-bold">
-                      {/\d/.test(s.value) ? <span className="num">{s.value}</span> : s.value}
+                      <Mixed text={s.value} />
                     </dd>
                   </div>
                 </div>
@@ -246,6 +248,8 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
           )}
         </aside>
       </div>
+
+      <StickyActionBar v={v} />
 
       {similar.length > 0 && (
         <section className="mt-16">

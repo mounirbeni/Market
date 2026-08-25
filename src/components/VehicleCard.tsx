@@ -13,6 +13,7 @@ import { VehicleArt } from "./VehicleArt";
 import { TrustDot } from "./TrustBadge";
 import { FairPriceTag } from "./FairPriceMeter";
 import { Price } from "./Price";
+import { Mixed } from "./Mixed";
 import {
   BadgeCheck, Calendar, Camera, Clock, FUEL_ICONS, Gauge, Gearbox,
   Heart, MapPin, Scale, Sparkle, Video,
@@ -31,19 +32,19 @@ function SpecRow({ v }: { v: Vehicle }) {
       {items.map(({ Icon, text }, i) => (
         <div key={i} className="flex items-center gap-1.5 text-[11.5px]" style={{ color: "var(--text-muted)" }}>
           <Icon size={14} style={{ color: "var(--text-dim)" }} />
-          <span className={/^\d/.test(text) ? "num" : "font-medium"}>{text}</span>
+          <Mixed text={text} className="font-medium" />
         </div>
       ))}
     </div>
   );
 }
 
-function ActionButtons({ v }: { v: Vehicle }) {
+function ActionButtons({ v, side = "left" }: { v: Vehicle; side?: "left" | "right" }) {
   const { isFavorite, toggleFavorite, inCompare, toggleCompare } = useApp();
   const fav = isFavorite(v.id);
   const cmp = inCompare(v.id);
   return (
-    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+    <div className={`absolute top-3 z-10 flex flex-col gap-1.5 ${side === "left" ? "left-3" : "right-3"}`}>
       <button
         onClick={(e) => { e.preventDefault(); toggleFavorite(v.id); }}
         aria-label={fav ? "إزالة من المفضلة" : "أضف إلى المفضلة"}
@@ -179,7 +180,7 @@ export function VehicleRow({ v }: { v: Vehicle }) {
 
   return (
     <article className="card card-hover group relative overflow-hidden">
-      <ActionButtons v={v} />
+      <ActionButtons v={v} side="right" />
       <Link href={`/vehicles/${v.id}`} className="flex flex-col sm:flex-row">
         <div className="relative aspect-[16/10] w-full overflow-hidden sm:aspect-auto sm:w-[280px] sm:shrink-0">
           <VehicleArt
@@ -190,7 +191,6 @@ export function VehicleRow({ v }: { v: Vehicle }) {
             className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
             label={`${v.make} ${v.model} ${v.year}`}
           />
-          <Badges v={v} />
           <MediaCount v={v} />
         </div>
 
@@ -198,9 +198,13 @@ export function VehicleRow({ v }: { v: Vehicle }) {
           <div>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h3 className="truncate text-base font-bold transition-colors group-hover:text-[var(--brand)]">
-                  {v.make} {v.model}
-                </h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="truncate text-base font-bold transition-colors group-hover:text-[var(--brand)]">
+                    {v.make} {v.model}
+                  </h3>
+                  {v.boosted && <span className="tag tag-warn"><Sparkle size={11} /> مميّز</span>}
+                  {v.inspected && <span className="tag tag-good"><BadgeCheck size={11} /> مفحوصة</span>}
+                </div>
                 <p className="mt-0.5 truncate text-xs" style={{ color: "var(--text-dim)" }}>
                   {v.version}
                 </p>

@@ -12,6 +12,7 @@ import { artShape } from "@/lib/artshape";
 import { VehicleArt } from "@/components/VehicleArt";
 import { TrustRing } from "@/components/TrustBadge";
 import { Price } from "@/components/Price";
+import { Mixed } from "@/components/Mixed";
 import type { Vehicle } from "@/lib/types";
 import {
   Award, BadgeCheck, Calculator, Calendar, Car, Check, Close, Coins, Engine,
@@ -233,7 +234,7 @@ export function CompareClient() {
                       >
                         <span className="inline-flex items-center gap-1">
                           {best === i && <Check size={12} />}
-                          {/\d/.test(String(val)) ? <span className="num">{val}</span> : val}
+                          <Mixed text={val} />
                         </span>
                       </td>
                     ))}

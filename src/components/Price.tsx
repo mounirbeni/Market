@@ -20,7 +20,7 @@ export function Price({
   return (
     <span className={className} style={{ direction: "rtl" }}>
       <span className="num">{prefix}{parts.join(" ")}</span>
-      <span className="mr-1 text-[0.7em] font-semibold opacity-60">{suffix}</span>
+      <span className="ms-1.5 text-[0.7em] font-semibold opacity-60">{suffix}</span>
     </span>
   );
 }
