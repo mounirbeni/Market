@@ -3,6 +3,10 @@ import type { SVGProps } from "react";
 /* ============================================================
    نظام الأيقونات — خطية، 24×24، تتبع لون النص (currentColor)
    لا تُستعمل الرموز التعبيرية في أي مكان بالواجهة
+
+   أغلب الأيقونات مرسومة خصيصاً لهاد المشروع. الأيقونات المعلَّمة
+   بـ «مصدرها Tabler Icons (MIT)» مأخوذة من مجموعة Tabler ومعدَّلة
+   لتوافق سمك الخط ديالنا. شوف THIRD-PARTY-NOTICES.md.
    ============================================================ */
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "size"> {
@@ -256,8 +260,13 @@ export const Engine = (p: P) => (
     <path d="M9 5h4" />
   </svg>
 );
+/** مصدرها Tabler Icons (MIT) — car-door */
 export const Door = (p: P) => (
-  <svg {...base(p)}><path d="M5 21V4a1 1 0 0 1 .8-1l10-2A1 1 0 0 1 17 2v19" /><path d="M3 21h18" /><circle cx="13.5" cy="12" r="1" /></svg>
+  <svg {...base(p)}>
+    <path d="M13 14h2" />
+    <path d="M19 10h-16" />
+    <path d="M6.7 3.45l-3.7 5.55v3.08a1 1 0 0 0 .85 1a6 6 0 0 1 5.15 5.92v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1 -1v-16a1 1 0 0 0 -1 -1h-10.46a1 1 0 0 0 -.84 .45" />
+  </svg>
 );
 export const Palette = (p: P) => (
   <svg {...base(p)}>
@@ -402,8 +411,16 @@ export const CircleDot = (p: P) => (
 export const Flag = (p: P) => (
   <svg {...base(p)}><path d="M5 21V4M5 4.5h11l-1.8 3.5L16 11.5H5" /></svg>
 );
+/** مصدرها Tabler Icons (MIT) — car-crash */
 export const Crash = (p: P) => (
-  <svg {...base(p)}><path d="m13 2-3.5 8h5L11 22" /><path d="M3.5 7 6 9M20.5 7 18 9M3 15h3M18 15h3" /></svg>
+  <svg {...base(p)}>
+    <path d="M8 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M7 6l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-5m0 -6h8m-6 0v-5m2 0h-4" />
+    <path d="M14 8v-2" />
+    <path d="M19 12h2" />
+    <path d="M17.5 15.5l1.5 1.5" />
+    <path d="M17.5 8.5l1.5 -1.5" />
+  </svg>
 );
 
 /* ---------- وسائط ---------- */
@@ -441,10 +458,14 @@ export const Transmission = (p: P) => (
     <path d="M6 7.3v9.4M18 7.3v9.4M6 12h12M12 7.3V12" />
   </svg>
 );
+/** مصدرها Tabler Icons (MIT) — automatic-gearbox */
 export const AutoGear = (p: P) => (
   <svg {...base(p)}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M9.2 15.5 12 8.5l2.8 7M10.1 13.3h3.8" />
+    <path d="M17 17v4h1a2 2 0 1 0 0 -4h-1" />
+    <path d="M17 11h1.5a1.5 1.5 0 0 0 0 -3h-1.5v5" />
+    <path d="M3 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M5 7v3a1 1 0 0 0 1 1h3v7a1 1 0 0 0 1 1h3" />
+    <path d="M9 11h4" />
   </svg>
 );
 export const Horsepower = (p: P) => (
@@ -493,10 +514,13 @@ export const Airbag = (p: P) => (
     <path d="M4 19.5h5" />
   </svg>
 );
+/** مصدرها Tabler Icons (MIT) — car-fan */
 export const AirCon = (p: P) => (
   <svg {...base(p)}>
-    <path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5 4.2 16.5" />
-    <path d="M12 6.5 10 5M12 6.5 14 5M12 17.5 10 19M12 17.5 14 19" />
+    <path d="M12 12v-9l4.912 1.914a1.7 1.7 0 0 1 .428 2.925l-5.34 4.161" />
+    <path d="M12 12h9l-1.914 4.912a1.7 1.7 0 0 1 -2.925 .428l-4.161 -5.34" />
+    <path d="M12 12h-9l1.914 -4.912a1.7 1.7 0 0 1 2.925 -.428l4.161 5.34" />
+    <path d="M12 12v9l-4.912 -1.914a1.7 1.7 0 0 1 -.428 -2.925l5.34 -4.161" />
   </svg>
 );
 export const Steering = (p: P) => (
@@ -505,11 +529,15 @@ export const Steering = (p: P) => (
     <path d="M3.2 11h17.6M12 14.6V21" />
   </svg>
 );
+/** مصدرها Tabler Icons (MIT) — battery-automotive */
 export const Battery = (p: P) => (
   <svg {...base(p)}>
-    <rect x="2.5" y="7" width="16" height="10" rx="2" />
-    <path d="M18.5 10.5h2.2a.8.8 0 0 1 .8.8v1.4a.8.8 0 0 1-.8.8h-2.2" />
-    <path d="M6 10.5v3M9.5 10.5v3M13 10.5v3" />
+    <path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -10" />
+    <path d="M6 5v-2" />
+    <path d="M18 3v2" />
+    <path d="M6.5 12h3" />
+    <path d="M14.5 12h3" />
+    <path d="M16 10.5v3" />
   </svg>
 );
 export const Radar = (p: P) => (
@@ -591,13 +619,18 @@ export const EngineBlock = (p: P) => (
 );
 
 /** تيربو — بيت حلزوني وعجلة ضاغطة */
+/** مصدرها Tabler Icons (MIT) — car-turbine */
 export const Turbo = (p: P) => (
   <svg {...base(p)}>
-    <circle cx="11.6" cy="10.6" r="7.4" />
-    <path d="M5.6 15v3.6a2 2 0 0 0 2 2h4.4" />
-    <path d="M19 10.6h2.4" />
-    <circle cx="11.6" cy="10.6" r="3" />
-    <path d="M11.6 7.6a3 3 0 0 1 2.6 4.5M11.6 13.6a3 3 0 0 1-2.6-4.5" />
+    <path d="M7 13a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+    <path d="M18.86 11c.088 .66 .14 1.512 .14 2a8 8 0 1 1 -8 -8h6" />
+    <path d="M11 9c2.489 .108 4.489 .108 6 0" />
+    <path d="M17 4a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -6" />
+    <path d="M11 13l-3.5 -1.5" />
+    <path d="M11 13l2.5 3" />
+    <path d="M8.5 16l2.5 -3" />
+    <path d="M11 13l3.5 -1.5" />
+    <path d="M11 9v4" />
   </svg>
 );
 
@@ -761,13 +794,12 @@ export const TirePressure = (p: P) => (
 );
 
 /** مساحات الزجاج */
+/** مصدرها Tabler Icons (MIT) — wiper */
 export const Wiper = (p: P) => (
   <svg {...base(p)}>
-    <path d="M3.2 20h17.6" />
-    <circle cx="6.4" cy="20" r="1.7" />
-    <path d="M6.4 18.3 13.7 6.4" />
-    <path d="m11.3 5.2 4.6 2.8" />
-    <path d="M9.8 19.6a10.2 10.2 0 0 1 8.4-9.9" />
+    <path d="M11 18a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+    <path d="M3 9l5.5 5.5a5 5 0 0 1 7 0l5.5 -5.5a12 12 0 0 0 -18 0" />
+    <path d="M12 18l-2.2 -12.8" />
   </svg>
 );
 
@@ -793,13 +825,13 @@ export const Toolbox = (p: P) => (
 );
 
 /** الكريك — رافعة المركبة */
+/** مصدرها Tabler Icons (MIT) — car-lifter */
 export const Jack = (p: P) => (
   <svg {...base(p)}>
-    <path d="M12 4.8 5.8 12 12 19.2 18.2 12z" />
-    <path d="M3.4 12h17.2" />
-    <path d="M9 2.6h6v1.6H9z" />
-    <path d="M12 4.2V2.6M12 19.2v1.6" />
-    <path d="M8.4 20.8h7.2" />
+    <path d="M7 21l10 -7l-10 -7" />
+    <path d="M17 7l-10 7l10 7" />
+    <path d="M20 7h-16a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1" />
+    <path d="M3 21h18" />
   </svg>
 );
 
