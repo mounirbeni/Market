@@ -26,19 +26,30 @@ export function BrandMark({ name, size = 44, variant = "wordmark", className = "
   const accent = meta?.accent ?? "var(--brand)";
   const slug = meta?.slug;
 
-  // شعار رسمي مرخّص — كيتعرض غير إلا تسجّل فـ OFFICIAL_LOGOS
+  // شعار الماركة — كيتعرض داخل مربع فاتح باش يبان فالوضعين فاتح وداكن
   if (slug && hasOfficialLogo(slug)) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={`/brands/${slug}.svg`}
-        alt={name}
-        width={size}
-        height={size}
-        loading="lazy"
-        className={`object-contain ${className}`}
-        style={{ width: size, height: size }}
-      />
+      <span
+        className={`grid shrink-0 place-items-center rounded-xl ${className}`}
+        style={{
+          width: size,
+          height: size,
+          background: `color-mix(in oklab, ${accent} 9%, #ffffff)`,
+          border: `1px solid color-mix(in oklab, ${accent} 22%, transparent)`,
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/brands/${slug}.svg`}
+          alt={name}
+          width={Math.round(size * 0.62)}
+          height={Math.round(size * 0.62)}
+          loading="lazy"
+          decoding="async"
+          className="object-contain"
+          style={{ width: size * 0.62, height: size * 0.62 }}
+        />
+      </span>
     );
   }
 

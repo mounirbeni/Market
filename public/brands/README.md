@@ -1,41 +1,58 @@
 # شعارات الماركات — Brand logos
 
-هاد المجلد خاوي عن قصد. **ماكنشحنو حتى شعار رسمي مع الكود.**
+هاد المجلد فيه **30 شعار من 38 ماركة**. الباقي كيتعرض بشارة نصية مصمّمة.
 
-## علاش
+## الوضع القانوني — قراه قبل الإطلاق
 
-شعارات صانعي السيارات والدراجات (Mercedes، BMW، Yamaha…) **علامات
-تجارية مسجّلة**. ملف SVG كيمكن يكون تحت رخصة مفتوحة (CC0 مثلاً) — ولكن
-الرخصة كتتنازل على **حقوق النسخ** فقط، ماكتعطيكش أي حق فـ**العلامة
-التجارية**. مشروع Simple Icons بنفسو كيقول:
+شعارات صانعي السيارات والدراجات **علامات تجارية مسجّلة**. الملفات هنا
+مأخوذة من مجموعات تحت رخص مفتوحة (CC0 / MIT)، ولكن **الرخصة المفتوحة
+كتّطبق على ملف SVG ماشي على العلامة التجارية**. مصدر `car-brand-logos`
+كيقولها بوضوح:
 
-> "Simple Icons cannot be held responsible for any legal activity raised
-> by a brand, or users of the package."
+> "the logos themselves remain trademarked property of their respective
+> brand owners… You cannot license something you don't own; treat the logo
+> files as you would any other trademark asset."
 
-## كيفاش تحصل عليهم بشكل سليم
+الأساس اللي كتستعمل عليه المنصات (AutoScout24، Mobile.de، Avito،
+Moteur.ma) هو **الاستعمال الإشاري** (nominative fair use): كتعرّف بمنتوج
+حقيقي معروض للبيع، بلا ما توحي برعاية ولا شراكة. الشروط العملية:
 
-1. **Press / Media kit ديال الصانع** — أغلب الشركات كتوفّر شعاراتها
-   مع «Brand Guidelines» كتحدد الاستعمال المسموح. هادي أنظف طريقة.
-   مثلاً: stellantis.com/en/media، press.bmwgroup.com، global.toyota/en/newsroom.
-2. **API مرخّصة للشعارات** — خدمات كتبيع ترخيص استعمال (Brandfetch،
-   Clearbit Logo API وغيرهم). كتخلّص وكتاخذ رخصة مكتوبة.
-3. **استشارة محامي** على «الاستعمال الإشاري» (nominative fair use) فالمغرب.
-   المنصات الكبيرة (AutoScout24، Mobile.de، Avito، Moteur.ma) كتعرض
-   الشعارات على هاد الأساس: كتعرّف بمنتوج حقيقي معروض للبيع، بلا ما توحي
-   برعاية ولا شراكة. لكن هادشي قرار ديالك مع محاميك، ماشي ديالي.
+- استعمل الشعار غير باش تعرّف بالمركبة، ماشي فالهوية البصرية ديال الموقع
+- ماتبدّلش الشعار (لا ألوان مركّبة، لا إضافات، لا دمج مع شعارك)
+- ماتوحيش برعاية ولا اعتماد رسمي
+- استعمل أصغر حجم كيوصّل المعلومة
 
-## كيفاش تفعّلهم من بعد
+**هادشي ماشي استشارة قانونية.** قبل الإطلاق التجاري، تأكد مع محامي على
+الوضع فالمغرب.
 
-1. حطّ الملف هنا باسم الـslug: `mercedes.svg`، `yamaha.svg`، `land-rover.svg`
-   (الـslugs كاملة فـ `src/lib/brands.ts`).
-2. زيد الـslug فـ `OFFICIAL_LOGOS` داخل `src/lib/brands.ts`:
-   ```ts
-   export const OFFICIAL_LOGOS = new Set<string>(["mercedes", "yamaha"]);
-   ```
-3. خلاص. `BrandMark` غادي يعرض الشعار بدل الشارة النصية فكل الموقع
-   تلقائياً — بلا أي تعديل آخر.
+## المصادر
 
-## حتى ذاك الوقت
+| المصدر | الرخصة | الماركات |
+|---|---|---|
+| [Simple Icons](https://simpleicons.org) | CC0 1.0 | 27 |
+| [car-brand-logos](https://www.npmjs.com/package/car-brand-logos) | MIT | Isuzu |
+| [Arcticons](https://arcticons.onnno.nl) | CC0 / GPL-3.0 | Harley-Davidson، Royal Enfield |
 
-كنعرضو شارة نصية مصمّمة: اسم الماركة بالحروف اللاتينية مع لون مرجعي.
-تصميم ديالنا، صفر خطر قانوني.
+## الناقصين (8)
+
+كيتعرضو بشارة نصية دابا:
+
+`Bajaj` · `Benelli` · `Docker` · `Haojue` · `Kawasaki` · `Kymco` · `MBK` · `SYM`
+
+ملاحظة: `Docker` هنا هي ماركة السيارات النفعية المغربية — **ماشي** أداة
+الحاويات. مجموعات الأيقونات كلها عندها `docker` = الحوت، فماخذيناهش.
+
+## كيفاش تزيد شعار
+
+1. حطّ الملف هنا باسم الـslug: `kawasaki.svg` (الـslugs فـ `src/lib/brands.ts`)
+2. زيد الـslug فـ `OFFICIAL_LOGOS` داخل `src/lib/brands.ts`
+3. خلاص — `BrandMark` غادي يعرضو فكل الموقع تلقائياً
+
+المصدر الأنظف: **press / media kit ديال الصانع** مع الـBrand Guidelines
+ديالو (مثلاً press.bmwgroup.com، global.toyota/en/newsroom،
+stellantis.com/en/media). ولا API مرخّصة (Brandfetch، Clearbit).
+
+## كيفاش تحيّد شعار
+
+حيّد الـslug من `OFFICIAL_LOGOS` — الشارة النصية كترجع تلقائياً.
+ماخاصكش تحيّد الملف.

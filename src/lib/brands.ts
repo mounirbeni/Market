@@ -25,7 +25,7 @@ export const BRANDS: BrandMeta[] = [
   { slug: "peugeot", name: "Peugeot", accent: "#00543d", country: "فرنسا", kind: "both" },
   { slug: "citroen", name: "Citroën", accent: "#c8102e", country: "فرنسا", kind: "car" },
   { slug: "volkswagen", name: "Volkswagen", accent: "#001e50", country: "ألمانيا", kind: "car" },
-  { slug: "mercedes", name: "Mercedes", accent: "#00adef", country: "ألمانيا", kind: "car" },
+  { slug: "mercedes", name: "Mercedes", accent: "#1b1b1b", country: "ألمانيا", kind: "car" },
   { slug: "bmw", name: "BMW", accent: "#0066b1", country: "ألمانيا", kind: "both" },
   { slug: "audi", name: "Audi", accent: "#bb0a30", country: "ألمانيا", kind: "car" },
   { slug: "opel", name: "Opel", accent: "#f7ff14", country: "ألمانيا", kind: "car" },
@@ -69,11 +69,17 @@ export const brandByName = (name: string) => BY_NAME.get(name.toLowerCase());
 export const brandBySlug = (slug: string) => BY_SLUG.get(slug);
 
 /**
- * الماركات اللي عندنا ملف شعار رسمي ديالها فـ public/brands/.
- * ساكنة خاوية دابا — زيد اسم الماركة هنا بعد ما تحطّ الملف
- * ويكون عندك الحق فاستعمالو.
+ * الماركات اللي عندنا ملف شعار ديالها فـ public/brands/.
+ * الباقي كيتعرض بشارة نصية مصمّمة.
+ * شوف public/brands/README.md للمصادر وللوضع القانوني.
  */
-export const OFFICIAL_LOGOS = new Set<string>([]);
+export const OFFICIAL_LOGOS = new Set<string>([
+  "audi", "bmw", "chevrolet", "citroen", "dacia", "fiat", "ford",
+  "harley-davidson", "honda", "hyundai", "isuzu", "jeep", "kia", "ktm",
+  "land-rover", "mercedes", "mitsubishi", "nissan", "opel", "peugeot",
+  "renault", "royal-enfield", "seat", "skoda", "suzuki", "tesla", "toyota",
+  "vespa", "volkswagen", "yamaha",
+]);
 
 export const hasOfficialLogo = (slug: string) => OFFICIAL_LOGOS.has(slug);
 
