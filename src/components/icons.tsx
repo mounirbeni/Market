@@ -919,6 +919,14 @@ export const EQUIPMENT_ICONS: Record<string, (p: P) => React.JSX.Element> = {
   "وضعيات قيادة متعددة": AutoGear,
 };
 
+/** إرسال — طائرة ورقية */
+export const Send = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M21.4 2.6 10.6 13.4" />
+    <path d="M21.4 2.6 14.6 21.4l-4-8-8-4z" />
+  </svg>
+);
+
 /** واتساب — سماعة داخل فقاعة محادثة */
 export const Whatsapp = (p: P) => (
   <svg {...base(p)}>

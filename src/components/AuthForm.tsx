@@ -1,196 +1,154 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useApp } from "@/store/app";
-import {
-  BadgeCheck, Car, Info, Lock2, Message, Phone, ShieldCheck, Users, Wallet,
-} from "./icons";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, Info, Phone, ShieldCheck } from "@/components/icons";
 
-export function AuthForm({ mode }: { mode: "login" | "register" }) {
-  const { signIn } = useApp();
-  const router = useRouter();
-  const [role, setRole] = useState<"buyer" | "seller">("buyer");
-  const [name, setName] = useState("");
+/* ============================================================
+   الدخول برقم الهاتف + رمز التحقق (OTP)
+
+   الرمز كيتولّد فالخادم وكيتخزن hash ديالو فقط. فالتطوير كيتعرض
+   فالواجهة؛ فالإنتاج مع مزوّد SMS مضبوط ماكيرجعش للمتصفح.
+   ============================================================ */
+
+async function post<T>(url: string, data: unknown): Promise<T> {
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error ?? "وقع مشكل.");
+  return j.data as T;
+}
+
+export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
+  const [step, setStep] = useState<"phone" | "code">("phone");
   const [phone, setPhone] = useState("");
-  const [step, setStep] = useState<"form" | "otp">("form");
-  const [otp, setOtp] = useState("");
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [devCode, setDevCode] = useState<string | null>(null);
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const router = useRouter();
+  const { signIn } = useApp();
 
-  const isRegister = mode === "register";
-  const validPhone = /^0[67]\d{8}$/.test(phone.replace(/\s/g, ""));
-
-  function submit(e: React.FormEvent) {
+  async function requestCode(e: React.FormEvent) {
     e.preventDefault();
-    if (step === "form") {
-      setStep("otp");
-      return;
+    setErr(""); setBusy(true);
+    try {
+      const d = await post<{ phone: string; devCode?: string }>("/api/auth/request-otp", { phone });
+      setDevCode(d.devCode ?? null);
+      setStep("code");
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
     }
-    signIn({ name: name.trim() || "مستعمل طريق", role, phone });
-    router.push("/dashboard");
+  }
+
+  async function verify(e: React.FormEvent) {
+    e.preventDefault();
+    setErr(""); setBusy(true);
+    try {
+      await post("/api/auth/verify-otp", { phone, code, name });
+      // نسخة محلية للواجهة (الشارة فالهيدر) — المصدر الحقيقي هو الكوكي
+      signIn({ name: name.trim() || "مستعمل طريق", role: "buyer", phone });
+      router.push("/dashboard");
+      router.refresh();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-center">
-      {/* الجانب التعريفي */}
-      <div className="order-2 lg:order-1">
-        <span className="eyebrow"><ShieldCheck size={13} /> حساب واحد لكل شي</span>
-        <h1 className="h-page mt-4">
-          {isRegister ? "أنشئ حسابك فطريق" : "مرحباً بك من جديد"}
-        </h1>
-        <p className="mt-4 max-w-lg text-[15px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          {isRegister
-            ? "حساب مجاني كيخليك تنشر إعلاناتك، تحفظ المركبات اللي عجباتك، وتوصلك تنبيهات ملي ينقص الثمن."
-            : "دخل لحسابك باش توصل لإعلاناتك، رسائلك، ومفضلتك."}
-        </p>
+    <div className="card mx-auto max-w-md p-7">
+      <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl"
+        style={{ background: "var(--brand-soft)", color: "var(--brand)" }}>
+        <ShieldCheck size={22} />
+      </span>
+      <h1 className="h-page mt-5 text-center text-2xl">
+        {mode === "register" ? "إنشاء حساب" : "تسجيل الدخول"}
+      </h1>
+      <p className="mt-2 text-center text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+        {step === "phone"
+          ? "برقم الهاتف فقط — بلا كلمة سر. كنصيفطو ليك رمز تحقق."
+          : <>دخّل الرمز اللي وصلك على <bdi dir="ltr" className="num font-bold">{phone}</bdi></>}
+      </p>
 
-        <ul className="mt-8 space-y-4">
-          {[
-            { Icon: Car, t: "إعلانات بلا حدود", d: "انشر سياراتك ودراجاتك مجاناً" },
-            { Icon: Wallet, t: "تنبيهات انخفاض الثمن", d: "كنعلمو ملي ينقص ثمن مركبة محفوظة" },
-            { Icon: Message, t: "مراسلة داخل المنصة", d: "تواصل مع المشترين بلا ما تعطي رقمك" },
-            { Icon: BadgeCheck, t: "توثيق الهوية", d: "الحسابات الموثقة كتاخد نقطة ثقة أعلى" },
-          ].map((f) => (
-            <li key={f.t} className="flex gap-3">
-              <span
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
-                style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
-              >
-                <f.Icon size={18} />
+      {step === "phone" ? (
+        <form onSubmit={requestCode} className="mt-6 space-y-3">
+          {mode === "register" && (
+            <div>
+              <label className="label" htmlFor="af-name">السمية</label>
+              <input id="af-name" value={name} onChange={(e) => setName(e.target.value)}
+                className="field mt-1.5 w-full" placeholder="مثلاً: يوسف الإدريسي" maxLength={60} />
+            </div>
+          )}
+          <div>
+            <label className="label" htmlFor="af-phone">رقم الهاتف</label>
+            <input id="af-phone" value={phone} onChange={(e) => setPhone(e.target.value)}
+              className="field num mt-1.5 w-full" dir="ltr" style={{ textAlign: "left" }}
+              placeholder="0612345678" inputMode="tel" autoComplete="tel" required />
+          </div>
+          {err && (
+            <p className="flex items-center gap-2 text-[12px]" style={{ color: "var(--bad)" }}>
+              <AlertTriangle size={13} /> {err}
+            </p>
+          )}
+          <button type="submit" disabled={busy} className="btn btn-primary w-full disabled:opacity-50">
+            {busy ? "كنصيفطو…" : <>صيفط الرمز <ArrowLeft size={15} /></>}
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={verify} className="mt-6 space-y-3">
+          {devCode && (
+            <p className="flex items-start gap-2 rounded-xl p-3 text-[11.5px] leading-relaxed"
+              style={{ background: "var(--warn-soft)", color: "var(--text-muted)" }}>
+              <Info size={14} className="mt-px shrink-0" style={{ color: "var(--warn)" }} />
+              <span>
+                وضع التطوير — الرمز ديالك:{" "}
+                <b className="num tracking-widest" style={{ color: "var(--text)" }}>{devCode}</b>.
+                فالإنتاج كيوصل بـSMS.
               </span>
-              <div>
-                <div className="text-[13px] font-bold">{f.t}</div>
-                <div className="text-[11.5px]" style={{ color: "var(--text-muted)" }}>{f.d}</div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* النموذج */}
-      <div className="card-raised order-1 p-6 lg:order-2">
-        {step === "form" ? (
-          <form onSubmit={submit} className="space-y-4">
-            <h2 className="text-lg font-bold">{isRegister ? "إنشاء حساب" : "تسجيل الدخول"}</h2>
-
-            {isRegister && (
-              <>
-                <div>
-                  <span className="label"><Users size={13} /> شنو بغيتي دير؟</span>
-                  <div className="grid grid-cols-2 gap-2">
-                    {([
-                      ["buyer", "نشري مركبة", Car],
-                      ["seller", "نبيع مركبة", Wallet],
-                    ] as const).map(([r, label, Icon]) => {
-                      const on = role === r;
-                      return (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() => setRole(r)}
-                          aria-pressed={on}
-                          className="flex flex-col items-center gap-1.5 rounded-xl border py-3.5 text-[12px] font-bold transition"
-                          style={{
-                            borderColor: on ? "var(--brand)" : "var(--line)",
-                            background: on ? "var(--brand-soft)" : "var(--surface-1)",
-                            color: on ? "var(--brand)" : "var(--text-muted)",
-                          }}
-                        >
-                          <Icon size={20} /> {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="label" htmlFor="au-name"><Users size={13} /> الاسم الكامل</label>
-                  <input
-                    id="au-name"
-                    className="field"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="مثلاً: منير بنعلي"
-                    autoComplete="name"
-                  />
-                </div>
-              </>
-            )}
-
-            <div>
-              <label className="label" htmlFor="au-phone"><Phone size={13} /> رقم الهاتف</label>
-              <input
-                id="au-phone"
-                className="field num"
-                inputMode="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="06 12 34 56 78"
-                autoComplete="tel"
-                dir="ltr"
-              />
-              {phone && !validPhone && (
-                <p className="mt-1.5 text-[11px]" style={{ color: "var(--bad)" }}>
-                  الرقم خاصو يبدا بـ06 ولا 07 ويكون فيه 10 أرقام
-                </p>
-              )}
-            </div>
-
-            <button type="submit" className="btn btn-primary w-full" disabled={!validPhone}>
-              <Lock2 size={16} /> {isRegister ? "أرسل رمز التأكيد" : "دخول برمز SMS"}
-            </button>
-
-            <div className="rule-diamond text-[10px]">ولا</div>
-
-            <div className="grid gap-2">
-              {["متابعة بحساب Google", "متابعة بحساب Apple"].map((l) => (
-                <button key={l} type="button" className="btn btn-solid w-full text-[12.5px]">{l}</button>
-              ))}
-            </div>
-
-            <p className="text-center text-[11px]" style={{ color: "var(--text-dim)" }}>
-              {isRegister ? (
-                <>عندك حساب؟ <Link href="/login" className="font-bold" style={{ color: "var(--brand)" }}>دخل من هنا</Link></>
-              ) : (
-                <>ماعندكش حساب؟ <Link href="/register" className="font-bold" style={{ color: "var(--brand)" }}>أنشئ واحد</Link></>
-              )}
             </p>
-          </form>
+          )}
+          <div>
+            <label className="label" htmlFor="af-code">رمز التحقق</label>
+            <input id="af-code" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              className="field num mt-1.5 w-full text-center text-xl tracking-[0.5em]" dir="ltr"
+              placeholder="······" inputMode="numeric" autoComplete="one-time-code" required />
+          </div>
+          {err && (
+            <p className="flex items-center gap-2 text-[12px]" style={{ color: "var(--bad)" }}>
+              <AlertTriangle size={13} /> {err}
+            </p>
+          )}
+          <button type="submit" disabled={busy || code.length !== 6}
+            className="btn btn-primary w-full disabled:opacity-50">
+            {busy ? "كنتحققو…" : <><Check size={16} /> دخول</>}
+          </button>
+          <button type="button" onClick={() => { setStep("phone"); setCode(""); setErr(""); }}
+            className="btn btn-ghost btn-sm w-full">
+            <ArrowRight size={14} /> بدّل الرقم
+          </button>
+        </form>
+      )}
+
+      <p className="mt-6 border-t pt-4 text-center text-[12px]" style={{ borderColor: "var(--line-soft)", color: "var(--text-muted)" }}>
+        {mode === "register" ? (
+          <>عندك حساب؟ <Link href="/login" className="font-bold" style={{ color: "var(--brand)" }}>دخول</Link></>
         ) : (
-          <form onSubmit={submit} className="space-y-4">
-            <h2 className="text-lg font-bold">تأكيد الرقم</h2>
-            <p className="text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              صيفطنا رمزاً من <span className="num">4</span> أرقام للرقم{" "}
-              <b className="num" dir="ltr">{phone}</b>
-            </p>
-            <div>
-              <label className="label" htmlFor="au-otp"><Lock2 size={13} /> رمز التأكيد</label>
-              <input
-                id="au-otp"
-                className="field num text-center text-2xl tracking-[0.5em]"
-                inputMode="numeric"
-                maxLength={4}
-                value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                placeholder="0000"
-                dir="ltr"
-              />
-            </div>
-            <button type="submit" className="btn btn-primary w-full">تأكيد ودخول</button>
-            <button type="button" onClick={() => setStep("form")} className="btn btn-ghost btn-sm w-full">
-              بدّل الرقم
-            </button>
-          </form>
+          <>ما عندكش حساب؟ <Link href="/register" className="font-bold" style={{ color: "var(--brand)" }}>إنشاء حساب</Link></>
         )}
-
-        <p
-          className="mt-5 flex gap-2 rounded-lg p-3 text-[10.5px] leading-relaxed"
-          style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
-        >
-          <Info size={13} className="mt-px shrink-0" style={{ color: "var(--data)" }} />
-          هادي منصة تجريبية: الحساب كيتسجّل فمتصفحك فقط وماكيتصيفطش لأي خادم. أي رمز غادي يمشي.
-        </p>
-      </div>
+      </p>
+      <p className="mt-2 flex items-center justify-center gap-1.5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
+        <Phone size={11} /> رقمك ماكيتنشرش. كيبان غير ملي تختار تبيّنو.
+      </p>
     </div>
   );
 }

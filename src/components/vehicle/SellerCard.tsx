@@ -8,8 +8,9 @@ import { AR } from "@/lib/format";
 import { hashCode } from "@/lib/data/seed";
 import { vehicleHref } from "@/lib/slug";
 import { ReportDialog } from "./ReportDialog";
+import { ContactSellerButton } from "./ContactSellerButton";
 import {
-  BadgeCheck, Calendar, Check, Clock, Flag, MapPin, Message, Phone, Share,
+  BadgeCheck, Calendar, Check, Clock, Flag, MapPin, Phone, Share,
   ShieldAlert, Star, Whatsapp, Wrench,
 } from "@/components/icons";
 
@@ -103,9 +104,7 @@ export function SellerCard({ seller, v }: { seller: Seller; v: Vehicle }) {
             <Whatsapp size={17} /> راسلو على واتساب
           </a>
           <div className="grid grid-cols-2 gap-2">
-            <Link href="/messages" className="btn btn-solid btn-sm">
-              <Message size={14} /> رسالة داخلية
-            </Link>
+            <ContactSellerButton listingRef={v.id} label="رسالة داخلية" />
             <Link href={`/messages?appointment=${v.id}`} className="btn btn-solid btn-sm">
               <Calendar size={14} /> اطلب موعد
             </Link>
