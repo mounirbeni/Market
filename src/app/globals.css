@@ -6,49 +6,43 @@
    ============================================================ */
 
 @theme {
-  /* ---- سُلّم الحبر (الأساس) ---- */
-  --color-ink-950: #07090d;
-  --color-ink-900: #0b0e14;
-  --color-ink-850: #10141c;
-  --color-ink-800: #151a24;
-  --color-ink-750: #1a2029;
-  --color-ink-700: #222937;
-  --color-ink-600: #2e3648;
-  --color-ink-500: #414b60;
-  --color-ink-400: #626e86;
-  --color-ink-300: #8e9ab1;
-  --color-ink-200: #b9c3d5;
-  --color-ink-100: #dde4ef;
-  --color-ink-50: #f1f5fa;
+  /* ---- الأزرق: لون العلامة ---- */
+  --color-blue-50: #eff5ff;
+  --color-blue-100: #dbe8ff;
+  --color-blue-200: #bcd3ff;
+  --color-blue-300: #8fb4ff;
+  --color-blue-400: #5a8ef7;
+  --color-blue-500: #1f5fe0;
+  --color-blue-600: #1550cc;
+  --color-blue-700: #103fa3;
+  --color-blue-800: #0d2f78;
 
-  /* ---- ذهب الزعفران: العلامة والدعوات ---- */
-  --color-gold-300: #f7d68a;
-  --color-gold-400: #efc063;
-  --color-gold-500: #e3a52f;
-  --color-gold-600: #c1861d;
-  --color-gold-700: #94651a;
+  /* ---- الكحلي: الهيدر والعناوين ---- */
+  --color-navy-950: #06152c;
+  --color-navy-900: #0a1e3d;
+  --color-navy-800: #0e2b56;
+  --color-navy-700: #14386e;
 
-  /* ---- أخضر الأطلس: الثقة والإيجابي ---- */
-  --color-atlas-300: #6ee7b7;
-  --color-atlas-400: #34d399;
-  --color-atlas-500: #12a97c;
-  --color-atlas-600: #0b7f5e;
+  /* ---- رمادي مزرقّ ---- */
+  --color-slate-50: #f7f9fd;
+  --color-slate-100: #eef3fb;
+  --color-slate-200: #dfe8f5;
+  --color-slate-300: #c6d4e8;
+  --color-slate-400: #93a5bf;
+  --color-slate-500: #6b7f9c;
+  --color-slate-600: #4a5c78;
+  --color-slate-700: #2f3f58;
 
-  /* ---- طين مراكش: التنبيه والسلبي ---- */
-  --color-clay-300: #f5a48a;
-  --color-clay-400: #ea7f5f;
-  --color-clay-500: #d4573a;
-  --color-clay-600: #ab3f28;
-
-  /* ---- أزرق مجوريل: الأدوات والبيانات ---- */
-  --color-majorelle-300: #a5aeff;
-  --color-majorelle-400: #7d8bff;
-  --color-majorelle-500: #5b63f0;
-  --color-majorelle-600: #4239cc;
-
-  /* ---- فيروز: بيانات ثانوية ---- */
-  --color-teal-400: #38bdc8;
-  --color-teal-500: #159aa6;
+  /* ---- ألوان دلالية ---- */
+  --color-green-500: #16a34a;
+  --color-green-400: #22c55e;
+  --color-amber-500: #d97706;
+  --color-amber-400: #f59e0b;
+  --color-red-500: #dc2626;
+  --color-red-400: #ef4444;
+  --color-teal-500: #0d9488;
+  --color-violet-500: #7c3aed;
+  --color-indigo-500: #4f46e5;
 
   --font-sans: var(--font-body), "Segoe UI", system-ui, sans-serif;
   --font-display: var(--font-kufi), var(--font-body), system-ui, sans-serif;
@@ -66,82 +60,93 @@
 }
 
 /* ============================================================
-   الرموز الدلالية — تتبدل مع الوضع
+   الرموز الدلالية — الوضع النهاري هو الافتراضي (أبيض + أزرق)
    ============================================================ */
 :root {
-  --bg: #06080c;
-  --bg-deep: #04060a;
-  --surface-1: #0c1016;
-  --surface-2: #11161f;
-  --surface-3: #171d28;
-  --surface-hover: #1b2230;
-  --line: #232b3a;
-  --line-soft: #1a2029;
-  --line-strong: #313b4e;
-
-  --text: #f1f5fa;
-  --text-muted: #9aa6bb;
-  --text-dim: #6b7789;
-
-  --brand: var(--color-gold-500);
-  --brand-soft: color-mix(in oklab, var(--color-gold-500) 14%, transparent);
-  --brand-ink: #120c02;
-  --brand-hover: var(--color-gold-400);
-
-  --good: var(--color-atlas-400);
-  --good-soft: color-mix(in oklab, var(--color-atlas-400) 13%, transparent);
-  --warn: var(--color-gold-400);
-  --warn-soft: color-mix(in oklab, var(--color-gold-400) 13%, transparent);
-  --bad: var(--color-clay-400);
-  --bad-soft: color-mix(in oklab, var(--color-clay-400) 13%, transparent);
-  --data: var(--color-majorelle-400);
-  --data-soft: color-mix(in oklab, var(--color-majorelle-400) 14%, transparent);
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.8);
-  --shadow-lg: 0 24px 60px -24px rgba(0, 0, 0, 0.9);
-  --hairline: inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  --zellige-opacity: 0.055;
-
-  color-scheme: dark;
-}
-
-[data-theme="light"] {
-  --bg: #f7f4ee;
-  --bg-deep: #efeae0;
+  --bg: #ffffff;
+  --bg-deep: #f4f8fe;
   --surface-1: #ffffff;
-  --surface-2: #ffffff;
-  --surface-3: #f4f1ea;
-  --surface-hover: #eeeae1;
-  --line: #ded6c7;
-  --line-soft: #eae4d8;
-  --line-strong: #c9bfab;
+  --surface-2: #f7fafe;
+  --surface-3: #eef3fb;
+  --surface-hover: #e3ecfa;
+  --line: #dde6f2;
+  --line-soft: #e9eff8;
+  --line-strong: #c6d4e8;
 
-  --text: #12161d;
-  --text-muted: #4f596a;
-  --text-dim: #7b8492;
+  --text: #0a1e3d;
+  --text-muted: #4a5c78;
+  --text-dim: #7d8ea8;
 
-  --brand: var(--color-gold-600);
-  --brand-soft: color-mix(in oklab, var(--color-gold-600) 12%, transparent);
+  --brand: #1f5fe0;
+  --brand-soft: #eaf1ff;
   --brand-ink: #ffffff;
-  --brand-hover: var(--color-gold-500);
+  --brand-hover: #1550cc;
 
-  --good: var(--color-atlas-500);
-  --good-soft: color-mix(in oklab, var(--color-atlas-500) 12%, transparent);
-  --warn: var(--color-gold-600);
-  --warn-soft: color-mix(in oklab, var(--color-gold-600) 12%, transparent);
-  --bad: var(--color-clay-500);
-  --bad-soft: color-mix(in oklab, var(--color-clay-500) 12%, transparent);
-  --data: var(--color-majorelle-500);
-  --data-soft: color-mix(in oklab, var(--color-majorelle-500) 12%, transparent);
+  /* الهيدر الكحلي */
+  --nav-bg: linear-gradient(100deg, #08192f 0%, #0d2a55 55%, #123a72 100%);
+  --nav-text: #ffffff;
+  --nav-muted: #a9c0e0;
+  --nav-line: rgba(255, 255, 255, 0.12);
 
-  --shadow-sm: 0 1px 2px rgba(48, 40, 26, 0.07);
-  --shadow-md: 0 10px 28px -16px rgba(48, 40, 26, 0.3);
-  --shadow-lg: 0 26px 60px -30px rgba(48, 40, 26, 0.35);
-  --hairline: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  --zellige-opacity: 0.05;
+  --good: #16a34a;
+  --good-soft: #e8f7ee;
+  --warn: #d97706;
+  --warn-soft: #fdf3e3;
+  --bad: #dc2626;
+  --bad-soft: #fdeceb;
+  --data: #4f46e5;
+  --data-soft: #eeecfd;
+
+  --shadow-sm: 0 1px 2px rgba(10, 30, 61, 0.06);
+  --shadow-md: 0 10px 26px -14px rgba(10, 30, 61, 0.22);
+  --shadow-lg: 0 24px 54px -26px rgba(10, 30, 61, 0.3);
+  --hairline: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --zellige-opacity: 0.035;
 
   color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #071426;
+  --bg-deep: #050f1d;
+  --surface-1: #0c1c31;
+  --surface-2: #0f2138;
+  --surface-3: #162b46;
+  --surface-hover: #1c3454;
+  --line: #22395a;
+  --line-soft: #1a2d49;
+  --line-strong: #2e4a72;
+
+  --text: #eef4fd;
+  --text-muted: #9db1cd;
+  --text-dim: #6e83a3;
+
+  --brand: #5a8ef7;
+  --brand-soft: rgba(90, 142, 247, 0.14);
+  --brand-ink: #05122a;
+  --brand-hover: #8fb4ff;
+
+  --nav-bg: linear-gradient(100deg, #050f1d 0%, #0a1e3d 55%, #0e2b56 100%);
+  --nav-text: #ffffff;
+  --nav-muted: #93aacb;
+  --nav-line: rgba(255, 255, 255, 0.1);
+
+  --good: #22c55e;
+  --good-soft: rgba(34, 197, 94, 0.14);
+  --warn: #f59e0b;
+  --warn-soft: rgba(245, 158, 11, 0.14);
+  --bad: #ef4444;
+  --bad-soft: rgba(239, 68, 68, 0.14);
+  --data: #818cf8;
+  --data-soft: rgba(129, 140, 248, 0.15);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 26px -14px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 24px 54px -26px rgba(0, 0, 0, 0.85);
+  --hairline: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --zellige-opacity: 0.05;
+
+  color-scheme: dark;
 }
 
 /* ============================================================
@@ -213,22 +218,22 @@
   inset: 0;
   z-index: -1;
   opacity: var(--zellige-opacity);
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23e3a52f' stroke-width='1'%3E%3Cpath d='M36 0 L72 36 L36 72 L0 36 Z'/%3E%3Cpath d='M36 12 L60 36 L36 60 L12 36 Z'/%3E%3Cpath d='M0 0 L12 12 M72 0 L60 12 M0 72 L12 60 M72 72 L60 60'/%3E%3Ccircle cx='36' cy='36' r='6'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%231f5fe0' stroke-width='1'%3E%3Cpath d='M36 0 L72 36 L36 72 L0 36 Z'/%3E%3Cpath d='M36 12 L60 36 L36 60 L12 36 Z'/%3E%3Cpath d='M0 0 L12 12 M72 0 L60 12 M0 72 L12 60 M72 72 L60 60'/%3E%3Ccircle cx='36' cy='36' r='6'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 72px 72px;
   pointer-events: none;
 }
 
 .glow {
   background: radial-gradient(
-    58% 46% at 50% 0%,
-    color-mix(in oklab, var(--brand) 20%, transparent) 0%,
+    62% 50% at 50% 0%,
+    color-mix(in oklab, var(--brand) 11%, transparent) 0%,
     transparent 72%
   );
 }
 .glow-data {
   background: radial-gradient(
-    50% 40% at 80% 10%,
-    color-mix(in oklab, var(--data) 16%, transparent) 0%,
+    50% 42% at 82% 8%,
+    color-mix(in oklab, var(--brand) 9%, transparent) 0%,
     transparent 70%
   );
 }
@@ -307,14 +312,14 @@
   .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
   .btn-primary {
-    background: linear-gradient(180deg, var(--color-gold-400), var(--color-gold-500));
+    background: var(--brand);
     color: var(--brand-ink);
-    box-shadow: 0 6px 18px -8px color-mix(in oklab, var(--brand) 70%, transparent);
+    box-shadow: 0 6px 16px -8px color-mix(in oklab, var(--brand) 65%, transparent);
   }
   .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.06);
+    background: var(--brand-hover);
     transform: translateY(-1px);
-    box-shadow: 0 10px 24px -8px color-mix(in oklab, var(--brand) 75%, transparent);
+    box-shadow: 0 12px 26px -10px color-mix(in oklab, var(--brand) 70%, transparent);
   }
 
   .btn-solid {
@@ -395,7 +400,7 @@
 
   select.field {
     appearance: none;
-    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238e9ab1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237d8ea8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: left 0.7rem center;
     padding-left: 2rem;
@@ -542,6 +547,16 @@
     transition: width 0.5s var(--ease-out-soft);
   }
 }
+
+/* ============================================================
+   الهيدر الكحلي
+   ============================================================ */
+.navbar {
+  background: var(--nav-bg);
+  color: var(--nav-text);
+}
+.navbar a,
+.navbar button { color: inherit; }
 
 /* ============================================================
    حركات

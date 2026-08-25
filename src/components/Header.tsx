@@ -30,16 +30,16 @@ function IconButton({
   count?: number;
   href?: string;
 }) {
-  const cls = "relative grid h-9 w-9 place-items-center rounded-lg border transition";
+  const cls = "relative grid h-9 w-9 place-items-center rounded-lg border transition hover:bg-white/10";
   const style = {
-    borderColor: active ? "var(--brand)" : "var(--line)",
-    color: active ? "var(--brand)" : "var(--text-muted)",
-    background: active ? "var(--brand-soft)" : "transparent",
+    borderColor: active ? "rgba(255,255,255,0.35)" : "var(--nav-line)",
+    color: "var(--nav-text)",
+    background: active ? "rgba(255,255,255,0.12)" : "transparent",
   };
   const badge = count && count > 0 ? (
     <span
       className="num absolute -top-1.5 -left-1.5 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9.5px] font-bold"
-      style={{ background: "var(--brand)", color: "var(--brand-ink)" }}
+      style={{ background: "var(--brand)", color: "#fff" }}
     >
       {count}
     </span>
@@ -76,12 +76,8 @@ export function Header() {
 
   return (
     <header
-      className="sticky top-0 z-50 transition-all duration-300"
-      style={{
-        background: scrolled ? "color-mix(in oklab, var(--bg) 82%, transparent)" : "transparent",
-        backdropFilter: scrolled ? "blur(16px) saturate(140%)" : "none",
-        borderBottom: `1px solid ${scrolled ? "var(--line-soft)" : "transparent"}`,
-      }}
+      className="navbar sticky top-0 z-50 transition-shadow duration-300"
+      style={{ boxShadow: scrolled ? "0 8px 26px -18px rgba(6,21,44,0.9)" : "none" }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1400px] items-center gap-3 px-4">
         <Link href="/" aria-label="الصفحة الرئيسية" className="shrink-0">
@@ -95,8 +91,8 @@ export function Header() {
               <Link
                 key={href}
                 href={href}
-                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-semibold transition"
-                style={{ color: active ? "var(--text)" : "var(--text-muted)" }}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-semibold transition hover:bg-white/8"
+                style={{ color: active ? "var(--nav-text)" : "var(--nav-muted)" }}
               >
                 <Icon size={15} style={{ opacity: 0.75 }} />
                 {label}
@@ -106,7 +102,7 @@ export function Header() {
         </nav>
 
         <div className="mr-auto flex items-center gap-2">
-          <div className="hidden sm:block"><UnitToggle compact /></div>
+          <div className="hidden sm:block"><UnitToggle compact onNav /></div>
 
           <IconButton onClick={toggleTheme} label="تبديل الوضع الليلي">
             {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
@@ -133,7 +129,7 @@ export function Header() {
             aria-label="القائمة"
             aria-expanded={open}
             className="grid h-9 w-9 place-items-center rounded-lg border lg:hidden"
-            style={{ borderColor: "var(--line)", color: "var(--text-muted)" }}
+            style={{ borderColor: "var(--nav-line)", color: "var(--nav-text)" }}
           >
             {open ? <Close size={18} /> : <Menu size={18} />}
           </button>
@@ -143,7 +139,7 @@ export function Header() {
       {open && (
         <div
           className="border-t lg:hidden animate-fade"
-          style={{ background: "var(--surface-1)", borderColor: "var(--line-soft)" }}
+          style={{ background: "rgba(255,255,255,0.06)", borderColor: "var(--nav-line)" }}
         >
           <div className="mx-auto max-w-[1400px] px-4 py-3">
             <div className="grid grid-cols-2 gap-2">
@@ -152,15 +148,15 @@ export function Header() {
                   key={href}
                   href={href}
                   className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-[13px] font-bold"
-                  style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
+                  style={{ background: "rgba(255,255,255,0.08)", color: "var(--nav-text)" }}
                 >
-                  <Icon size={16} style={{ color: "var(--brand)" }} />
+                  <Icon size={16} style={{ color: "var(--color-blue-300)" }} />
                   {label}
                 </Link>
               ))}
             </div>
             <div className="mt-3 flex items-center justify-between gap-3">
-              <UnitToggle />
+              <UnitToggle onNav />
               <Link href="/sell" className="btn btn-primary btn-sm">بيع مركبتك</Link>
             </div>
           </div>

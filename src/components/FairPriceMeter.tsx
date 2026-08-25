@@ -89,7 +89,7 @@ export function FairPriceMeter({ fp }: { fp: FairPrice }) {
         >
           <span
             className="rounded-md px-2 py-1 text-[10.5px] font-extrabold whitespace-nowrap"
-            style={{ background: color, color: "#0b0f16" }}
+            style={{ background: color, color: "#0a1e3d" }}
           >
             هذا الإعلان
           </span>
@@ -98,11 +98,11 @@ export function FairPriceMeter({ fp }: { fp: FairPrice }) {
       </div>
 
       <div className="mt-3 flex justify-between text-[11px]" style={{ color: "var(--text-dim)" }}>
-        <span className="flex items-center gap-1"><TrendingUp size={11} /><Price value={fp.estimate.high} /></span>
+        <span className="flex items-center gap-1"><TrendingUp size={11} /><Price value={fp.estimate.high} tone="inherit" /></span>
         <span className="font-bold" style={{ color: "var(--text-muted)" }}>
-          المرجع <Price value={fp.estimate.mid} />
+          المرجع <Price value={fp.estimate.mid} tone="inherit" />
         </span>
-        <span className="flex items-center gap-1"><Price value={fp.estimate.low} /><TrendingDown size={11} /></span>
+        <span className="flex items-center gap-1"><Price value={fp.estimate.low} tone="inherit" /><TrendingDown size={11} /></span>
       </div>
 
       <div
@@ -112,7 +112,7 @@ export function FairPriceMeter({ fp }: { fp: FairPrice }) {
         <div className="stat">
           <span className="stat-label">الفرق عن المرجع</span>
           <span className="stat-value text-base" style={{ color: fp.weak ? "var(--text-muted)" : color }}>
-            <Price value={fp.deltaDh} sign />
+            <Price value={fp.deltaDh} sign tone="inherit" />
           </span>
         </div>
         <div className="stat">

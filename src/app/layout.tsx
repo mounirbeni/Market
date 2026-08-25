@@ -59,19 +59,19 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#06080c" },
-    { media: "(prefers-color-scheme: light)", color: "#f7f4ee" },
+    { media: "(prefers-color-scheme: dark)", color: "#071426" },
+    { media: "(prefers-color-scheme: light)", color: "#0a1e3d" },
   ],
   width: "device-width",
   initialScale: 1,
 };
 
 /** يمنع وميض الوضع الفاتح/الداكن قبل التحميل */
-const themeScript = `(function(){try{var s=localStorage.getItem('triq:v1');var t=s?JSON.parse(s).theme:'dark';document.documentElement.setAttribute('data-theme',t||'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`;
+const themeScript = `(function(){try{var s=localStorage.getItem('triq:v1');var t=s?JSON.parse(s).theme:'light';document.documentElement.setAttribute('data-theme',t||'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" data-theme="dark" className={`${body.variable} ${kufi.variable} ${num.variable}`}>
+    <html lang="ar" dir="rtl" data-theme="light" className={`${body.variable} ${kufi.variable} ${num.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

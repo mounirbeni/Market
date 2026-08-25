@@ -12,13 +12,13 @@ import {
 import type { IconProps } from "@/components/icons";
 
 const LINE_META: Record<string, { color: string; Icon: (p: IconProps) => React.JSX.Element }> = {
-  fuel: { color: "var(--color-gold-500)", Icon: Fuel },
-  insurance: { color: "var(--color-majorelle-400)", Icon: Shield },
-  vignette: { color: "var(--color-clay-400)", Icon: Coins },
-  maintenance: { color: "var(--color-atlas-500)", Icon: Wrench },
-  tyres: { color: "var(--color-teal-400)", Icon: Weight },
-  control: { color: "var(--color-ink-400)", Icon: Road },
-  depreciation: { color: "var(--color-clay-600)", Icon: TrendingDown },
+  fuel: { color: "#1f5fe0", Icon: Fuel },
+  insurance: { color: "#4f46e5", Icon: Shield },
+  vignette: { color: "#d97706", Icon: Coins },
+  maintenance: { color: "#16a34a", Icon: Wrench },
+  tyres: { color: "#0d9488", Icon: Weight },
+  control: { color: "#6b7f9c", Icon: Road },
+  depreciation: { color: "#dc2626", Icon: TrendingDown },
 };
 
 /** حلقة توزيع التكاليف */

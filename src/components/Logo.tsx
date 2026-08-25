@@ -4,9 +4,9 @@ export function Logo({ size = 36, compact = false }: { size?: number; compact?: 
       <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" className="shrink-0">
         <defs>
           <linearGradient id="triq-mark" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#f7d68a" />
-            <stop offset="52%" stopColor="#e3a52f" />
-            <stop offset="100%" stopColor="#d4573a" />
+            <stop offset="0%" stopColor="#5a8ef7" />
+            <stop offset="55%" stopColor="#1f5fe0" />
+            <stop offset="100%" stopColor="#103fa3" />
           </linearGradient>
         </defs>
         {/* نجمة زليجية ثمانية */}
@@ -15,8 +15,8 @@ export function Logo({ size = 36, compact = false }: { size?: number; compact?: 
           fill="url(#triq-mark)"
         />
         {/* الطريق */}
-        <path d="M17 33 L24 15 L31 33" fill="none" stroke="#0b0f16" strokeWidth="2.6" strokeLinejoin="round" opacity="0.9" />
-        <path d="M24 20.5v2.5M24 26v2.5M24 31v2" stroke="#0b0f16" strokeWidth="2.2" strokeLinecap="round" opacity="0.9" />
+        <path d="M17 33 L24 15 L31 33" fill="none" stroke="#ffffff" strokeWidth="2.6" strokeLinejoin="round" opacity="0.95" />
+        <path d="M24 20.5v2.5M24 26v2.5M24 31v2" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" opacity="0.95" />
       </svg>
       {!compact && (
         <span className="flex flex-col leading-none">

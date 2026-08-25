@@ -124,9 +124,9 @@ export function IconTiles({
             disabled={disabled}
             className="flex flex-col items-center gap-1.5 rounded-lg border py-2.5 transition disabled:opacity-25"
             style={{
-              borderColor: on ? "var(--brand)" : "var(--line-soft)",
-              background: on ? "var(--brand-soft)" : "var(--surface-3)",
-              color: on ? "var(--brand)" : "var(--text-muted)",
+              borderColor: on ? "var(--brand)" : "var(--line)",
+              background: on ? "var(--brand-soft)" : "var(--surface-1)",
+              color: on ? "var(--brand)" : "var(--text)",
             }}
           >
             {o.render(on)}

@@ -15,17 +15,18 @@ import { FairPriceTag } from "./FairPriceMeter";
 import { Price } from "./Price";
 import { Mixed } from "./Mixed";
 import {
-  BadgeCheck, Calendar, Camera, Clock, FUEL_ICONS, Gauge, Gearbox,
-  Heart, MapPin, Scale, Sparkle, Video,
+  ArrowLeft, AutoGear, BadgeCheck, Calendar, Camera, Clock, FUEL_ICONS, Heart,
+  MapPin, Odometer, Scale, Sparkle, Transmission, Video,
 } from "./icons";
 
 function SpecRow({ v }: { v: Vehicle }) {
   const FuelIcon = FUEL_ICONS[v.fuel];
+  const GearIcon = v.gearbox === "automatique" ? AutoGear : Transmission;
   const items = [
     { Icon: Calendar, text: String(v.year) },
-    { Icon: Gauge, text: `${formatNumber(v.km)} كم` },
+    { Icon: Odometer, text: `${formatNumber(v.km)} كم` },
     { Icon: FuelIcon, text: AR.fuel[v.fuel] },
-    { Icon: Gearbox, text: v.gearbox === "automatique" ? "أوتوماتيك" : "يدوية" },
+    { Icon: GearIcon, text: v.gearbox === "automatique" ? "أوتوماتيك" : "يدوية" },
   ];
   return (
     <div className="grid grid-cols-2 gap-x-3 gap-y-2">
@@ -39,37 +40,40 @@ function SpecRow({ v }: { v: Vehicle }) {
   );
 }
 
-function ActionButtons({ v, side = "left" }: { v: Vehicle; side?: "left" | "right" }) {
+/** أزرار المفضلة والمقارنة داخل تذييل البطاقة */
+function CardActions({ v }: { v: Vehicle }) {
   const { isFavorite, toggleFavorite, inCompare, toggleCompare } = useApp();
   const fav = isFavorite(v.id);
   const cmp = inCompare(v.id);
+  const base =
+    "grid h-9 w-9 place-items-center rounded-lg border transition hover:-translate-y-0.5";
   return (
-    <div className={`absolute top-3 z-10 flex flex-col gap-1.5 ${side === "left" ? "left-3" : "right-3"}`}>
+    <div className="flex shrink-0 gap-1.5">
       <button
-        onClick={(e) => { e.preventDefault(); toggleFavorite(v.id); }}
-        aria-label={fav ? "إزالة من المفضلة" : "أضف إلى المفضلة"}
-        aria-pressed={fav}
-        className="grid h-8 w-8 place-items-center rounded-lg border backdrop-blur-md transition"
-        style={{
-          background: fav ? "var(--bad)" : "rgba(8,11,16,0.55)",
-          borderColor: fav ? "transparent" : "rgba(255,255,255,0.12)",
-          color: "#fff",
-        }}
-      >
-        <Heart size={15} filled={fav} />
-      </button>
-      <button
-        onClick={(e) => { e.preventDefault(); toggleCompare(v.id); }}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleCompare(v.id); }}
         aria-label={cmp ? "إزالة من المقارنة" : "أضف إلى المقارنة"}
         aria-pressed={cmp}
-        className="grid h-8 w-8 place-items-center rounded-lg border backdrop-blur-md transition"
+        className={base}
         style={{
-          background: cmp ? "var(--data)" : "rgba(8,11,16,0.55)",
-          borderColor: cmp ? "transparent" : "rgba(255,255,255,0.12)",
-          color: "#fff",
+          borderColor: cmp ? "var(--data)" : "var(--line)",
+          background: cmp ? "var(--data)" : "transparent",
+          color: cmp ? "#fff" : "var(--text-dim)",
         }}
       >
-        <Scale size={15} />
+        <Scale size={16} />
+      </button>
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(v.id); }}
+        aria-label={fav ? "إزالة من المفضلة" : "أضف إلى المفضلة"}
+        aria-pressed={fav}
+        className={base}
+        style={{
+          borderColor: fav ? "var(--bad)" : "var(--line)",
+          background: fav ? "var(--bad)" : "transparent",
+          color: fav ? "#fff" : "var(--text-dim)",
+        }}
+      >
+        <Heart size={16} filled={fav} />
       </button>
     </div>
   );
@@ -79,12 +83,12 @@ function Badges({ v }: { v: Vehicle }) {
   return (
     <div className="absolute top-3 right-3 z-10 flex flex-wrap justify-end gap-1.5">
       {v.boosted && (
-        <span className="tag border backdrop-blur-md" style={{ background: "rgba(227,165,47,0.16)", borderColor: "rgba(227,165,47,0.35)", color: "var(--color-gold-300)" }}>
+        <span className="tag" style={{ background: "var(--brand)", color: "#fff" }}>
           <Sparkle size={11} /> مميّز
         </span>
       )}
       {v.inspected && (
-        <span className="tag border backdrop-blur-md" style={{ background: "rgba(18,169,124,0.18)", borderColor: "rgba(52,211,153,0.35)", color: "var(--color-atlas-300)" }}>
+        <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
           <BadgeCheck size={11} /> مفحوصة
         </span>
       )}
@@ -95,11 +99,11 @@ function Badges({ v }: { v: Vehicle }) {
 function MediaCount({ v }: { v: Vehicle }) {
   return (
     <div className="absolute bottom-3 right-3 z-10 flex gap-1.5">
-      <span className="tag backdrop-blur-md" style={{ background: "rgba(8,11,16,0.6)", color: "#e8edf5" }}>
+      <span className="tag backdrop-blur-md" style={{ background: "rgba(10,30,61,0.65)", color: "#fff" }}>
         <Camera size={11} /> <span className="num">{v.photos}</span>
       </span>
       {v.hasVideo && (
-        <span className="tag backdrop-blur-md" style={{ background: "rgba(8,11,16,0.6)", color: "#e8edf5" }}>
+        <span className="tag backdrop-blur-md" style={{ background: "rgba(10,30,61,0.65)", color: "#fff" }}>
           <Video size={11} />
         </span>
       )}
@@ -116,7 +120,6 @@ export function VehicleCard({ v, compact = false }: { v: Vehicle; compact?: bool
 
   return (
     <article className="card card-hover group relative overflow-hidden">
-      <ActionButtons v={v} />
       <Link href={`/vehicles/${v.id}`} className="block">
         <div className="relative aspect-[16/10] overflow-hidden">
           <VehicleArt
@@ -166,6 +169,20 @@ export function VehicleCard({ v, compact = false }: { v: Vehicle; compact?: bool
           </div>
         </div>
       </Link>
+
+      <div
+        className="flex items-center justify-between gap-2 border-t px-4 py-2.5"
+        style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
+      >
+        <Link
+          href={`/vehicles/${v.id}`}
+          className="flex items-center gap-1.5 text-[12px] font-bold transition-all hover:gap-2.5"
+          style={{ color: "var(--brand)" }}
+        >
+          شوف التفاصيل <ArrowLeft size={14} />
+        </Link>
+        <CardActions v={v} />
+      </div>
     </article>
   );
 }
@@ -177,10 +194,10 @@ export function VehicleRow({ v }: { v: Vehicle }) {
   const trust = useMemo(() => trustOf(v), [v]);
   const fp = useMemo(() => fairPriceOf(v), [v]);
   const FuelIcon = FUEL_ICONS[v.fuel];
+  const GearIcon = v.gearbox === "automatique" ? AutoGear : Transmission;
 
   return (
     <article className="card card-hover group relative overflow-hidden">
-      <ActionButtons v={v} side="right" />
       <Link href={`/vehicles/${v.id}`} className="flex flex-col sm:flex-row">
         <div className="relative aspect-[16/10] w-full overflow-hidden sm:aspect-auto sm:w-[280px] sm:shrink-0">
           <VehicleArt
@@ -214,9 +231,9 @@ export function VehicleRow({ v }: { v: Vehicle }) {
 
             <div className="mt-3 flex flex-wrap gap-1.5">
               <span className="chip chip-plain"><Calendar size={12} /><span className="num">{v.year}</span></span>
-              <span className="chip chip-plain"><Gauge size={12} /><span className="num">{formatNumber(v.km)}</span> كم</span>
+              <span className="chip chip-plain"><Odometer size={12} /><span className="num">{formatNumber(v.km)}</span> كم</span>
               <span className="chip chip-plain"><FuelIcon size={12} />{AR.fuel[v.fuel]}</span>
-              <span className="chip chip-plain"><Gearbox size={12} />{AR.gearbox[v.gearbox]}</span>
+              <span className="chip chip-plain"><GearIcon size={12} />{AR.gearbox[v.gearbox]}</span>
               <span className="chip chip-plain"><MapPin size={12} />{cityName(v.city)}</span>
             </div>
 
@@ -233,9 +250,12 @@ export function VehicleRow({ v }: { v: Vehicle }) {
               <Price value={v.price} className="text-xl font-extrabold tracking-tight" />
               <FairPriceTag fp={fp} />
             </div>
-            <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-              <Clock size={12} /> {timeAgo(v.publishedAt, NOW)}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
+                <Clock size={12} /> {timeAgo(v.publishedAt, NOW)}
+              </span>
+              <CardActions v={v} />
+            </div>
           </div>
         </div>
       </Link>

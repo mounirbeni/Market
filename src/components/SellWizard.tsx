@@ -380,7 +380,7 @@ export function SellWizard() {
                       onChange={(e) => set({ [key]: e.target.checked } as Partial<Draft>)}
                       className="mt-0.5 h-4 w-4 " />
                     <span className="flex-1 text-xs">{label}</span>
-                    <span className="num text-[10px] font-bold" style={{ color: "var(--color-atlas-400)" }}>{gain}</span>
+                    <span className="num text-[10px] font-bold" style={{ color: "var(--good)" }}>{gain}</span>
                   </label>
                 ))}
               </div>
@@ -407,7 +407,7 @@ export function SellWizard() {
                 <input type="checkbox" checked={d.hasVideo} onChange={(e) => set({ hasVideo: e.target.checked })}
                   className="h-4 w-4 " />
                 <span className="flex-1 text-xs">غادي نزيد فيديو قصير (المحرك + جولة حول المركبة)</span>
-                <span className="num text-[10px] font-bold" style={{ color: "var(--color-atlas-400)" }}>+4</span>
+                <span className="num text-[10px] font-bold" style={{ color: "var(--good)" }}>+4</span>
               </label>
 
               <div>
@@ -469,10 +469,10 @@ export function SellWizard() {
                 style={{
                   background: `color-mix(in oklab, ${
                     Math.abs(priceDelta) < 0.05
-                      ? "var(--color-atlas-500)"
+                      ? "var(--good)"
                       : priceDelta > 0.14
-                        ? "var(--color-clay-500)"
-                        : "var(--color-gold-500)"
+                        ? "var(--bad)"
+                        : "var(--brand)"
                   } 14%, transparent)`,
                 }}>
                 {Math.abs(priceDelta) < 0.05 ? (
@@ -523,7 +523,7 @@ export function SellWizard() {
                       onChange={(e) => set({ [key]: e.target.checked } as Partial<Draft>)}
                       className="h-4 w-4 " />
                     <span className="flex-1 text-xs">{label}</span>
-                    <span className="num text-[10px] font-bold" style={{ color: "var(--color-atlas-400)" }}>{gain}</span>
+                    <span className="num text-[10px] font-bold" style={{ color: "var(--good)" }}>{gain}</span>
                   </label>
                 ))}
               </div>
@@ -588,7 +588,7 @@ export function SellWizard() {
                   {t.text}
                 </span>
                 {!t.done && (
-                  <span className="num shrink-0 font-bold" style={{ color: "var(--color-atlas-400)" }}>
+                  <span className="num shrink-0 font-bold" style={{ color: "var(--good)" }}>
                     +{t.gain}
                   </span>
                 )}

@@ -209,7 +209,7 @@ export function EstimateTool() {
                     className="h-1.5 rounded-full"
                     style={{
                       width: `${Math.round(est.confidence * 100)}%`,
-                      background: "var(--color-majorelle-400)",
+                      background: "var(--data)",
                     }}
                   />
                 </div>

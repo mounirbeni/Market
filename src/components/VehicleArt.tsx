@@ -10,17 +10,18 @@ import { hashCode } from "@/lib/data/seed";
    ============================================================ */
 
 /** خلفية استوديو موحّدة — تنويع محدود في درجة اللون فقط */
+/** خلفية استوديو فاتحة: [أعلى، أسفل، لون التمييز] */
 const BACKDROPS: [string, string, string][] = [
-  ["#1c2430", "#11161e", "#e3a52f"],
-  ["#1b2630", "#101820", "#159aa6"],
-  ["#20222e", "#14151d", "#5b63f0"],
-  ["#262124", "#171316", "#d4573a"],
-  ["#1b2724", "#101714", "#12a97c"],
+  ["#eaf2fd", "#d2e0f3", "#1f5fe0"],
+  ["#edf3fa", "#d6e2f0", "#14386e"],
+  ["#e8f0fd", "#cfdef4", "#1550cc"],
+  ["#eef3f9", "#d9e3ee", "#4a5c78"],
+  ["#e9f3fb", "#d1e3f1", "#0d9488"],
 ];
 
 /** ألوان الطلاء الحقيقية حسب اللون المعلن */
 const PAINTS: Record<string, [string, string, string]> = {
-  "أبيض": ["#fbfcfe", "#dde3ec", "#a3adbd"],
+  "أبيض": ["#ffffff", "#e6ecf5", "#a9b6c8"],
   "أسود": ["#414958", "#262d3a", "#12161e"],
   "أسود مطفي": ["#333a45", "#212730", "#12161e"],
   "رمادي": ["#a8b2c1", "#78838f", "#4a535f"],
@@ -33,7 +34,7 @@ const PAINTS: Record<string, [string, string, string]> = {
   "برتقالي": ["#f5923f", "#d2681d", "#8f4512"],
 };
 
-const PAINT_FALLBACK: [string, string, string] = ["#dbe1ea", "#adb6c4", "#767f8d"];
+const PAINT_FALLBACK: [string, string, string] = ["#dbe1ea", "#a9b3c2", "#6e7889"];
 
 /* ---------------- السيارات ---------------- */
 
@@ -320,7 +321,7 @@ export function VehicleArt({ id, kind, body, color, variant = 0, className, labe
   const moto = motoArt(body);
 
   const fillOf = (f: "paint" | "dark" | "accent") =>
-    f === "paint" ? `url(#paint-${uid})` : f === "dark" ? "#2b3546" : "#e9b44c";
+    f === "paint" ? `url(#paint-${uid})` : f === "dark" ? "#3a5170" : "#e9b44c";
 
   return (
     <svg
@@ -336,14 +337,14 @@ export function VehicleArt({ id, kind, body, color, variant = 0, className, labe
           <stop offset="62%" stopColor={bg2} />
           <stop offset="100%" stopColor={bg1} />
         </linearGradient>
-        <radialGradient id={`spot-${uid}`} cx="50%" cy="8%" r="78%">
-          <stop offset="0%" stopColor={tint} stopOpacity="0.26" />
-          <stop offset="55%" stopColor={tint} stopOpacity="0.05" />
-          <stop offset="100%" stopColor={tint} stopOpacity="0" />
+        <radialGradient id={`spot-${uid}`} cx="50%" cy="6%" r="80%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.75" />
+          <stop offset="60%" stopColor="#ffffff" stopOpacity="0.1" />
+          <stop offset="100%" stopColor={tint} stopOpacity="0.07" />
         </radialGradient>
         <linearGradient id={`floor-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#000" stopOpacity="0" />
-          <stop offset="100%" stopColor="#000" stopOpacity="0.4" />
+          <stop offset="0%" stopColor="#0a1e3d" stopOpacity="0" />
+          <stop offset="100%" stopColor="#0a1e3d" stopOpacity="0.12" />
         </linearGradient>
         <linearGradient id={`paint-${uid}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={p1} />
@@ -352,12 +353,12 @@ export function VehicleArt({ id, kind, body, color, variant = 0, className, labe
           <stop offset="100%" stopColor={p3} />
         </linearGradient>
         <linearGradient id={`gl-${uid}`} x1="0.1" y1="0" x2="0.7" y2="1">
-          <stop offset="0%" stopColor="#39445c" />
-          <stop offset="55%" stopColor="#1d2431" />
-          <stop offset="100%" stopColor="#141a24" />
+          <stop offset="0%" stopColor="#33517c" />
+          <stop offset="55%" stopColor="#1a2f4d" />
+          <stop offset="100%" stopColor="#13233a" />
         </linearGradient>
         <pattern id={`zell-${uid}`} width="28" height="28" patternUnits="userSpaceOnUse">
-          <g fill="none" stroke={tint} strokeOpacity="0.06" strokeWidth="0.6">
+          <g fill="none" stroke={tint} strokeOpacity="0.055" strokeWidth="0.6">
             <path d="M14 0 L28 14 L14 28 L0 14 Z" />
             <path d="M14 5.5 L22.5 14 L14 22.5 L5.5 14 Z" />
             <circle cx="14" cy="14" r="2" />
@@ -370,55 +371,55 @@ export function VehicleArt({ id, kind, body, color, variant = 0, className, labe
       <rect width="400" height="250" fill={`url(#spot-${uid})`} />
       {/* أرضية الاستوديو */}
       <rect y="196" width="400" height="54" fill={`url(#floor-${uid})`} />
-      <line x1="0" y1="196" x2="400" y2="196" stroke={tint} strokeOpacity="0.13" strokeWidth="1" />
+      <line x1="0" y1="196" x2="400" y2="196" stroke={tint} strokeOpacity="0.18" strokeWidth="1" />
 
       <g
         transform={`translate(${shiftX} 0) scale(${zoom}) translate(${(1 - zoom) * 200} ${(1 - zoom) * 150})`}
       >
-        <ellipse cx="204" cy="207" rx="168" ry="10" fill="#000" opacity="0.42" />
+        <ellipse cx="204" cy="207" rx="168" ry="10" fill="#0a1e3d" opacity="0.26" />
 
         {isMoto ? (
           <>
             {/* الذراع الخلفي والشوكة */}
             <path
               d={`M${moto.rearWheel[0]} ${moto.rearWheel[1]} L${moto.swingarmTo[0]} ${moto.swingarmTo[1]}`}
-              stroke="#3b465a" strokeWidth="11" strokeLinecap="round" fill="none"
+              stroke="#44597a" strokeWidth="11" strokeLinecap="round" fill="none"
             />
             <path
               d={`M${moto.frontWheel[0]} ${moto.frontWheel[1]} L${moto.fork[0]} ${moto.fork[1]}`}
-              stroke="#7c8aa2" strokeWidth="9" strokeLinecap="round" fill="none"
+              stroke="#8399b6" strokeWidth="9" strokeLinecap="round" fill="none"
             />
-            <path d={moto.bars} stroke="#2b3546" strokeWidth="6" strokeLinecap="round" fill="none" />
+            <path d={moto.bars} stroke="#3a5170" strokeWidth="6" strokeLinecap="round" fill="none" />
 
             {moto.engine && (
-              <path d={moto.engine} fill="#39445a" stroke="#0b0f16" strokeWidth="2.2" strokeLinejoin="round" />
+              <path d={moto.engine} fill="#41597a" stroke="#0a1e3d" strokeWidth="2.2" strokeLinejoin="round" />
             )}
             {moto.exhaust && (
-              <path d={moto.exhaust} fill="#5d6a80" stroke="#0b0f16" strokeWidth="2" strokeLinejoin="round" />
+              <path d={moto.exhaust} fill="#6b809f" stroke="#0a1e3d" strokeWidth="2" strokeLinejoin="round" />
             )}
             {moto.extras?.map((e, i) => (
-              <path key={i} d={e.d} fill={fillOf(e.fill)} stroke="#0b0f16" strokeWidth="2.2" strokeLinejoin="round" />
+              <path key={i} d={e.d} fill={fillOf(e.fill)} stroke="#0a1e3d" strokeWidth="2.2" strokeLinejoin="round" />
             ))}
             <path
               d={moto.bodywork}
               fill={`url(#paint-${uid})`}
-              stroke="#0b0f16"
+              stroke="#0a1e3d"
               strokeWidth="2.4"
               strokeLinejoin="round"
             />
 
             <circle
               cx={moto.headlight[0]} cy={moto.headlight[1]} r={moto.headlight[2]}
-              fill="#f5c765" stroke="#0b0f16" strokeWidth="2"
+              fill="#f5b93f" stroke="#0a1e3d" strokeWidth="2"
             />
 
             {/* العجلات */}
             {[moto.rearWheel, moto.frontWheel].map(([cx, cy, r], i) => (
               <g key={i}>
-                <circle cx={cx} cy={cy} r={r} fill="#0b0f16" />
-                <circle cx={cx} cy={cy} r={r - 6} fill="none" stroke="#8d99ad" strokeWidth="3" />
-                <circle cx={cx} cy={cy} r={r - 14} fill="none" stroke="#5b6780" strokeWidth="2" />
-                <circle cx={cx} cy={cy} r="5" fill="#8d99ad" />
+                <circle cx={cx} cy={cy} r={r} fill="#0a1e3d" />
+                <circle cx={cx} cy={cy} r={r - 6} fill="none" stroke="#93a7c1" strokeWidth="3" />
+                <circle cx={cx} cy={cy} r={r - 14} fill="none" stroke="#6d84a4" strokeWidth="2" />
+                <circle cx={cx} cy={cy} r="5" fill="#93a7c1" />
               </g>
             ))}
           </>
@@ -427,34 +428,34 @@ export function VehicleArt({ id, kind, body, color, variant = 0, className, labe
             <path
               d={carPath(spec)}
               fill={`url(#paint-${uid})`}
-              stroke={isDarkPaint ? "#5d6a80" : "#0b0f16"}
+              stroke={isDarkPaint ? "#6b809f" : "#0a1e3d"}
               strokeWidth={isDarkPaint ? 2 : 2.6}
               strokeLinejoin="round"
             />
             {carWindows(spec).map((d, i) => (
-              <path key={i} d={d} fill={`url(#gl-${uid})`} stroke="#0b0f16" strokeWidth="1.6" />
+              <path key={i} d={d} fill={`url(#gl-${uid})`} stroke="#0a1e3d" strokeWidth="1.6" />
             ))}
 
             {/* أقواس العجلات */}
-            <g fill="none" stroke="#0b0f16" strokeWidth="2.4" opacity="0.5">
+            <g fill="none" stroke="#0a1e3d" strokeWidth="2.4" opacity="0.5">
               <path d={`M${spec.rearWheelX - spec.wheelR - 5} ${GROUND} A${spec.wheelR + 5} ${spec.wheelR + 5} 0 0 1 ${spec.rearWheelX + spec.wheelR + 5} ${GROUND}`} />
               <path d={`M${spec.frontWheelX - spec.wheelR - 5} ${GROUND} A${spec.wheelR + 5} ${spec.wheelR + 5} 0 0 1 ${spec.frontWheelX + spec.wheelR + 5} ${GROUND}`} />
             </g>
 
             {/* الأضواء ومقبض الباب */}
             <rect x={spec.noseX - 22} y={spec.beltY + 13} width="18" height="8" rx="3"
-              fill="#f5c765" stroke="#0b0f16" strokeWidth="1.5" />
+              fill="#f5b93f" stroke="#0a1e3d" strokeWidth="1.5" />
             <rect x={spec.tailX + 3} y={spec.beltY + (spec.rear === "notch" ? -2 : 8)} width="13" height="9" rx="3"
-              fill="#c75b39" stroke="#0b0f16" strokeWidth="1.5" />
+              fill="#c75b39" stroke="#0a1e3d" strokeWidth="1.5" />
             <path d={`M${spec.windshieldX - 70} ${spec.beltY + 14} L${spec.windshieldX - 52} ${spec.beltY + 13}`}
-              stroke="#0b0f16" strokeWidth="3" strokeLinecap="round" opacity="0.45" />
+              stroke="#0a1e3d" strokeWidth="3" strokeLinecap="round" opacity="0.45" />
 
             {/* العجلات */}
             {[spec.rearWheelX, spec.frontWheelX].map((x) => (
               <g key={x}>
-                <circle cx={x} cy={spec.axleY} r={spec.wheelR} fill="#0b0f16" />
-                <circle cx={x} cy={spec.axleY} r={spec.wheelR - 8} fill="none" stroke="#8d99ad" strokeWidth="3" />
-                <circle cx={x} cy={spec.axleY} r={spec.wheelR - 17} fill="#4a556b" />
+                <circle cx={x} cy={spec.axleY} r={spec.wheelR} fill="#0a1e3d" />
+                <circle cx={x} cy={spec.axleY} r={spec.wheelR - 8} fill="none" stroke="#93a7c1" strokeWidth="3" />
+                <circle cx={x} cy={spec.axleY} r={spec.wheelR - 17} fill="#54698a" />
               </g>
             ))}
           </>
@@ -462,13 +463,13 @@ export function VehicleArt({ id, kind, body, color, variant = 0, className, labe
       </g>
 
       <text
-        x="16"
-        y="234"
+        x="12"
+        y="242"
         fill={tint}
-        opacity="0.3"
-        fontSize="8"
+        opacity="0.16"
+        fontSize="7"
         fontFamily="monospace"
-        letterSpacing="3"
+        letterSpacing="2.5"
         direction="ltr"
         textAnchor="start"
       >

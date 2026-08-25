@@ -146,8 +146,8 @@ export default function HomePage() {
                     label={`${hero.make} ${hero.model}`}
                   />
                   <span
-                    className="tag absolute top-3 right-3 border backdrop-blur-md"
-                    style={{ background: "rgba(18,169,124,0.2)", borderColor: "rgba(52,211,153,0.4)", color: "var(--color-atlas-300)" }}
+                    className="tag absolute top-3 right-3"
+                    style={{ background: "var(--good)", color: "#fff" }}
                   >
                     <BadgeCheck size={12} /> مفحوصة من طريق
                   </span>
@@ -219,7 +219,7 @@ export default function HomePage() {
           </div>
 
           {/* الإحصائيات */}
-          <dl className="mt-16 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <dl className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { k: formatNumber(cars), l: "سيارة معروضة", Icon: Car },
               { k: formatNumber(motos), l: "دراجة نارية", Icon: Moto },
@@ -240,6 +240,34 @@ export default function HomePage() {
               </div>
             ))}
           </dl>
+        </div>
+
+        {/* شريط الضمانات */}
+        <div className="mx-auto max-w-[1400px] px-4 pb-14">
+          <div
+            className="grid gap-3 rounded-2xl p-5 sm:grid-cols-2 lg:grid-cols-4"
+            style={{ background: "var(--brand-soft)", border: "1px solid var(--line-soft)" }}
+          >
+            {[
+              { Icon: ShieldCheck, t: "مركبات موثّقة", d: "وثائق ورقم هيكل مُتحقّق منهما" },
+              { Icon: BadgeCheck, t: "بائعون موثوقون", d: "هوية موثقة وتقييمات حقيقية" },
+              { Icon: Scale, t: "ثمن شفّاف", d: "مرجع محسوب من السوق" },
+              { Icon: Wrench, t: "فحص مستقل", d: "120 نقطة قبل الشراء" },
+            ].map((f) => (
+              <div key={f.t} className="flex items-center gap-3">
+                <span
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl"
+                  style={{ background: "var(--surface-1)", color: "var(--brand)" }}
+                >
+                  <f.Icon size={20} />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-bold">{f.t}</div>
+                  <div className="truncate text-[11px]" style={{ color: "var(--text-muted)" }}>{f.d}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="relative overflow-hidden border-y py-4" style={{ borderColor: "var(--line-soft)" }}>

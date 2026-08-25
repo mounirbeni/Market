@@ -19,7 +19,7 @@ export function CreditSimulator({ price }: { price: number }) {
 
   const effort = res.effort ?? 0;
   const effortColor =
-    effort > 0.4 ? "var(--color-clay-500)" : effort > 0.3 ? "var(--color-gold-500)" : "var(--color-atlas-400)";
+    effort > 0.4 ? "var(--bad)" : effort > 0.3 ? "var(--brand)" : "var(--good)";
 
   return (
     <section className="card p-5" id="credit">

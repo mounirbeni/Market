@@ -36,17 +36,17 @@ export function Gallery({ v }: { v: Vehicle }) {
 
         <div className="absolute top-3 right-3 flex flex-wrap justify-end gap-1.5">
           {v.inspected && (
-            <span className="tag border backdrop-blur-md" style={{ background: "rgba(18,169,124,0.2)", borderColor: "rgba(52,211,153,0.4)", color: "var(--color-atlas-300)" }}>
+            <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
               <BadgeCheck size={12} /> مفحوصة من طريق
             </span>
           )}
           {v.firstHand && (
-            <span className="tag border backdrop-blur-md" style={{ background: "rgba(8,11,16,0.6)", borderColor: "rgba(255,255,255,0.12)", color: "#e8edf5" }}>
+            <span className="tag" style={{ background: "var(--brand)", color: "#fff" }}>
               <Key size={12} /> يد أولى
             </span>
           )}
           {v.hasVideo && (
-            <span className="tag border backdrop-blur-md" style={{ background: "rgba(8,11,16,0.6)", borderColor: "rgba(255,255,255,0.12)", color: "#e8edf5" }}>
+            <span className="tag" style={{ background: "rgba(10,30,61,0.75)", color: "#fff" }}>
               <Video size={12} /> فيديو
             </span>
           )}
@@ -59,9 +59,9 @@ export function Gallery({ v }: { v: Vehicle }) {
             aria-label="المفضلة"
             className="grid h-9 w-9 place-items-center rounded-lg border backdrop-blur-md transition"
             style={{
-              background: fav ? "var(--bad)" : "rgba(8,11,16,0.55)",
-              borderColor: fav ? "transparent" : "rgba(255,255,255,0.12)",
-              color: "#fff",
+              background: fav ? "var(--bad)" : "var(--surface-1)",
+              borderColor: fav ? "transparent" : "var(--line)",
+              color: fav ? "#fff" : "var(--text-muted)",
             }}
           >
             <Heart size={16} filled={fav} />
@@ -72,9 +72,9 @@ export function Gallery({ v }: { v: Vehicle }) {
             aria-label="المقارنة"
             className="grid h-9 w-9 place-items-center rounded-lg border backdrop-blur-md transition"
             style={{
-              background: cmp ? "var(--data)" : "rgba(8,11,16,0.55)",
-              borderColor: cmp ? "transparent" : "rgba(255,255,255,0.12)",
-              color: "#fff",
+              background: cmp ? "var(--data)" : "var(--surface-1)",
+              borderColor: cmp ? "transparent" : "var(--line)",
+              color: cmp ? "#fff" : "var(--text-muted)",
             }}
           >
             <Scale size={16} />
@@ -86,16 +86,16 @@ export function Gallery({ v }: { v: Vehicle }) {
             <button
               onClick={() => go(1)}
               aria-label="الصورة السابقة"
-              className="absolute top-1/2 right-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border backdrop-blur-md transition hover:scale-105"
-              style={{ background: "rgba(8,11,16,0.55)", borderColor: "rgba(255,255,255,0.12)", color: "#fff" }}
+              className="absolute top-1/2 right-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
+              style={{ background: "var(--surface-1)", borderColor: "var(--line)", color: "var(--text)" }}
             >
               <ChevronRight size={18} />
             </button>
             <button
               onClick={() => go(-1)}
               aria-label="الصورة التالية"
-              className="absolute top-1/2 left-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border backdrop-blur-md transition hover:scale-105"
-              style={{ background: "rgba(8,11,16,0.55)", borderColor: "rgba(255,255,255,0.12)", color: "#fff" }}
+              className="absolute top-1/2 left-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
+              style={{ background: "var(--surface-1)", borderColor: "var(--line)", color: "var(--text)" }}
             >
               <ChevronLeft size={18} />
             </button>
@@ -104,7 +104,7 @@ export function Gallery({ v }: { v: Vehicle }) {
 
         <span
           className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] backdrop-blur-md"
-          style={{ background: "rgba(8,11,16,0.6)", color: "#e8edf5" }}
+          style={{ background: "rgba(10,30,61,0.72)", color: "#fff" }}
         >
           <Camera size={12} />
           <span className="num">{active + 1} / {shots}</span>

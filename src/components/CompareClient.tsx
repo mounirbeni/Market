@@ -172,7 +172,7 @@ export function CompareClient() {
                         onClick={() => toggleCompare(v.id)}
                         aria-label={`إزالة ${v.make} ${v.model}`}
                         className="absolute top-2 left-2 grid h-7 w-7 place-items-center rounded-lg backdrop-blur-md"
-                        style={{ background: "rgba(8,11,16,0.6)", color: "#fff" }}
+                        style={{ background: "rgba(10,30,61,0.6)", color: "#fff" }}
                       >
                         <Close size={13} />
                       </button>

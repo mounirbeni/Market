@@ -21,9 +21,10 @@ import { Price } from "@/components/Price";
 import { Mixed } from "@/components/Mixed";
 import { TrustRing } from "@/components/TrustBadge";
 import {
-  BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Door, Engine,
-  Eye, FUEL_ICONS, Fuel, Gauge, Gearbox, Heart, MapPin, Palette, Road,
-  Scale, Sparkle, TrendingDown, Users,
+  AutoGear, BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Door,
+  Drivetrain, Engine, EQUIPMENT_ICONS, Eye, FUEL_ICONS, Fuel, Heart,
+  Horsepower, MapPin, Odometer, Palette, Road, Scale, Seat, Sparkle,
+  Transmission, TrendingDown, Users,
 } from "@/components/icons";
 import { VehicleGlyph } from "@/components/VehicleArt";
 import { artShape } from "@/lib/artshape";
@@ -54,20 +55,25 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
   const fp = fairPriceOf(v);
   const similar = similarVehicles(v);
   const FuelIcon = FUEL_ICONS[v.fuel];
+  const GearIcon = v.gearbox === "automatique" ? AutoGear : Transmission;
 
   const specs = [
-    { Icon: Calendar, label: "السنة", value: String(v.year) },
-    { Icon: Gauge, label: "الكيلومتراج", value: `${formatNumber(v.km)} كم` },
-    { Icon: FuelIcon, label: "الوقود", value: AR.fuel[v.fuel] },
-    { Icon: Gearbox, label: "ناقل السرعة", value: AR.gearbox[v.gearbox] },
-    { Icon: BadgeCheck, label: "الحالة", value: AR.condition[v.condition] },
-    { Icon: Palette, label: "اللون", value: v.color },
-    { Icon: Users, label: "عدد الملاّك", value: String(v.owners) },
-    { Icon: Engine, label: "القوة الجبائية", value: `${v.fiscalPower} حصان` },
+    { Icon: Calendar, label: "سنة الصنع", value: String(v.year) },
+    { Icon: Odometer, label: "الكيلومتراج", value: `${formatNumber(v.km)} كم` },
+    { Icon: FuelIcon, label: "نوع الوقود", value: AR.fuel[v.fuel] },
+    { Icon: GearIcon, label: "ناقل السرعة", value: AR.gearbox[v.gearbox] },
+    { Icon: Horsepower, label: "القوة الجبائية", value: `${v.fiscalPower} حصان` },
     ...(v.kind === "car"
-      ? [{ Icon: Door, label: "الأبواب", value: String(v.doors ?? "-") }]
+      ? [
+          { Icon: Door, label: "عدد الأبواب", value: String(v.doors ?? "-") },
+          { Icon: Seat, label: "عدد المقاعد", value: (v.doors ?? 5) >= 5 ? "5" : "4" },
+          { Icon: Drivetrain, label: "نوع الدفع", value: v.body === "suv" || v.body === "utilitaire" ? "دفع رباعي" : "دفع أمامي" },
+        ]
       : [{ Icon: Engine, label: "سعة المحرك", value: `${v.displacement} سم³` }]),
     { Icon: Fuel, label: "الاستهلاك", value: `${v.consumption} ل/100كم` },
+    { Icon: Palette, label: "اللون", value: v.color },
+    { Icon: BadgeCheck, label: "الحالة العامة", value: AR.condition[v.condition] },
+    { Icon: Users, label: "عدد الملاّك", value: String(v.owners) },
     { Icon: ClipboardCheck, label: "الفحص التقني", value: formatDate(v.technicalControl) },
     { Icon: MapPin, label: "المدينة", value: cityName(v.city) },
   ];
@@ -125,9 +131,9 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
                 <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>{v.version}</p>
                 <div className="mt-3.5 flex flex-wrap gap-1.5">
                   <span className="chip"><Calendar size={12} /><span className="num">{v.year}</span></span>
-                  <span className="chip"><Gauge size={12} /><span className="num">{formatNumber(v.km)}</span> كم</span>
+                  <span className="chip"><Odometer size={12} /><span className="num">{formatNumber(v.km)}</span> كم</span>
                   <span className="chip"><FuelIcon size={12} />{AR.fuel[v.fuel]}</span>
-                  <span className="chip"><Gearbox size={12} />{AR.gearbox[v.gearbox]}</span>
+                  <span className="chip"><GearIcon size={12} />{AR.gearbox[v.gearbox]}</span>
                   <span className="chip"><MapPin size={12} />{cityName(v.city)}</span>
                 </div>
               </div>
@@ -195,12 +201,20 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
                 <h3 className="mt-6 mb-3 flex items-center gap-1.5 text-[13px] font-bold">
                   <Sparkle size={14} style={{ color: "var(--brand)" }} /> التجهيزات
                 </h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {v.equipment.map((e) => (
-                    <span key={e} className="chip chip-plain">
-                      <Check size={11} style={{ color: "var(--good)" }} /> {e}
-                    </span>
-                  ))}
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {v.equipment.map((e) => {
+                    const EqIcon = EQUIPMENT_ICONS[e] ?? Check;
+                    return (
+                      <span
+                        key={e}
+                        className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[11.5px] font-medium"
+                        style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
+                      >
+                        <EqIcon size={15} className="shrink-0" style={{ color: "var(--brand)" }} />
+                        <span className="truncate">{e}</span>
+                      </span>
+                    );
+                  })}
                 </div>
               </>
             )}

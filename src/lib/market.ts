@@ -421,11 +421,11 @@ export function trustScore(
 }
 
 export function trustColor(score: number): string {
-  if (score >= 86) return "var(--color-atlas-400)";
-  if (score >= 74) return "var(--color-gold-400)";
-  if (score >= 60) return "var(--color-gold-500)";
-  if (score >= 45) return "var(--color-clay-400)";
-  return "var(--color-clay-500)";
+  if (score >= 86) return "var(--good)";
+  if (score >= 74) return "var(--brand)";
+  if (score >= 60) return "var(--brand)";
+  if (score >= 45) return "var(--bad)";
+  return "var(--bad)";
 }
 
 /* ---------------- ذاكرة مؤقتة ---------------- */
