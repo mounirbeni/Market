@@ -53,6 +53,7 @@ export const metadata: Metadata = {
     title: "طريق TRIQ — سوق السيارات والدراجات النارية المستعملة في المغرب",
     description:
       "مؤشر ثقة، ثمن مرجعي، وتكلفة استعمال حقيقية لكل مركبة مستعملة في المغرب.",
+    images: [{ url: "/hero-vehicles.webp", width: 1774, height: 887, alt: "طريق TRIQ" }],
   },
   robots: { index: true, follow: true },
 };

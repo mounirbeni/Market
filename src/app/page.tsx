@@ -86,140 +86,119 @@ export default function HomePage() {
   return (
     <>
       {/* ================= البطل ================= */}
-      <section className="zellige relative overflow-hidden">
-        <div className="glow pointer-events-none absolute inset-x-0 top-0 h-[560px]" />
-        <div className="glow-data pointer-events-none absolute inset-0" />
+      <section className="relative">
+        <div className="relative min-h-[560px] overflow-hidden sm:min-h-[680px]" style={{ background: "#040c1a" }}>
+          <img
+            src="/hero-vehicles.webp"
+            srcSet="/hero-vehicles-sm.webp 900w, /hero-vehicles.webp 1774w"
+            sizes="100vw"
+            alt="سيارة ودراجة نارية في صالة عرض"
+            fetchPriority="high"
+            className="absolute inset-0 h-full w-full object-cover object-[42%_center] sm:object-[38%_center]"
+          />
+          {/* حجاب متدرّج من جهة النص */}
+          {/* الشاشات الكبيرة: حجاب أفقي من جهة النص */}
+          <div
+            className="absolute inset-0 hidden sm:block"
+            style={{
+              background:
+                "linear-gradient(to left, rgba(4,12,26,0.985) 0%, rgba(4,12,26,0.96) 30%, rgba(4,12,26,0.82) 44%, rgba(4,12,26,0.42) 62%, rgba(4,12,26,0.12) 82%, rgba(4,12,26,0) 100%)",
+            }}
+          />
+          {/* الموبايل: حجاب عمودي يبقي المركبة ظاهرة في الأعلى */}
+          <div
+            className="absolute inset-0 sm:hidden"
+            style={{
+              background:
+                "linear-gradient(to top, rgba(4,12,26,0.96) 22%, rgba(4,12,26,0.78) 42%, rgba(4,12,26,0.3) 70%, rgba(4,12,26,0.06) 100%)",
+            }}
+          />
+          {/* اندماج مع خلفية الصفحة */}
+          <div
+            className="absolute inset-x-0 bottom-0 h-36"
+            style={{ background: "linear-gradient(to top, var(--bg) 4%, rgba(4,12,26,0) 100%)" }}
+          />
+          {/* توهج أزرق خفيف أعلى اليمين */}
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-1/2"
+            style={{
+              background:
+                "radial-gradient(60% 55% at 78% 30%, rgba(31,95,224,0.22) 0%, transparent 70%)",
+            }}
+          />
 
-        <div className="relative mx-auto max-w-[1400px] px-4 pt-14 pb-16 sm:pt-20">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-            {/* النص */}
-            <div>
-              <span className="eyebrow">
-                <Sparkle size={14} /> منصة مغربية · بدون عمولة على المشتري
+          <div className="relative mx-auto flex min-h-[560px] max-w-[1400px] items-end px-4 pt-24 pb-40 sm:min-h-[680px] sm:items-center sm:pt-24 sm:pb-52">
+            <div className="max-w-2xl">
+              <span
+                className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-bold"
+                style={{
+                  background: "rgba(31,95,224,0.18)",
+                  border: "1px solid rgba(90,142,247,0.35)",
+                  color: "#9fc0ff",
+                }}
+              >
+                <Sparkle size={13} /> منصة مغربية · بدون عمولة على المشتري
               </span>
-              <h1 className="h-page mt-5 text-balance">
+
+              <h1 className="h-page mt-5 text-balance text-white">
                 شري طوموبيلك ولا موطورك
                 <br />
-                <span style={{ color: "var(--brand)" }}>وأنت عارف كلشي</span>
+                <span style={{ color: "#5a8ef7" }}>وأنت عارف كلشي</span>
               </h1>
+
               <p
                 className="mt-5 max-w-xl text-pretty text-[15px] leading-relaxed sm:text-base"
-                style={{ color: "var(--text-muted)" }}
+                style={{ color: "#b9c9e4" }}
               >
-                أول سوق مغربي كيعطيك <b style={{ color: "var(--text)" }}>مؤشر ثقة</b> لكل إعلان،{" "}
-                <b style={{ color: "var(--text)" }}>ثمناً مرجعياً</b> محسوباً من السوق، و
-                <b style={{ color: "var(--text)" }}>التكلفة الحقيقية</b> ديال المركبة قبل ما
-                تدفع درهم واحد.
+                أول سوق مغربي كيعطيك <b className="text-white">مؤشر ثقة</b> لكل إعلان،{" "}
+                <b className="text-white">ثمناً مرجعياً</b> محسوباً من السوق، و
+                <b className="text-white">التكلفة الحقيقية</b> ديال المركبة قبل ما تدفع درهم واحد.
               </p>
 
-              <div className="mt-8 max-w-2xl"><SmartSearch big /></div>
-
-              <div className="mt-8 flex flex-wrap gap-2">
-                {QUICK.map(({ href, label, Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-[12.5px] font-bold transition hover:-translate-y-0.5"
-                    style={{
-                      borderColor: "var(--line)",
-                      background: "var(--surface-1)",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    <Icon size={16} style={{ color: "var(--brand)" }} />
-                    {label}
-                  </Link>
-                ))}
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href="/vehicles" className="btn btn-primary btn-lg">
+                  <Car size={17} /> تصفح المركبات
+                </Link>
+                <Link
+                  href="/safety"
+                  className="btn btn-lg"
+                  style={{ border: "1px solid rgba(255,255,255,0.28)", color: "#fff" }}
+                >
+                  كيفاش كنخدمو <ArrowLeft size={16} />
+                </Link>
               </div>
-            </div>
-
-            {/* بطاقة العرض */}
-            <div className="relative mx-auto w-full max-w-lg lg:mx-0">
-              <div className="card-raised overflow-hidden">
-                <div className="relative aspect-[16/10]">
-                  <VehicleArt
-                    id={hero.id}
-                    kind={hero.kind}
-                    body={artShape(hero)}
-                    color={hero.color}
-                    className="h-full w-full"
-                    label={`${hero.make} ${hero.model}`}
-                  />
-                  <span
-                    className="tag absolute top-3 right-3"
-                    style={{ background: "var(--good)", color: "#fff" }}
-                  >
-                    <BadgeCheck size={12} /> مفحوصة من طريق
-                  </span>
-                </div>
-
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h2 className="truncate text-base font-bold">{hero.make} {hero.model}</h2>
-                      <p className="mt-0.5 truncate text-[11.5px]" style={{ color: "var(--text-dim)" }}>
-                        {hero.version} · <span className="num">{hero.year}</span>
-                      </p>
-                    </div>
-                    <TrustRing score={heroTrust.score} grade={heroTrust.grade} size={54} stroke={5} />
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    {[
-                      {
-                        label: "مؤشر الثقة",
-                        value: `${heroTrust.score}/100`,
-                        color: "var(--good)",
-                        Icon: ShieldCheck,
-                      },
-                      {
-                        label: "مقابل السوق",
-                        value: `${heroFp.delta < 0 ? "−" : "+"}${Math.abs(Math.round(heroFp.delta * 100))}٪`,
-                        color: heroFp.delta < 0 ? "var(--good)" : "var(--bad)",
-                        Icon: Scale,
-                      },
-                      {
-                        label: "د.م / شهر",
-                        value: formatNumber(heroTco.perMonth),
-                        color: "var(--data)",
-                        Icon: Calculator,
-                      },
-                    ].map((s) => (
-                      <div
-                        key={s.label}
-                        className="rounded-xl p-3 text-center"
-                        style={{ background: "var(--surface-3)" }}
-                      >
-                        <s.Icon size={15} className="mx-auto" style={{ color: s.color }} />
-                        <div className="num mt-1.5 text-[15px] font-extrabold" style={{ color: s.color }}>
-                          {s.value}
-                        </div>
-                        <div className="mt-0.5 text-[9.5px]" style={{ color: "var(--text-dim)" }}>
-                          {s.label}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Link
-                    href={`/vehicles/${hero.id}`}
-                    className="mt-4 flex items-center justify-center gap-1.5 text-[12px] font-bold transition hover:gap-2.5"
-                    style={{ color: "var(--brand)" }}
-                  >
-                    شوف الإعلان كاملاً <ArrowLeft size={14} />
-                  </Link>
-                </div>
-              </div>
-
-              <div
-                className="pointer-events-none absolute -bottom-4 -left-4 -z-10 h-40 w-40 rounded-full blur-3xl"
-                style={{ background: "color-mix(in oklab, var(--brand) 26%, transparent)" }}
-              />
             </div>
           </div>
+        </div>
 
-          {/* الإحصائيات */}
-          <dl className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {/* بطاقة البحث المتراكبة */}
+        <div className="relative z-10 mx-auto -mt-28 max-w-[1400px] px-4 sm:-mt-32">
+          <div className="card-raised p-4 sm:p-5">
+            <SmartSearch big />
+          </div>
+
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {QUICK.map(({ href, label, Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className="flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-[12.5px] font-bold transition hover:-translate-y-0.5 hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                style={{
+                  borderColor: "var(--line)",
+                  background: "var(--surface-1)",
+                  color: "var(--text-muted)",
+                }}
+              >
+                <Icon size={16} style={{ color: "var(--brand)" }} />
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* الإحصائيات */}
+        <div className="mx-auto max-w-[1400px] px-4 pt-14">
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { k: formatNumber(cars), l: "سيارة معروضة", Icon: Car },
               { k: formatNumber(motos), l: "دراجة نارية", Icon: Moto },
@@ -243,7 +222,7 @@ export default function HomePage() {
         </div>
 
         {/* شريط الضمانات */}
-        <div className="mx-auto max-w-[1400px] px-4 pb-14">
+        <div className="mx-auto max-w-[1400px] px-4 pt-4 pb-12">
           <div
             className="grid gap-3 rounded-2xl p-5 sm:grid-cols-2 lg:grid-cols-4"
             style={{ background: "var(--brand-soft)", border: "1px solid var(--line-soft)" }}
@@ -326,8 +305,91 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= الصفقات ================= */}
+      {/* ================= مثال حي ================= */}
       <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
+        <div className="mx-auto grid max-w-[1400px] items-center gap-12 px-4 py-20 lg:grid-cols-2">
+          <div>
+            <span className="eyebrow"><Sparkle size={13} /> مثال حقيقي من المنصة</span>
+            <h2 className="h-section mt-3">هكذا كتبان ليك المركبة قبل ما تتصل بالبائع</h2>
+            <p className="mt-3 max-w-lg text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
+              خُذ {hero.make} {hero.model} <span className="num">{hero.year}</span>: بدل ما تخمّن،
+              كتشوف نقطة الثقة مفصّلة، موقع الثمن من السوق، وشحال غادي تصرف عليها فالسنة.
+            </p>
+
+            <div className="mt-7 space-y-3.5">
+              {heroTrust.parts.slice(0, 4).map((part) => (
+                <div key={part.key}>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold">{part.label}</span>
+                    <span className="num" style={{ color: "var(--text-dim)" }}>
+                      {part.score}/{part.max}
+                    </span>
+                  </div>
+                  <div className="meter mt-1.5" style={{ height: 5 }}>
+                    <i style={{ width: `${(part.score / part.max) * 100}%`, background: "var(--brand)" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Link href={`/vehicles/${hero.id}`} className="btn btn-primary mt-8">
+              شوف الإعلان كاملاً <ArrowLeft size={15} />
+            </Link>
+          </div>
+
+          <div className="card-raised overflow-hidden">
+            <div className="relative aspect-[16/10]">
+              <VehicleArt
+                id={hero.id}
+                kind={hero.kind}
+                body={artShape(hero)}
+                color={hero.color}
+                className="h-full w-full"
+                label={`${hero.make} ${hero.model}`}
+              />
+              <span className="tag absolute top-3 right-3" style={{ background: "var(--good)", color: "#fff" }}>
+                <BadgeCheck size={12} /> مفحوصة من طريق
+              </span>
+            </div>
+
+            <div className="p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="truncate text-base font-bold">{hero.make} {hero.model}</h3>
+                  <p className="mt-0.5 truncate text-[11.5px]" style={{ color: "var(--text-dim)" }}>
+                    {hero.version} · <span className="num">{hero.year}</span>
+                  </p>
+                </div>
+                <TrustRing score={heroTrust.score} grade={heroTrust.grade} size={54} stroke={5} />
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {[
+                  { label: "مؤشر الثقة", value: `${heroTrust.score}/100`, color: "var(--good)", Icon: ShieldCheck },
+                  {
+                    label: "مقابل السوق",
+                    value: `${heroFp.delta < 0 ? "−" : "+"}${Math.abs(Math.round(heroFp.delta * 100))}٪`,
+                    color: heroFp.delta < 0 ? "var(--good)" : "var(--bad)",
+                    Icon: Scale,
+                  },
+                  { label: "د.م / شهر", value: formatNumber(heroTco.perMonth), color: "var(--data)", Icon: Calculator },
+                ].map((st) => (
+                  <div key={st.label} className="rounded-xl p-3 text-center" style={{ background: "var(--surface-3)" }}>
+                    <st.Icon size={15} className="mx-auto" style={{ color: st.color }} />
+                    <div className="num mt-1.5 text-[15px] font-extrabold" style={{ color: st.color }}>
+                      {st.value}
+                    </div>
+                    <div className="mt-0.5 text-[9.5px]" style={{ color: "var(--text-dim)" }}>{st.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= الصفقات ================= */}
+      <section>
         <div className="mx-auto max-w-[1400px] px-4 py-20">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
