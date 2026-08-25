@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { estimateValue, trustScore } from "@/lib/market";
 import { makesFor, modelsFor } from "@/lib/data/vehicles";
 import { CITIES } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
 import {
-  AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, Calendar, Camera, Car,
-  Check, CircleDot, Coins, FileText, Gauge, Info, MapPin, Moto, Sparkle,
+  AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, Bookmark, Calendar, Camera,
+  Car, Check, CircleDot, Coins, FileText, Gauge, Info, MapPin, Moto, Sparkle,
   Plus, TrendingDown, Wrench,
 } from "@/components/icons";
 import type { Condition, Seller, Vehicle } from "@/lib/types";
@@ -137,10 +137,57 @@ function draftSeller(d: Draft): Seller {
   };
 }
 
+const DRAFT_KEY = "triq:draft";
+
 export function SellWizard() {
   const [step, setStep] = useState(0);
   const [d, setD] = useState<Draft>(initialDraft);
   const [published, setPublished] = useState(false);
+  /** حالة المسودة: idle | saved | restored */
+  const [draftState, setDraftState] = useState<"idle" | "saved" | "restored">("idle");
+  const [hasDraft, setHasDraft] = useState(false);
+
+  useEffect(() => {
+    try {
+      setHasDraft(Boolean(localStorage.getItem(DRAFT_KEY)));
+    } catch {
+      /* التخزين ممنوع */
+    }
+  }, []);
+
+  const saveDraft = () => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ d, step }));
+      setHasDraft(true);
+      setDraftState("saved");
+      setTimeout(() => setDraftState("idle"), 2400);
+    } catch {
+      /* التخزين ممنوع */
+    }
+  };
+
+  const restoreDraft = () => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as { d: Draft; step: number };
+      setD({ ...initialDraft, ...saved.d });
+      setStep(Math.min(STEPS.length - 1, Math.max(0, saved.step ?? 0)));
+      setDraftState("restored");
+      setTimeout(() => setDraftState("idle"), 2400);
+    } catch {
+      /* مسودة تالفة */
+    }
+  };
+
+  const dropDraft = () => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+      setHasDraft(false);
+    } catch {
+      /* التخزين ممنوع */
+    }
+  };
 
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }));
 
@@ -541,21 +588,47 @@ export function SellWizard() {
                 </p>
               </div>
 
-              <button onClick={() => setPublished(true)} className="btn btn-primary w-full"><Sparkle size={16} /> انشر الإعلان مجاناً
+              <button
+                onClick={() => { dropDraft(); setPublished(true); }}
+                className="btn btn-primary w-full"
+              >
+                <Sparkle size={16} /> انشر الإعلان مجاناً
               </button>
             </div>
           )}
 
           {/* التنقل */}
-          <div className="mt-6 flex justify-between gap-3 border-t pt-4" style={{ borderColor: "var(--line-soft)" }}>
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4" style={{ borderColor: "var(--line-soft)" }}>
             <button onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}
               className="btn btn-ghost btn-sm"><ArrowRight size={14} /> السابق</button>
-            {step < STEPS.length - 1 && (
-              <button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} className="btn btn-primary btn-sm">
-                التالي <ArrowLeft size={14} />
+
+            <div className="flex items-center gap-2">
+              <button onClick={saveDraft} className="btn btn-solid btn-sm" aria-live="polite">
+                {draftState === "saved"
+                  ? <><Check size={13} style={{ color: "var(--good)" }} /> تحفظات</>
+                  : <><Bookmark size={13} /> احفظ كمسودة</>}
               </button>
-            )}
+              {step < STEPS.length - 1 && (
+                <button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} className="btn btn-primary btn-sm">
+                  التالي <ArrowLeft size={14} />
+                </button>
+              )}
+            </div>
           </div>
+
+          {hasDraft && draftState !== "restored" && (
+            <div
+              className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl p-3 text-[11.5px]"
+              style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
+            >
+              <Bookmark size={14} className="shrink-0" style={{ color: "var(--brand)" }} />
+              <span className="min-w-0 flex-1">عندك مسودة محفوظة من قبل.</span>
+              <button onClick={restoreDraft} className="btn btn-ghost btn-sm">استرجعها</button>
+              <button onClick={dropDraft} className="btn btn-ghost btn-sm" style={{ color: "var(--bad)" }}>
+                حيّدها
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

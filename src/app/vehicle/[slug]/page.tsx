@@ -12,6 +12,7 @@ import { AR, formatDate, formatDh, formatKm, formatNumber, timeAgo } from "@/lib
 import { NOW } from "@/lib/data/seed";
 import { Gallery } from "@/components/vehicle/Gallery";
 import { TrustPanel } from "@/components/vehicle/TrustPanel";
+import { RiskPanel } from "@/components/vehicle/RiskPanel";
 import { TcoCalculator } from "@/components/vehicle/TcoCalculator";
 import { CreditSimulator } from "@/components/vehicle/CreditSimulator";
 import { HistoryTimeline } from "@/components/vehicle/HistoryTimeline";
@@ -240,6 +241,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
         {/* ---------- العمود الجانبي ---------- */}
         <aside className="min-w-0 space-y-6 lg:sticky lg:top-[84px] lg:h-fit">
           <SellerCard seller={seller} v={v} />
+          <RiskPanel v={v} />
           <TrustPanel trust={trust} />
 
           {fp.estimate.comparables.length > 0 && (

@@ -23,6 +23,8 @@ const NAV = [
 ];
 
 const MORE = [
+  { href: "/assistant", label: "مساعد الاختيار" },
+  { href: "/promote", label: "روّج إعلانك" },
   { href: "/cost", label: "حاسبة التكلفة" },
   { href: "/inspection", label: "الفحص المستقل" },
   { href: "/safety", label: "البيع الآمن" },

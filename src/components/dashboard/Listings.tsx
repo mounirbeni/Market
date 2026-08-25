@@ -4,15 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 import { MY_LISTINGS } from "./Overview";
 import { fairPriceOf, trustOf } from "@/lib/market";
+import { promoOf } from "@/lib/promo";
 import { formatNumber, timeAgo } from "@/lib/format";
 import { NOW } from "@/lib/data/seed";
 import { vehicleHref } from "@/lib/slug";
 import { artShape } from "@/lib/artshape";
 import { VehicleArt } from "@/components/VehicleArt";
 import { TrustDot } from "@/components/TrustBadge";
-import {
-  BadgeCheck, Check, Eye, Heart, Plus, Sparkle, Timer, Trash,
-} from "@/components/icons";
+import { BadgeCheck, Check, Eye, Heart, Plus, Sparkle, Timer, Trash, TrendingUp } from "@/components/icons";
 
 type Status = "active" | "pending" | "sold" | "expired";
 
@@ -92,10 +91,18 @@ export function DashboardListings() {
                     >
                       {st.label}
                     </span>
-                    {v.boosted && (
-                      <span className="tag" style={{ background: "var(--brand)", color: "#fff" }}>
-                        <Sparkle size={10} /> مميّز
+                    {promoOf(v) ? (
+                      <span className="tag" style={{ background: promoOf(v)!.color, color: "#fff" }}>
+                        <Sparkle size={10} /> {promoOf(v)!.label}
                       </span>
+                    ) : (
+                      <Link
+                        href={`/promote?listing=${v.id}`}
+                        className="tag transition-colors hover:brightness-95"
+                        style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+                      >
+                        <TrendingUp size={10} /> روّج
+                      </Link>
                     )}
                   </div>
                   <p className="num mt-1 text-[13px] font-bold" style={{ color: "var(--brand)" }}>

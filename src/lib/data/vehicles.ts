@@ -1,4 +1,5 @@
 import type { HistoryEvent, Vehicle } from "@/lib/types";
+import type { PromoTier } from "@/lib/promo";
 import { formatNumber } from "@/lib/format";
 import { RAW, type RawListing } from "./raw";
 import { SELLERS } from "./sellers";
@@ -230,8 +231,17 @@ function buildVehicle(raw: RawListing, index: number): Vehicle {
     priceDrops,
     negotiable: r() < 0.72,
     exchangeAccepted: r() < 0.28,
-    boosted: r() < 0.18,
+    promo: pickPromo(r),
   };
+}
+
+/** توزيع الترويج: 4٪ فأعلى اللائحة، 7٪ مستعجل، 11٪ مميّز، الباقي عادي */
+function pickPromo(r: () => number): PromoTier | undefined {
+  const x = r();
+  if (x < 0.04) return "top";
+  if (x < 0.11) return "urgent";
+  if (x < 0.22) return "featured";
+  return undefined;
 }
 
 export const VEHICLES: Vehicle[] = RAW.map(buildVehicle);

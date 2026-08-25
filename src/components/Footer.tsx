@@ -22,6 +22,7 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
     title: "للمشترين",
     links: [
       { href: "/search", label: "البحث المتقدم" },
+      { href: "/assistant", label: "مساعد الاختيار" },
       { href: "/compare", label: "المقارنة" },
       { href: "/favorites", label: "المفضلة والتنبيهات" },
       { href: "/financing", label: "محاكي التمويل" },
@@ -33,6 +34,7 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
     title: "للبائعين",
     links: [
       { href: "/sell", label: "بيع مركبتك" },
+      { href: "/promote", label: "روّج إعلانك" },
       { href: "/valuation", label: "قيّم مركبتك" },
       { href: "/dealers", label: "الوكلاء والمعارض" },
       { href: "/dashboard", label: "لوحة البائع" },

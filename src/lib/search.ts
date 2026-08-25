@@ -2,6 +2,7 @@ import type { Vehicle } from "./types";
 import { VEHICLES } from "./data/vehicles";
 import { fairPriceOf, trustOf } from "./market";
 import { normalize } from "./darija";
+import { promoRank } from "./promo";
 
 export interface Filters {
   kind: "all" | "car" | "moto";
@@ -12,6 +13,10 @@ export interface Filters {
   fuel: string;
   gearbox: string;
   body: string;
+  /** حالة المركبة العامة */
+  condition: string;
+  /** إعلانات البيع المستعجل فقط */
+  urgentOnly: boolean;
   priceMin?: number;
   priceMax?: number;
   yearMin?: number;
@@ -57,6 +62,8 @@ export const DEFAULT_FILTERS: Filters = {
   fuel: "",
   gearbox: "",
   body: "",
+  condition: "",
+  urgentOnly: false,
   sellerType: "",
   inspectedOnly: false,
   verifiedOnly: false,
@@ -99,6 +106,8 @@ export function applyFilters(filters: Partial<Filters>, source = VEHICLES): Vehi
     if (f.fuel && v.fuel !== f.fuel) return false;
     if (f.gearbox && v.gearbox !== f.gearbox) return false;
     if (f.body && v.body !== f.body) return false;
+    if (f.condition && v.condition !== f.condition) return false;
+    if (f.urgentOnly && v.promo !== "urgent") return false;
     if (f.priceMin && v.price < f.priceMin) return false;
     if (f.priceMax && v.price > f.priceMax) return false;
     if (f.yearMin && v.year < f.yearMin) return false;
@@ -131,7 +140,7 @@ export function applyFilters(filters: Partial<Filters>, source = VEHICLES): Vehi
       default: {
         const score = (v: Vehicle) =>
           cachedTrust(v) * 0.6 +
-          (v.boosted ? 12 : 0) +
+          promoRank(v) +
           Math.max(-20, Math.min(20, -cachedDelta(v) * 120)) +
           (Date.parse(v.publishedAt) - Date.parse("2026-07-01")) / (86400000 * 4);
         return score(b) - score(a);
@@ -158,6 +167,8 @@ export function filtersFromParams(sp: URLSearchParams): Partial<Filters> {
     fuel: sp.get("fuel") || "",
     gearbox: sp.get("gearbox") || "",
     body: sp.get("body") || "",
+    condition: sp.get("condition") || "",
+    urgentOnly: sp.get("urgent") === "1",
     sellerType: sp.get("sellerType") || "",
     priceMin: num("priceMin"),
     priceMax: num("priceMax"),
@@ -187,6 +198,7 @@ export function paramsFromFilters(f: Partial<Filters>): URLSearchParams {
   set("fuel", f.fuel);
   set("gearbox", f.gearbox);
   set("body", f.body);
+  set("condition", f.condition);
   set("sellerType", f.sellerType);
   set("priceMin", f.priceMin);
   set("priceMax", f.priceMax);
@@ -198,6 +210,7 @@ export function paramsFromFilters(f: Partial<Filters>): URLSearchParams {
   if (f.verifiedOnly) sp.set("verified", "1");
   if (f.firstHandOnly) sp.set("firstHand", "1");
   if (f.goodDealsOnly) sp.set("deals", "1");
+  if (f.urgentOnly) sp.set("urgent", "1");
   set("sort", f.sort, "pertinence");
   return sp;
 }
@@ -217,4 +230,44 @@ export function similarVehicles(v: Vehicle, limit = 4): Vehicle[] {
     .sort((a, b) => b.s - a.s)
     .slice(0, limit)
     .map((x) => x.c);
+}
+
+/**
+ * اقتراحات مبنية على اللي شافه المستخدم — كتوزن الماركة، نوع الهيكل،
+ * الوقود، المدينة ونطاق الثمن ديال آخر المركبات المتصفَّحة.
+ */
+export function suggestFromRecent(recentIds: string[], limit = 4): Vehicle[] {
+  const seen = recentIds
+    .map((id) => VEHICLES.find((v) => v.id === id))
+    .filter(Boolean) as Vehicle[];
+  if (seen.length === 0) return [];
+
+  const weight = <T extends string | number>(vals: T[]) => {
+    const m = new Map<T, number>();
+    vals.forEach((v, i) => m.set(v, (m.get(v) ?? 0) + 1 / (i + 1)));
+    return m;
+  };
+  const makes = weight(seen.map((v) => v.make));
+  const bodies = weight(seen.map((v) => v.body));
+  const fuels = weight(seen.map((v) => v.fuel));
+  const cities = weight(seen.map((v) => v.city));
+  const avgPrice = seen.reduce((s, v) => s + v.price, 0) / seen.length;
+  const kinds = new Set(seen.map((v) => v.kind));
+
+  return VEHICLES.filter((v) => !recentIds.includes(v.id) && kinds.has(v.kind))
+    .map((v) => {
+      const priceGap = Math.abs(v.price - avgPrice) / Math.max(1, avgPrice);
+      const score =
+        (makes.get(v.make) ?? 0) * 3 +
+        (bodies.get(v.body) ?? 0) * 2.2 +
+        (fuels.get(v.fuel) ?? 0) * 1.4 +
+        (cities.get(v.city) ?? 0) * 1.2 +
+        Math.max(0, 2.4 - priceGap * 4) +
+        cachedTrust(v) / 45 +
+        Math.max(-1.5, -cachedDelta(v) * 6);
+      return { v, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((x) => x.v);
 }

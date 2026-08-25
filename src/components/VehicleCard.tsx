@@ -9,6 +9,7 @@ import { NOW } from "@/lib/data/seed";
 import { cityName } from "@/lib/cities";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { artShape } from "@/lib/artshape";
+import { promoOf } from "@/lib/promo";
 import { useApp } from "@/store/app";
 import { VehicleArt } from "./VehicleArt";
 import { TrustDot } from "./TrustBadge";
@@ -17,7 +18,7 @@ import { Price } from "./Price";
 import { Mixed } from "./Mixed";
 import {
   ArrowLeft, AutoGear, BadgeCheck, Calendar, Camera, Clock, FUEL_ICONS, Heart,
-  MapPin, Odometer, Scale, Sparkle, Transmission, Video,
+  MapPin, Odometer, Scale, Sparkle, Timer, Transmission, TrendingUp, Video,
 } from "./icons";
 
 function SpecRow({ v }: { v: Vehicle }) {
@@ -81,11 +82,13 @@ function CardActions({ v }: { v: Vehicle }) {
 }
 
 function Badges({ v }: { v: Vehicle }) {
+  const promo = promoOf(v);
   return (
     <div className="absolute top-3 right-3 z-10 flex flex-wrap justify-end gap-1.5">
-      {v.boosted && (
-        <span className="tag" style={{ background: "var(--brand)", color: "#fff" }}>
-          <Sparkle size={11} /> مميّز
+      {promo && (
+        <span className="tag" style={{ background: promo.color, color: "#fff" }}>
+          {promo.tier === "urgent" ? <Timer size={11} /> : promo.tier === "top" ? <TrendingUp size={11} /> : <Sparkle size={11} />}
+          {promo.label}
         </span>
       )}
       {v.inspected && (
@@ -192,6 +195,7 @@ export function VehicleCard({ v, compact = false }: { v: Vehicle; compact?: bool
    بطاقة أفقية (عرض القائمة)
    ============================================================ */
 export function VehicleRow({ v }: { v: Vehicle }) {
+  const rowPromo = promoOf(v);
   const trust = useMemo(() => trustOf(v), [v]);
   const fp = useMemo(() => fairPriceOf(v), [v]);
   const FuelIcon = FUEL_ICONS[v.fuel];
@@ -220,7 +224,11 @@ export function VehicleRow({ v }: { v: Vehicle }) {
                   <h3 className="truncate text-base font-bold transition-colors group-hover:text-[var(--brand)]">
                     {v.make} {v.model}
                   </h3>
-                  {v.boosted && <span className="tag tag-warn"><Sparkle size={11} /> مميّز</span>}
+                  {rowPromo && (
+                    <span className="tag" style={{ background: `color-mix(in oklab, ${rowPromo.color} 14%, transparent)`, color: rowPromo.color }}>
+                      <Sparkle size={11} /> {rowPromo.label}
+                    </span>
+                  )}
                   {v.inspected && <span className="tag tag-good"><BadgeCheck size={11} /> مفحوصة</span>}
                 </div>
                 <p className="mt-0.5 truncate text-xs" style={{ color: "var(--text-dim)" }}>

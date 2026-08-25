@@ -19,6 +19,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { p: "/cost", pr: 0.75 },
     { p: "/compare", pr: 0.7 },
     { p: "/sell", pr: 0.85 },
+    { p: "/promote", pr: 0.7 },
+    { p: "/assistant", pr: 0.8 },
     { p: "/inspection", pr: 0.7 },
     { p: "/safety", pr: 0.7 },
     { p: "/guides", pr: 0.8 },

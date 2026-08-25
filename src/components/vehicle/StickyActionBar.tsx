@@ -5,7 +5,7 @@ import type { Vehicle } from "@/lib/types";
 import { useApp } from "@/store/app";
 import { Price } from "@/components/Price";
 import { trustColor, trustOf } from "@/lib/market";
-import { Heart, Message, Phone, ShieldCheck } from "@/components/icons";
+import { Heart, Phone, ShieldCheck, Whatsapp } from "@/components/icons";
 import { hashCode } from "@/lib/data/seed";
 
 function phoneFor(id: string) {
@@ -69,13 +69,18 @@ export function StickyActionBar({ v }: { v: Vehicle }) {
           <Heart size={17} filled={fav} />
         </button>
 
-        <button
-          aria-label="راسل البائع"
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border"
-          style={{ borderColor: "var(--line)", color: "var(--text-muted)" }}
+        <a
+          href={`https://wa.me/212${phoneFor(v.id).replace(/\D/g, "").slice(1)}?text=${encodeURIComponent(
+            `سلام، شفت الإعلان ديال ${v.make} ${v.model} ${v.year} فطريق. واش مازال متوفر؟`,
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="واتساب"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
+          style={{ background: "#25D366", color: "#062d16" }}
         >
-          <Message size={17} />
-        </button>
+          <Whatsapp size={18} />
+        </a>
 
         <button onClick={() => setRevealed(true)} className="btn btn-primary shrink-0">
           <Phone size={15} />

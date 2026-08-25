@@ -87,5 +87,6 @@ export interface Vehicle {
   priceDrops: number[];
   negotiable: boolean;
   exchangeAccepted: boolean;
-  boosted?: boolean;
+  /** درجة الترويج المدفوعة — شوف lib/promo.ts */
+  promo?: import("./promo").PromoTier;
 }

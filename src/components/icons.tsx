@@ -919,6 +919,14 @@ export const EQUIPMENT_ICONS: Record<string, (p: P) => React.JSX.Element> = {
   "وضعيات قيادة متعددة": AutoGear,
 };
 
+/** واتساب — سماعة داخل فقاعة محادثة */
+export const Whatsapp = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M3.2 20.8 4.6 16.6a8.6 8.6 0 1 1 3.2 3.1z" />
+    <path d="M9 9.4c0 3.2 2.4 5.6 5.6 5.6l1-1.4-2-1-.9 1a5.6 5.6 0 0 1-2.3-2.3l1-.9-1-2z" />
+  </svg>
+);
+
 /** أيقونات الأدلة — مفاتيحها مخزنة مع بيانات الدليل */
 export const GUIDE_ICONS = {
   ClipboardCheck, Diagnostic, Odometer, FileText, OilCan, Moto, Piston, BrakeRotor,

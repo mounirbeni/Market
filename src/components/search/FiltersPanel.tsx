@@ -7,7 +7,7 @@ import { applyFilters, type Filters } from "@/lib/search";
 import { formatNumber } from "@/lib/format";
 import {
   BadgeCheck, Bolt, Calendar, Car, Droplet, Fuel, Gauge, Gearbox, Grid, Leaf,
-  MapPin, Moto, Reset, ShieldCheck, TrendingDown, Key, Wrench,
+  MapPin, Moto, Reset, ShieldCheck, Timer, TrendingDown, Key, Wrench,
 } from "@/components/icons";
 import { VehicleGlyph } from "@/components/VehicleArt";
 import {
@@ -22,6 +22,13 @@ interface Props {
   lockKind?: "car" | "moto";
   lockBrand?: string;
 }
+
+const CONDITIONS = [
+  { value: "excellent", label: "ممتازة" },
+  { value: "tres-bon", label: "جيدة جداً" },
+  { value: "bon", label: "جيدة" },
+  { value: "moyen", label: "متوسطة" },
+];
 
 const CAR_BODIES = [
   { value: "citadine", label: "مدينية" },
@@ -109,9 +116,11 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
 
   const activeTotal = [
     filters.make, filters.model, filters.city, filters.fuel, filters.gearbox, filters.body,
+    filters.condition, filters.urgentOnly,
   ].filter(Boolean).length
     + [filters.priceMin, filters.priceMax, filters.yearMin, filters.yearMax, filters.kmMax, filters.trustMin].filter((x) => x !== undefined).length
-    + [filters.goodDealsOnly, filters.inspectedOnly, filters.verifiedOnly, filters.firstHandOnly].filter(Boolean).length;
+    + (filters.condition ? 1 : 0)
+    + [filters.goodDealsOnly, filters.inspectedOnly, filters.verifiedOnly, filters.firstHandOnly, filters.urgentOnly].filter(Boolean).length;
 
   return (
     <div className="card overflow-hidden">
@@ -308,6 +317,15 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
           </div>
         </FilterSection>
 
+        {/* حالة المركبة */}
+        <FilterSection title="حالة المركبة" Icon={BadgeCheck} activeCount={filters.condition ? 1 : 0}>
+          <ChipToggles
+            value={filters.condition}
+            onChange={(c) => set({ condition: c })}
+            options={CONDITIONS.map((c) => ({ ...c, count: facet({ condition: c.value }) }))}
+          />
+        </FilterSection>
+
         {/* المدينة */}
         <FilterSection title="المدينة" Icon={MapPin} activeCount={filters.city ? 1 : 0}>
           <ChipToggles
@@ -353,7 +371,7 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
         <FilterSection
           title="ضمانات"
           Icon={ShieldCheck}
-          activeCount={[filters.goodDealsOnly, filters.inspectedOnly, filters.verifiedOnly, filters.firstHandOnly].filter(Boolean).length}
+          activeCount={[filters.goodDealsOnly, filters.inspectedOnly, filters.verifiedOnly, filters.firstHandOnly, filters.urgentOnly].filter(Boolean).length}
         >
           <div className="grid gap-1.5">
             <SwitchRow
@@ -386,6 +404,14 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
               checked={filters.firstHandOnly}
               onChange={(b) => set({ firstHandOnly: b })}
               count={facet({ firstHandOnly: true })}
+            />
+            <SwitchRow
+              Icon={Timer}
+              label="بيع مستعجل"
+              hint="البائع مستعجل — غالباً قابل للتفاوض"
+              checked={filters.urgentOnly}
+              onChange={(b) => set({ urgentOnly: b })}
+              count={facet({ urgentOnly: true })}
             />
           </div>
         </FilterSection>

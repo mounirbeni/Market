@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { vehicleHref } from "@/lib/slug";
 import { SmartSearch } from "@/components/SmartSearch";
+import { SuggestedForYou } from "@/components/SuggestedForYou";
 import { VehicleCard } from "@/components/VehicleCard";
 import { VehicleArt, VehicleGlyph } from "@/components/VehicleArt";
 import { TrustRing } from "@/components/TrustBadge";
@@ -344,6 +345,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <SuggestedForYou />
 
       {/* ================= الماركات ================= */}
       <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>

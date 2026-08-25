@@ -11,7 +11,7 @@ import type { Vehicle } from "@/lib/types";
 import { Bell, Calculator, Car, Coins, Heart, Search, Trash, TrendingDown } from "@/components/icons";
 
 export function FavoritesClient() {
-  const { favorites, searches, removeSearch, ready } = useApp();
+  const { favorites, searches, removeSearch, ready, priceWatch, togglePriceWatch, isWatched } = useApp();
 
   const items = useMemo(
     () => favorites.map((id) => vehicleById(id)).filter(Boolean) as Vehicle[],
@@ -76,10 +76,50 @@ export function FavoritesClient() {
                 ))}
               </div>
             )}
+            <div
+              className="mb-5 flex flex-wrap items-center gap-3 rounded-2xl border p-4"
+              style={{ borderColor: "var(--line-soft)", background: "var(--brand-soft)" }}
+            >
+              <Bell size={17} className="shrink-0" style={{ color: "var(--brand)" }} />
+              <p className="min-w-0 flex-1 text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                <b style={{ color: "var(--brand)" }}>تنبيه انخفاض السعر:</b> فعّلو على أي مركبة
+                وكيوصلك إشعار ملي البائع ينقّص الثمن.{" "}
+                {priceWatch.length > 0 && (
+                  <span className="num font-bold" style={{ color: "var(--brand)" }}>
+                    {priceWatch.length} مفعّل
+                  </span>
+                )}
+              </p>
+              <button
+                onClick={() => items.forEach((v) => { if (!isWatched(v.id)) togglePriceWatch(v.id); })}
+                className="btn btn-solid btn-sm shrink-0"
+              >
+                فعّلو على الكل
+              </button>
+            </div>
+
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((v) => (
-                <VehicleCard key={v.id} v={v} />
-              ))}
+              {items.map((v) => {
+                const on = isWatched(v.id);
+                return (
+                  <div key={v.id} className="flex min-w-0 flex-col gap-2">
+                    <VehicleCard v={v} />
+                    <button
+                      onClick={() => togglePriceWatch(v.id)}
+                      aria-pressed={on}
+                      className="flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-[11.5px] font-bold transition-colors"
+                      style={{
+                        borderColor: on ? "transparent" : "var(--line)",
+                        background: on ? "var(--brand-soft)" : "transparent",
+                        color: on ? "var(--brand)" : "var(--text-dim)",
+                      }}
+                    >
+                      <Bell size={13} />
+                      {on ? "غادي نعلمك إلا نقص الثمن" : "نبّهني إلا نقص الثمن"}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </>
         )}

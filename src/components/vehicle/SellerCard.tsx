@@ -6,7 +6,17 @@ import type { Seller, Vehicle } from "@/lib/types";
 import { cityName } from "@/lib/cities";
 import { AR } from "@/lib/format";
 import { hashCode } from "@/lib/data/seed";
-import { BadgeCheck, Clock, MapPin, Message, Phone, ShieldAlert, Star, Wrench } from "@/components/icons";
+import { vehicleHref } from "@/lib/slug";
+import { ReportDialog } from "./ReportDialog";
+import {
+  BadgeCheck, Calendar, Check, Clock, Flag, MapPin, Message, Phone, Share,
+  ShieldAlert, Star, Whatsapp, Wrench,
+} from "@/components/icons";
+
+/** رقم دولي للواتساب من نفس البذرة ديال الرقم المحلي */
+function waNumber(id: string) {
+  return "212" + phoneFor(id).replace(/\D/g, "").slice(1);
+}
 
 function phoneFor(id: string) {
   const h = hashCode(id);
@@ -17,6 +27,28 @@ function phoneFor(id: string) {
 
 export function SellerCard({ seller, v }: { seller: Seller; v: Vehicle }) {
   const [revealed, setRevealed] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [reporting, setReporting] = useState(false);
+
+  const title = `${v.make} ${v.model} ${v.year}`;
+  const waText = encodeURIComponent(
+    `سلام، شفت الإعلان ديال ${title} فطريق وبغيت نستفسر. واش مازال متوفر؟`,
+  );
+
+  async function share() {
+    const url = typeof window === "undefined" ? "" : window.location.origin + vehicleHref(v);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setShared(true);
+        setTimeout(() => setShared(false), 2200);
+      }
+    } catch {
+      /* المستخدم ألغى المشاركة */
+    }
+  }
 
   return (
     <section className="card overflow-hidden">
@@ -61,12 +93,43 @@ export function SellerCard({ seller, v }: { seller: Seller; v: Vehicle }) {
             <Phone size={16} />
             {revealed ? <span className="num tracking-wider">{phoneFor(v.id)}</span> : "أظهر رقم الهاتف"}
           </button>
+          <a
+            href={`https://wa.me/${waNumber(v.id)}?text=${waText}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn w-full font-bold"
+            style={{ background: "#25D366", color: "#062d16" }}
+          >
+            <Whatsapp size={17} /> راسلو على واتساب
+          </a>
           <div className="grid grid-cols-2 gap-2">
-            <button className="btn btn-solid btn-sm"><Message size={14} /> راسل البائع</button>
-            <Link href="/inspection" className="btn btn-solid btn-sm"><Wrench size={14} /> اطلب فحصاً</Link>
+            <Link href="/messages" className="btn btn-solid btn-sm">
+              <Message size={14} /> رسالة داخلية
+            </Link>
+            <Link href={`/messages?appointment=${v.id}`} className="btn btn-solid btn-sm">
+              <Calendar size={14} /> اطلب موعد
+            </Link>
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={share} className="btn btn-solid btn-sm" aria-live="polite">
+              {shared ? <Check size={14} style={{ color: "var(--good)" }} /> : <Share size={14} />}
+              {shared ? "تنسخ الرابط" : "شارك"}
+            </button>
+            <Link href="/inspection" className="btn btn-solid btn-sm">
+              <Wrench size={14} /> اطلب فحصاً
+            </Link>
+          </div>
+          <button
+            onClick={() => setReporting(true)}
+            className="mt-1 flex items-center justify-center gap-1.5 text-[11.5px] font-bold transition-colors hover:underline"
+            style={{ color: "var(--text-dim)" }}
+          >
+            <Flag size={12} /> بلّغ على هاد الإعلان
+          </button>
         </div>
       </div>
+
+      {reporting && <ReportDialog v={v} onClose={() => setReporting(false)} />}
 
       <div
         className="flex gap-2.5 border-t p-4 text-[11px] leading-relaxed"

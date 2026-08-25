@@ -50,6 +50,11 @@ interface AppState {
   signIn: (u: SessionUser) => void;
   signOut: () => void;
 
+  /** مركبات مفعّل عليها تنبيه انخفاض السعر */
+  priceWatch: string[];
+  togglePriceWatch: (id: string) => void;
+  isWatched: (id: string) => boolean;
+
   /** الإشعارات المقروءة */
   readNotifications: string[];
   markRead: (id: string) => void;
@@ -67,6 +72,7 @@ interface Persisted {
   searches: SavedSearch[];
   recent: string[];
   user: SessionUser | null;
+  priceWatch: string[];
   readNotifications: string[];
 }
 
@@ -78,6 +84,7 @@ const initial: Persisted = {
   searches: [],
   recent: [],
   user: null,
+  priceWatch: [],
   readNotifications: [],
 };
 
@@ -152,6 +159,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const togglePriceWatch = useCallback((id: string) => {
+    setState((s) => ({
+      ...s,
+      priceWatch: s.priceWatch.includes(id)
+        ? s.priceWatch.filter((x) => x !== id)
+        : [...s.priceWatch, id],
+    }));
+  }, []);
+
   const signIn = useCallback((user: SessionUser) => setState((s) => ({ ...s, user })), []);
   const signOut = useCallback(() => setState((s) => ({ ...s, user: null })), []);
 
@@ -178,10 +194,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       searches: state.searches, saveSearch, removeSearch,
       recent: state.recent, pushRecent,
       user: state.user, signIn, signOut,
+      priceWatch: state.priceWatch, togglePriceWatch,
+      isWatched: (id) => state.priceWatch.includes(id),
       readNotifications: state.readNotifications, markRead, markAllRead,
     }),
     [ready, state, setUnit, toggleUnit, toggleTheme, toggleFavorite, toggleCompare,
-      clearCompare, saveSearch, removeSearch, pushRecent, signIn, signOut, markRead, markAllRead],
+      clearCompare, saveSearch, removeSearch, pushRecent, signIn, signOut,
+      togglePriceWatch, markRead, markAllRead],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
