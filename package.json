@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "add-logo": "node scripts/add-brand-logo.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
-    "db:seed": "tsx scripts/db-seed.mts"
+    "db:seed": "tsx scripts/db-seed.mts",
+    "db:setup": "node scripts/db-migrate.mjs && tsx scripts/db-seed.mts"
   },
   "dependencies": {
     "next": "^16.3.2",
