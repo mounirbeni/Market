@@ -9,6 +9,7 @@ import {
 import { VehicleCard, VehicleRow } from "@/components/VehicleCard";
 import { FiltersPanel } from "./FiltersPanel";
 import { SmartSearch } from "@/components/SmartSearch";
+import { BrandMark } from "@/components/BrandMark";
 import { useApp } from "@/store/app";
 import { cityName } from "@/lib/cities";
 import { AR, formatNumber } from "@/lib/format";
@@ -127,7 +128,9 @@ export function VehiclesClient({
         <div className="min-w-0">
           {/* شريط الأدوات */}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div>
+            <div className="flex min-w-0 items-start gap-3">
+              {lockBrand && <BrandMark name={lockBrand} size={46} className="mt-0.5" />}
+              <div className="min-w-0">
               <h1 className="text-xl font-extrabold tracking-tight">{title}</h1>
               {intro && (
                 <p className="mt-1.5 max-w-2xl text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -138,6 +141,7 @@ export function VehiclesClient({
                 <span className="num font-bold" style={{ color: "var(--brand)" }}>{results.length}</span> نتيجة
                 {results.length > 0 && <> · مرتّبة حسب {SORT_LABELS[filters.sort]}</>}
               </p>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">

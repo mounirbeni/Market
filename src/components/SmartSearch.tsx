@@ -8,6 +8,7 @@ import {
   type Suggestion,
 } from "@/lib/suggest";
 import { applyFilters, paramsFromFilters, type Filters } from "@/lib/search";
+import { BrandMark } from "./BrandMark";
 import {
   ArrowLeft, Car, Close, Fuel, Info, MapPin, Search, Sparkle, Transmission,
 } from "./icons";
@@ -212,12 +213,16 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right transition-colors"
                 style={{ background: on ? "var(--surface-3)" : "transparent" }}
               >
-                <span
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
-                  style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
-                >
-                  <Icon size={15} />
-                </span>
+                {s.kind === "make" ? (
+                  <BrandMark name={s.label} size={32} variant="monogram" />
+                ) : (
+                  <span
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
+                    style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+                  >
+                    <Icon size={15} />
+                  </span>
+                )}
                 <span className="min-w-0 flex-1">
                   <bdi dir="ltr" className="block truncate text-[13.5px] font-bold">
                     {s.label}

@@ -121,7 +121,7 @@ export function Footer() {
                   href={`/cars/${b.slug}`}
                   className="chip chip-plain transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
                 >
-                  {b.make}
+                  <bdi dir="ltr">{b.make}</bdi>
                 </Link>
               ))}
             </div>
@@ -138,7 +138,7 @@ export function Footer() {
                   href={`/motorcycles/${b.slug}`}
                   className="chip chip-plain transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
                 >
-                  {b.make}
+                  <bdi dir="ltr">{b.make}</bdi>
                 </Link>
               ))}
             </div>

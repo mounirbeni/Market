@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { vehicleHref } from "@/lib/slug";
 import { SmartSearch } from "@/components/SmartSearch";
+import { BrandTile } from "@/components/BrandMark";
 import { SuggestedForYou } from "@/components/SuggestedForYou";
 import { VehicleCard } from "@/components/VehicleCard";
 import { VehicleArt, VehicleGlyph } from "@/components/VehicleArt";
@@ -361,14 +362,7 @@ export default function HomePage() {
           </h3>
           <div className="mb-8 grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
             {carBrands.map((b) => (
-              <Link
-                key={b.slug}
-                href={`/cars/${b.slug}`}
-                className="card card-hover flex flex-col items-center justify-center gap-1 px-2 py-4 text-center"
-              >
-                <span className="num truncate text-[12.5px] font-extrabold">{b.make}</span>
-                <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>{b.count}</span>
-              </Link>
+              <BrandTile key={b.slug} name={b.make} count={b.count} href={`/cars/${b.slug}`} />
             ))}
           </div>
 
@@ -377,14 +371,7 @@ export default function HomePage() {
           </h3>
           <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
             {motoBrands.map((b) => (
-              <Link
-                key={b.slug}
-                href={`/motorcycles/${b.slug}`}
-                className="card card-hover flex flex-col items-center justify-center gap-1 px-2 py-4 text-center"
-              >
-                <span className="num truncate text-[12.5px] font-extrabold">{b.make}</span>
-                <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>{b.count}</span>
-              </Link>
+              <BrandTile key={b.slug} name={b.make} count={b.count} href={`/motorcycles/${b.slug}`} kind="moto" />
             ))}
           </div>
         </div>
