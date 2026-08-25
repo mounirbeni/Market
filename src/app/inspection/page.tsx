@@ -198,7 +198,7 @@ export default function InspectionPage() {
               <h3 className="mt-4 text-[14px] font-bold">{p.name}</h3>
               <p className="mt-3">
                 <span className="num text-3xl font-extrabold" style={{ color: "var(--brand)" }}>{p.price}</span>
-                <span className="mr-1 text-xs font-bold opacity-60">د.م</span>
+                <span className="ms-1.5 text-xs font-bold opacity-60">د.م</span>
               </p>
               <p className="num mt-2 text-xs" style={{ color: "var(--text-dim)" }}>{p.points}</p>
               {!p.featured && (
