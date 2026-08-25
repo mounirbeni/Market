@@ -565,6 +565,296 @@ export const Window = (p: P) => (
   </svg>
 );
 
+/* ============================================================
+   الميكانيك — قطع ومنظومات المركبة
+   مرسومة يدوياً بنفس الشبكة (24×24) وسمك الخط ديال باقي المجموعة
+   ============================================================ */
+
+/** بيستون بذراع التوصيل ومحور الكرنك */
+export const Piston = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="6.6" y="2.6" width="10.8" height="7.4" rx="1.4" />
+    <path d="M6.6 6.1h10.8M6.6 8.2h10.8" />
+    <path d="M10.7 10v3.4M13.3 10v3.4" />
+    <circle cx="12" cy="17.4" r="3.9" />
+    <circle cx="12" cy="17.4" r="1.1" />
+  </svg>
+);
+
+/** كتلة المحرك مع رأس الأسطوانات */
+export const EngineBlock = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M4 12.5h2V9.5h3l1.6-2h6.2a1.8 1.8 0 0 1 1.8 1.8v2.2h2.4v4.4h-2.4v1.3a1.8 1.8 0 0 1-1.8 1.8H7.8A1.8 1.8 0 0 1 6 17.2v-1.4H4z" />
+    <path d="M9 7.5V5.2h6V7.5" />
+    <path d="M10.6 5.2v-1.8M13.4 5.2v-1.8" />
+  </svg>
+);
+
+/** تيربو — بيت حلزوني وعجلة ضاغطة */
+export const Turbo = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="11.6" cy="10.6" r="7.4" />
+    <path d="M5.6 15v3.6a2 2 0 0 0 2 2h4.4" />
+    <path d="M19 10.6h2.4" />
+    <circle cx="11.6" cy="10.6" r="3" />
+    <path d="M11.6 7.6a3 3 0 0 1 2.6 4.5M11.6 13.6a3 3 0 0 1-2.6-4.5" />
+  </svg>
+);
+
+/** شمعة الإشعال (البوجي) */
+export const SparkPlug = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M10.4 2.6h3.2v3.1h-3.2z" />
+    <path d="M9.6 5.7h4.8v4.1H9.6z" />
+    <path d="M8.7 9.8h6.6l-.9 2.9H9.6z" />
+    <path d="M10.2 12.7h3.6v4.5h-3.6z" />
+    <path d="M10.4 17.2v3.2h2.6" />
+  </svg>
+);
+
+/** علبة الزيت مع نقطة سائلة */
+export const OilCan = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M3 16.4h11.4a3.6 3.6 0 0 0 3.6-3.6v-1.6h-4.2l-2.3-2.1H6.6A3.6 3.6 0 0 0 3 12.7z" />
+    <path d="M18 11.2 21 8.2" />
+    <path d="M7.4 8.9V7.2h3.4" />
+    <path d="M8.6 18.4s1.4 1.8 1.4 2.6a1.4 1.4 0 0 1-2.8 0c0-.8 1.4-2.6 1.4-2.6z" />
+  </svg>
+);
+
+/** فيلتر الزيت — أسطوانة لولبية */
+export const OilFilter = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="7" y="2.8" width="10" height="14.6" rx="1.6" />
+    <path d="M7 6.4h10M7 13.8h10" />
+    <path d="M9.2 17.4v3.2h5.6v-3.2" />
+  </svg>
+);
+
+/** فيلتر الهواء — لوحة مطويّة */
+export const AirFilter = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="2.8" y="6" width="18.4" height="12" rx="2" />
+    <path d="m6.4 6.4-1.8 11.2M10 6.4 8.2 17.6M13.6 6.4l-1.8 11.2M17.2 6.4l-1.8 11.2" />
+  </svg>
+);
+
+/** الرادياتور — زعانف تبريد وبخار */
+export const Radiator = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="3" y="7.8" width="18" height="11.4" rx="2" />
+    <path d="M7.5 7.8v11.4M12 7.8v11.4M16.5 7.8v11.4" />
+    <path d="M8.6 5.4c0-1.2 1.6-1.2 1.6-2.4M13.8 5.4c0-1.2 1.6-1.2 1.6-2.4" />
+  </svg>
+);
+
+/** سائل التبريد — حرارة المحرك */
+export const Coolant = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M10.2 4a1.8 1.8 0 0 1 3.6 0v7.7a3.4 3.4 0 1 1-3.6 0z" />
+    <circle cx="12" cy="14.8" r="1.3" fill="currentColor" stroke="none" />
+    <path d="M2.6 19.4c1.3 0 1.3-1.3 2.6-1.3s1.3 1.3 2.6 1.3M16.2 19.4c1.3 0 1.3-1.3 2.6-1.3s1.3 1.3 2.6 1.3" />
+  </svg>
+);
+
+/** كورّية وبكرات التوزيع */
+export const Belt = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="7.2" cy="12" r="4.6" /><circle cx="16.8" cy="12" r="4.6" />
+    <path d="M7.2 7.4h9.6M7.2 16.6h9.6" />
+    <circle cx="7.2" cy="12" r="1.2" /><circle cx="16.8" cy="12" r="1.2" />
+  </svg>
+);
+
+/** طارة السلسلة (خاصة بالدراجات) */
+export const Sprocket = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="6.4" /><circle cx="12" cy="12" r="2.1" />
+    <path d="M12 2.8v2.8M12 18.4v2.8M2.8 12h2.8M18.4 12h2.8" />
+    <path d="m5.5 5.5 2 2M16.5 16.5l2 2M18.5 5.5l-2 2M7.5 16.5l-2 2" />
+  </svg>
+);
+
+/** قرص الفرامل مع الملقط */
+export const BrakeRotor = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="10.8" cy="12" r="8" />
+    <circle cx="10.8" cy="12" r="2.6" />
+    <path d="M10.8 6.6h.01M14.6 9.4h.01M14.6 14.6h.01M10.8 17.4h.01M7 14.6h.01M7 9.4h.01" />
+    <path d="M17.4 8.2h2.1a1.6 1.6 0 0 1 1.6 1.6v4.4a1.6 1.6 0 0 1-1.6 1.6h-2.1" />
+  </svg>
+);
+
+/** تيل الفرامل */
+export const BrakePad = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="3.2" y="6.2" width="3.8" height="11.6" rx="1.2" />
+    <path d="M7 7.4h2.8a1.6 1.6 0 0 1 1.6 1.6v6a1.6 1.6 0 0 1-1.6 1.6H7z" />
+    <path d="M15.4 4.4a9.8 9.8 0 0 1 0 15.2" />
+    <path d="M12.4 12h1.8" />
+  </svg>
+);
+
+/** ممتص الصدمات مع الروسور */
+export const Shock = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="3.4" r="1.9" />
+    <path d="M12 5.3v1.5" />
+    <path d="m8.4 7.2 7.2 2.2-7.2 2.2 7.2 2.2-7.2 2.2 7.2 2.1" />
+    <path d="M12 18.1v1.1" />
+    <circle cx="12" cy="20.6" r="1.9" />
+  </svg>
+);
+
+/** العادم — الشكمان */
+export const Exhaust = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M2.6 12.4h3.4" />
+    <rect x="6" y="8.8" width="8.8" height="7.2" rx="1.6" />
+    <path d="M9 8.8v7.2M11.9 8.8v7.2" />
+    <path d="M14.8 12.4h2.4" />
+    <ellipse cx="18.4" cy="12.4" rx="1.2" ry="2.1" />
+    <path d="M19.8 8.6c0-1.5 1.7-1.5 1.7-3" />
+  </svg>
+);
+
+/** عمود الدفع والفرق */
+export const Driveshaft = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M7.8 12h8.4" />
+    <path d="M7.8 9.8v4.4M16.2 9.8v4.4" />
+    <circle cx="5.2" cy="12" r="2.8" />
+    <circle cx="18.8" cy="12" r="2.8" />
+    <path d="m3.6 10.4 3.2 3.2M6.8 10.4l-3.2 3.2" />
+    <path d="m17.2 10.4 3.2 3.2M20.4 10.4l-3.2 3.2" />
+  </svg>
+);
+
+/** رولمان — محمل كروي */
+export const Bearing = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="8.6" /><circle cx="12" cy="12" r="3.6" />
+    <circle cx="12" cy="5.9" r="1.3" /><circle cx="12" cy="18.1" r="1.3" />
+    <circle cx="5.9" cy="12" r="1.3" /><circle cx="18.1" cy="12" r="1.3" />
+    <circle cx="7.7" cy="7.7" r="1.3" /><circle cx="16.3" cy="16.3" r="1.3" />
+    <circle cx="16.3" cy="7.7" r="1.3" /><circle cx="7.7" cy="16.3" r="1.3" />
+  </svg>
+);
+
+/** الإطار — مداس البنو */
+export const Tire = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="6.8" strokeDasharray="1.9 2.4" />
+    <circle cx="12" cy="12" r="4.3" />
+  </svg>
+);
+
+/** ضغط الإطارات */
+export const TirePressure = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M5 20V9.6C5 6 8.1 3.4 12 3.4s7 2.6 7 6.2V20" />
+    <path d="M3.2 20h17.6" />
+    <path d="m5 20 1.7-2.2M19 20l-1.7-2.2" />
+    <path d="M12 8.2v4.6M12 16h.01" />
+  </svg>
+);
+
+/** مساحات الزجاج */
+export const Wiper = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M3.2 20h17.6" />
+    <circle cx="6.4" cy="20" r="1.7" />
+    <path d="M6.4 18.3 13.7 6.4" />
+    <path d="m11.3 5.2 4.6 2.8" />
+    <path d="M9.8 19.6a10.2 10.2 0 0 1 8.4-9.9" />
+  </svg>
+);
+
+/** جهاز التشخيص OBD */
+export const Diagnostic = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M6.4 4.4h11.2a1.8 1.8 0 0 1 1.8 1.8v5.4a4 4 0 0 1-4 4H8.6a4 4 0 0 1-4-4V6.2a1.8 1.8 0 0 1 1.8-1.8z" />
+    <path d="M8.6 7.6v2.2M12 7.6v2.2M15.4 7.6v2.2" />
+    <path d="M12 15.6v2.4" />
+    <path d="M8.8 20.8h6.4" />
+    <path d="M12 18h-1.6l1.6 2.8" />
+  </svg>
+);
+
+/** صندوق الأدوات */
+export const Toolbox = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="2.6" y="8.4" width="18.8" height="11" rx="2" />
+    <path d="M8.6 8.4V6.2a1.6 1.6 0 0 1 1.6-1.6h3.6a1.6 1.6 0 0 1 1.6 1.6v2.2" />
+    <path d="M2.6 13.2h18.8" />
+    <path d="M9.8 11.6h4.4v3.4H9.8z" />
+  </svg>
+);
+
+/** الكريك — رافعة المركبة */
+export const Jack = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 4.8 5.8 12 12 19.2 18.2 12z" />
+    <path d="M3.4 12h17.2" />
+    <path d="M9 2.6h6v1.6H9z" />
+    <path d="M12 4.2V2.6M12 19.2v1.6" />
+    <path d="M8.4 20.8h7.2" />
+  </svg>
+);
+
+/** ضبط زوايا العجلات — البارالاج */
+export const Alignment = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="2.8" y="6" width="4.2" height="12" rx="1.6" transform="rotate(-10 4.9 12)" />
+    <rect x="17" y="6" width="4.2" height="12" rx="1.6" transform="rotate(10 19.1 12)" />
+    <path d="M12 3.6v14.8" />
+    <path d="M9.4 20.6h5.2" />
+    <path d="m10.2 6.2 1.8-2.6 1.8 2.6" />
+  </svg>
+);
+
+/** المحوّل الحفّاز */
+export const Catalyst = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M2.6 12.4h3.2" />
+    <path d="M5.8 9.4h12.4v6H5.8z" />
+    <path d="M8.6 9.4v6M11.4 9.4v6M14.2 9.4v6" />
+    <path d="M18.2 12.4h3.2" />
+    <path d="M12 9.4V6.6M9.8 6.6h4.4" />
+  </svg>
+);
+
+/** صمّام المحرك */
+export const Valve = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M12 2.8v11.4" />
+    <path d="M9.2 4.4h5.6" />
+    <path d="m8.8 6.6 6.4 1.5-6.4 1.5 6.4 1.5" />
+    <path d="M6.4 14.2h11.2l-2.4 4.2a1.6 1.6 0 0 1-1.4.8h-3.6a1.6 1.6 0 0 1-1.4-.8z" />
+  </svg>
+);
+
+/** مفتاح التشغيل */
+export const Ignition = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="8.6" />
+    <path d="M12 5.6v4" />
+    <circle cx="12" cy="12" r="2.4" />
+    <path d="M12 14.4v4.6M10.4 17.4h3.2" />
+  </svg>
+);
+
+/** ضغط التيربو / مؤشر الضغط */
+export const BoostGauge = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="8.6" />
+    <path d="m12 12 4-3.4" />
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
+    <path d="M6.4 15.4h.01M6.2 10.4h.01M9.6 6.9h.01M14.4 6.9h.01M17.8 10.4h.01" />
+  </svg>
+);
+
 /** خريطة التجهيزات إلى أيقونات */
 export const EQUIPMENT_ICONS: Record<string, (p: P) => React.JSX.Element> = {
   "مكيف الهواء": AirCon,
@@ -588,14 +878,19 @@ export const EQUIPMENT_ICONS: Record<string, (p: P) => React.JSX.Element> = {
   "لوحة عدادات رقمية": Odometer,
   "مقبض مسخّن": Steering,
   "حقائب جانبية": Seat,
-  "درع واقي للمحرك": Shield,
-  "عادم رياضي": Engine,
-  "إطارات جديدة": Wheel,
+  "درع واقي للمحرك": EngineBlock,
+  "عادم رياضي": Exhaust,
+  "إطارات جديدة": Tire,
   "شاحن USB": Battery,
   "زجاج أمامي عالٍ": Window,
   "نظام تحكم في الجر": Drivetrain,
   "وضعيات قيادة متعددة": AutoGear,
 };
+
+/** أيقونات الأدلة — مفاتيحها مخزنة مع بيانات الدليل */
+export const GUIDE_ICONS = {
+  ClipboardCheck, Diagnostic, Odometer, FileText, OilCan, Moto, Piston, BrakeRotor,
+} as const;
 
 /* ---------- خريطة الأسماء للاستعمال الديناميكي ---------- */
 export const FUEL_ICONS = { diesel: Droplet, essence: Fuel, hybride: Leaf, electrique: Bolt } as const;

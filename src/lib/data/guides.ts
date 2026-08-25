@@ -1,8 +1,14 @@
+export type GuideIcon =
+  | "ClipboardCheck" | "Diagnostic" | "Odometer" | "FileText"
+  | "OilCan" | "Moto" | "Piston" | "BrakeRotor";
+
 export interface Guide {
   slug: string;
   kind: "car" | "moto" | "general";
   title: string;
   excerpt: string;
+  /** اسم الأيقونة من مجموعة أيقونات الميكانيك */
+  icon: GuideIcon;
   readMinutes: number;
   updated: string;
   sections: { heading: string; body: string[]; list?: string[] }[];
@@ -11,6 +17,7 @@ export interface Guide {
 export const GUIDES: Guide[] = [
   {
     slug: "chira-tomobil-mostaamla",
+    icon: "ClipboardCheck",
     kind: "car",
     title: "كيفاش تشري سيارة مستعملة فالمغرب بلا ما تتغلّط",
     excerpt:
@@ -87,6 +94,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "fahs-qabl-chira",
+    icon: "Diagnostic",
     kind: "car",
     title: "لائحة الفحص قبل الشراء: 20 نقطة تقدر تشوفهم بعينيك",
     excerpt: "ماشي محتاج تكون ميكانيسيان. هاد النقط كيقدر يشوفهم أي واحد وكيكشفو أغلب المشاكل.",
@@ -146,6 +154,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "tomobil-maghchocha",
+    icon: "Odometer",
     kind: "car",
     title: "كيفاش تعرف السيارة المغشوشة والعدّاد المرجوع",
     excerpt: "الغش فالعدّاد وفتاريخ الحوادث كيكلّف المشتري عشرات الآلاف. هاكيفاش تكشفو.",
@@ -186,6 +195,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "wata2iq-bay3",
+    icon: "FileText",
     kind: "general",
     title: "الوثائق المطلوبة لبيع وشراء مركبة فالمغرب",
     excerpt: "لائحة كاملة بالوثائق وخطوات تحويل الملكية، للبائع وللمشتري.",
@@ -230,6 +240,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "afdal-tomobilat-iqtisadiya",
+    icon: "OilCan",
     kind: "car",
     title: "أرخص السيارات فالاستعمال بالمغرب",
     excerpt: "ماشي الأرخص فالشراء هي الأرخص فالاستعمال. مقارنة على أساس التكلفة السنوية الحقيقية.",
@@ -265,6 +276,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "awal-moto",
+    icon: "Moto",
     kind: "moto",
     title: "كيفاش تختار أول دراجة نارية ديالك",
     excerpt: "سعة المحرك، الوزن، الاستعمال، والميزانية — دليل عملي للمبتدئين.",
@@ -306,6 +318,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "125-wla-300",
+    icon: "Piston",
     kind: "moto",
     title: "الفرق بين 125 و300 سم³: أيّ وحدة تناسبك؟",
     excerpt: "مقارنة عملية فالسرعة، الاستهلاك، التكلفة، والرخصة.",
@@ -335,6 +348,7 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "chira-moto-mostaamla",
+    icon: "BrakeRotor",
     kind: "moto",
     title: "فحص دراجة نارية مستعملة قبل الشراء",
     excerpt: "النقط الخاصة بالدراجات اللي كتختلف على السيارات.",

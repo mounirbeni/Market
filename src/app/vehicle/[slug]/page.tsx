@@ -25,8 +25,8 @@ import { Mixed } from "@/components/Mixed";
 import { TrustRing } from "@/components/TrustBadge";
 import {
   AutoGear, BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Door,
-  Drivetrain, Engine, EQUIPMENT_ICONS, Eye, FUEL_ICONS, Fuel, Heart,
-  Horsepower, MapPin, Odometer, Palette, Road, Scale, Seat, Sparkle,
+  Driveshaft, EQUIPMENT_ICONS, Eye, FUEL_ICONS, Heart, Horsepower, MapPin,
+  Odometer, OilCan, Palette, Piston, Road, Scale, Seat, Sparkle,
   Transmission, TrendingDown, Users,
 } from "@/components/icons";
 import { VehicleGlyph } from "@/components/VehicleArt";
@@ -74,10 +74,10 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
       ? [
           { Icon: Door, label: "عدد الأبواب", value: String(v.doors ?? "-") },
           { Icon: Seat, label: "عدد المقاعد", value: (v.doors ?? 5) >= 5 ? "5" : "4" },
-          { Icon: Drivetrain, label: "نوع الدفع", value: v.body === "suv" || v.body === "utilitaire" ? "دفع رباعي" : "دفع أمامي" },
+          { Icon: Driveshaft, label: "نوع الدفع", value: v.body === "suv" || v.body === "utilitaire" ? "دفع رباعي" : "دفع أمامي" },
         ]
-      : [{ Icon: Engine, label: "سعة المحرك", value: `${v.displacement} سم³` }]),
-    { Icon: Fuel, label: "الاستهلاك", value: `${v.consumption} ل/100كم` },
+      : [{ Icon: Piston, label: "سعة المحرك", value: `${v.displacement} سم³` }]),
+    { Icon: OilCan, label: "الاستهلاك", value: `${v.consumption} ل/100كم` },
     { Icon: Palette, label: "اللون", value: v.color },
     { Icon: BadgeCheck, label: "الحالة العامة", value: AR.condition[v.condition] },
     { Icon: Users, label: "عدد الملاّك", value: String(v.owners) },

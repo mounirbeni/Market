@@ -3,8 +3,11 @@ import Link from "next/link";
 import { VehicleCard } from "@/components/VehicleCard";
 import { applyFilters } from "@/lib/search";
 import {
-  ArrowLeft, BadgeCheck, Bolt, Car, Check, ClipboardCheck, Engine, FileText,
-  Gauge, MapPin, Moto, Palette, Road, Scan, Sparkle, Wrench,
+  AirCon, ArrowLeft, BadgeCheck, Battery, Belt, BrakePad, BrakeRotor, Car,
+  ClipboardCheck, Clock, Diagnostic, EngineBlock, FileText, Gauge, Headlight,
+  IdCard, Lock2, MapPin, Moto, Odometer, OilCan, Palette, Scale, Scan,
+  Screen, Shield, ShieldCheck, Shock, Sparkle, Steering, Tire, Transmission,
+  Turbo, Window, Wrench,
 } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -17,14 +20,14 @@ const SECTIONS = [
   {
     title: "المحرك وناقل الحركة",
     points: 32,
-    Icon: Engine,
+    Icon: EngineBlock,
     color: "var(--brand)",
     items: [
-      "قراءة أخطاء الحاسوب (OBD) وحذف الأكواد المخفية",
-      "تسربات الزيت والماء والكشف عن الحشوة (joint de culasse)",
-      "حالة سير التوزيع والبكرات",
-      "أداء التيربو وضغط النفخ",
-      "سلاسة تبديل السرعات وحالة الدبرياج",
+      { Icon: Diagnostic, t: "قراءة أخطاء الحاسوب (OBD) وحذف الأكواد المخفية" },
+      { Icon: OilCan, t: "تسربات الزيت والماء والكشف عن الحشوة (joint de culasse)" },
+      { Icon: Belt, t: "حالة سير التوزيع والبكرات" },
+      { Icon: Turbo, t: "أداء التيربو وضغط النفخ" },
+      { Icon: Transmission, t: "سلاسة تبديل السرعات وحالة الدبرياج" },
     ],
   },
   {
@@ -33,37 +36,37 @@ const SECTIONS = [
     Icon: Palette,
     color: "var(--data)",
     items: [
-      "قياس سماكة الصباغة على كل قطعة (كشف الصباغة الجديدة)",
-      "تفحص نقاط اللحام الأصلية والشاسي",
-      "فحص أرضية الصندوق وأماكن الصدأ",
-      "تطابق فراغات القطع (jeux de carrosserie)",
-      "مطابقة رقم الهيكل (VIN) في كل المواضع",
+      { Icon: Palette, t: "قياس سماكة الصباغة على كل قطعة (كشف الصباغة الجديدة)" },
+      { Icon: Scan, t: "تفحص نقاط اللحام الأصلية والشاسي" },
+      { Icon: Shield, t: "فحص أرضية الصندوق وأماكن الصدأ" },
+      { Icon: Scale, t: "تطابق فراغات القطع (jeux de carrosserie)" },
+      { Icon: IdCard, t: "مطابقة رقم الهيكل (VIN) في كل المواضع" },
     ],
   },
   {
     title: "التعليق والفرامل",
     points: 24,
-    Icon: Road,
+    Icon: BrakeRotor,
     color: "var(--good)",
     items: [
-      "حالة الأقراص والفحمات وقياس السماكة",
-      "المساعدات (amortisseurs) والتسريبات",
-      "المفاصل الكروية وقضبان التوجيه",
-      "تآكل الإطارات وتاريخ الصنع (DOT)",
-      "اختبار الفرامل على الطريق",
+      { Icon: BrakePad, t: "حالة الأقراص والفحمات وقياس السماكة" },
+      { Icon: Shock, t: "المساعدات (amortisseurs) والتسريبات" },
+      { Icon: Steering, t: "المفاصل الكروية وقضبان التوجيه" },
+      { Icon: Tire, t: "تآكل الإطارات وتاريخ الصنع (DOT)" },
+      { Icon: Gauge, t: "اختبار الفرامل على الطريق" },
     ],
   },
   {
     title: "الكهرباء والتجهيزات",
     points: 22,
-    Icon: Bolt,
+    Icon: Battery,
     color: "var(--warn)",
     items: [
-      "البطارية والمولّد وشدة الشحن",
-      "كل الأضواء والإشارات والأبواق",
-      "المكيف: درجة البرودة وضغط الغاز",
-      "الشاشة والكاميرات والحساسات",
-      "الزجاج الكهربائي والقفل المركزي",
+      { Icon: Battery, t: "البطارية والمولّد وشدة الشحن" },
+      { Icon: Headlight, t: "كل الأضواء والإشارات والأبواق" },
+      { Icon: AirCon, t: "المكيف: درجة البرودة وضغط الغاز" },
+      { Icon: Screen, t: "الشاشة والكاميرات والحساسات" },
+      { Icon: Window, t: "الزجاج الكهربائي والقفل المركزي" },
     ],
   },
   {
@@ -72,11 +75,11 @@ const SECTIONS = [
     Icon: FileText,
     color: "var(--bad)",
     items: [
-      "مطابقة البطاقة الرمادية لاسم البائع",
-      "التحقق من عدم وجود رهن أو حجز",
-      "قراءة العدّاد من الحاسوب ومقارنتها بالمعروض",
-      "صلاحية الفحص التقني والتأمين",
-      "تاريخ الصيانة من فواتير الوكيل إن وُجدت",
+      { Icon: FileText, t: "مطابقة البطاقة الرمادية لاسم البائع" },
+      { Icon: Lock2, t: "التحقق من عدم وجود رهن أو حجز" },
+      { Icon: Odometer, t: "قراءة العدّاد من الحاسوب ومقارنتها بالمعروض" },
+      { Icon: ShieldCheck, t: "صلاحية الفحص التقني والتأمين" },
+      { Icon: Clock, t: "تاريخ الصيانة من فواتير الوكيل إن وُجدت" },
     ],
   },
 ];
@@ -162,8 +165,14 @@ export default function InspectionPage() {
               </div>
               <ul className="mt-4 space-y-2">
                 {sec.items.map((it) => (
-                  <li key={it} className="flex gap-2 text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                    <Check size={13} className="mt-0.5 shrink-0" style={{ color: sec.color }} /> {it}
+                  <li key={it.t} className="flex items-start gap-2.5 text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                    <span
+                      className="mt-px grid h-6 w-6 shrink-0 place-items-center rounded-md"
+                      style={{ background: `color-mix(in oklab, ${sec.color} 11%, transparent)`, color: sec.color }}
+                    >
+                      <it.Icon size={14} />
+                    </span>
+                    <span className="min-w-0">{it.t}</span>
                   </li>
                 ))}
               </ul>

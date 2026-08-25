@@ -1,15 +1,15 @@
 import type { HistoryEvent } from "@/lib/types";
 import { formatMonthYear, formatNumber } from "@/lib/format";
-import { BadgeCheck, ClipboardCheck, Crash, Flag, Gauge, Users, Wrench } from "@/components/icons";
+import { BadgeCheck, ClipboardCheck, Crash, Flag, Gauge, Odometer, OilCan, Users } from "@/components/icons";
 import type { IconProps } from "@/components/icons";
 
 const STYLE: Record<HistoryEvent["type"], { color: string; Icon: (p: IconProps) => React.JSX.Element }> = {
   "mise-en-circulation": { color: "var(--data)", Icon: Flag },
   proprietaire: { color: "var(--warn)", Icon: Users },
-  entretien: { color: "var(--good)", Icon: Wrench },
+  entretien: { color: "var(--good)", Icon: OilCan },
   visite: { color: "var(--good)", Icon: ClipboardCheck },
   accident: { color: "var(--bad)", Icon: Crash },
-  km: { color: "var(--text-dim)", Icon: Gauge },
+  km: { color: "var(--text-dim)", Icon: Odometer },
 };
 
 export function HistoryTimeline({ events }: { events: HistoryEvent[] }) {

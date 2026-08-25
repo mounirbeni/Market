@@ -6,8 +6,8 @@ import { computeTco, FUEL_PRICES } from "@/lib/tco";
 import { formatNumber } from "@/lib/format";
 import { Price } from "@/components/Price";
 import {
-  Calculator, Clock, Coins, Droplet, Fuel, Gauge, Info, Road, Shield,
-  TrendingDown, Weight, Wrench,
+  Calculator, Clock, Coins, Diagnostic, Droplet, Fuel, Gauge, Info, OilCan,
+  Shield, Tire, TrendingDown,
 } from "@/components/icons";
 import type { IconProps } from "@/components/icons";
 
@@ -15,9 +15,9 @@ const LINE_META: Record<string, { color: string; Icon: (p: IconProps) => React.J
   fuel: { color: "#1f5fe0", Icon: Fuel },
   insurance: { color: "#4f46e5", Icon: Shield },
   vignette: { color: "#d97706", Icon: Coins },
-  maintenance: { color: "#16a34a", Icon: Wrench },
-  tyres: { color: "#0d9488", Icon: Weight },
-  control: { color: "#6b7f9c", Icon: Road },
+  maintenance: { color: "#16a34a", Icon: OilCan },
+  tyres: { color: "#0d9488", Icon: Tire },
+  control: { color: "#6b7f9c", Icon: Diagnostic },
   depreciation: { color: "#dc2626", Icon: TrendingDown },
 };
 

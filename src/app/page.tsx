@@ -15,7 +15,7 @@ import { DEALERS } from "@/lib/data/dealers";
 import { GUIDES } from "@/lib/data/guides";
 import { brandSlug, brandsWithCounts } from "@/lib/slug";
 import {
-  ArrowLeft, BadgeCheck, Calculator, Car, Clock, FileText, MapPin, Moto,
+  ArrowLeft, BadgeCheck, Calculator, Car, Clock, FileText, GUIDE_ICONS, MapPin, Moto,
   Scale, Search, ShieldCheck, Sparkle, Star, TrendingDown, Users, Wallet, Wrench,
 } from "@/components/icons";
 
@@ -601,13 +601,15 @@ export default function HomePage() {
             <Link href="/guides" className="btn btn-ghost btn-sm">كل الأدلة <ArrowLeft size={14} /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {topGuides.map((g) => (
+            {topGuides.map((g) => {
+              const GIcon = GUIDE_ICONS[g.icon];
+              return (
               <Link key={g.slug} href={`/guides/${g.slug}`} className="card card-hover group flex flex-col p-5">
                 <span
                   className="grid h-10 w-10 place-items-center rounded-xl"
                   style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
                 >
-                  <FileText size={19} />
+                  <GIcon size={19} />
                 </span>
                 <h3 className="mt-4 text-[14px] font-bold leading-snug transition-colors group-hover:text-[var(--brand)]">
                   {g.title}
@@ -622,7 +624,8 @@ export default function HomePage() {
                   <Clock size={11} /> <span className="num">{g.readMinutes}</span> دقائق
                 </span>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GUIDES } from "@/lib/data/guides";
 import { formatDate } from "@/lib/format";
-import { ArrowLeft, Car, Clock, FileText, Moto, ShieldCheck } from "@/components/icons";
+import { ArrowLeft, Car, Clock, FileText, GUIDE_ICONS, Moto, ShieldCheck } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "نصائح وأدلة شراء المركبات في المغرب",
@@ -40,7 +40,7 @@ export default function GuidesPage() {
           className="zellige relative flex min-h-[180px] items-center justify-center p-8 lg:w-2/5"
           style={{ background: "linear-gradient(120deg, #0a1e3d, #1f5fe0)" }}
         >
-          <FileText size={54} style={{ color: "rgba(255,255,255,0.9)" }} />
+          {(() => { const F = GUIDE_ICONS[featured.icon]; return <F size={54} style={{ color: "rgba(255,255,255,0.9)" }} />; })()}
         </div>
         <div className="flex-1 p-6">
           <span className="tag" style={{ background: "var(--brand-soft)", color: "var(--brand)" }}>
@@ -62,13 +62,14 @@ export default function GuidesPage() {
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {rest.map((g) => {
           const meta = KIND_META[g.kind];
+          const GIcon = GUIDE_ICONS[g.icon];
           return (
             <Link key={g.slug} href={`/guides/${g.slug}`} className="card card-hover group flex flex-col p-5">
               <span
                 className="grid h-10 w-10 place-items-center rounded-xl"
                 style={{ background: `color-mix(in oklab, ${meta.color} 12%, transparent)`, color: meta.color }}
               >
-                <meta.Icon size={19} />
+                <GIcon size={19} />
               </span>
               <h2 className="mt-4 text-[15px] font-bold leading-snug transition-colors group-hover:text-[var(--brand)]">
                 {g.title}

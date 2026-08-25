@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Diagnostic, FileText, Scale, Wallet } from "@/components/icons";
 
 const GROUPS = [
   {
     title: "قبل ما تمشي",
+    Icon: Scale,
+    color: "var(--brand)",
     items: [
       "قارن الثمن مع الثمن المرجعي ديال طريق",
       "شوف مؤشر الثقة وقرا التنبيهات كاملة",
@@ -15,6 +18,8 @@ const GROUPS = [
   },
   {
     title: "فوقت المعاينة",
+    Icon: Diagnostic,
+    color: "var(--good)",
     items: [
       "تلاقاو نهاراً وفبلاصة عامة ومعروفة",
       "جيب معاك شي حد كيفهم فالميكانيك",
@@ -28,6 +33,8 @@ const GROUPS = [
   },
   {
     title: "الوثائق",
+    Icon: FileText,
+    color: "var(--data)",
     items: [
       "البطاقة الرمادية أصلية وفسمية البائع",
       "البطاقة الوطنية للبائع مطابقة للاسم",
@@ -39,6 +46,8 @@ const GROUPS = [
   },
   {
     title: "الأداء والتحويل",
+    Icon: Wallet,
+    color: "var(--warn)",
     items: [
       "ماتدفعش عربوناً قبل ما تشوف المركبة والوثائق",
       "الأداء يكون بحضور شهود أو عبر تحويل بنكي موثّق",
@@ -106,7 +115,15 @@ export function SafetyChecklist() {
       <div className="grid gap-4 md:grid-cols-2">
         {GROUPS.map((g) => (
           <div key={g.title} className="card p-5">
-            <h3 className="mb-3 text-sm font-extrabold">{g.title}</h3>
+            <h3 className="mb-3 flex items-center gap-2.5 text-sm font-extrabold">
+              <span
+                className="grid h-8 w-8 place-items-center rounded-lg"
+                style={{ background: `color-mix(in oklab, ${g.color} 13%, transparent)`, color: g.color }}
+              >
+                <g.Icon size={16} />
+              </span>
+              {g.title}
+            </h3>
             <ul className="space-y-2">
               {g.items.map((it) => {
                 const id = `${g.title}:${it}`;
