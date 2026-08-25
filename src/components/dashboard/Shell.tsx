@@ -68,13 +68,13 @@ export function DashboardShell({ title, children }: { title: string; children: R
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="truncate text-[13px] font-bold">{user.name}</span>
-                  {user.phone_verified && (
-                    <BadgeCheck size={13} style={{ color: "var(--good)" }} aria-label="رقم موثّق" />
+                  {user.email_verified && (
+                    <BadgeCheck size={13} style={{ color: "var(--good)" }} aria-label="إيميل موثّق" />
                   )}
                 </div>
                 <span className="text-[10.5px]" style={{ color: "var(--text-dim)" }}>
                   {user.type === "professionnel" ? "محترف" : "خاص"} ·{" "}
-                  <span className="num" dir="ltr">{user.phone}</span>
+                  <bdi dir="ltr">{user.email}</bdi>
                 </span>
               </div>
             </div>

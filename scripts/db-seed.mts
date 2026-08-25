@@ -49,23 +49,32 @@ if (reset) {
   console.log("· تمسحات البيانات القديمة");
 }
 
-/** رقم هاتف ثابت من نفس البذرة اللي كتستعمل الواجهة */
+/** رقم هاتف ثابت من نفس البذرة اللي كتستعمل الواجهة (اختياري فالملف) */
 function phoneFor(id: string) {
   const h = hashCode(id);
   return "+2126" + String(h % 100000000).padStart(8, "0");
+}
+
+/**
+ * إيميل ثابت للبائع التجريبي — المعرّف ديال الدخول.
+ * لاتيني فقط: أسماء النطاقات بحروف عربية كتسبب مشاكل مع مزوّدي البريد.
+ */
+function emailFor(seller: { id: string }) {
+  return `seller-${seller.id}@triq.ma`;
 }
 
 /* ---------- المستخدمون (من البائعين) ---------- */
 const userIds = new Map<string, string>();
 for (const s of SELLERS) {
   const { rows } = await db.query<{ id: string }>(
-    `INSERT INTO users (phone, phone_verified, name, type, city, id_verified,
-                        rating, sales_count, response_minutes, member_since)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, make_date($10,1,1))
-     ON CONFLICT (phone) DO UPDATE SET name = EXCLUDED.name
+    `INSERT INTO users (email, email_verified, phone, phone_verified, name, type,
+                        city, id_verified, rating, sales_count, response_minutes,
+                        member_since)
+     VALUES ($1,true,$2,$3,$4,$5,$6,$7,$8,$9,$10, make_date($11,1,1))
+     ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name
      RETURNING id`,
-    [phoneFor(s.id), s.phoneVerified, s.name, s.type, s.city, s.idVerified,
-     s.rating, s.salesCount, s.responseMinutes, s.since],
+    [emailFor(s), phoneFor(s.id), s.phoneVerified, s.name, s.type, s.city,
+     s.idVerified, s.rating, s.salesCount, s.responseMinutes, s.since],
   );
   userIds.set(s.id, rows[0].id);
 }

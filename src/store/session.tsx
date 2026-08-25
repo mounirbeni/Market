@@ -14,10 +14,12 @@ import { useRouter } from "next/navigation";
 export interface SessionUser {
   id: string;
   name: string;
-  phone: string;
+  email: string;
+  /** اختياري — من الملف الشخصي، ماشي من التسجيل */
+  phone: string | null;
   type: "particulier" | "professionnel";
   city: string | null;
-  phone_verified: boolean;
+  email_verified: boolean;
   id_verified: boolean;
 }
 

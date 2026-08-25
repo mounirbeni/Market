@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useSession } from "@/store/session";
-import { AlertTriangle, ArrowLeft, ArrowRight, Check, Info, Phone, ShieldCheck } from "@/components/icons";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, Info, Mail, ShieldCheck } from "@/components/icons";
 
 /* ============================================================
-   الدخول برقم الهاتف + رمز التحقق (OTP)
+   الدخول بالإيميل + رمز التحقق
 
    الرمز كيتولّد فالخادم وكيتخزن hash ديالو فقط. فالتطوير كيتعرض
-   فالواجهة؛ فالإنتاج مع مزوّد SMS مضبوط ماكيرجعش للمتصفح.
+   فالواجهة؛ فالإنتاج مع مزوّد إيميل مضبوط ماكيرجعش للمتصفح.
    ============================================================ */
 
 async function post<T>(url: string, data: unknown): Promise<T> {
@@ -25,8 +25,8 @@ async function post<T>(url: string, data: unknown): Promise<T> {
 }
 
 export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
-  const [step, setStep] = useState<"phone" | "code">("phone");
-  const [phone, setPhone] = useState("");
+  const [step, setStep] = useState<"email" | "code">("email");
+  const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
     e.preventDefault();
     setErr(""); setBusy(true);
     try {
-      const d = await post<{ phone: string; devCode?: string }>("/api/auth/request-otp", { phone });
+      const d = await post<{ email: string; devCode?: string }>("/api/auth/request-otp", { email });
       setDevCode(d.devCode ?? null);
       setStep("code");
     } catch (e) {
@@ -60,7 +60,7 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
     e.preventDefault();
     setErr(""); setBusy(true);
     try {
-      await post("/api/auth/verify-otp", { phone, code, name });
+      await post("/api/auth/verify-otp", { email, code, name });
       await refresh();
       router.push(next);
       router.refresh();
@@ -81,12 +81,12 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
         {mode === "register" ? "إنشاء حساب" : "تسجيل الدخول"}
       </h1>
       <p className="mt-2 text-center text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-        {step === "phone"
-          ? "برقم الهاتف فقط — بلا كلمة سر. كنصيفطو ليك رمز تحقق."
-          : <>دخّل الرمز اللي وصلك على <bdi dir="ltr" className="num font-bold">{phone}</bdi></>}
+        {step === "email"
+          ? "بالإيميل فقط — بلا كلمة سر. كنصيفطو ليك رمز تحقق."
+          : <>دخّل الرمز اللي وصلك على <bdi dir="ltr" className="font-bold">{email}</bdi></>}
       </p>
 
-      {step === "phone" ? (
+      {step === "email" ? (
         <form onSubmit={requestCode} className="mt-6 space-y-3">
           {mode === "register" && (
             <div>
@@ -96,10 +96,11 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
             </div>
           )}
           <div>
-            <label className="label" htmlFor="af-phone">رقم الهاتف</label>
-            <input id="af-phone" value={phone} onChange={(e) => setPhone(e.target.value)}
-              className="field num mt-1.5 w-full" dir="ltr" style={{ textAlign: "left" }}
-              placeholder="0612345678" inputMode="tel" autoComplete="tel" required />
+            <label className="label" htmlFor="af-email">الإيميل</label>
+            <input id="af-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              className="field mt-1.5 w-full" dir="ltr" style={{ textAlign: "left" }}
+              placeholder="nom@example.com" inputMode="email" autoComplete="email"
+              spellCheck={false} required />
           </div>
           {err && (
             <p className="flex items-center gap-2 text-[12px]" style={{ color: "var(--bad)" }}>
@@ -119,7 +120,7 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
               <span>
                 وضع التطوير — الرمز ديالك:{" "}
                 <b className="num tracking-widest" style={{ color: "var(--text)" }}>{devCode}</b>.
-                فالإنتاج كيوصل بـSMS.
+                فالإنتاج كيوصل لصندوق الإيميل.
               </span>
             </p>
           )}
@@ -138,9 +139,9 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
             className="btn btn-primary w-full disabled:opacity-50">
             {busy ? "كنتحققو…" : <><Check size={16} /> دخول</>}
           </button>
-          <button type="button" onClick={() => { setStep("phone"); setCode(""); setErr(""); }}
+          <button type="button" onClick={() => { setStep("email"); setCode(""); setErr(""); }}
             className="btn btn-ghost btn-sm w-full">
-            <ArrowRight size={14} /> بدّل الرقم
+            <ArrowRight size={14} /> بدّل الإيميل
           </button>
         </form>
       )}
@@ -153,7 +154,7 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
         )}
       </p>
       <p className="mt-2 flex items-center justify-center gap-1.5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
-        <Phone size={11} /> رقمك ماكيتنشرش. كيبان غير ملي تختار تبيّنو.
+        <Mail size={11} /> إيميلك ماكيتنشرش أبداً — كنستعملوه غير للدخول والتنبيهات.
       </p>
     </div>
   );

@@ -20,10 +20,12 @@ const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 export interface CurrentUser {
   id: string;
   name: string;
-  phone: string;
+  email: string;
+  /** اختياري — كيتزاد من الملف الشخصي، ماشي من التسجيل */
+  phone: string | null;
   type: "particulier" | "professionnel";
   city: string | null;
-  phone_verified: boolean;
+  email_verified: boolean;
   id_verified: boolean;
 }
 
@@ -34,7 +36,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!token) return null;
   try {
     return await one<CurrentUser>(
-      `SELECT u.id, u.name, u.phone, u.type, u.city, u.phone_verified, u.id_verified
+      `SELECT u.id, u.name, u.email, u.phone, u.type, u.city, u.email_verified, u.id_verified
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.token_hash = $1 AND s.expires_at > now() AND u.banned_at IS NULL`,
       [sha256(token)],
@@ -76,11 +78,15 @@ const OTP_MAX_ATTEMPTS = 5;
 /** أقصى عدد طلبات لنفس الرقم فالساعة */
 const OTP_RATE_PER_HOUR = 5;
 
-/** رقم مغربي إلى صيغة E.164 — 0612… أو +212612… → +212612… */
-export function normalizePhone(raw: string): string | null {
-  const d = raw.replace(/[^\d+]/g, "");
-  const m = d.match(/^(?:\+?212|0)([5-7]\d{8})$/);
-  return m ? `+212${m[1]}` : null;
+/**
+ * تنظيف الإيميل: حذف الفراغات وتصغير الحروف.
+ * التحقق بسيط عن قصد — RFC كامل ماكيزيدش أمان، والتأكيد الحقيقي
+ * كيجي من الرمز اللي كيتصيفط للصندوق.
+ */
+export function normalizeEmail(raw: string): string | null {
+  const e = raw.trim().toLowerCase();
+  if (e.length < 6 || e.length > 254) return null;
+  return /^[^\s@]+@[^\s@.]+\.[^\s@]{2,}$/.test(e) ? e : null;
 }
 
 export interface OtpIssue {
@@ -91,11 +97,11 @@ export interface OtpIssue {
 }
 
 /** توليد رمز وتخزين الـhash ديالو */
-export async function issueOtp(phone: string): Promise<OtpIssue> {
+export async function issueOtp(email: string): Promise<OtpIssue> {
   const recent = await one<{ n: string }>(
     `SELECT count(*)::text AS n FROM otp_codes
-     WHERE phone = $1 AND created_at > now() - interval '1 hour'`,
-    [phone],
+     WHERE identifier = $1 AND created_at > now() - interval '1 hour'`,
+    [email],
   );
   if (Number(recent?.n ?? 0) >= OTP_RATE_PER_HOUR) {
     return { ok: false, error: "طلبتي رموز بزاف. عاود من بعد ساعة." };
@@ -103,18 +109,18 @@ export async function issueOtp(phone: string): Promise<OtpIssue> {
 
   const code = String(randomBytes(4).readUInt32BE(0) % 1_000_000).padStart(6, "0");
   await sql(
-    `INSERT INTO otp_codes (phone, code_hash, expires_at)
+    `INSERT INTO otp_codes (identifier, code_hash, expires_at)
      VALUES ($1,$2, now() + ($3 || ' minutes')::interval)`,
-    [phone, sha256(code), String(OTP_TTL_MIN)],
+    [email, sha256(code), String(OTP_TTL_MIN)],
   );
 
-  // TODO(إنتاج): صيفط الرمز بـSMS (Twilio / Vonage / مزوّد مغربي)
-  // ماتصيفطش الرمز للمتصفح ملي يتفعّل الإرسال الحقيقي.
+  // TODO(إنتاج): صيفط الرمز بالإيميل (Resend / Postmark / SES).
+  // ملي يتفعّل الإرسال الحقيقي، الرمز ماكيرجعش أبداً للمتصفح.
   const isProd = process.env.NODE_ENV === "production";
-  const smsEnabled = Boolean(process.env.SMS_PROVIDER);
-  if (!isProd || !smsEnabled) {
-    console.log(`[OTP] ${phone} → ${code}`);
-    return { ok: true, devCode: smsEnabled ? undefined : code };
+  const mailerEnabled = Boolean(process.env.EMAIL_PROVIDER);
+  if (!isProd || !mailerEnabled) {
+    console.log(`[OTP] ${email} → ${code}`);
+    return { ok: true, devCode: mailerEnabled ? undefined : code };
   }
   return { ok: true };
 }
@@ -125,12 +131,12 @@ export interface OtpCheck {
 }
 
 /** التحقق من الرمز واستهلاكه */
-export async function verifyOtp(phone: string, code: string): Promise<OtpCheck> {
+export async function verifyOtp(email: string, code: string): Promise<OtpCheck> {
   const row = await one<{ id: string; code_hash: string; attempts: number }>(
     `SELECT id, code_hash, attempts FROM otp_codes
-     WHERE phone = $1 AND consumed_at IS NULL AND expires_at > now()
+     WHERE identifier = $1 AND consumed_at IS NULL AND expires_at > now()
      ORDER BY created_at DESC LIMIT 1`,
-    [phone],
+    [email],
   );
   if (!row) return { ok: false, error: "الرمز منتهي ولا ماكاينش. اطلب واحد جديد." };
   if (row.attempts >= OTP_MAX_ATTEMPTS) {
@@ -149,16 +155,19 @@ export async function verifyOtp(phone: string, code: string): Promise<OtpCheck> 
   return { ok: true };
 }
 
-/** إيجاد المستخدم بالرقم ولا إنشاؤه */
-export async function upsertUserByPhone(phone: string, name?: string) {
-  const existing = await one<{ id: string }>("SELECT id FROM users WHERE phone = $1", [phone]);
+/** إيجاد المستخدم بالإيميل ولا إنشاؤه */
+export async function upsertUserByEmail(email: string, name?: string) {
+  const existing = await one<{ id: string }>(
+    "SELECT id FROM users WHERE lower(email) = $1",
+    [email],
+  );
   if (existing) {
-    await sql("UPDATE users SET phone_verified = true WHERE id = $1", [existing.id]);
+    await sql("UPDATE users SET email_verified = true WHERE id = $1", [existing.id]);
     return existing.id;
   }
   const created = await one<{ id: string }>(
-    `INSERT INTO users (phone, phone_verified, name) VALUES ($1, true, $2) RETURNING id`,
-    [phone, name?.trim() || "مستعمل طريق"],
+    `INSERT INTO users (email, email_verified, name) VALUES ($1, true, $2) RETURNING id`,
+    [email, name?.trim() || "مستعمل طريق"],
   );
   return created!.id;
 }
