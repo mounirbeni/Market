@@ -9,20 +9,26 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "add-logo": "node scripts/add-brand-logo.mjs"
+    "add-logo": "node scripts/add-brand-logo.mjs",
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "db:seed": "tsx scripts/db-seed.mts"
   },
   "dependencies": {
     "next": "^16.3.2",
+    "pg": "^8.23.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.2.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "postcss": "^8.5.26",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.12",
     "typescript": "^5.9.3"
   }
 }

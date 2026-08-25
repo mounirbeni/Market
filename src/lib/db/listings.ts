@@ -1,0 +1,224 @@
+import "server-only";
+import { sql, one } from "./client";
+import { DEFAULT_FILTERS, type Filters, type SortKey } from "@/lib/search";
+
+/* ============================================================
+   استعلامات الإعلانات
+
+   كيعكس نفس منطق applyFilters() اللي فـlib/search.ts، ولكن فـSQL.
+   القيم المحسوبة (trust_score, fair_price_delta) مخزّنة كأعمدة
+   حيت كتُستعمل فـWHERE و ORDER BY.
+   ============================================================ */
+
+export interface ListingRow {
+  id: string;
+  ref: string;
+  slug: string;
+  kind: "car" | "moto";
+  make: string;
+  model: string;
+  version: string;
+  year: number;
+  km: number;
+  price_mad: number;
+  fuel: string;
+  gearbox: string;
+  body: string;
+  city: string;
+  condition: string;
+  color: string | null;
+  first_hand: boolean;
+  papers_ok: boolean;
+  vin_checked: boolean;
+  inspected: boolean;
+  photo_count: number;
+  has_video: boolean;
+  trust_score: number | null;
+  fair_price_mad: number | null;
+  fair_price_delta: string | null;
+  promo: "featured" | "urgent" | "top" | null;
+  views: number;
+  saves: number;
+  published_at: string;
+  seller_name: string;
+  seller_type: "particulier" | "professionnel";
+  dealer_slug: string | null;
+}
+
+/** رفعة الترتيب لكل درجة ترويج — خاصها تبقى متطابقة مع lib/promo.ts */
+const PROMO_RANK_SQL = `CASE l.promo
+  WHEN 'top' THEN 60 WHEN 'urgent' THEN 28 WHEN 'featured' THEN 12 ELSE 0 END`;
+
+const ORDER_BY: Record<SortKey, string> = {
+  pertinence: `(coalesce(l.trust_score,0) * 0.6
+                + ${PROMO_RANK_SQL}
+                + greatest(-20, least(20, -coalesce(l.fair_price_delta,0) * 120))
+                + extract(epoch from (l.published_at - timestamptz '2026-07-01')) / 345600
+               ) DESC`,
+  deal: "l.fair_price_delta ASC NULLS LAST",
+  recent: "l.published_at DESC",
+  "price-asc": "l.price_mad ASC",
+  "price-desc": "l.price_mad DESC",
+  "km-asc": "l.km ASC",
+  "year-desc": "l.year DESC",
+  "trust-desc": "l.trust_score DESC NULLS LAST",
+};
+
+const SELECT_COLS = `
+  l.id, l.ref, l.slug, l.kind, l.make, l.model, l.version, l.year, l.km,
+  l.price_mad, l.fuel, l.gearbox, l.body, l.city, l.condition, l.color,
+  l.first_hand, l.papers_ok, l.vin_checked, l.inspected, l.photo_count,
+  l.has_video, l.trust_score, l.fair_price_mad, l.fair_price_delta, l.promo,
+  l.views, l.saves, l.published_at,
+  u.name AS seller_name, u.type AS seller_type, d.slug AS dealer_slug`;
+
+const FROM = `
+  FROM listings l
+  JOIN users u   ON u.id = l.seller_id
+  LEFT JOIN dealers d ON d.id = l.dealer_id`;
+
+/** كيبني WHERE من الفلاتر — كل قيمة كتمرّ كـparameter، صفر تسلسل نصي */
+function buildWhere(f: Filters) {
+  const where: string[] = ["l.status = 'active'"];
+  const params: unknown[] = [];
+  const add = (clause: string, value: unknown) => {
+    params.push(value);
+    where.push(clause.replace("?", `$${params.length}`));
+  };
+
+  if (f.kind !== "all") add("l.kind = ?", f.kind);
+  if (f.make) add("l.make = ?", f.make);
+  if (f.model) add("l.model = ?", f.model);
+  if (f.city) add("l.city = ?", f.city);
+  if (f.fuel) add("l.fuel = ?", f.fuel);
+  if (f.gearbox) add("l.gearbox = ?", f.gearbox);
+  if (f.body) add("l.body = ?", f.body);
+  if (f.condition) add("l.condition = ?", f.condition);
+  if (f.sellerType) add("u.type = ?", f.sellerType);
+  if (f.priceMin) add("l.price_mad >= ?", f.priceMin);
+  if (f.priceMax) add("l.price_mad <= ?", f.priceMax);
+  if (f.yearMin) add("l.year >= ?", f.yearMin);
+  if (f.yearMax) add("l.year <= ?", f.yearMax);
+  if (f.kmMax) add("l.km <= ?", f.kmMax);
+  if (f.trustMin) add("l.trust_score >= ?", f.trustMin);
+  if (f.inspectedOnly) where.push("l.inspected");
+  if (f.firstHandOnly) where.push("l.first_hand");
+  if (f.verifiedOnly) where.push("l.papers_ok AND l.vin_checked");
+  if (f.goodDealsOnly) where.push("l.fair_price_delta <= -0.045");
+  if (f.urgentOnly) where.push("l.promo = 'urgent'");
+  if (f.q?.trim()) {
+    add(
+      "latin_fold(l.make || ' ' || l.model || ' ' || l.version || ' ' || l.description) LIKE '%' || latin_fold(?) || '%'",
+      f.q.trim(),
+    );
+  }
+
+  return { clause: where.join(" AND "), params };
+}
+
+export interface SearchResult {
+  rows: ListingRow[];
+  total: number;
+}
+
+/** البحث الرئيسي — مع العدد الكلي للترقيم */
+export async function searchListings(
+  filters: Partial<Filters>,
+  { limit = 24, offset = 0 }: { limit?: number; offset?: number } = {},
+): Promise<SearchResult> {
+  const f = { ...DEFAULT_FILTERS, ...filters };
+  const { clause, params } = buildWhere(f);
+  // كسر التعادل بالمرجع باش الترقيم يكون مستقراً وماتكررش الصفوف
+  const order = `${ORDER_BY[f.sort] ?? ORDER_BY.pertinence}, l.ref ASC`;
+
+  const rows = await sql<ListingRow & { total: string }>(
+    `SELECT ${SELECT_COLS}, count(*) OVER () AS total
+     ${FROM}
+     WHERE ${clause}
+     ORDER BY ${order}
+     LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+    [...params, limit, offset],
+  );
+
+  return {
+    rows: rows as unknown as ListingRow[],
+    total: rows.length ? Number(rows[0].total) : 0,
+  };
+}
+
+/** العدد فقط — للفلاتر الجانبية */
+export async function countListings(filters: Partial<Filters>): Promise<number> {
+  const f = { ...DEFAULT_FILTERS, ...filters };
+  const { clause, params } = buildWhere(f);
+  const r = await one<{ n: string }>(
+    `SELECT count(*)::text AS n ${FROM} WHERE ${clause}`,
+    params,
+  );
+  return Number(r?.n ?? 0);
+}
+
+/** إعلان واحد بالـslug، مع سجل المركبة والصور */
+export async function getListingBySlug(slug: string) {
+  const listing = await one<ListingRow & {
+    description: string; equipment: string[]; owners: number;
+    fiscal_power: number; consumption: string | null; displacement: number | null;
+    doors: number | null; technical_control: string | null; service_book: boolean;
+    negotiable: boolean; exchange_accepted: boolean;
+    seller_id: string; seller_city: string; seller_rating: string | null;
+    seller_sales: number; seller_response: number | null;
+    seller_id_verified: boolean; seller_phone_verified: boolean;
+  }>(
+    `SELECT ${SELECT_COLS}, l.description, l.equipment, l.owners, l.fiscal_power,
+            l.consumption, l.displacement, l.doors, l.technical_control,
+            l.service_book, l.negotiable, l.exchange_accepted,
+            u.id AS seller_id, u.city AS seller_city, u.rating AS seller_rating,
+            u.sales_count AS seller_sales, u.response_minutes AS seller_response,
+            u.id_verified AS seller_id_verified, u.phone_verified AS seller_phone_verified
+     ${FROM} WHERE l.slug = $1 AND l.status = 'active'`,
+    [slug],
+  );
+  if (!listing) return null;
+
+  const [history, media, prices] = await Promise.all([
+    sql(`SELECT event_date, type, label, km, detail FROM listing_history
+         WHERE listing_id = $1 ORDER BY event_date`, [listing.id]),
+    sql(`SELECT kind, url, thumb_url, width, height FROM listing_media
+         WHERE listing_id = $1 ORDER BY position`, [listing.id]),
+    sql(`SELECT price_mad, changed_at FROM price_history
+         WHERE listing_id = $1 ORDER BY changed_at`, [listing.id]),
+  ]);
+
+  return { listing, history, media, prices };
+}
+
+/** المسارات الثابتة — للتوليد المسبق */
+export async function allListingSlugs(): Promise<string[]> {
+  const rows = await sql<{ slug: string }>(
+    "SELECT slug FROM listings WHERE status = 'active'",
+  );
+  return rows.map((r) => r.slug);
+}
+
+/** الماركات مع العدد — للصفحة الرئيسية وللفلاتر */
+export async function brandCounts(kind?: "car" | "moto") {
+  return sql<{ make: string; n: string }>(
+    `SELECT make, count(*)::text AS n FROM listings
+     WHERE status = 'active' ${kind ? "AND kind = $1" : ""}
+     GROUP BY make ORDER BY count(*) DESC, make`,
+    kind ? [kind] : [],
+  );
+}
+
+/** تسجيل مشاهدة مرة وحدة لكل زائر فاليوم */
+export async function recordView(listingId: string, visitorKey: string) {
+  const r = await sql(
+    `INSERT INTO listing_views (listing_id, day, visitor_key)
+     VALUES ($1, CURRENT_DATE, $2)
+     ON CONFLICT DO NOTHING
+     RETURNING listing_id`,
+    [listingId, visitorKey],
+  );
+  if (r.length) {
+    await sql("UPDATE listings SET views = views + 1 WHERE id = $1", [listingId]);
+  }
+}

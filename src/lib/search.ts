@@ -2,6 +2,7 @@ import type { Vehicle } from "./types";
 import { VEHICLES } from "./data/vehicles";
 import { fairPriceOf, trustOf } from "./market";
 import { normalize } from "./darija";
+import { sellerById } from "./data/sellers";
 import { promoRank } from "./promo";
 
 export interface Filters {
@@ -113,6 +114,7 @@ export function applyFilters(filters: Partial<Filters>, source = VEHICLES): Vehi
     if (f.yearMin && v.year < f.yearMin) return false;
     if (f.yearMax && v.year > f.yearMax) return false;
     if (f.kmMax && v.km > f.kmMax) return false;
+    if (f.sellerType && sellerById(v.sellerId).type !== f.sellerType) return false;
     if (f.inspectedOnly && !v.inspected) return false;
     if (f.firstHandOnly && !v.firstHand) return false;
     if (f.verifiedOnly && !(v.papersOk && v.vinChecked)) return false;
