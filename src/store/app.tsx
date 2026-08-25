@@ -1,22 +1,23 @@
 "use client";
 
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
+  createContext, useCallback, useContext, useEffect, useMemo, useState,
   type ReactNode,
 } from "react";
 import type { Unit } from "@/lib/format";
 
-interface SavedSearch {
+export interface SavedSearch {
   id: string;
   label: string;
   query: string;
   createdAt: number;
   alert: boolean;
+}
+
+export interface SessionUser {
+  name: string;
+  role: "buyer" | "seller";
+  phone: string;
 }
 
 interface AppState {
@@ -26,21 +27,37 @@ interface AppState {
   toggleUnit: () => void;
   theme: "dark" | "light";
   toggleTheme: () => void;
+
   favorites: string[];
   toggleFavorite: (id: string) => void;
   isFavorite: (id: string) => boolean;
+
   compare: string[];
   toggleCompare: (id: string) => boolean;
   clearCompare: () => void;
   inCompare: (id: string) => boolean;
+
   searches: SavedSearch[];
   saveSearch: (s: Omit<SavedSearch, "id" | "createdAt">) => void;
   removeSearch: (id: string) => void;
+
+  /** آخر المركبات اللي شافها المستخدم */
+  recent: string[];
+  pushRecent: (id: string) => void;
+
+  /** جلسة تجريبية محفوظة محلياً */
+  user: SessionUser | null;
+  signIn: (u: SessionUser) => void;
+  signOut: () => void;
+
+  /** الإشعارات المقروءة */
+  readNotifications: string[];
+  markRead: (id: string) => void;
+  markAllRead: (ids: string[]) => void;
 }
 
 const Ctx = createContext<AppState | null>(null);
-
-const KEY = "triq:v1";
+const KEY = "triq:v2";
 
 interface Persisted {
   unit: Unit;
@@ -48,6 +65,9 @@ interface Persisted {
   favorites: string[];
   compare: string[];
   searches: SavedSearch[];
+  recent: string[];
+  user: SessionUser | null;
+  readNotifications: string[];
 }
 
 const initial: Persisted = {
@@ -56,6 +76,9 @@ const initial: Persisted = {
   favorites: [],
   compare: [],
   searches: [],
+  recent: [],
+  user: null,
+  readNotifications: [],
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -84,13 +107,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setUnit = useCallback((unit: Unit) => setState((s) => ({ ...s, unit })), []);
   const toggleUnit = useCallback(
-    () => setState((s) => ({ ...s, unit: s.unit === "dh" ? "million" : "dh" })),
-    [],
-  );
+    () => setState((s) => ({ ...s, unit: s.unit === "dh" ? "million" : "dh" })), []);
   const toggleTheme = useCallback(
-    () => setState((s) => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" })),
-    [],
-  );
+    () => setState((s) => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" })), []);
 
   const toggleFavorite = useCallback((id: string) => {
     setState((s) => ({
@@ -104,9 +123,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const toggleCompare = useCallback((id: string) => {
     let added = false;
     setState((s) => {
-      if (s.compare.includes(id)) {
-        return { ...s, compare: s.compare.filter((x) => x !== id) };
-      }
+      if (s.compare.includes(id)) return { ...s, compare: s.compare.filter((x) => x !== id) };
       if (s.compare.length >= 3) return s;
       added = true;
       return { ...s, compare: [...s.compare, id] };
@@ -127,31 +144,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const removeSearch = useCallback(
-    (id: string) =>
-      setState((s) => ({ ...s, searches: s.searches.filter((x) => x.id !== id) })),
-    [],
-  );
+    (id: string) => setState((s) => ({ ...s, searches: s.searches.filter((x) => x.id !== id) })), []);
+
+  const pushRecent = useCallback((id: string) => {
+    setState((s) =>
+      s.recent[0] === id ? s : { ...s, recent: [id, ...s.recent.filter((x) => x !== id)].slice(0, 12) },
+    );
+  }, []);
+
+  const signIn = useCallback((user: SessionUser) => setState((s) => ({ ...s, user })), []);
+  const signOut = useCallback(() => setState((s) => ({ ...s, user: null })), []);
+
+  const markRead = useCallback((id: string) => {
+    setState((s) =>
+      s.readNotifications.includes(id)
+        ? s
+        : { ...s, readNotifications: [...s.readNotifications, id] },
+    );
+  }, []);
+  const markAllRead = useCallback((ids: string[]) => {
+    setState((s) => ({ ...s, readNotifications: Array.from(new Set([...s.readNotifications, ...ids])) }));
+  }, []);
 
   const value = useMemo<AppState>(
     () => ({
       ready,
-      unit: state.unit,
-      setUnit,
-      toggleUnit,
-      theme: state.theme,
-      toggleTheme,
-      favorites: state.favorites,
-      toggleFavorite,
+      unit: state.unit, setUnit, toggleUnit,
+      theme: state.theme, toggleTheme,
+      favorites: state.favorites, toggleFavorite,
       isFavorite: (id) => state.favorites.includes(id),
-      compare: state.compare,
-      toggleCompare,
-      clearCompare,
+      compare: state.compare, toggleCompare, clearCompare,
       inCompare: (id) => state.compare.includes(id),
-      searches: state.searches,
-      saveSearch,
-      removeSearch,
+      searches: state.searches, saveSearch, removeSearch,
+      recent: state.recent, pushRecent,
+      user: state.user, signIn, signOut,
+      readNotifications: state.readNotifications, markRead, markAllRead,
     }),
-    [ready, state, setUnit, toggleUnit, toggleTheme, toggleFavorite, toggleCompare, clearCompare, saveSearch, removeSearch],
+    [ready, state, setUnit, toggleUnit, toggleTheme, toggleFavorite, toggleCompare,
+      clearCompare, saveSearch, removeSearch, pushRecent, signIn, signOut, markRead, markAllRead],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

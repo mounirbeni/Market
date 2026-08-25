@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { VEHICLES, vehicleById } from "@/lib/data/vehicles";
+import { VEHICLES } from "@/lib/data/vehicles";
+import { brandSlug, vehicleFromSlug, vehicleHref, vehicleSlug } from "@/lib/slug";
+import { dealerBySellerId } from "@/lib/data/dealers";
 import { sellerById } from "@/lib/data/sellers";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { similarVehicles } from "@/lib/search";
@@ -17,6 +19,7 @@ import { SellerCard } from "@/components/vehicle/SellerCard";
 import { StickyActionBar } from "@/components/vehicle/StickyActionBar";
 import { FairPriceMeter } from "@/components/FairPriceMeter";
 import { VehicleCard } from "@/components/VehicleCard";
+import { RecentlyViewed } from "@/components/vehicle/RecentlyViewed";
 import { Price } from "@/components/Price";
 import { Mixed } from "@/components/Mixed";
 import { TrustRing } from "@/components/TrustBadge";
@@ -30,25 +33,29 @@ import { VehicleGlyph } from "@/components/VehicleArt";
 import { artShape } from "@/lib/artshape";
 
 export function generateStaticParams() {
-  return VEHICLES.map((v) => ({ id: v.id }));
+  return VEHICLES.map((v) => ({ slug: vehicleSlug(v) }));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params;
-  const v = vehicleById(id);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const v = vehicleFromSlug(slug);
   if (!v) return { title: "إعلان غير موجود" };
   const title = `${v.make} ${v.model} ${v.version} ${v.year} — ${formatDh(v.price)} في ${cityName(v.city)}`;
   return {
     title,
     description: `${AR.kind[v.kind]} ${v.make} ${v.model} موديل ${v.year}، ${formatKm(v.km)}، ${AR.fuel[v.fuel]}، ${AR.gearbox[v.gearbox]}. مؤشر ثقة ${trustOf(v).score}/100 وثمن مرجعي محسوب.`,
     openGraph: { title, type: "article" },
+    alternates: { canonical: `/vehicle/${slug}` },
   };
 }
 
-export default async function VehiclePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const v = vehicleById(id);
+export default async function VehiclePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const v = vehicleFromSlug(slug);
   if (!v) notFound();
+
+  const dealer = dealerBySellerId(v.sellerId);
+  const section = v.kind === "car" ? "/cars" : "/motorcycles";
 
   const seller = sellerById(v.sellerId);
   const trust = trustOf(v);
@@ -105,11 +112,11 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
       <nav className="mb-5 flex flex-wrap items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
         <Link href="/" className="transition hover:text-[var(--brand)]">الرئيسية</Link>
         <ChevronLeft size={12} />
-        <Link href={`/vehicles?kind=${v.kind}`} className="transition hover:text-[var(--brand)]">
+        <Link href={section} className="transition hover:text-[var(--brand)]">
           {v.kind === "car" ? "سيارات" : "دراجات نارية"}
         </Link>
         <ChevronLeft size={12} />
-        <Link href={`/vehicles?kind=${v.kind}&make=${v.make}`} className="transition hover:text-[var(--brand)]">
+        <Link href={`${section}/${brandSlug(v.make)}`} className="transition hover:text-[var(--brand)]">
           {v.make}
         </Link>
         <ChevronLeft size={12} />
@@ -247,7 +254,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
                 {fp.estimate.comparables.slice(0, 5).map((c) => (
                   <li key={c.id}>
                     <Link
-                      href={`/vehicles/${c.id}`}
+                      href={vehicleHref(c)}
                       className="flex items-center justify-between gap-2 rounded-lg p-2 text-[11.5px] transition hover:bg-[var(--surface-3)]"
                     >
                       <span className="truncate">
@@ -273,6 +280,8 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
           </div>
         </section>
       )}
+
+      <RecentlyViewed currentId={v.id} />
     </div>
   );
 }

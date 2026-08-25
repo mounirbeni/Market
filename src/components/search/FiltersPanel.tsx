@@ -19,6 +19,8 @@ interface Props {
   set: (patch: Partial<Filters>) => void;
   reset: () => void;
   count: number;
+  lockKind?: "car" | "moto";
+  lockBrand?: string;
 }
 
 const CAR_BODIES = [
@@ -65,7 +67,7 @@ function histogram(values: number[], min: number, max: number, buckets = 22) {
   return out;
 }
 
-export function FiltersPanel({ filters, set, reset, count }: Props) {
+export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }: Props) {
   const [showAllCities, setShowAllCities] = useState(false);
 
   /** عدد النتائج لو طُبّق هذا الخيار */
@@ -139,6 +141,7 @@ export function FiltersPanel({ filters, set, reset, count }: Props) {
 
       <div className="px-4">
         {/* النوع */}
+        {!lockKind && (
         <div className="py-4">
           <Segmented
             value={filters.kind}
@@ -150,6 +153,7 @@ export function FiltersPanel({ filters, set, reset, count }: Props) {
             ]}
           />
         </div>
+        )}
 
         {/* الهيكل */}
         <FilterSection title="نوع الهيكل" Icon={Car} activeCount={filters.body ? 1 : 0}>
@@ -174,10 +178,11 @@ export function FiltersPanel({ filters, set, reset, count }: Props) {
 
         {/* الماركة */}
         <FilterSection
-          title="الماركة والموديل"
+          title={lockBrand ? "الموديل" : "الماركة والموديل"}
           Icon={BadgeCheck}
-          activeCount={(filters.make ? 1 : 0) + (filters.model ? 1 : 0)}
+          activeCount={(filters.make && !lockBrand ? 1 : 0) + (filters.model ? 1 : 0)}
         >
+          {!lockBrand && (
           <select
             className="field"
             value={filters.make}
@@ -194,6 +199,7 @@ export function FiltersPanel({ filters, set, reset, count }: Props) {
               );
             })}
           </select>
+          )}
           {filters.make && (
             <select
               className="field mt-2"

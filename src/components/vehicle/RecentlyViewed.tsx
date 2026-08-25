@@ -1,0 +1,54 @@
+"use client";
+
+import { useEffect, useMemo } from "react";
+import { useApp } from "@/store/app";
+import { vehicleById } from "@/lib/data/vehicles";
+import { VehicleCard } from "@/components/VehicleCard";
+import type { Vehicle } from "@/lib/types";
+import { Clock } from "@/components/icons";
+
+interface Props {
+  /** المركبة الحالية: كتسجّل فالتاريخ وكتّحيّد من اللائحة */
+  currentId?: string;
+  /** عنوان القسم */
+  heading?: string;
+  limit?: number;
+}
+
+/**
+ * كتسجّل المركبة اللي كيتصفّح فيها المستخدم فـ localStorage
+ * وكتعرض آخر المركبات اللي شافها.
+ */
+export function RecentlyViewed({ currentId, heading = "شفتي مؤخراً", limit = 4 }: Props) {
+  const { recent, pushRecent, ready } = useApp();
+
+  useEffect(() => {
+    if (ready && currentId) pushRecent(currentId);
+  }, [ready, currentId, pushRecent]);
+
+  const items = useMemo(
+    () =>
+      recent
+        .filter((id) => id !== currentId)
+        .map((id) => vehicleById(id))
+        .filter(Boolean)
+        .slice(0, limit) as Vehicle[],
+    [recent, currentId, limit],
+  );
+
+  if (!ready || items.length === 0) return null;
+
+  return (
+    <section className="mt-16">
+      <h2 className="h-section mb-6 flex items-center gap-2">
+        <Clock size={20} style={{ color: "var(--brand)" }} />
+        {heading}
+      </h2>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((r) => (
+          <VehicleCard key={r.id} v={r} compact />
+        ))}
+      </div>
+    </section>
+  );
+}

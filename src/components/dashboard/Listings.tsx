@@ -1,0 +1,144 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { MY_LISTINGS } from "./Overview";
+import { fairPriceOf, trustOf } from "@/lib/market";
+import { formatNumber, timeAgo } from "@/lib/format";
+import { NOW } from "@/lib/data/seed";
+import { vehicleHref } from "@/lib/slug";
+import { artShape } from "@/lib/artshape";
+import { VehicleArt } from "@/components/VehicleArt";
+import { TrustDot } from "@/components/TrustBadge";
+import {
+  BadgeCheck, Check, Eye, Heart, Plus, Sparkle, Timer, Trash,
+} from "@/components/icons";
+
+type Status = "active" | "pending" | "sold" | "expired";
+
+const STATUS: Record<Status, { label: string; color: string }> = {
+  active: { label: "نشيط", color: "var(--good)" },
+  pending: { label: "في المراجعة", color: "var(--warn)" },
+  sold: { label: "مباع", color: "var(--data)" },
+  expired: { label: "منتهي", color: "var(--text-dim)" },
+};
+
+/** حالة تجريبية لكل إعلان */
+const statusOf = (i: number): Status =>
+  i === 1 ? "pending" : i === 4 ? "sold" : i === 5 ? "expired" : "active";
+
+export function DashboardListings() {
+  const [filter, setFilter] = useState<Status | "all">("all");
+
+  const rows = MY_LISTINGS.map((v, i) => ({ v, status: statusOf(i) })).filter(
+    (r) => filter === "all" || r.status === filter,
+  );
+
+  const counts = MY_LISTINGS.reduce<Record<string, number>>((acc, _, i) => {
+    const s = statusOf(i);
+    acc[s] = (acc[s] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <div>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-1.5">
+          {([["all", "الكل"], ...Object.entries(STATUS).map(([k, v]) => [k, v.label])] as [string, string][]).map(
+            ([k, label]) => {
+              const on = filter === k;
+              const n = k === "all" ? MY_LISTINGS.length : counts[k] ?? 0;
+              return (
+                <button
+                  key={k}
+                  onClick={() => setFilter(k as Status | "all")}
+                  aria-pressed={on}
+                  className="chip transition"
+                  style={{
+                    borderColor: on ? "var(--brand)" : "var(--line)",
+                    background: on ? "var(--brand-soft)" : "var(--surface-1)",
+                    color: on ? "var(--brand)" : "var(--text-muted)",
+                  }}
+                >
+                  {label} <span className="num opacity-60">{n}</span>
+                </button>
+              );
+            },
+          )}
+        </div>
+        <Link href="/sell" className="btn btn-primary btn-sm"><Plus size={14} /> إعلان جديد</Link>
+      </div>
+
+      <div className="space-y-3">
+        {rows.map(({ v, status }) => {
+          const trust = trustOf(v);
+          const fp = fairPriceOf(v);
+          const st = STATUS[status];
+          return (
+            <article key={v.id} className="card overflow-hidden">
+              <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
+                <Link href={vehicleHref(v)} className="h-20 w-32 shrink-0 overflow-hidden rounded-xl">
+                  <VehicleArt id={v.id} kind={v.kind} body={artShape(v)} color={v.color} className="h-full w-full" />
+                </Link>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link href={vehicleHref(v)} className="text-[14px] font-bold hover:text-[var(--brand)]">
+                      {v.make} {v.model}
+                    </Link>
+                    <span
+                      className="tag"
+                      style={{ background: `color-mix(in oklab, ${st.color} 14%, transparent)`, color: st.color }}
+                    >
+                      {st.label}
+                    </span>
+                    {v.boosted && (
+                      <span className="tag" style={{ background: "var(--brand)", color: "#fff" }}>
+                        <Sparkle size={10} /> مميّز
+                      </span>
+                    )}
+                  </div>
+                  <p className="num mt-1 text-[13px] font-bold" style={{ color: "var(--brand)" }}>
+                    {formatNumber(v.price)} د.م
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-3 text-[11px]" style={{ color: "var(--text-dim)" }}>
+                    <span className="flex items-center gap-1"><Eye size={12} /> <span className="num">{formatNumber(v.views)}</span> مشاهدة</span>
+                    <span className="flex items-center gap-1"><Heart size={12} /> <span className="num">{v.saves}</span> حفظ</span>
+                    <span className="flex items-center gap-1"><Timer size={12} /> نُشر {timeAgo(v.publishedAt, NOW)}</span>
+                    <span className="tag tag-mute">{fp.weak ? "مراجع محدودة" : fp.label}</span>
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-3">
+                  <TrustDot trust={trust} />
+                </div>
+              </div>
+
+              <div
+                className="flex flex-wrap gap-1.5 border-t px-4 py-2.5"
+                style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
+              >
+                <button className="btn btn-solid btn-sm">تعديل</button>
+                <button className="btn btn-solid btn-sm">إيقاف مؤقت</button>
+                <button className="btn btn-sm" style={{ background: "var(--brand)", color: "#fff" }}>
+                  <Sparkle size={13} /> ترويج
+                </button>
+                <button className="btn btn-solid btn-sm"><Check size={13} /> علّم كمباع</button>
+                <button className="btn btn-ghost btn-sm mr-auto" style={{ color: "var(--bad)", borderColor: "var(--line)" }}>
+                  <Trash size={13} /> حذف
+                </button>
+              </div>
+            </article>
+          );
+        })}
+
+        {rows.length === 0 && (
+          <div className="card flex flex-col items-center p-12 text-center">
+            <BadgeCheck size={28} style={{ color: "var(--text-dim)" }} />
+            <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>ماكاين حتى إعلان بهاد الحالة.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

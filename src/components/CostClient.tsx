@@ -7,6 +7,7 @@ import { computeTco } from "@/lib/tco";
 import { TcoCalculator } from "@/components/vehicle/TcoCalculator";
 import { CreditSimulator } from "@/components/vehicle/CreditSimulator";
 import { formatNumber } from "@/lib/format";
+import { vehicleHref } from "@/lib/slug";
 import { Car, Chart, Coins, Moto, TrendingDown, TrendingUp } from "@/components/icons";
 
 export function CostClient() {
@@ -88,7 +89,7 @@ export function CostClient() {
         <ul className="space-y-2.5">
           {cheapest.map((r, i) => (
             <li key={r.v.id}>
-              <Link href={`/vehicles/${r.v.id}`} className="group block">
+              <Link href={vehicleHref(r.v)} className="group block">
                 <div className="flex items-baseline justify-between gap-2 text-xs">
                   <span className="truncate font-bold group-hover:text-[var(--brand)]">
                     <span className="num opacity-50">{i + 1}.</span> {r.v.make} {r.v.model}{" "}
@@ -121,7 +122,7 @@ export function CostClient() {
         <ul className="space-y-2.5">
           {priciest.map((r) => (
             <li key={r.v.id}>
-              <Link href={`/vehicles/${r.v.id}`} className="group block">
+              <Link href={vehicleHref(r.v)} className="group block">
                 <div className="flex items-baseline justify-between gap-2 text-xs">
                   <span className="truncate font-bold group-hover:text-[var(--brand)]">
                     {r.v.make} {r.v.model} <span className="num opacity-60">{r.v.year}</span>

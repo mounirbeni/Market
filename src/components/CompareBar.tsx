@@ -14,7 +14,7 @@ export function CompareBar() {
   const items = compare.map((id) => vehicleById(id)).filter(Boolean);
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-3 animate-rise">
+    <div className="fixed inset-x-0 bottom-[60px] z-40 px-3 pb-3 animate-rise sm:bottom-0">
       <div
         className="mx-auto flex max-w-3xl items-center gap-3 rounded-2xl border p-2.5 shadow-2xl"
         style={{

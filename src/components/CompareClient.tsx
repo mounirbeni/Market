@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { vehicleHref } from "@/lib/slug";
 import { useMemo } from "react";
 import { useApp } from "@/store/app";
 import { vehicleById } from "@/lib/data/vehicles";
@@ -178,7 +179,7 @@ export function CompareClient() {
                       </button>
                     </div>
                     <div className="p-3 text-center">
-                      <Link href={`/vehicles/${v.id}`} className="block truncate text-[13px] font-bold hover:text-[var(--brand)]">
+                      <Link href={vehicleHref(v)} className="block truncate text-[13px] font-bold hover:text-[var(--brand)]">
                         {v.make} {v.model}
                       </Link>
                       <p className="truncate text-[10px]" style={{ color: "var(--text-dim)" }}>{v.version}</p>

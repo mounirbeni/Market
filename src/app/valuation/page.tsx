@@ -3,6 +3,7 @@ import { EstimateTool } from "@/components/EstimateTool";
 import { Sparkle } from "@/components/icons";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/valuation" },
   title: "قيّم سيارتك أو دراجتك مجاناً",
   description:
     "احسب الثمن الحقيقي لسيارتك أو دراجتك النارية في السوق المغربي: تقدير فوري مبني على إعلانات مشابهة مع توقع خسارة القيمة على 5 سنوات.",

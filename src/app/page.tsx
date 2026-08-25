@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { vehicleHref } from "@/lib/slug";
 import { SmartSearch } from "@/components/SmartSearch";
 import { VehicleCard } from "@/components/VehicleCard";
 import { VehicleArt, VehicleGlyph } from "@/components/VehicleArt";
@@ -9,10 +10,13 @@ import { VEHICLES } from "@/lib/data/vehicles";
 import { trustOf, fairPriceOf } from "@/lib/market";
 import { computeTco } from "@/lib/tco";
 import { formatNumber } from "@/lib/format";
-import { CITIES } from "@/lib/cities";
+import { CITIES, cityName } from "@/lib/cities";
+import { DEALERS } from "@/lib/data/dealers";
+import { GUIDES } from "@/lib/data/guides";
+import { brandSlug, brandsWithCounts } from "@/lib/slug";
 import {
-  ArrowLeft, BadgeCheck, Calculator, Car, MapPin, Moto, Scale, ShieldCheck,
-  Sparkle, TrendingDown, Wallet, Wrench,
+  ArrowLeft, BadgeCheck, Calculator, Car, Clock, FileText, MapPin, Moto,
+  Scale, Search, ShieldCheck, Sparkle, Star, TrendingDown, Users, Wallet, Wrench,
 } from "@/components/icons";
 
 const PILLARS = [
@@ -21,7 +25,7 @@ const PILLARS = [
     title: "مؤشر الثقة",
     color: "var(--good)",
     text: "كل إعلان كيتنقّط على 100 حسب توثيق البائع، الوثائق، سجل المركبة، شفافية الإعلان واتساق المعطيات. كتشوف النقطة قبل ما تتصل.",
-    href: "/vehicles?trustMin=75",
+    href: "/cars?trustMin=75",
     cta: "شوف المركبات عالية الثقة",
   },
   {
@@ -29,7 +33,7 @@ const PILLARS = [
     title: "الثمن العادل",
     color: "var(--brand)",
     text: "كنحسبو ثمناً مرجعياً من إعلانات مشابهة بعد تعديل السنة والكيلومتراج والحالة، وكنقولو ليك واش هاد الثمن فوق ولا تحت السوق.",
-    href: "/estimate",
+    href: "/valuation",
     cta: "قيّم مركبتك مجاناً",
   },
   {
@@ -43,10 +47,11 @@ const PILLARS = [
 ];
 
 const QUICK = [
-  { href: "/vehicles?kind=car", label: "سيارات", Icon: Car },
-  { href: "/vehicles?kind=moto", label: "دراجات نارية", Icon: Moto },
-  { href: "/vehicles?deals=1", label: "أحسن الصفقات", Icon: TrendingDown },
-  { href: "/vehicles?inspected=1", label: "مفحوصة", Icon: BadgeCheck },
+  { href: "/cars", label: "سيارات", Icon: Car },
+  { href: "/motorcycles", label: "دراجات نارية", Icon: Moto },
+  { href: "/cars?deals=1", label: "أحسن الصفقات", Icon: TrendingDown },
+  { href: "/cars?inspected=1", label: "مفحوصة", Icon: BadgeCheck },
+  { href: "/search", label: "بحث متقدم", Icon: Search },
 ];
 
 const CATEGORIES = [
@@ -64,8 +69,17 @@ const CATEGORIES = [
 ] as const;
 
 export default function HomePage() {
-  const deals = applyFilters({ sort: "deal" }).slice(0, 6);
-  const inspected = applyFilters({ inspectedOnly: true, sort: "trust-desc" }).slice(0, 4);
+  const featuredCars = applyFilters({ kind: "car", sort: "deal" }).slice(0, 4);
+  const featuredMotos = applyFilters({ kind: "moto", sort: "deal" }).slice(0, 4);
+  const carBrands = brandsWithCounts("car").slice(0, 16);
+  const motoBrands = brandsWithCounts("moto").slice(0, 16);
+  const topGuides = GUIDES.slice(0, 4);
+  const topDealers = DEALERS.map((d) => ({
+    d,
+    count: VEHICLES.filter((v) => v.sellerId === d.id).length,
+  }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4);
   const cars = VEHICLES.filter((v) => v.kind === "car").length;
   const motos = VEHICLES.filter((v) => v.kind === "moto").length;
   const avgTrust = Math.round(VEHICLES.reduce((s, v) => s + trustOf(v).score, 0) / VEHICLES.length);
@@ -156,7 +170,7 @@ export default function HomePage() {
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/vehicles" className="btn btn-primary btn-lg">
+                <Link href="/cars" className="btn btn-primary btn-lg">
                   <Car size={17} /> تصفح المركبات
                 </Link>
                 <Link
@@ -260,8 +274,196 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= الركائز ================= */}
-      <section className="mx-auto max-w-[1400px] px-4 py-20">
+      {/* ================= التصنيفات ================= */}
+      <section className="mx-auto max-w-[1400px] px-4 py-16">
+        <h2 className="h-section mb-7">تصفّح حسب النوع</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+          {CATEGORIES.map((c) => {
+            const n = VEHICLES.filter((v) => v.body === c.key).length;
+            if (!n) return null;
+            return (
+              <Link
+                key={c.key}
+                href={`${c.kind === "moto" ? "/motorcycles" : "/cars"}?body=${c.key}`}
+                className="card card-hover group flex flex-col items-center gap-2 p-5 text-center"
+              >
+                <span
+                  className="grid h-14 w-16 place-items-center rounded-xl transition-colors"
+                  style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
+                >
+                  <VehicleGlyph
+                    shape={c.key as never}
+                    kind={c.kind}
+                    size={30}
+                    strokeWidth={10}
+                    className="transition-colors group-hover:text-[var(--brand)]"
+                  />
+                </span>
+                <span className="text-[12.5px] font-bold">{c.label}</span>
+                <span className="num text-[10.5px]" style={{ color: "var(--text-dim)" }}>{n} إعلان</span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ================= سيارات مميزة ================= */}
+      <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
+        <div className="mx-auto max-w-[1400px] px-4 py-16">
+          <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <span className="eyebrow"><Car size={13} /> سيارات</span>
+              <h2 className="h-section mt-3">سيارات مميزة</h2>
+              <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+                مركبات ثمنها تحت المرجع المحسوب، مرتّبة حسب الفارق.
+              </p>
+            </div>
+            <Link href="/cars?deals=1" className="btn btn-ghost btn-sm">كل السيارات <ArrowLeft size={14} /></Link>
+          </header>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {featuredCars.map((v) => <VehicleCard key={v.id} v={v} compact />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= دراجات مميزة ================= */}
+      <section>
+        <div className="mx-auto max-w-[1400px] px-4 py-16">
+          <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <span className="eyebrow"><Moto size={13} /> دراجات نارية</span>
+              <h2 className="h-section mt-3">دراجات مميزة</h2>
+              <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+                من السكوتر ديال المدينة حتى دراجات الطرق الوعرة.
+              </p>
+            </div>
+            <Link href="/motorcycles" className="btn btn-ghost btn-sm">كل الدراجات <ArrowLeft size={14} /></Link>
+          </header>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {featuredMotos.map((v) => <VehicleCard key={v.id} v={v} compact />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= الماركات ================= */}
+      <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
+        <div className="mx-auto max-w-[1400px] px-4 py-16">
+          <h2 className="h-section mb-2">أشهر الماركات</h2>
+          <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
+            كل ماركة عندها صفحتها بكل الإعلانات المتوفرة.
+          </p>
+
+          <h3 className="mb-3 flex items-center gap-2 text-[12px] font-bold" style={{ color: "var(--text-dim)" }}>
+            <Car size={14} /> سيارات
+          </h3>
+          <div className="mb-8 grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
+            {carBrands.map((b) => (
+              <Link
+                key={b.slug}
+                href={`/cars/${b.slug}`}
+                className="card card-hover flex flex-col items-center justify-center gap-1 px-2 py-4 text-center"
+              >
+                <span className="num truncate text-[12.5px] font-extrabold">{b.make}</span>
+                <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>{b.count}</span>
+              </Link>
+            ))}
+          </div>
+
+          <h3 className="mb-3 flex items-center gap-2 text-[12px] font-bold" style={{ color: "var(--text-dim)" }}>
+            <Moto size={14} /> دراجات نارية
+          </h3>
+          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
+            {motoBrands.map((b) => (
+              <Link
+                key={b.slug}
+                href={`/motorcycles/${b.slug}`}
+                className="card card-hover flex flex-col items-center justify-center gap-1 px-2 py-4 text-center"
+              >
+                <span className="num truncate text-[12.5px] font-extrabold">{b.make}</span>
+                <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>{b.count}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= المدن ================= */}
+      <section className="mx-auto max-w-[1400px] px-4 py-16">
+        <h2 className="h-section mb-2">المركبات حسب المدينة</h2>
+        <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
+          الإعلانات موزّعة على <span className="num">{topCities.length}</span> مدينة مغربية.
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {topCities.slice(0, 12).map((c) => (
+            <Link
+              key={c.slug}
+              href={`/cars?city=${c.slug}`}
+              className="card card-hover flex items-center gap-2.5 p-4"
+            >
+              <span
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg"
+                style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+              >
+                <MapPin size={16} />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-[12.5px] font-bold">{c.ar}</span>
+                <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>{c.n} إعلان</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ================= الوكلاء ================= */}
+      <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
+        <div className="mx-auto max-w-[1400px] px-4 py-16">
+          <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <span className="eyebrow"><Users size={13} /> بائعون محترفون</span>
+              <h2 className="h-section mt-3">وكلاء ومعارض موثّقة</h2>
+              <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+                معارض بهوية تجارية موثقة ومخزون محيّن.
+              </p>
+            </div>
+            <Link href="/dealers" className="btn btn-ghost btn-sm">كل الوكلاء <ArrowLeft size={14} /></Link>
+          </header>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {topDealers.map(({ d, count }) => (
+              <Link key={d.slug} href={`/dealer/${d.slug}`} className="card card-hover overflow-hidden">
+                <div
+                  className="relative h-16"
+                  style={{ background: `linear-gradient(120deg, ${d.cover[0]}, ${d.cover[1]})` }}
+                >
+                  <span
+                    className="absolute -bottom-5 right-4 grid h-11 w-11 place-items-center rounded-xl border-2 text-base font-extrabold"
+                    style={{ background: "var(--surface-1)", borderColor: "var(--surface-1)", color: "var(--brand)" }}
+                  >
+                    {d.name.trim().slice(0, 1)}
+                  </span>
+                </div>
+                <div className="p-4 pt-7">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="truncate text-[13px] font-bold">{d.name}</h3>
+                    <BadgeCheck size={13} className="shrink-0" style={{ color: "var(--good)" }} />
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <span className="chip chip-plain"><MapPin size={10} /> {cityName(d.city)}</span>
+                    <span className="chip chip-plain">
+                      <Star size={10} filled style={{ color: "var(--warn)" }} />
+                      <span className="num">{d.rating.toFixed(1)}</span>
+                    </span>
+                    <span className="chip chip-plain"><Car size={10} /> <span className="num">{count}</span></span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= علاش طريق ================= */}
+      <section className="mx-auto max-w-[1400px] px-4 py-16">
         <header className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <span className="eyebrow"><Sparkle size={13} /> الفرق</span>
@@ -271,7 +473,7 @@ export default function HomePage() {
               الثقة، الثمن، والتكلفة.
             </p>
           </div>
-          <Link href="/safety" className="btn btn-ghost btn-sm">كيفاش كنخدمو <ArrowLeft size={14} /></Link>
+          <Link href="/about" className="btn btn-ghost btn-sm">من نحن <ArrowLeft size={14} /></Link>
         </header>
 
         <div className="grid gap-5 md:grid-cols-3">
@@ -279,7 +481,7 @@ export default function HomePage() {
             <article key={p.title} className="card card-hover group relative overflow-hidden p-6">
               <div
                 className="absolute -left-8 -top-8 h-28 w-28 rounded-full blur-2xl transition-opacity group-hover:opacity-100"
-                style={{ background: `color-mix(in oklab, ${p.color} 22%, transparent)`, opacity: 0.5 }}
+                style={{ background: `color-mix(in oklab, ${p.color} 22%, transparent)`, opacity: 0.4 }}
               />
               <div className="relative">
                 <span
@@ -332,7 +534,7 @@ export default function HomePage() {
               ))}
             </div>
 
-            <Link href={`/vehicles/${hero.id}`} className="btn btn-primary mt-8">
+            <Link href={vehicleHref(hero)} className="btn btn-primary mt-8">
               شوف الإعلان كاملاً <ArrowLeft size={15} />
             </Link>
           </div>
@@ -388,100 +590,40 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= الصفقات ================= */}
+      {/* ================= الأدلة ================= */}
       <section>
-        <div className="mx-auto max-w-[1400px] px-4 py-20">
+        <div className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <span className="eyebrow"><TrendingDown size={13} /> تحت ثمن السوق</span>
-              <h2 className="h-section mt-3">أحسن الصفقات ديال هاد الأسبوع</h2>
-              <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                مركبات ثمنها أقل من المرجع المحسوب، مرتّبة حسب الفارق.
-              </p>
+              <span className="eyebrow"><FileText size={13} /> معرفة قبل الشراء</span>
+              <h2 className="h-section mt-3">أدلة ونصائح</h2>
             </div>
-            <Link href="/vehicles?deals=1" className="btn btn-ghost btn-sm">الكل <ArrowLeft size={14} /></Link>
-          </header>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {deals.map((v) => <VehicleCard key={v.id} v={v} />)}
-          </div>
-        </div>
-      </section>
-
-      {/* ================= التصنيفات ================= */}
-      <section className="mx-auto max-w-[1400px] px-4 py-20">
-        <h2 className="h-section mb-7">تصفّح حسب النوع</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-          {CATEGORIES.map((c) => {
-            const n = VEHICLES.filter((v) =>
-              c.key === "utilitaire"
-                ? v.body === "utilitaire"
-                : v.body === c.key,
-            ).length;
-            if (!n) return null;
-            return (
-              <Link
-                key={c.key}
-                href={`/vehicles?body=${c.key}&kind=${c.kind}`}
-                className="card card-hover group flex flex-col items-center gap-2 p-5 text-center"
-              >
-                <span
-                  className="grid h-14 w-16 place-items-center rounded-xl transition-colors"
-                  style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
-                >
-                  <VehicleGlyph
-                    shape={c.key as never}
-                    kind={c.kind}
-                    size={30}
-                    strokeWidth={10}
-                    className="transition-colors group-hover:text-[var(--brand)]"
-                  />
-                </span>
-                <span className="text-[12.5px] font-bold">{c.label}</span>
-                <span className="num text-[10.5px]" style={{ color: "var(--text-dim)" }}>{n} إعلان</span>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ================= مفحوصة ================= */}
-      <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
-        <div className="mx-auto max-w-[1400px] px-4 py-20">
-          <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <span className="eyebrow"><Wrench size={13} /> فحص مستقل</span>
-              <h2 className="h-section mt-3">مفحوصة من طرف طريق</h2>
-              <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                <span className="num">120</span> نقطة فحص ميكانيكي وهيكلي، بتقرير مفصّل مرفق بالإعلان.
-              </p>
-            </div>
-            <Link href="/inspection" className="btn btn-ghost btn-sm">كيفاش؟ <ArrowLeft size={14} /></Link>
+            <Link href="/guides" className="btn btn-ghost btn-sm">كل الأدلة <ArrowLeft size={14} /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {inspected.map((v) => <VehicleCard key={v.id} v={v} compact />)}
+            {topGuides.map((g) => (
+              <Link key={g.slug} href={`/guides/${g.slug}`} className="card card-hover group flex flex-col p-5">
+                <span
+                  className="grid h-10 w-10 place-items-center rounded-xl"
+                  style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+                >
+                  <FileText size={19} />
+                </span>
+                <h3 className="mt-4 text-[14px] font-bold leading-snug transition-colors group-hover:text-[var(--brand)]">
+                  {g.title}
+                </h3>
+                <p className="mt-2 flex-1 text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  {g.excerpt}
+                </p>
+                <span
+                  className="mt-3 flex items-center gap-1 text-[10.5px]"
+                  style={{ color: "var(--text-dim)" }}
+                >
+                  <Clock size={11} /> <span className="num">{g.readMinutes}</span> دقائق
+                </span>
+              </Link>
+            ))}
           </div>
-        </div>
-      </section>
-
-      {/* ================= المدن ================= */}
-      <section className="mx-auto max-w-[1400px] px-4 py-20">
-        <h2 className="h-section mb-3">حسب المدينة</h2>
-        <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
-          كل الإعلانات موزّعة على <span className="num">{topCities.length}</span> مدينة مغربية.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {topCities.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/vehicles?city=${c.slug}`}
-              className="flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-[12.5px] font-semibold transition hover:-translate-y-0.5 hover:border-[var(--brand)] hover:text-[var(--brand)]"
-              style={{ borderColor: "var(--line-soft)", background: "var(--surface-1)", color: "var(--text-muted)" }}
-            >
-              <MapPin size={14} style={{ color: "var(--text-dim)" }} />
-              {c.ar}
-              <span className="num text-[10.5px] opacity-55">{c.n}</span>
-            </Link>
-          ))}
         </div>
       </section>
 
@@ -503,7 +645,7 @@ export default function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link href="/sell" className="btn btn-primary btn-lg">انشر إعلانك مجاناً</Link>
-              <Link href="/estimate" className="btn btn-ghost btn-lg">قيّم مركبتك أولاً</Link>
+              <Link href="/valuation" className="btn btn-ghost btn-lg">قيّم مركبتك أولاً</Link>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { vehicleHref } from "@/lib/slug";
 import { useMemo, useState } from "react";
 import { estimateValue } from "@/lib/market";
 import { makesFor, modelsFor, VEHICLES } from "@/lib/data/vehicles";
@@ -270,7 +271,7 @@ export function EstimateTool() {
               {est.comparables.map((c) => (
                 <Link
                   key={c.id}
-                  href={`/vehicles/${c.id}`}
+                  href={vehicleHref(c)}
                   className="flex items-center justify-between gap-3 py-2.5 text-xs transition hover:text-[var(--brand)]"
                 >
                   <span className="truncate">

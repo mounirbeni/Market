@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { vehicleHref } from "@/lib/slug";
 import { useMemo } from "react";
 import type { Vehicle } from "@/lib/types";
 import { AR, formatNumber, timeAgo } from "@/lib/format";
@@ -120,7 +121,7 @@ export function VehicleCard({ v, compact = false }: { v: Vehicle; compact?: bool
 
   return (
     <article className="card card-hover group relative overflow-hidden">
-      <Link href={`/vehicles/${v.id}`} className="block">
+      <Link href={vehicleHref(v)} className="block">
         <div className="relative aspect-[16/10] overflow-hidden">
           <VehicleArt
             id={v.id}
@@ -175,7 +176,7 @@ export function VehicleCard({ v, compact = false }: { v: Vehicle; compact?: bool
         style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
       >
         <Link
-          href={`/vehicles/${v.id}`}
+          href={vehicleHref(v)}
           className="flex items-center gap-1.5 text-[12px] font-bold transition-all hover:gap-2.5"
           style={{ color: "var(--brand)" }}
         >
@@ -198,7 +199,7 @@ export function VehicleRow({ v }: { v: Vehicle }) {
 
   return (
     <article className="card card-hover group relative overflow-hidden">
-      <Link href={`/vehicles/${v.id}`} className="flex flex-col sm:flex-row">
+      <Link href={vehicleHref(v)} className="flex flex-col sm:flex-row">
         <div className="relative aspect-[16/10] w-full overflow-hidden sm:aspect-auto sm:w-[280px] sm:shrink-0">
           <VehicleArt
             id={v.id}

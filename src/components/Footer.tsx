@@ -1,52 +1,82 @@
 import Link from "next/link";
 import { CITIES } from "@/lib/cities";
+import { brandsWithCounts } from "@/lib/slug";
 import { Logo } from "./Logo";
 import {
-  BadgeCheck, Bell, Calculator, Car, ClipboardCheck, Coins, Message, Moto,
-  Scale, ShieldCheck, TrendingDown, Wallet, Wrench,
+  Coins, Message, Navigation, ShieldCheck,
 } from "./icons";
 
-const COLUMNS = [
+const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
   {
-    title: "الشراء",
+    title: "المركبات",
     links: [
-      { href: "/vehicles?kind=car", label: "سيارات مستعملة", Icon: Car },
-      { href: "/vehicles?kind=moto", label: "دراجات نارية", Icon: Moto },
-      { href: "/vehicles?deals=1", label: "أحسن الصفقات", Icon: TrendingDown },
-      { href: "/vehicles?inspected=1", label: "مركبات مفحوصة", Icon: BadgeCheck },
-      { href: "/compare", label: "قارن بين المركبات", Icon: Scale },
+      { href: "/cars", label: "سيارات" },
+      { href: "/motorcycles", label: "دراجات نارية" },
+      { href: "/cars?deals=1", label: "أحسن الصفقات" },
+      { href: "/cars?inspected=1", label: "مركبات مفحوصة" },
+      { href: "/cars?fuel=electrique", label: "مركبات كهربائية" },
+      { href: "/cars?priceMin=250000", label: "مركبات راقية" },
     ],
   },
   {
-    title: "البيع",
+    title: "للمشترين",
     links: [
-      { href: "/sell", label: "انشر إعلانك", Icon: Wallet },
-      { href: "/estimate", label: "قيّم مركبتك مجاناً", Icon: Coins },
-      { href: "/inspection", label: "اطلب فحصاً مستقلاً", Icon: Wrench },
-      { href: "/safety", label: "دليل البيع الآمن", Icon: ShieldCheck },
+      { href: "/search", label: "البحث المتقدم" },
+      { href: "/compare", label: "المقارنة" },
+      { href: "/favorites", label: "المفضلة والتنبيهات" },
+      { href: "/financing", label: "محاكي التمويل" },
+      { href: "/cost", label: "حاسبة التكلفة الحقيقية" },
+      { href: "/guides/chira-tomobil-mostaamla", label: "دليل الشراء" },
     ],
   },
   {
-    title: "أدوات",
+    title: "للبائعين",
     links: [
-      { href: "/cost", label: "حاسبة التكلفة الحقيقية", Icon: Calculator },
-      { href: "/cost#credit", label: "محاكي التمويل", Icon: Coins },
-      { href: "/favorites", label: "مفضلتي وتنبيهاتي", Icon: Bell },
-      { href: "/safety#checklist", label: "لائحة التحقق قبل الشراء", Icon: ClipboardCheck },
+      { href: "/sell", label: "بيع مركبتك" },
+      { href: "/valuation", label: "قيّم مركبتك" },
+      { href: "/dealers", label: "الوكلاء والمعارض" },
+      { href: "/dashboard", label: "لوحة البائع" },
+      { href: "/inspection", label: "اطلب فحصاً مستقلاً" },
+      { href: "/register", label: "إنشاء حساب" },
+    ],
+  },
+  {
+    title: "المنصة",
+    links: [
+      { href: "/about", label: "من نحن" },
+      { href: "/contact", label: "اتصل بنا" },
+      { href: "/guides", label: "النصائح والأدلة" },
+      { href: "/help", label: "مركز المساعدة" },
+      { href: "/safety", label: "البيع الآمن" },
+    ],
+  },
+  {
+    title: "قانوني",
+    links: [
+      { href: "/terms", label: "شروط الاستعمال" },
+      { href: "/privacy", label: "سياسة الخصوصية" },
+      { href: "/privacy#cookies", label: "ملفات تعريف الارتباط" },
+      { href: "/help#rules", label: "قواعد النشر" },
     ],
   },
 ];
 
 export function Footer() {
+  const carBrands = brandsWithCounts("car").slice(0, 12);
+  const motoBrands = brandsWithCounts("moto").slice(0, 9);
+
   return (
-    <footer className="mt-24 border-t" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
+    <footer
+      className="mt-20 border-t"
+      style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
+    >
       <div className="mx-auto max-w-[1400px] px-4 py-14">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-6">
           <div className="lg:col-span-2">
             <Logo size={40} />
             <p className="mt-4 max-w-sm text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              سوق مغربي للسيارات والدراجات النارية المستعملة، مبني على الشفافية: مؤشر ثقة
-              لكل إعلان، ثمن مرجعي محسوب، وتكلفة استعمال حقيقية قبل ما تشري.
+              سوق مغربي للسيارات والدراجات النارية، مبني على الشفافية: مؤشر ثقة لكل إعلان،
+              ثمن مرجعي محسوب، وتكلفة استعمال حقيقية قبل ما تشري.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <span className="chip chip-plain"><ShieldCheck size={12} /> صُنع في المغرب</span>
@@ -63,10 +93,9 @@ export function Footer() {
                   <li key={l.href + l.label}>
                     <Link
                       href={l.href}
-                      className="group flex items-center gap-2 text-[12.5px] transition hover:text-[var(--brand)]"
+                      className="text-[12.5px] transition hover:text-[var(--brand)]"
                       style={{ color: "var(--text-muted)" }}
                     >
-                      <l.Icon size={14} className="shrink-0 opacity-50 transition group-hover:opacity-100" />
                       {l.label}
                     </Link>
                   </li>
@@ -78,35 +107,75 @@ export function Footer() {
 
         <div className="rule my-9" />
 
-        <div>
-          <h4 className="mb-3 text-[11px] font-bold" style={{ color: "var(--text-dim)" }}>
-            تصفح حسب المدينة
-          </h4>
-          <div className="flex flex-wrap gap-1.5">
-            {CITIES.map((c) => (
-              <Link
-                key={c.slug}
-                href={`/vehicles?city=${c.slug}`}
-                className="chip chip-plain transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
-              >
-                {c.ar}
-              </Link>
-            ))}
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div>
+            <h4 className="mb-3 text-[11px] font-bold" style={{ color: "var(--text-dim)" }}>
+              ماركات السيارات
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {carBrands.map((b) => (
+                <Link
+                  key={b.slug}
+                  href={`/cars/${b.slug}`}
+                  className="chip chip-plain transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                >
+                  {b.make}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="mb-3 text-[11px] font-bold" style={{ color: "var(--text-dim)" }}>
+              ماركات الدراجات
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {motoBrands.map((b) => (
+                <Link
+                  key={b.slug}
+                  href={`/motorcycles/${b.slug}`}
+                  className="chip chip-plain transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                >
+                  {b.make}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="mb-3 text-[11px] font-bold" style={{ color: "var(--text-dim)" }}>
+              المدن
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {CITIES.map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/cars?city=${c.slug}`}
+                  className="chip chip-plain transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
+                >
+                  {c.ar}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
 
         <div
-          className="mt-10 flex flex-col items-start justify-between gap-3 border-t pt-6 text-[11px] sm:flex-row sm:items-center"
+          className="mt-10 flex flex-col items-start justify-between gap-4 border-t pt-6 text-[11px] sm:flex-row sm:items-center"
           style={{ borderColor: "var(--line-soft)", color: "var(--text-dim)" }}
         >
           <p>
             © <span className="num">2026</span> طريق TRIQ — منصة تجريبية. الأثمنة والمعطيات
             المعروضة لأغراض العرض التقني.
           </p>
-          <p>
-            الأثمنة بالدرهم المغربي · <span className="num">1</span> مليون ={" "}
-            <span className="num">10 000</span> د.م
-          </p>
+          <div className="flex items-center gap-4">
+            <span>
+              <span className="num">1</span> مليون = <span className="num">10 000</span> د.م
+            </span>
+            <span className="flex items-center gap-2">
+              <Navigation size={13} /> المغرب
+            </span>
+          </div>
         </div>
       </div>
     </footer>

@@ -18,7 +18,25 @@ import {
 
 const PAGE_SIZE = 12;
 
-export function VehiclesClient() {
+export interface VehiclesClientProps {
+  /** قفل النوع على هذه الصفحة (سيارات أو دراجات) */
+  lockKind?: "car" | "moto";
+  /** قفل الماركة (صفحة ماركة) */
+  lockBrand?: string;
+  /** المسار الأساسي لكتابة الفلاتر في الرابط */
+  basePath?: string;
+  /** عنوان مخصّص */
+  heading?: string;
+  intro?: string;
+}
+
+export function VehiclesClient({
+  lockKind,
+  lockBrand,
+  basePath = "/vehicles",
+  heading,
+  intro,
+}: VehiclesClientProps = {}) {
   const sp = useSearchParams();
   const router = useRouter();
   const { saveSearch } = useApp();
@@ -27,30 +45,39 @@ export function VehiclesClient() {
   const [saved, setSaved] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
 
-  const filters = useMemo<Filters>(
-    () => ({ ...DEFAULT_FILTERS, ...filtersFromParams(new URLSearchParams(sp.toString())) }),
-    [sp],
-  );
+  const filters = useMemo<Filters>(() => {
+    const base = { ...DEFAULT_FILTERS, ...filtersFromParams(new URLSearchParams(sp.toString())) };
+    if (lockKind) base.kind = lockKind;
+    if (lockBrand) base.make = lockBrand;
+    return base;
+  }, [sp, lockKind, lockBrand]);
 
   const results = useMemo(() => applyFilters(filters), [filters]);
 
   const push = useCallback(
     (next: Filters) => {
-      const qs = paramsFromFilters(next).toString();
-      router.replace(qs ? `/vehicles?${qs}` : "/vehicles", { scroll: false });
+      const params = paramsFromFilters(next);
+      if (lockKind) params.delete("kind");
+      if (lockBrand) params.delete("make");
+      const qs = params.toString();
+      router.replace(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
       setVisible(PAGE_SIZE);
       setSaved(false);
     },
-    [router],
+    [router, basePath, lockKind, lockBrand],
   );
 
   const set = useCallback((patch: Partial<Filters>) => push({ ...filters, ...patch }), [filters, push]);
-  const reset = useCallback(() => push({ ...DEFAULT_FILTERS }), [push]);
+  const reset = useCallback(
+    () => push({ ...DEFAULT_FILTERS, ...(lockKind ? { kind: lockKind } : {}), ...(lockBrand ? { make: lockBrand } : {}) }),
+    [push, lockKind, lockBrand],
+  );
 
   const activeChips = useMemo(() => {
     const out: { label: string; clear: Partial<Filters> }[] = [];
-    if (filters.kind !== "all") out.push({ label: filters.kind === "car" ? "سيارات" : "دراجات", clear: { kind: "all" } });
-    if (filters.make) out.push({ label: filters.make, clear: { make: "", model: "" } });
+    if (filters.kind !== "all" && !lockKind)
+      out.push({ label: filters.kind === "car" ? "سيارات" : "دراجات", clear: { kind: "all" } });
+    if (filters.make && !lockBrand) out.push({ label: filters.make, clear: { make: "", model: "" } });
     if (filters.model) out.push({ label: filters.model, clear: { model: "" } });
     if (filters.city) out.push({ label: cityName(filters.city), clear: { city: "" } });
     if (filters.fuel) out.push({ label: AR.fuel[filters.fuel as keyof typeof AR.fuel], clear: { fuel: "" } });
@@ -68,9 +95,10 @@ export function VehiclesClient() {
     if (filters.firstHandOnly) out.push({ label: "يد أولى", clear: { firstHandOnly: false } });
     if (filters.q) out.push({ label: `"${filters.q}"`, clear: { q: "" } });
     return out;
-  }, [filters]);
+  }, [filters, lockKind, lockBrand]);
 
   const title = useMemo(() => {
+    if (heading) return heading;
     const parts: string[] = [];
     parts.push(filters.kind === "moto" ? "دراجات نارية" : filters.kind === "car" ? "سيارات" : "مركبات");
     if (filters.make) parts.push(filters.make);
@@ -78,7 +106,7 @@ export function VehiclesClient() {
     parts.push("مستعملة");
     if (filters.city) parts.push(`في ${cityName(filters.city)}`);
     return parts.join(" ");
-  }, [filters]);
+  }, [filters, heading]);
 
   const doSave = () => {
     saveSearch({ label: title, query: paramsFromFilters(filters).toString(), alert: true });
@@ -92,7 +120,7 @@ export function VehiclesClient() {
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
         <aside className="hidden lg:block">
           <div className="sticky top-[84px] max-h-[calc(100vh-104px)] overflow-y-auto pl-1">
-            <FiltersPanel filters={filters} set={set} reset={reset} count={results.length} />
+            <FiltersPanel filters={filters} set={set} reset={reset} count={results.length} lockKind={lockKind} lockBrand={lockBrand} />
           </div>
         </aside>
 
@@ -101,6 +129,11 @@ export function VehiclesClient() {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-xl font-extrabold tracking-tight">{title}</h1>
+              {intro && (
+                <p className="mt-1.5 max-w-2xl text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  {intro}
+                </p>
+              )}
               <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
                 <span className="num font-bold" style={{ color: "var(--brand)" }}>{results.length}</span> نتيجة
                 {results.length > 0 && <> · مرتّبة حسب {SORT_LABELS[filters.sort]}</>}
@@ -248,7 +281,7 @@ export function VehiclesClient() {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-3">
-              <FiltersPanel filters={filters} set={set} reset={reset} count={results.length} />
+              <FiltersPanel filters={filters} set={set} reset={reset} count={results.length} lockKind={lockKind} lockBrand={lockBrand} />
             </div>
             <div className="border-t p-3" style={{ borderColor: "var(--line-soft)" }}>
               <button onClick={() => setMobileFilters(false)} className="btn btn-primary w-full">

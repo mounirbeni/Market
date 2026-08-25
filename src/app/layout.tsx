@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Arabic, Noto_Kufi_Arabic, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "@/store/app";
-import { Header } from "@/components/Header";
+import { Header, MobileNav } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CompareBar } from "@/components/CompareBar";
 
@@ -85,9 +85,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             تخطَّ إلى المحتوى
           </a>
           <Header />
-          <main id="main">{children}</main>
+          <main id="main" className="pb-16 sm:pb-0">{children}</main>
           <Footer />
           <CompareBar />
+          <MobileNav />
         </AppProvider>
       </body>
     </html>
