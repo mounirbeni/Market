@@ -5,10 +5,9 @@ import { useMemo, useState } from "react";
 import { VEHICLES } from "@/lib/data/vehicles";
 import { computeTco } from "@/lib/tco";
 import { TcoCalculator } from "@/components/vehicle/TcoCalculator";
-import { CreditSimulator } from "@/components/vehicle/CreditSimulator";
 import { formatNumber } from "@/lib/format";
 import { vehicleHref } from "@/lib/slug";
-import { Car, Chart, Coins, Moto, TrendingDown, TrendingUp } from "@/components/icons";
+import { Car, Chart, Moto, TrendingDown, TrendingUp } from "@/components/icons";
 
 export function CostClient() {
   const [id, setId] = useState("c003");
@@ -146,7 +145,6 @@ export function CostClient() {
         </ul>
       </section>
 
-      <CreditSimulator price={v.price} />
     </div>
   );
 }

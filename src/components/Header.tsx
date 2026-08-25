@@ -17,7 +17,6 @@ const NAV = [
   { href: "/motorcycles", label: "دراجات نارية", Icon: Moto },
   { href: "/search", label: "البحث المتقدم", Icon: Search },
   { href: "/dealers", label: "الوكلاء", Icon: Users },
-  { href: "/financing", label: "التمويل", Icon: Coins },
   { href: "/valuation", label: "قيّم مركبتك", Icon: Wallet },
   { href: "/guides", label: "نصائح", Icon: FileText },
 ];

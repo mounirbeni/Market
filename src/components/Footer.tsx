@@ -25,7 +25,6 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
       { href: "/assistant", label: "مساعد الاختيار" },
       { href: "/compare", label: "المقارنة" },
       { href: "/favorites", label: "المفضلة والتنبيهات" },
-      { href: "/financing", label: "محاكي التمويل" },
       { href: "/cost", label: "حاسبة التكلفة الحقيقية" },
       { href: "/guides/chira-tomobil-mostaamla", label: "دليل الشراء" },
     ],

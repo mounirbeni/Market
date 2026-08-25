@@ -14,7 +14,6 @@ import { Gallery } from "@/components/vehicle/Gallery";
 import { TrustPanel } from "@/components/vehicle/TrustPanel";
 import { RiskPanel } from "@/components/vehicle/RiskPanel";
 import { TcoCalculator } from "@/components/vehicle/TcoCalculator";
-import { CreditSimulator } from "@/components/vehicle/CreditSimulator";
 import { HistoryTimeline } from "@/components/vehicle/HistoryTimeline";
 import { SellerCard } from "@/components/vehicle/SellerCard";
 import { StickyActionBar } from "@/components/vehicle/StickyActionBar";
@@ -235,7 +234,6 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
 
           <HistoryTimeline events={v.history} />
           <TcoCalculator v={v} />
-          <CreditSimulator price={v.price} />
         </div>
 
         {/* ---------- العمود الجانبي ---------- */}
