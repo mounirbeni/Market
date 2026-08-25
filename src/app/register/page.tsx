@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AuthForm } from "@/components/AuthForm";
 
 export const metadata: Metadata = {
@@ -10,7 +11,11 @@ export const metadata: Metadata = {
 export default function RegisterPage() {
   return (
     <div className="mx-auto max-w-[1100px] px-4 py-14">
-      <AuthForm mode="register" />
+      {/* AuthForm كيقرا ?next= بـuseSearchParams، فخاصو حدّ Suspense
+          باش الصفحة تبقى قابلة للتوليد المسبق */}
+      <Suspense fallback={<div className="card mx-auto h-[420px] max-w-md animate-pulse" />}>
+        <AuthForm mode="register" />
+      </Suspense>
     </div>
   );
 }

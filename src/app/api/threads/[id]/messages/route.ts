@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { listMessages, sendMessage } from "@/lib/db/chat";
-import { body, CHAT_ERRORS, fail, ok, unauthorized } from "@/lib/api";
+import { CHAT_ERRORS, body, dbMissing, fail, ok, unauthorized } from "@/lib/api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,6 +9,8 @@ type Ctx = { params: Promise<{ id: string }> };
 
 /** رسائل المحادثة — ?after=<آخر id> للاستقصاء التدريجي */
 export async function GET(req: Request, { params }: Ctx) {
+  const down = dbMissing();
+  if (down) return down;
   const user = await getCurrentUser();
   if (!user) return unauthorized();
   const { id } = await params;
@@ -24,6 +26,8 @@ export async function GET(req: Request, { params }: Ctx) {
 
 /** إرسال رسالة */
 export async function POST(req: Request, { params }: Ctx) {
+  const down = dbMissing();
+  if (down) return down;
   const user = await getCurrentUser();
   if (!user) return unauthorized();
   const { id } = await params;

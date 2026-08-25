@@ -1,12 +1,14 @@
 import { getCurrentUser } from "@/lib/auth";
 import { listThreads, openThread } from "@/lib/db/chat";
-import { body, CHAT_ERRORS, fail, ok, unauthorized } from "@/lib/api";
+import { CHAT_ERRORS, body, dbMissing, fail, ok, unauthorized } from "@/lib/api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /** محادثاتي */
 export async function GET() {
+  const down = dbMissing();
+  if (down) return down;
   const user = await getCurrentUser();
   if (!user) return unauthorized();
   return ok({ threads: await listThreads(user.id) });
@@ -14,6 +16,8 @@ export async function GET() {
 
 /** فتح محادثة على إعلان */
 export async function POST(req: Request) {
+  const down = dbMissing();
+  if (down) return down;
   const user = await getCurrentUser();
   if (!user) return unauthorized();
 

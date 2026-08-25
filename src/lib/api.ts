@@ -19,6 +19,16 @@ export async function body<T>(req: Request): Promise<T | null> {
   }
 }
 
+/**
+ * حارس قاعدة البيانات.
+ * إلا DATABASE_URL ماشي مضبوط (مثلاً نشر على Vercel بلا متغير بيئة)،
+ * كنرجعو رسالة واضحة بدل 500 صامت.
+ */
+export const dbMissing = () =>
+  !process.env.DATABASE_URL
+    ? fail("الخدمة ماشي مضبوطة: قاعدة البيانات غير متصلة. (DATABASE_URL)", 503)
+    : null;
+
 /** رسائل الأخطاء ديال طبقة الدردشة */
 export const CHAT_ERRORS: Record<string, [string, number]> = {
   FORBIDDEN: ["ماعندكش الصلاحية على هاد المحادثة.", 403],

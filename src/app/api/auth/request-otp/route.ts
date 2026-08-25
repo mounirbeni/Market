@@ -1,10 +1,12 @@
 import { issueOtp, normalizePhone } from "@/lib/auth";
-import { body, fail, ok } from "@/lib/api";
+import { body, dbMissing, fail, ok } from "@/lib/api";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const down = dbMissing();
+  if (down) return down;
   const b = await body<{ phone?: string }>(req);
   const phone = normalizePhone(b?.phone ?? "");
   if (!phone) return fail("رقم الهاتف ماشي صحيح. مثال: 0612345678");
