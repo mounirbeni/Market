@@ -14,6 +14,11 @@ export const dynamic = "force-dynamic";
  * الملف كيمشي من المتصفح لVercel Blob نيشان، ماشي عبر هاد الدالة —
  * حيت تصاور التيليفون عادة أكبر من الحد ديال جسم الطلب (4.5 ميغا).
  * هنا كنتحققو غير من المستخدم وكنوقّعو توكن محدود.
+ *
+ * بلا onUploadCompleted عن قصد: ملي كيتحط، Blob كيصيفط ردّ من خادم
+ * لخادم لهاد المسار، والرفع ماكيسالاش حتى يوصل. وإلا ماوصلش —
+ * الرفع كيبقى واقف. وماعندنا حتى فايدة منّو: الصور كيتربطو بالإعلان
+ * ملي كينشر، من المتصفح اللي عندو الروابط.
  */
 export async function POST(req: Request) {
   if (!blobConfigured())
@@ -41,10 +46,6 @@ export async function POST(req: Request) {
           addRandomSuffix: true,
           tokenPayload: JSON.stringify({ userId: user.id }),
         };
-      },
-      onUploadCompleted: async () => {
-        /* الصورة كتّربط بالإعلان ملي يتنشر — ماشي هنا.
-           (هاد الرد ماكيوصلش أصلاً فالتطوير المحلي) */
       },
     });
     return Response.json(result);

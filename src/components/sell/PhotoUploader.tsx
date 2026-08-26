@@ -83,26 +83,40 @@ export function PhotoUploader({
 
         setPending((p) => [...p, { id, preview, progress: 0 }]);
 
+        /* شبكة أمان: إلا وقف التقدّم دقيقتين، كنقطعو بدل ما نبقاو
+           دايرين للأبد. شبكة التيليفون كتقطع بلا ما تعلن. */
+        const ctrl = new AbortController();
+        let stall: ReturnType<typeof setTimeout> | undefined;
+        const bump = () => {
+          clearTimeout(stall);
+          stall = setTimeout(() => ctrl.abort(), 120_000);
+        };
+        bump();
+
         try {
           const dims = await dimensionsOf(file);
           // المسار خاصو يبدا بمجلّد المستخدم — الخادم كيرفض غير هادشي
           const blob = await upload(`listings/${user.id}/${file.name}`, file, {
             access: "public",
             handleUploadUrl: "/api/upload",
-            onUploadProgress: ({ percentage }) =>
-              setPending((p) => p.map((x) => (x.id === id ? { ...x, progress: percentage } : x))),
+            abortSignal: ctrl.signal,
+            onUploadProgress: ({ percentage }) => {
+              bump();
+              setPending((p) => p.map((x) => (x.id === id ? { ...x, progress: percentage } : x)));
+            },
           });
           added.push({ url: blob.url, kind: "photo", ...dims });
           setPending((p) => p.filter((x) => x.id !== id));
           URL.revokeObjectURL(preview);
         } catch (e) {
-          setPending((p) =>
-            p.map((x) =>
-              x.id === id
-                ? { ...x, error: e instanceof Error ? e.message : "ماقدرناش نرفعوها" }
-                : x,
-            ),
-          );
+          const msg = ctrl.signal.aborted
+            ? "الرفع وقف — الشبكة ضعيفة. عاود."
+            : e instanceof Error
+              ? e.message
+              : "ماقدرناش نرفعوها";
+          setPending((p) => p.map((x) => (x.id === id ? { ...x, error: msg } : x)));
+        } finally {
+          clearTimeout(stall);
         }
       }
 
