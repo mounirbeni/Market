@@ -236,7 +236,20 @@ export function PhotoUploader({
     [pending, photos, onChange, runOne],
   );
 
-  const remove = (url: string) => onChange(photos.filter((p) => p.url !== url));
+  /**
+   * حذف صورة.
+   * كنحيّدوها من الواجهة على طول، وكنمسحوها من الخزّان فالخلفية —
+   * إلا فشل المسح ماكاين علاش نوقفو المستخدم، غير ملف يتيم.
+   */
+  const remove = (url: string) => {
+    onChange(photos.filter((p) => p.url !== url));
+    void fetch("/api/upload", {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url }),
+      keepalive: true,
+    }).catch(() => {});
+  };
 
   /** الصورة الأولى هي اللي كتبان فالبطاقة — كنخلّيو المستخدم يختارها */
   const makeCover = (url: string) => {
@@ -294,16 +307,18 @@ export function PhotoUploader({
                 <Star size={10} /> الغلاف
               </span>
             )}
-            <div className="absolute inset-x-0 top-0 flex justify-between p-1 opacity-0 transition focus-within:opacity-100 group-hover:opacity-100">
+            {/* فالتيليفون ماكاينش hover — الأزرار خاصها تبان ديما.
+                فالحاسوب كنخبّيوهم حتى يجي الفأر فوق الصورة. */}
+            <div className="absolute inset-x-0 top-0 flex justify-between p-1 transition [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:focus-within:opacity-100 [@media(hover:hover)]:group-hover:opacity-100">
               {i !== 0 ? (
                 <button
                   type="button"
                   onClick={() => makeCover(p.url)}
                   aria-label="خلّيها صورة الغلاف"
-                  className="grid h-6 w-6 place-items-center rounded-md"
-                  style={{ background: "rgba(10,30,61,0.8)", color: "#fff" }}
+                  className="grid h-7 w-7 place-items-center rounded-md shadow-md"
+                  style={{ background: "rgba(10,30,61,0.85)", color: "#fff" }}
                 >
-                  <Star size={12} />
+                  <Star size={13} />
                 </button>
               ) : (
                 <span />
@@ -312,10 +327,11 @@ export function PhotoUploader({
                 type="button"
                 onClick={() => remove(p.url)}
                 aria-label="حيّد الصورة"
-                className="grid h-6 w-6 place-items-center rounded-md"
+                title="حيّد الصورة"
+                className="grid h-7 w-7 place-items-center rounded-md shadow-md"
                 style={{ background: "var(--bad)", color: "#fff" }}
               >
-                <Close size={12} />
+                <Close size={13} />
               </button>
             </div>
           </div>

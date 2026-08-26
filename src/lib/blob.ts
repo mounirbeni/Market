@@ -37,6 +37,20 @@ export const mediaUrl = (pathname: string) =>
 /** واش هاد الرابط كيمشي لمسار الصور ديالنا؟ */
 export const isMediaUrl = (url: string) => /^\/api\/media\/[^?#]+$/.test(url);
 
+/** كنرجّعو المسار داخل الخزّان من رابط /api/media/… */
+export function pathnameFromMediaUrl(url: string): string | null {
+  if (!isMediaUrl(url)) return null;
+  try {
+    return url
+      .slice("/api/media/".length)
+      .split("/")
+      .map(decodeURIComponent)
+      .join("/");
+  } catch {
+    return null;
+  }
+}
+
 /**
  * مسار الملف داخل الخزّان.
  *

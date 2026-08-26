@@ -1,7 +1,14 @@
-import { put } from "@vercel/blob";
+import { del, put } from "@vercel/blob";
 import { getCurrentUser } from "@/lib/auth";
-import { fail, ok, unauthorized } from "@/lib/api";
-import { BLOB_ACCESS, PHOTO_TYPES, blobConfigured, mediaPath, mediaUrl } from "@/lib/blob";
+import { body, fail, ok, unauthorized } from "@/lib/api";
+import {
+  BLOB_ACCESS,
+  PHOTO_TYPES,
+  blobConfigured,
+  mediaPath,
+  mediaUrl,
+  pathnameFromMediaUrl,
+} from "@/lib/blob";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,6 +66,33 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error("[upload] الخزّان رفض:", e);
     return fail("ماقدرناش نسجّلو الصورة. عاود المحاولة.", 502);
+  }
+}
+
+/**
+ * حذف صورة.
+ *
+ * المستخدم كيحيّد صورة من المعالج قبل ما ينشر — بلا هاد المسار
+ * كتبقى فالخزّان للأبد. كنتحققو أنّ الملف داخل المجلّد ديالو
+ * قبل أي حذف: المسار كيبدا بـlistings/<المعرّف>/.
+ */
+export async function DELETE(req: Request) {
+  if (!blobConfigured()) return fail("رفع الصور ماشي مضبوط.", 503);
+
+  const user = await getCurrentUser();
+  if (!user) return unauthorized();
+
+  const b = await body<{ url?: string }>(req);
+  const pathname = b?.url ? pathnameFromMediaUrl(b.url) : null;
+  if (!pathname) return fail("الرابط ماشي صحيح.", 400);
+  if (!pathname.startsWith(`listings/${user.id}/`)) return fail("ماعندكش الصلاحية.", 403);
+
+  try {
+    await del(pathname);
+    return ok({ deleted: true });
+  } catch (e) {
+    console.error("[upload] ماقدرناش نمسحو:", pathname, e);
+    return fail("ماقدرناش نمسحو الصورة.", 502);
   }
 }
 
