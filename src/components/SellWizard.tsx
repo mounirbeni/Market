@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { estimateValue, trustScore } from "@/lib/market";
 import { useCatalog } from "@/lib/useCatalog";
 import { PhotoUploader, type UploadedPhoto } from "@/components/sell/PhotoUploader";
+import { VideoUploader, type UploadedVideo } from "@/components/sell/VideoUploader";
 import { CITIES } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
@@ -150,6 +151,7 @@ export function SellWizard() {
   const [publishError, setPublishError] = useState("");
   /* الصور المرفوعة — كتّربط بالإعلان ملي يتنشر */
   const [uploaded, setUploaded] = useState<UploadedPhoto[]>([]);
+  const [video, setVideo] = useState<UploadedVideo | null>(null);
   /** حالة المسودة: idle | saved | restored */
   const [draftState, setDraftState] = useState<"idle" | "saved" | "restored">("idle");
   const [hasDraft, setHasDraft] = useState(false);
@@ -258,7 +260,7 @@ export function SellWizard() {
           inspected: d.inspected, serviceBook: d.serviceBook,
           vinChecked: d.vinChecked, description: d.description,
           equipment: d.equipment, photos: d.photos, hasVideo: d.hasVideo,
-          media: uploaded,
+          media: video ? [...uploaded, video] : uploaded,
         }),
       });
       const json = await res.json();
@@ -505,12 +507,14 @@ export function SellWizard() {
                 }}
               />
 
-              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5" style={{ background: "var(--surface-3)" }}>
-                <input type="checkbox" checked={d.hasVideo} onChange={(e) => set({ hasVideo: e.target.checked })}
-                  className="h-4 w-4 " />
-                <span className="flex-1 text-xs">غادي نزيد فيديو قصير (المحرك + جولة حول المركبة)</span>
-                <span className="num text-[10px] font-bold" style={{ color: "var(--good)" }}>+4</span>
-              </label>
+              <VideoUploader
+                video={video}
+                onChange={(next) => {
+                  setVideo(next);
+                  // مؤشر الثقة كيتبع الفيديو الحقيقي، ماشي وعد بيه
+                  set({ hasVideo: Boolean(next) });
+                }}
+              />
 
               <div>
                 <label className="label" htmlFor="sw-desc">

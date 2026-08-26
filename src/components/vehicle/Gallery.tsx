@@ -29,19 +29,34 @@ export function Gallery({ v }: { v: Vehicle }) {
   const usable = photos.filter((m) => !broken.has(m.url)).length;
   const shots = usable > 0 ? photos.length : Math.min(v.photos, 8) || 1;
 
+  /* الفيديو كيجي كآخر بلاصة فالمعرض — بعد كل الصور */
+  const clip = (v.media ?? []).find((m) => m.kind === "video") ?? null;
+  const slides = shots + (clip ? 1 : 0);
+  const onClip = Boolean(clip) && active === shots;
+
   /** الصورة ديال هاد البلاصة، إلا كانت مازال صالحة */
   const shotAt = (i: number) => {
     const m = photos[i];
     return m && !broken.has(m.url) ? m : null;
   };
 
-  const go = (d: number) => setActive((a) => (a + d + shots) % shots);
+  const go = (d: number) => setActive((a) => (a + d + slides) % slides);
 
   return (
     <div className="min-w-0">
       <div className="card relative overflow-hidden">
         <div className="aspect-[16/10]">
-          {shotAt(active) ? (
+          {onClip ? (
+            /* preload="metadata" باش ماننزّلوش الفيديو كامل بلا داعي.
+               playsInline ضروري: بلاه iPhone كيفتح الفيديو فوق الصفحة. */
+            <video
+              src={clip!.url}
+              controls
+              playsInline
+              preload="metadata"
+              className="h-full w-full bg-black object-contain"
+            />
+          ) : shotAt(active) ? (
             <SafeImg
               src={shotAt(active)!.url}
               alt={`${v.make} ${v.model} — صورة ${active + 1}`}
@@ -109,7 +124,7 @@ export function Gallery({ v }: { v: Vehicle }) {
           </button>
         </div>
 
-        {shots > 1 && (
+        {slides > 1 && (
           <>
             <button
               onClick={() => go(1)}
@@ -134,22 +149,26 @@ export function Gallery({ v }: { v: Vehicle }) {
           className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] backdrop-blur-md"
           style={{ background: "rgba(10,30,61,0.72)", color: "#fff" }}
         >
-          <Camera size={12} />
-          <span className="num">{active + 1} / {shots}</span>
+          {onClip ? <Video size={12} /> : <Camera size={12} />}
+          <span className="num">{active + 1} / {slides}</span>
         </span>
       </div>
 
       <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto no-scrollbar pb-1">
-        {Array.from({ length: shots }).map((_, i) => (
+        {Array.from({ length: slides }).map((_, i) => (
           <button
             key={i}
             onClick={() => setActive(i)}
-            aria-label={`صورة ${i + 1}`}
+            aria-label={clip && i === shots ? "الفيديو" : `صورة ${i + 1}`}
             aria-current={active === i}
             className="h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition"
             style={{ borderColor: active === i ? "var(--brand)" : "transparent", opacity: active === i ? 1 : 0.6 }}
           >
-            {shotAt(i) ? (
+            {clip && i === shots ? (
+              <span className="grid h-full w-full place-items-center bg-black text-white">
+                <Video size={18} />
+              </span>
+            ) : shotAt(i) ? (
               <SafeImg
                 src={shotAt(i)!.thumbUrl ?? shotAt(i)!.url}
                 alt=""
