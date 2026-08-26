@@ -1,60 +1,99 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { put } from "@vercel/blob";
 import { getCurrentUser } from "@/lib/auth";
-import { fail, ok } from "@/lib/api";
-import {
-  MAX_PHOTO_BYTES, MAX_VIDEO_BYTES, PHOTO_TYPES, VIDEO_TYPES, blobConfigured,
-} from "@/lib/blob";
+import { fail, ok, unauthorized } from "@/lib/api";
+import { BLOB_ACCESS, PHOTO_TYPES, blobConfigured, mediaPath } from "@/lib/blob";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
-/**
- * توكن الرفع المباشر.
- *
- * الملف كيمشي من المتصفح لVercel Blob نيشان، ماشي عبر هاد الدالة —
- * حيت تصاور التيليفون عادة أكبر من الحد ديال جسم الطلب (4.5 ميغا).
- * هنا كنتحققو غير من المستخدم وكنوقّعو توكن محدود.
- *
- * بلا onUploadCompleted عن قصد: ملي كيتحط، Blob كيصيفط ردّ من خادم
- * لخادم لهاد المسار، والرفع ماكيسالاش حتى يوصل. وإلا ماوصلش —
- * الرفع كيبقى واقف. وماعندنا حتى فايدة منّو: الصور كيتربطو بالإعلان
- * ملي كينشر، من المتصفح اللي عندو الروابط.
- */
+/** نفس السقف اللي كيحترمو المتصفح (lib/image.ts) مع شوية هامش */
+const MAX_BODY_BYTES = 3.6 * 1024 * 1024;
+
+/* ============================================================
+   رفع الصور — الملف كيدوز من هنا
+
+   كنّا كنستعملو «الرفع المباشر»: المتصفح كياخد توكن من هنا ومن
+   بعد كيصيفط الملف نيشان لـvercel.com/api/blob. السبب كان حدّ
+   Vercel على جسم الطلب (4.5 ميغا) — تصويرة تيليفون أكبر منّو.
+
+   المشكل: هاد الطلب من المتصفح للخزّان عمرو ما كمل فiPhone —
+   لا بالشبكة ديال الدار ولا ب5G، لا بشريط التقدّم ولا بلاه.
+   السجلات بيّنو أنّ /api/upload كيعطي التوكن (200) والرفع من بعد
+   كيضيع. نطاق آخر، وCORS، وحماية vercel.com — بزاف ديال الحوايج
+   خارجة على يدّينا.
+
+   دابا كنصغّرو الصورة فالمتصفح أولاً (1920px، وتحت 3.4 ميغا
+   مضمون)، فالحد ديال 4.5 ميغا مابقاش مشكل — والملف كيدوز من
+   نفس النطاق اللي التيليفون كيهضر معاه أصلاً بلا مشاكل.
+
+   XHR فالمتصفح كيعطينا شريط التقدّم فكل المتصفحات، بلا streams.
+   ============================================================ */
+
 export async function POST(req: Request) {
   if (!blobConfigured())
     return fail("رفع الصور ماشي مضبوط: BLOB_READ_WRITE_TOKEN ناقص.", 503);
 
-  const body = (await req.json()) as HandleUploadBody;
+  const user = await getCurrentUser();
+  if (!user) return unauthorized();
+
+  const type = (req.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+  if (!PHOTO_TYPES.includes(type)) return fail("نوع الملف ماشي مقبول.", 415);
+
+  const declared = Number(req.headers.get("content-length") ?? 0);
+  if (declared > MAX_BODY_BYTES) return fail("الصورة كبيرة بزاف.", 413);
+
+  const bytes = Buffer.from(await req.arrayBuffer());
+  if (bytes.byteLength === 0) return fail("الملف خاوي.", 400);
+  if (bytes.byteLength > MAX_BODY_BYTES) return fail("الصورة كبيرة بزاف.", 413);
+
+  const name = req.headers.get("x-filename") ?? "photo.jpg";
 
   try {
-    const result = await handleUpload({
-      body,
-      request: req,
-      onBeforeGenerateToken: async (pathname) => {
-        const user = await getCurrentUser();
-        if (!user) throw new Error("خاصك تسجّل الدخول باش ترفع صور.");
-
-        // الملف خاصو يكون داخل المجلّد ديال هاد المستخدم — بلا هاد
-        // الفحص شي حد يقدر يكتب فوق صور ديال واحد آخر
-        if (!pathname.startsWith(`listings/${user.id}/`))
-          throw new Error("مسار الملف ماشي صحيح.");
-
-        const isVideo = /\.(mp4|mov|webm)$/i.test(pathname);
-        return {
-          allowedContentTypes: isVideo ? VIDEO_TYPES : PHOTO_TYPES,
-          maximumSizeInBytes: isVideo ? MAX_VIDEO_BYTES : MAX_PHOTO_BYTES,
-          addRandomSuffix: true,
-          tokenPayload: JSON.stringify({ userId: user.id }),
-        };
-      },
+    const blob = await put(mediaPath(user.id, name), bytes, {
+      access: BLOB_ACCESS,
+      addRandomSuffix: true,
+      contentType: type,
     });
-    return Response.json(result);
+    return ok({ url: blob.url, pathname: blob.pathname });
   } catch (e) {
-    return fail(e instanceof Error ? e.message : "ماقدرناش نرفعو الصورة.", 400);
+    console.error("[upload] الخزّان رفض:", e);
+    return fail("ماقدرناش نسجّلو الصورة. عاود المحاولة.", 502);
   }
 }
 
-/** فحص بسيط: واش الرفع مضبوط أصلاً — الواجهة كتسولو قبل ما توري زر الرفع */
-export async function GET() {
-  return ok({ enabled: blobConfigured() });
+/**
+ * فحص: واش الرفع مضبوط.
+ *
+ * `?selftest=1` كيكتب بكسل واحد فالخزّان — كيبيّن واش الخادم
+ * كيوصل للخزّان، بلا ما نحتاجو متصفح. المسار ثابت وكيتكتب فوقو،
+ * فحتى إلا تنادى بزاف ماكيزيدش غير 68 بايت فالخزّان.
+ */
+export async function GET(req: Request) {
+  const enabled = blobConfigured();
+  if (!enabled || new URL(req.url).searchParams.get("selftest") !== "1")
+    return ok({ enabled });
+
+  // بكسل شفّاف — أصغر PNG صالح
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  const started = Date.now();
+  try {
+    const blob = await put("selftest/probe.png", png, {
+      access: BLOB_ACCESS,
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType: "image/png",
+    });
+    return ok({ enabled, selftest: "ok", ms: Date.now() - started, url: blob.url });
+  } catch (e) {
+    return ok({
+      enabled,
+      selftest: "fail",
+      ms: Date.now() - started,
+      error: e instanceof Error ? `${e.name}: ${e.message}` : String(e),
+    });
+  }
 }

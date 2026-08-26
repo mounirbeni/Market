@@ -1,11 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-// خاصو يجي قبل @vercel/blob — داكشي كيربط globalThis.fetch ملي كيتحمّل
-import { arm, disarm } from "@/lib/fetch-probe";
-import { upload } from "@vercel/blob/client";
-import { MAX_PHOTOS, MAX_PHOTO_BYTES, PHOTO_TYPES } from "@/lib/blob";
-import { prepareImage } from "@/lib/image";
+import { MAX_PHOTOS, PHOTO_TYPES } from "@/lib/blob";
+import { MAX_UPLOAD_BYTES, prepareImage } from "@/lib/image";
 import { useSession } from "@/store/session";
 import { Camera, Check, Close, Star } from "@/components/icons";
 
@@ -22,76 +19,26 @@ interface Pending {
   file: File;
   preview: string;
   progress: number;
-  stage: "prep" | "up" | "up-blind";
+  stage: "prep" | "up";
   error?: string;
 }
 
 /** أكبر ملف نقبلو نحلّوه فالمتصفح — فوق هادشي التيليفون كيعلق */
 const MAX_SOURCE_BYTES = 48 * 1024 * 1024;
-/** المحاولة الأولى (بشريط التقدّم) — قصيرة، حيت إلا علقات ماغاديش تفيق */
-const STREAM_DEADLINE_MS = 30_000;
-/** المحاولة الثانية (بلا تقدّم) — الطريق العادي، كنعطيوه وقت كافي */
-const PLAIN_DEADLINE_MS = 45_000;
-
-class DeadlineError extends Error {
-  constructor() {
-    super("الرفع طوّل بزاف — الشبكة ضعيفة. عاود.");
-    this.name = "DeadlineError";
-  }
-}
-
-/**
- * حدّ زمني صارم.
- *
- * ماكافيش نصيفطو abort: مكتبة Blob كتعاود المحاولة 10 مرات مع
- * تأخير كيتضاعف (1، 2، 4، 8… ثانية)، والإشارة ماكتقطعش النوم
- * بيناتهم — يعني الخطأ كيوصل للمستخدم من بعد نصف ساعة. هنا
- * كنسابقو الوعد مع مؤقّت: إلا سبق المؤقّت، كنقطعو وكنعلنو الفشل
- * دغيا حتى إلا بقات المكتبة كتحاول فالخلفية.
- */
-function withDeadline<T>(work: Promise<T>, ms: number, ctrl: AbortController): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      ctrl.abort();
-      reject(new DeadlineError());
-    }, ms);
-    work.then(
-      (v) => {
-        clearTimeout(timer);
-        resolve(v);
-      },
-      (e) => {
-        clearTimeout(timer);
-        reject(e);
-      },
-    );
-  });
-}
+/** الرفع خاصو يسالي فهاد المدة — 3 ميغا على شبكة ضعيفة كتاخد أقل */
+const UPLOAD_TIMEOUT_MS = 90_000;
 
 const prettyBytes = (n: number) => `${(n / (1024 * 1024)).toFixed(1)} ميغا`;
 
-/**
- * واش نقدرو نطلبو شريط التقدّم من مكتبة Blob؟
- *
- * باش تعطي النسبة، المكتبة كتصيفط الملف كـstream فداخل fetch
- * (`duplex: "half"`). هادشي مدعوم غير فChromium على الحاسوب.
- * فWebKit — يعني كل المتصفحات فiPhone، حتى Chrome — الطلب كيعلق
- * فنص الجسم وعمرو ما كيكمّل: السجلات بيّنو ملف 750 كيلو واقف
- * ف٪50 بالضبط، نفس النسبة فكل محاولة.
- *
- * فهاد الحالات كنرفعو بلا تقدّم (fetch عادي) — كيخدم فكل مكان.
- */
-function canStreamProgress() {
-  if (typeof navigator === "undefined") return false;
-  const ua = navigator.userAgent;
-  // iPhone/iPad: كل المتصفحات مبنية على WebKit
-  if (/iPhone|iPad|iPod/.test(ua)) return false;
-  // Safari على الماك
-  if (/Safari/.test(ua) && !/Chrome|Chromium|Edg\//.test(ua)) return false;
-  return true;
-}
+/** الرؤوس ديال HTTP كتقبل غير ASCII — اسم بالعربية كيرمي غلطة */
+const asciiName = (name: string) => {
+  const clean = name.replace(/[^\x20-\x7E]/g, "").replace(/[^\w.-]+/g, "-").slice(0, 80);
+  return clean.replace(/^[-.]+/, "") || "photo.jpg";
+};
 
-/** كنعلمو الخادم بالفشل باش نقدرو نشوفوه فالسجلات — بلا محتوى الملف */
+/**
+ * كنعلمو الخادم بالفشل باش نقدرو نشوفوه فالسجلات — بلا محتوى الملف
+ */
 function report(info: Record<string, unknown>) {
   try {
     const payload = JSON.stringify(info);
@@ -108,6 +55,62 @@ function report(info: Record<string, unknown>) {
   } catch {
     /* التقرير ماشي مهم بزاف باش يوقف الواجهة */
   }
+}
+
+/**
+ * الرفع عبر XMLHttpRequest.
+ *
+ * علاش XHR ماشي fetch: `upload.onprogress` مدعوم فكل المتصفحات
+ * وكيعطي النسبة الحقيقية ديال البايتات اللي خرجات. fetch باش
+ * يعطي التقدّم خاصو streams فالطلب (`duplex: "half"`) — مدعوم
+ * غير فChromium على الحاسوب، وفiPhone كيعلق فنص الجسم.
+ *
+ * وفيه حتى مؤقّت حقيقي: `xhr.timeout` كيقطع الاتصال بجدّ.
+ */
+function putPhoto(
+  file: File,
+  onProgress: (percentage: number) => void,
+  signal: AbortSignal,
+): Promise<{ url: string }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/upload", true);
+    xhr.timeout = UPLOAD_TIMEOUT_MS;
+    xhr.responseType = "text";
+    xhr.setRequestHeader("content-type", file.type || "image/jpeg");
+    xhr.setRequestHeader("x-filename", asciiName(file.name));
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress((e.loaded / e.total) * 100);
+    };
+
+    xhr.onload = () => {
+      type Reply = { ok?: boolean; data?: { url?: string }; error?: string };
+      let parsed: Reply | null = null;
+      try {
+        parsed = JSON.parse(xhr.responseText) as Reply;
+      } catch {
+        /* رد ماشي JSON — كنعالجوه تحت */
+      }
+      if (xhr.status >= 200 && xhr.status < 300 && parsed?.ok && parsed.data?.url) {
+        resolve({ url: parsed.data.url });
+        return;
+      }
+      reject(new Error(parsed?.error ?? `الخادم رجّع ${xhr.status}`));
+    };
+
+    xhr.onerror = () => reject(new Error("الشبكة تقطعات. عاود."));
+    xhr.ontimeout = () => reject(new Error("الرفع طوّل بزاف. عاود."));
+    xhr.onabort = () => reject(new Error("الرفع توقّف."));
+
+    signal.addEventListener("abort", () => xhr.abort(), { once: true });
+    if (signal.aborted) {
+      xhr.abort();
+      return;
+    }
+
+    xhr.send(file);
+  });
 }
 
 export function PhotoUploader({
@@ -139,96 +142,45 @@ export function PhotoUploader({
       if (!user) return null;
 
       setPending((p) =>
-        p.map((x) =>
-          x.id === id ? { ...x, progress: 0, stage: "prep", error: undefined } : x,
-        ),
+        p.map((x) => (x.id === id ? { ...x, progress: 0, stage: "prep", error: undefined } : x)),
       );
 
+      const ctrl = new AbortController();
       const started = Date.now();
       let percentage = 0;
 
-      /** محاولة وحدة. withProgress = واش نطلبو شريط التقدّم. */
-      const attempt = async (ready: File, withProgress: boolean) => {
-        const ctrl = new AbortController();
-        arm();
-        setPending((p) =>
-          p.map((x) =>
-            x.id === id ? { ...x, stage: withProgress ? "up" : "up-blind", progress: 0 } : x,
-          ),
-        );
-        return withDeadline(
-          upload(`listings/${user.id}/${ready.name}`, ready, {
-            access: "public",
-            handleUploadUrl: "/api/upload",
-            abortSignal: ctrl.signal,
-            onUploadProgress: withProgress
-              ? (e) => {
-                  percentage = e.percentage;
-                  setPending((p) =>
-                    p.map((x) => (x.id === id ? { ...x, progress: e.percentage } : x)),
-                  );
-                }
-              : undefined,
-          }),
-          withProgress ? STREAM_DEADLINE_MS : PLAIN_DEADLINE_MS,
-          ctrl,
-        );
-      };
-
-      let streamed = false;
       try {
-        // كنصغّرو الصورة قبل الرفع — كتخفّ بزاف والرفع كيسالي بسرعة
+        // كنصغّرو الصورة قبل الرفع — كتخفّ بزاف وكتبقى تحت حد الجسم
         const { file: ready, width, height } = await prepareImage(file);
 
-        if (ready.size > MAX_PHOTO_BYTES) {
+        if (ready.size > MAX_UPLOAD_BYTES) {
           throw new Error(`كبيرة بزاف بعد الضغط (${prettyBytes(ready.size)})`);
         }
 
-        let blob;
-        if (canStreamProgress()) {
-          streamed = true;
-          try {
-            // المسار خاصو يبدا بمجلّد المستخدم — الخادم كيرفض غير هادشي
-            blob = await attempt(ready, true);
-          } catch (first) {
-            /* الطريق ديال التقدّم علق ولا طاح — كنعاودو بالعادي.
-               حتى إلا الكشف ديالنا غالط، هاد الرجعة كتصلّح الأمور. */
-            report({
-              message: first instanceof Error ? first.message : "فشل مجهول",
-              name: first instanceof Error ? first.name : "unknown",
-              phase: "stream",
-              probe: disarm(),
-              percentage,
-              elapsedMs: Date.now() - started,
-              size: file.size,
-              type: file.type,
-              aborted: true,
-            });
-            percentage = 0;
-            blob = await attempt(ready, false);
-          }
-        } else {
-          blob = await attempt(ready, false);
-        }
+        setPending((p) => p.map((x) => (x.id === id ? { ...x, stage: "up" } : x)));
 
-        disarm();
+        const { url } = await putPhoto(
+          ready,
+          (pct) => {
+            percentage = pct;
+            setPending((p) => p.map((x) => (x.id === id ? { ...x, progress: pct } : x)));
+          },
+          ctrl.signal,
+        );
+
         setPending((p) => p.filter((x) => x.id !== id));
         URL.revokeObjectURL(preview);
-        return { url: blob.url, kind: "photo", width, height };
+        return { url, kind: "photo", width, height };
       } catch (e) {
-        const msg =
-          e instanceof Error && e.message ? e.message : "ماقدرناش نرفعوها";
+        const msg = e instanceof Error && e.message ? e.message : "ماقدرناش نرفعوها";
         setPending((p) => p.map((x) => (x.id === id ? { ...x, error: msg } : x)));
         report({
           message: msg,
           name: e instanceof Error ? e.name : "unknown",
-          phase: streamed ? "plain-after-stream" : "plain",
-          probe: disarm(),
           percentage,
           elapsedMs: Date.now() - started,
           size: file.size,
           type: file.type,
-          aborted: true,
         });
         return null;
       }
@@ -398,8 +350,6 @@ export function PhotoUploader({
                 </span>
               ) : x.stage === "prep" ? (
                 <span className="text-[10px] font-bold">كنحضّروها…</span>
-              ) : x.stage === "up-blind" ? (
-                <span className="text-[10px] font-bold">كنرفعوها…</span>
               ) : (
                 <span className="num text-[11px] font-bold">{Math.round(x.progress)}%</span>
               )}

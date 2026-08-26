@@ -1,23 +1,32 @@
 /* ============================================================
    تحضير الصور قبل الرفع — كيوقع كلّو فالمتصفح
 
-   تصويرة ديال تيليفون حديث كتجي 4000×3000 و6 لـ12 ميغا. رفع
-   هادشي من شبكة 4G ضعيفة كياخد دقايق، وإلا تقطع الشبكة فآخر
-   لحظة كتعاود مكتبة Blob الرفع من الصفر (٪99 ← ٪0) عشر مرات.
+   تصويرة ديال تيليفون حديث كتجي 4000×3000 و6 لـ12 ميغا. حنا
+   كنرفعو الصورة عبر الخادم ديالنا، وVercel عندو حدّ 4.5 ميغا
+   على جسم الطلب — فالضغط هنا ماشي غير تحسين، هو شرط.
 
-   الحل: كنصغّرو الصورة هنا لـ1920px و JPEG — كتولّي بين 200
-   و500 كيلو، يعني الرفع كيسالي فثواني والقطع مابقاش كيوقع.
-   1920 كافية بزاف: أكبر عرض كنبيّنو فالموقع هو 1200px.
+   1920px كافية بزاف: أكبر عرض كنبيّنو فالموقع هو 1200px.
    ============================================================ */
 
 /** أطول ضلع فالصورة المرفوعة */
 const MAX_EDGE = 1920;
-/** تحت هاد الحجم مانضغطوش — الصورة أصلاً خفيفة */
-const SKIP_BELOW_BYTES = 900 * 1024;
-const QUALITY = 0.82;
-/** إلا بقات ثقيلة بعد الضغط الأول، كنعاودو بجودة أقل */
-const HEAVY_BYTES = 2 * 1024 * 1024;
-const QUALITY_LOW = 0.7;
+/** تحت هاد الحجم ومقاس معقول، مانضغطوش — الصورة أصلاً خفيفة */
+const SKIP_BELOW_BYTES = 700 * 1024;
+
+/**
+ * السقف اللي خاص الملف المرفوع يبقى تحتو.
+ * حدّ Vercel هو 4.5 ميغا على الجسم كامل، وكنخلّيو هامش للرؤوس.
+ */
+export const MAX_UPLOAD_BYTES = 3.4 * 1024 * 1024;
+
+/** درجات الضغط: كنهبطو الجودة، ومن بعد المقاس، حتى نوصلو للسقف */
+const STEPS: { edge: number; quality: number }[] = [
+  { edge: 1920, quality: 0.82 },
+  { edge: 1920, quality: 0.7 },
+  { edge: 1600, quality: 0.65 },
+  { edge: 1280, quality: 0.6 },
+  { edge: 1024, quality: 0.55 },
+];
 
 export interface Prepared {
   file: File;
@@ -31,7 +40,7 @@ async function decode(file: File): Promise<ImageBitmap | HTMLImageElement | null
     try {
       return await createImageBitmap(file);
     } catch {
-      /* HEIC ولا صيغة ماكيعرفهاش المتصفح — كنجرّبو <img> */
+      /* HEIC ولا صيغة ماكيعرفهاش createImageBitmap — كنجرّبو <img> */
     }
   }
   return new Promise((resolve) => {
@@ -60,62 +69,88 @@ function toBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null
 
 /** اسم نظيف — بلا مسافات ولا حروف كتخلّط المسار */
 function jpegName(name: string) {
-  const base = name.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9_-]+/g, "-").slice(0, 60);
+  const base = name
+    .replace(/\.[^.]+$/, "")
+    .replace(/[^a-zA-Z0-9_-]+/g, "-")
+    .slice(0, 60);
   return `${base || "photo"}.jpg`;
+}
+
+/** كنرسمو الصورة فمقاس معيّن وكنرجّعو JPEG */
+async function encodeAt(
+  src: ImageBitmap | HTMLImageElement,
+  w: number,
+  h: number,
+  edge: number,
+  quality: number,
+) {
+  const scale = Math.min(1, edge / Math.max(w, h));
+  const width = Math.max(1, Math.round(w * scale));
+  const height = Math.max(1, Math.round(h * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.drawImage(src as CanvasImageSource, 0, 0, width, height);
+
+  const blob = await toBlob(canvas, quality);
+  // كنفرّغو الذاكرة — تيليفون قديم كيضيق بيه الحال مع صور بزاف
+  canvas.width = 0;
+  canvas.height = 0;
+  return blob ? { blob, width, height } : null;
 }
 
 /**
  * كترجع الملف اللي غادي يتّرفع مع أبعادو.
- * إلا فشل شي حاجة كنرجعو الملف الأصلي — الضغط تحسين ماشي شرط.
+ *
+ * كتّرمى غلطة إلا ماقدرناش نوصلو للسقف — أحسن من رفع كيفشل
+ * فالخادم برسالة ماكتفهم والو.
  */
 export async function prepareImage(file: File): Promise<Prepared> {
   const src = await decode(file);
-  if (!src) return { file };
 
-  const { w, h } = sizeOf(src);
-  const scale = Math.min(1, MAX_EDGE / Math.max(w, h));
-
-  // صغيرة وخفيفة أصلاً — نرفعوها كيما هي
-  if (scale === 1 && file.size <= SKIP_BELOW_BYTES) {
-    if ("close" in src) src.close();
-    return { file, width: w, height: h };
+  if (!src) {
+    // ماقدرناش نقراوها — نجرّبو نرفعوها كما هي إلا كانت صغيرة
+    if (file.size <= MAX_UPLOAD_BYTES) return { file };
+    throw new Error("ماقدرناش نقراو هاد الصورة. جرّب وحدة أخرى.");
   }
 
-  const width = Math.max(1, Math.round(w * scale));
-  const height = Math.max(1, Math.round(h * scale));
-
   try {
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return { file, width: w, height: h };
-    ctx.drawImage(src as CanvasImageSource, 0, 0, width, height);
+    const { w, h } = sizeOf(src);
 
-    let blob = await toBlob(canvas, QUALITY);
-    /* صور فيها تفاصيل بزاف كتبقى ثقيلة حتى بعد التصغير —
-       جولة ثانية بجودة أقل بلا ما نخسرو الوضوح فالتيليفون */
-    if (blob && blob.size > HEAVY_BYTES) {
-      const lighter = await toBlob(canvas, QUALITY_LOW);
-      if (lighter && lighter.size < blob.size) blob = lighter;
+    // صغيرة ومقاسها معقول — نرفعوها كيما هي
+    if (Math.max(w, h) <= MAX_EDGE && file.size <= SKIP_BELOW_BYTES) {
+      return { file, width: w, height: h };
     }
-    canvas.width = 0;
-    canvas.height = 0;
-    if (!blob) return { file, width: w, height: h };
 
-    // إلا الضغط ماربحنا فيه والو، نبقاو على الأصل
-    if (blob.size >= file.size && scale === 1) return { file, width: w, height: h };
+    let best: { blob: Blob; width: number; height: number } | null = null;
+    for (const step of STEPS) {
+      const out = await encodeAt(src, w, h, step.edge, step.quality);
+      if (!out) continue;
+      best = out;
+      if (out.blob.size <= MAX_UPLOAD_BYTES) break;
+    }
+
+    if (!best) throw new Error("ماقدرناش نحضّرو هاد الصورة. جرّب وحدة أخرى.");
+    if (best.blob.size > MAX_UPLOAD_BYTES) {
+      throw new Error("الصورة كبيرة بزاف. جرّب وحدة أخرى.");
+    }
+
+    // إلا الضغط ماربحنا فيه والو والأصل تحت السقف، نبقاو على الأصل
+    if (best.blob.size >= file.size && file.size <= MAX_UPLOAD_BYTES) {
+      return { file, width: w, height: h };
+    }
 
     return {
-      file: new File([blob], jpegName(file.name), {
+      file: new File([best.blob], jpegName(file.name), {
         type: "image/jpeg",
         lastModified: Date.now(),
       }),
-      width,
-      height,
+      width: best.width,
+      height: best.height,
     };
-  } catch {
-    return { file, width: w, height: h };
   } finally {
     if ("close" in src) src.close();
   }
