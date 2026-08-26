@@ -3,7 +3,7 @@ import { body, dbMissing, fail, ok, unauthorized, writeFail } from "@/lib/api";
 import { fairPrice, trustScore } from "@/lib/market";
 import type { Body, Condition, Fuel, Gearbox, Vehicle } from "@/lib/types";
 import type { NewListing } from "@/lib/db/writes";
-import { MAX_PHOTOS } from "@/lib/blob";
+import { MAX_PHOTOS, isMediaUrl } from "@/lib/blob";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,6 +32,8 @@ const text = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
  * الإعلانات ديالنا كيشدّو صور من برّا (ولا يبعث رابط تتبّع).
  */
 function isOwnBlobUrl(url: string) {
+  // الخزّان خاص، فالصور كتّقدّم من /api/media/… ديالنا
+  if (isMediaUrl(url)) return true;
   try {
     const u = new URL(url);
     return (

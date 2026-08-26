@@ -1,7 +1,7 @@
 import { put } from "@vercel/blob";
 import { getCurrentUser } from "@/lib/auth";
 import { fail, ok, unauthorized } from "@/lib/api";
-import { BLOB_ACCESS, PHOTO_TYPES, blobConfigured, mediaPath } from "@/lib/blob";
+import { BLOB_ACCESS, PHOTO_TYPES, blobConfigured, mediaPath, mediaUrl } from "@/lib/blob";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       addRandomSuffix: true,
       contentType: type,
     });
-    return ok({ url: blob.url, pathname: blob.pathname });
+    return ok({ url: mediaUrl(blob.pathname), pathname: blob.pathname });
   } catch (e) {
     console.error("[upload] الخزّان رفض:", e);
     return fail("ماقدرناش نسجّلو الصورة. عاود المحاولة.", 502);
@@ -87,7 +87,7 @@ export async function GET(req: Request) {
       allowOverwrite: true,
       contentType: "image/png",
     });
-    return ok({ enabled, selftest: "ok", ms: Date.now() - started, url: blob.url });
+    return ok({ enabled, selftest: "ok", ms: Date.now() - started, url: mediaUrl(blob.pathname) });
   } catch (e) {
     return ok({
       enabled,
