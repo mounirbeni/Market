@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { MY_LISTINGS } from "./Overview";
+import { useMyListings } from "@/lib/useMyListings";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { promoOf } from "@/lib/promo";
 import { formatNumber, timeAgo } from "@/lib/format";
@@ -13,28 +13,32 @@ import { VehicleArt } from "@/components/VehicleArt";
 import { TrustDot } from "@/components/TrustBadge";
 import { BadgeCheck, Check, Eye, Heart, Plus, Sparkle, Timer, Trash, TrendingUp } from "@/components/icons";
 
-type Status = "active" | "pending" | "sold" | "expired";
+/** نفس قيم listing_status اللي فقاعدة البيانات */
+type Status = "draft" | "pending" | "active" | "sold" | "expired" | "rejected";
 
 const STATUS: Record<Status, { label: string; color: string }> = {
-  active: { label: "نشيط", color: "var(--good)" },
+  draft: { label: "مسوّدة", color: "var(--text-dim)" },
   pending: { label: "في المراجعة", color: "var(--warn)" },
+  active: { label: "نشيط", color: "var(--good)" },
   sold: { label: "مباع", color: "var(--data)" },
   expired: { label: "منتهي", color: "var(--text-dim)" },
+  rejected: { label: "مرفوض", color: "var(--bad)" },
 };
 
-/** حالة تجريبية لكل إعلان */
-const statusOf = (i: number): Status =>
-  i === 1 ? "pending" : i === 4 ? "sold" : i === 5 ? "expired" : "active";
+const asStatus = (s: string): Status => (s in STATUS ? (s as Status) : "active");
 
 export function DashboardListings() {
   const [filter, setFilter] = useState<Status | "all">("all");
 
-  const rows = MY_LISTINGS.map((v, i) => ({ v, status: statusOf(i) })).filter(
-    (r) => filter === "all" || r.status === filter,
-  );
+  /* إعلاناتك الحقيقية من قاعدة البيانات */
+  const { items: mine } = useMyListings();
 
-  const counts = MY_LISTINGS.reduce<Record<string, number>>((acc, _, i) => {
-    const s = statusOf(i);
+  const rows = mine
+    .map((v) => ({ v, status: asStatus(v.status) }))
+    .filter((r) => filter === "all" || r.status === filter);
+
+  const counts = mine.reduce<Record<string, number>>((acc, v) => {
+    const s = asStatus(v.status);
     acc[s] = (acc[s] ?? 0) + 1;
     return acc;
   }, {});
@@ -46,7 +50,7 @@ export function DashboardListings() {
           {([["all", "الكل"], ...Object.entries(STATUS).map(([k, v]) => [k, v.label])] as [string, string][]).map(
             ([k, label]) => {
               const on = filter === k;
-              const n = k === "all" ? MY_LISTINGS.length : counts[k] ?? 0;
+              const n = k === "all" ? mine.length : counts[k] ?? 0;
               return (
                 <button
                   key={k}

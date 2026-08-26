@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CITIES } from "@/lib/cities";
-import { makesFor, modelsFor, VEHICLES } from "@/lib/data/vehicles";
-import { applyFilters, type Filters } from "@/lib/search";
+
+import { paramsFromFilters, type Filters } from "@/lib/search";
+import {
+  emptyFacets, PRICE_MAX as FACET_PRICE_MAX, type Facets, type FlagKey,
+} from "@/lib/facets";
 import { formatNumber } from "@/lib/format";
 import {
   BadgeCheck, Bolt, Calendar, Car, Droplet, Fuel, Gauge, Gearbox, Grid, Leaf,
@@ -64,55 +67,45 @@ const GEARBOXES = [
 const PRICE_MAX = 600000;
 const KM_MAX = 350000;
 
-function histogram(values: number[], min: number, max: number, buckets = 22) {
-  const out = new Array(buckets).fill(0);
-  const span = max - min || 1;
-  for (const v of values) {
-    const i = Math.min(buckets - 1, Math.max(0, Math.floor(((v - min) / span) * buckets)));
-    out[i]++;
-  }
-  return out;
-}
-
 export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }: Props) {
   const [showAllCities, setShowAllCities] = useState(false);
 
+  /* العدّادات كلها كتّحسب فالخادم فضربة وحدة — من قاعدة البيانات ملي تكون موصولة */
+  const [f9s, setF9s] = useState<Facets>(emptyFacets);
+
+  const facetKey = useMemo(() => paramsFromFilters(filters).toString(), [filters]);
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/facets?${facetKey}`)
+      .then((r) => r.json())
+      .then((j) => {
+        if (alive && j?.ok) setF9s(j.data as Facets);
+      })
+      .catch(() => {
+        /* الشبكة قاطعة — كنخلّيو آخر عدّادات عندنا */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [facetKey]);
+
   /** عدد النتائج لو طُبّق هذا الخيار */
-  const facet = useMemo(
-    () => (patch: Partial<Filters>) => applyFilters({ ...filters, ...patch }).length,
-    [filters],
-  );
-
-  const kindCounts = useMemo(
-    () => ({
-      all: applyFilters({ ...filters, kind: "all", make: "", model: "", body: "" }).length,
-      car: applyFilters({ ...filters, kind: "car", make: "", model: "", body: "" }).length,
-      moto: applyFilters({ ...filters, kind: "moto", make: "", model: "", body: "" }).length,
-    }),
-    [filters],
-  );
-
-  const makes = useMemo(() => makesFor(filters.kind), [filters.kind]);
-  const models = useMemo(() => (filters.make ? modelsFor(filters.make) : []), [filters.make]);
+  const flagCount = (k: FlagKey) => f9s.flags[k] ?? 0;
+  const kindCounts = f9s.kind;
+  const makes = useMemo(() => Object.keys(f9s.makes).sort(), [f9s]);
+  const models = useMemo(() => Object.keys(f9s.models).sort(), [f9s]);
 
   const bodies = filters.kind === "moto" ? MOTO_BODIES : filters.kind === "car" ? CAR_BODIES : [...CAR_BODIES, ...MOTO_BODIES];
 
-  const priceHist = useMemo(() => {
-    const base = applyFilters({ ...filters, priceMin: undefined, priceMax: undefined });
-    return histogram(base.map((v) => v.price), 0, PRICE_MAX);
-  }, [filters]);
-
-  const yearHist = useMemo(() => {
-    const base = applyFilters({ ...filters, yearMin: undefined, yearMax: undefined });
-    return histogram(base.map((v) => v.year), 2004, 2026, 22);
-  }, [filters]);
+  const priceHist = f9s.priceHist;
+  const yearHist = f9s.yearHist;
 
   const cityList = useMemo(() => {
-    const withCounts = CITIES.map((c) => ({ ...c, n: facet({ city: c.slug }) }))
+    const withCounts = CITIES.map((c) => ({ ...c, n: f9s.city[c.slug] ?? 0 }))
       .filter((c) => c.n > 0)
       .sort((a, b) => b.n - a.n);
     return showAllCities ? withCounts : withCounts.slice(0, 8);
-  }, [facet, showAllCities]);
+  }, [f9s, showAllCities]);
 
   const activeTotal = [
     filters.make, filters.model, filters.city, filters.fuel, filters.gearbox, filters.body,
@@ -172,7 +165,7 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
             columns={3}
             options={bodies.map((b) => ({
               ...b,
-              count: facet({ body: b.value }),
+              count: f9s.body[b.value] ?? 0,
               render: () => (
                 <VehicleGlyph
                   shape={b.value as never}
@@ -200,7 +193,7 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
           >
             <option value="">كل الماركات</option>
             {makes.map((m) => {
-              const n = facet({ make: m, model: "" });
+              const n = f9s.makes[m] ?? 0;
               return (
                 <option key={m} value={m} disabled={n === 0}>
                   {m} ({n})
@@ -218,7 +211,7 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
             >
               <option value="">كل موديلات {filters.make}</option>
               {models.map((m) => (
-                <option key={m} value={m}>{m} ({facet({ model: m })})</option>
+                <option key={m} value={m}>{m} ({f9s.models[m] ?? 0})</option>
               ))}
             </select>
           )}
@@ -306,13 +299,13 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
           <ChipToggles
             value={filters.fuel}
             onChange={(f) => set({ fuel: f })}
-            options={FUELS.map((f) => ({ ...f, count: facet({ fuel: f.value }) }))}
+            options={FUELS.map((x) => ({ ...x, count: f9s.fuel[x.value] ?? 0 }))}
           />
           <div className="mt-2">
             <ChipToggles
               value={filters.gearbox}
               onChange={(g) => set({ gearbox: g })}
-              options={GEARBOXES.map((g) => ({ ...g, count: facet({ gearbox: g.value }) }))}
+              options={GEARBOXES.map((g) => ({ ...g, count: f9s.gearbox[g.value] ?? 0 }))}
             />
           </div>
         </FilterSection>
@@ -322,7 +315,7 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
           <ChipToggles
             value={filters.condition}
             onChange={(c) => set({ condition: c })}
-            options={CONDITIONS.map((c) => ({ ...c, count: facet({ condition: c.value }) }))}
+            options={CONDITIONS.map((c) => ({ ...c, count: f9s.condition[c.value] ?? 0 }))}
           />
         </FilterSection>
 
@@ -380,7 +373,7 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
               hint="الثمن أقل من المرجع المحسوب"
               checked={filters.goodDealsOnly}
               onChange={(b) => set({ goodDealsOnly: b })}
-              count={facet({ goodDealsOnly: true })}
+              count={flagCount("goodDealsOnly")}
             />
             <SwitchRow
               Icon={Wrench}
@@ -388,14 +381,14 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
               hint="120 نقطة فحص مستقلة"
               checked={filters.inspectedOnly}
               onChange={(b) => set({ inspectedOnly: b })}
-              count={facet({ inspectedOnly: true })}
+              count={flagCount("inspectedOnly")}
             />
             <SwitchRow
               Icon={BadgeCheck}
               label="وثائق ورقم هيكل موثقان"
               checked={filters.verifiedOnly}
               onChange={(b) => set({ verifiedOnly: b })}
-              count={facet({ verifiedOnly: true })}
+              count={flagCount("verifiedOnly")}
             />
             <SwitchRow
               Icon={Key}
@@ -403,7 +396,7 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
               hint="مالك واحد منذ الشراء"
               checked={filters.firstHandOnly}
               onChange={(b) => set({ firstHandOnly: b })}
-              count={facet({ firstHandOnly: true })}
+              count={flagCount("firstHandOnly")}
             />
             <SwitchRow
               Icon={Timer}
@@ -411,7 +404,7 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
               hint="البائع مستعجل — غالباً قابل للتفاوض"
               checked={filters.urgentOnly}
               onChange={(b) => set({ urgentOnly: b })}
-              count={facet({ urgentOnly: true })}
+              count={flagCount("urgentOnly")}
             />
           </div>
         </FilterSection>

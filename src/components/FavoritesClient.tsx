@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { useApp } from "@/store/app";
-import { vehicleById } from "@/lib/data/vehicles";
+import { useVehiclesByIds } from "@/lib/useVehicles";
 import { VehicleCard } from "@/components/VehicleCard";
 import { computeTco } from "@/lib/tco";
 import { formatNumber } from "@/lib/format";
@@ -13,10 +13,8 @@ import { Bell, Calculator, Car, Coins, Heart, Search, Trash, TrendingDown } from
 export function FavoritesClient() {
   const { favorites, searches, removeSearch, ready, priceWatch, togglePriceWatch, isWatched } = useApp();
 
-  const items = useMemo(
-    () => favorites.map((id) => vehicleById(id)).filter(Boolean) as Vehicle[],
-    [favorites],
-  );
+  /* التفاصيل كتجي من قاعدة البيانات — المتصفح كيخزّن غير المعرّفات */
+  const { items } = useVehiclesByIds(favorites);
 
   const stats = useMemo(() => {
     if (!items.length) return null;

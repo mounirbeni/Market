@@ -2,6 +2,10 @@ import "server-only";
 import { sql, one } from "./client";
 import { DEFAULT_FILTERS, type Filters, type SortKey } from "@/lib/search";
 import type { HistoryEvent, Seller, Vehicle } from "@/lib/types";
+import {
+  emptyFacets, FLAG_KEYS, HIST_BUCKETS, PRICE_MAX, YEAR_MAX, YEAR_MIN,
+  type Facets,
+} from "@/lib/facets";
 
 /* ============================================================
    استعلامات الإعلانات
@@ -406,5 +410,130 @@ export async function listingsOfDealer(slug: string) {
      WHERE l.status='active' AND d.slug = $1
      ORDER BY l.published_at DESC`,
     [slug],
+  );
+}
+
+/** إعلانات بمجموعة معرّفات (ref ولا slug) — للمفضّلة والمقارنة وآخر ما شفتي */
+export async function listingsByRefs(refs: string[]) {
+  if (refs.length === 0) return [];
+  return sql<ListingRow>(
+    `SELECT ${SELECT_COLS} ${FROM}
+     WHERE l.status='active' AND (l.ref = ANY($1::text[]) OR l.slug = ANY($1::text[]))`,
+    [refs],
+  );
+}
+
+/** slug + آخر تحديث — لخريطة الموقع */
+export async function listingSitemapRows() {
+  return sql<{ slug: string; published_at: Date }>(
+    "SELECT slug, published_at FROM listings WHERE status = 'active'",
+  );
+}
+
+/* ---------- عدّادات الفلاتر ---------- */
+
+/** عدّ مجمّع على عمود واحد، مع نفس الفلاتر ناقص هاد العمود */
+async function groupCount(f: Filters, col: string): Promise<Record<string, number>> {
+  const { clause, params } = buildWhere(f);
+  const rows = await sql<{ k: string | null; n: string }>(
+    `SELECT ${col} AS k, count(*)::text AS n ${FROM} WHERE ${clause} GROUP BY 1`,
+    params,
+  );
+  const out: Record<string, number> = {};
+  for (const r of rows) if (r.k != null) out[String(r.k)] = Number(r.n);
+  return out;
+}
+
+/** عدد الصفوف فقط */
+async function plainCount(f: Filters): Promise<number> {
+  const { clause, params } = buildWhere(f);
+  const r = await one<{ n: string }>(
+    `SELECT count(*)::text AS n ${FROM} WHERE ${clause}`,
+    params,
+  );
+  return Number(r?.n ?? 0);
+}
+
+/** مدرّج تكراري بنفس تقسيم المتصفح — width عبر floor() */
+async function histCount(
+  f: Filters,
+  col: string,
+  min: number,
+  max: number,
+): Promise<number[]> {
+  const { clause, params } = buildWhere(f);
+  const span = (max - min) || 1;
+  // نفس ترتيب العمليات ديال bucketOf() — ضرب قبل قسمة
+  const bucket =
+    `least(${HIST_BUCKETS - 1}, greatest(0,` +
+    ` floor(((${col} - ${min})::numeric * ${HIST_BUCKETS}) / ${span})))::int`;
+  const rows = await sql<{ b: number; n: string }>(
+    `SELECT ${bucket} AS b, count(*)::text AS n ${FROM} WHERE ${clause} GROUP BY 1`,
+    params,
+  );
+  const out = new Array<number>(HIST_BUCKETS).fill(0);
+  for (const r of rows) out[Number(r.b)] = Number(r.n);
+  return out;
+}
+
+/** كل عدّادات اللوحة الجانبية فضربة وحدة */
+export async function facetCounts(filters: Partial<Filters>): Promise<Facets> {
+  const f: Filters = { ...DEFAULT_FILTERS, ...filters };
+  const kindBase = { ...f, make: "", model: "", body: "" };
+
+  const [
+    total, kAll, kCar, kMoto,
+    body, fuel, gearbox, condition, city,
+    makeRows, modelRows,
+    priceHist, yearHist,
+    ...flagCounts
+  ] = await Promise.all([
+    plainCount(f),
+    plainCount({ ...kindBase, kind: "all" }),
+    plainCount({ ...kindBase, kind: "car" }),
+    plainCount({ ...kindBase, kind: "moto" }),
+    groupCount({ ...f, body: "" }, "l.body"),
+    groupCount({ ...f, fuel: "" }, "l.fuel"),
+    groupCount({ ...f, gearbox: "" }, "l.gearbox"),
+    groupCount({ ...f, condition: "" }, "l.condition"),
+    groupCount({ ...f, city: "" }, "l.city"),
+    groupCount({ ...f, make: "", model: "" }, "l.make"),
+    f.make ? groupCount({ ...f, model: "" }, "l.model") : Promise.resolve({}),
+    histCount({ ...f, priceMin: undefined, priceMax: undefined }, "l.price_mad", 0, PRICE_MAX),
+    histCount({ ...f, yearMin: undefined, yearMax: undefined }, "l.year", YEAR_MIN, YEAR_MAX),
+    ...FLAG_KEYS.map((flag) => plainCount({ ...f, [flag]: true })),
+  ]);
+
+  const out = emptyFacets();
+  out.total = total;
+  out.kind = { all: kAll, car: kCar, moto: kMoto };
+  out.body = body;
+  out.fuel = fuel;
+  out.gearbox = gearbox;
+  out.condition = condition;
+  out.city = city;
+  out.makes = makeRows;
+  out.models = modelRows;
+  out.priceHist = priceHist;
+  out.yearHist = yearHist;
+  FLAG_KEYS.forEach((flag, i) => { out.flags[flag] = flagCounts[i] as number; });
+  return out;
+}
+
+/** كتالوج الماركات والموديلات — للقوائم المنسدلة */
+export async function catalogRows() {
+  return sql<{ kind: "car" | "moto"; make: string; model: string }>(
+    `SELECT DISTINCT kind, make, model FROM listings
+     WHERE status = 'active' ORDER BY make, model`,
+  );
+}
+
+/** إعلانات بائع معيّن — للوحة التحكّم (بما فيها اللي ماشي نشيطة) */
+export async function listingsOfSeller(userId: string) {
+  return sql<ListingRow & { status: string }>(
+    `SELECT ${SELECT_COLS}, l.status ${FROM}
+     WHERE l.seller_id = $1
+     ORDER BY l.published_at DESC`,
+    [userId],
   );
 }

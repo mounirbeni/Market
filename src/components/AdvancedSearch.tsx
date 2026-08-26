@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CITIES } from "@/lib/cities";
-import { makesFor, modelsFor } from "@/lib/data/vehicles";
-import { applyFilters, paramsFromFilters, type Filters } from "@/lib/search";
+
+import { paramsFromFilters, type Filters } from "@/lib/search";
+import { emptyFacets, type Facets } from "@/lib/facets";
 import { formatNumber } from "@/lib/format";
 import { AR } from "@/lib/format";
 import {
@@ -53,10 +54,29 @@ export function AdvancedSearch() {
   const set = (patch: Partial<Filters>) => setF((p) => ({ ...p, ...patch }));
 
   const kind = (f.kind ?? "all") as "all" | "car" | "moto";
-  const makes = useMemo(() => makesFor(kind), [kind]);
-  const models = useMemo(() => (f.make ? modelsFor(f.make) : []), [f.make]);
+
+  /* العدد والماركات كيجيو من الخادم — كيتحدّثو مع كل اختيار */
+  const [f9s, setF9s] = useState<Facets>(emptyFacets);
+  const facetKey = useMemo(() => paramsFromFilters(f).toString(), [f]);
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/facets?${facetKey}`)
+      .then((r) => r.json())
+      .then((j) => {
+        if (alive && j?.ok) setF9s(j.data as Facets);
+      })
+      .catch(() => {
+        /* الشبكة قاطعة — كنخلّيو آخر عدّادات عندنا */
+      });
+    return () => {
+      alive = false;
+    };
+  }, [facetKey]);
+
+  const makes = useMemo(() => Object.keys(f9s.makes).sort(), [f9s]);
+  const models = useMemo(() => Object.keys(f9s.models).sort(), [f9s]);
   const bodies = kind === "moto" ? MOTO_BODIES : kind === "car" ? CAR_BODIES : [...CAR_BODIES, ...MOTO_BODIES];
-  const count = useMemo(() => applyFilters(f).length, [f]);
+  const count = f9s.total;
 
   function submit() {
     const params = paramsFromFilters(f);

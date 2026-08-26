@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { VEHICLES } from "@/lib/data/vehicles";
 import { DEALERS } from "@/lib/data/dealers";
+import { getStats } from "@/lib/source";
 import { CITIES } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import {
@@ -16,9 +16,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  /* العدّ كيجي من قاعدة البيانات ملي تكون موصولة */
+  const site = await getStats();
+
   const stats = [
-    { Icon: Car, v: formatNumber(VEHICLES.length), l: "مركبة معروضة" },
+    { Icon: Car, v: formatNumber(site.cars + site.motos), l: "مركبة معروضة" },
     { Icon: Users, v: formatNumber(DEALERS.length), l: "معرض معتمد" },
     { Icon: MapPin, v: formatNumber(CITIES.length), l: "مدينة مغربية" },
     { Icon: BadgeCheck, v: "120", l: "نقطة فحص" },

@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     const n = Number(sp.get(key));
     return Number.isFinite(n) ? n : fallback;
   };
-  const limit = Math.min(60, Math.max(1, Math.trunc(num("limit", 24))));
+  const limit = Math.min(200, Math.max(1, Math.trunc(num("limit", 24))));
   const offset = Math.max(0, Math.trunc(num("offset", 0)));
 
   const { items, total } = await findVehicles(filters, { limit, offset });

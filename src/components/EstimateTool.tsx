@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { vehicleHref } from "@/lib/slug";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { estimateValue } from "@/lib/market";
-import { makesFor, modelsFor, VEHICLES } from "@/lib/data/vehicles";
+import { useCatalog } from "@/lib/useCatalog";
 import { formatNumber } from "@/lib/format";
 import { CITIES } from "@/lib/cities";
 import type { Condition } from "@/lib/types";
@@ -32,8 +32,23 @@ export function EstimateTool() {
   const [condition, setCondition] = useState<Condition>("tres-bon");
   const [city, setCity] = useState("casablanca");
 
-  const makes = useMemo(() => makesFor(kind), [kind]);
-  const models = useMemo(() => modelsFor(make), [make]);
+  /* الماركات والموديلات كيجيو من قاعدة البيانات */
+  const { makesFor, modelsFor } = useCatalog();
+
+  /* عدد المركبات المعروضة — كيبان فالملاحظة تحت التقدير */
+  const [fleet, setFleet] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/listings?limit=1")
+      .then((r) => r.json())
+      .then((j) => alive && j?.ok && setFleet(j.data.total as number))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const makes = useMemo(() => makesFor(kind), [makesFor, kind]);
+  const models = useMemo(() => modelsFor(make), [modelsFor, make]);
 
   function changeKind(k: "car" | "moto") {
     setKind(k);
@@ -287,7 +302,7 @@ export function EstimateTool() {
 
         <p className="flex gap-2 text-[11px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
           <Info size={13} className="mt-px shrink-0" />
-          التقدير إرشادي ومبني على الإعلانات المتوفرة داخل المنصة ({VEHICLES.length} مركبة).
+          التقدير إرشادي ومبني على الإعلانات المتوفرة داخل المنصة ({formatNumber(fleet)} مركبة).
           الثمن النهائي كيتأثر بحالة المحرك، تاريخ الصيانة، الوثائق والتفاوض.
         </p>
       </div>

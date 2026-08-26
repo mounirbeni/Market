@@ -2,9 +2,8 @@
 
 import { useEffect, useMemo } from "react";
 import { useApp } from "@/store/app";
-import { vehicleById } from "@/lib/data/vehicles";
+import { useVehiclesByIds } from "@/lib/useVehicles";
 import { VehicleCard } from "@/components/VehicleCard";
-import type { Vehicle } from "@/lib/types";
 import { Clock } from "@/components/icons";
 
 interface Props {
@@ -26,15 +25,12 @@ export function RecentlyViewed({ currentId, heading = "شفتي مؤخراً", l
     if (ready && currentId) pushRecent(currentId);
   }, [ready, currentId, pushRecent]);
 
-  const items = useMemo(
-    () =>
-      recent
-        .filter((id) => id !== currentId)
-        .map((id) => vehicleById(id))
-        .filter(Boolean)
-        .slice(0, limit) as Vehicle[],
+  const ids = useMemo(
+    () => recent.filter((id) => id !== currentId).slice(0, limit),
     [recent, currentId, limit],
   );
+  /* التفاصيل كتجي من قاعدة البيانات — المتصفح كيخزّن غير المعرّفات */
+  const { items } = useVehiclesByIds(ids);
 
   if (!ready || items.length === 0) return null;
 

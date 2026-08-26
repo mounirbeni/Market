@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { PROMOS, PROMO_ORDER, type PromoTier } from "@/lib/promo";
-import { vehicleById } from "@/lib/data/vehicles";
+import { useVehiclesByIds } from "@/lib/useVehicles";
 import { formatNumber } from "@/lib/format";
 import { vehicleHref } from "@/lib/slug";
 import { VehicleArt } from "@/components/VehicleArt";
@@ -18,7 +18,12 @@ const TIER_ICON = { top: TrendingUp, urgent: Timer, featured: Sparkle } as const
 
 export function PromoteClient() {
   const sp = useSearchParams();
-  const listing = vehicleById(sp.get("listing") ?? "");
+  const wanted = useMemo(() => {
+    const id = sp.get("listing");
+    return id ? [id] : [];
+  }, [sp]);
+  /* الإعلان كيتجاب من قاعدة البيانات حسب المعرّف اللي فالرابط */
+  const listing = useVehiclesByIds(wanted).items[0];
   const [picked, setPicked] = useState<PromoTier>("urgent");
   const meta = PROMOS[picked];
 

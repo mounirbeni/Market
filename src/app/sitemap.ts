@@ -1,13 +1,19 @@
 import type { MetadataRoute } from "next";
-import { VEHICLES } from "@/lib/data/vehicles";
 import { CITIES } from "@/lib/cities";
 import { DEALERS } from "@/lib/data/dealers";
 import { GUIDES } from "@/lib/data/guides";
-import { brandsWithCounts, vehicleSlug } from "@/lib/slug";
+import { getBrands, getSitemapEntries } from "@/lib/source";
 
 const BASE = "https://triq.ma";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  /* الإعلانات والماركات كيجيو من قاعدة البيانات ملي تكون موصولة */
+  const [entries, carBrandRows, motoBrandRows] = await Promise.all([
+    getSitemapEntries(),
+    getBrands("car"),
+    getBrands("moto"),
+  ]);
+
   const staticPages = [
     { p: "", pr: 1 },
     { p: "/cars", pr: 0.95 },
@@ -34,19 +40,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: pr,
   }));
 
-  const vehicles = VEHICLES.map((v) => ({
-    url: `${BASE}/vehicle/${vehicleSlug(v)}`,
-    lastModified: new Date(v.publishedAt),
+  const vehicles = entries.map((v) => ({
+    url: `${BASE}/vehicle/${v.slug}`,
+    lastModified: v.lastModified,
     changeFrequency: "weekly" as const,
     priority: 0.7,
   }));
 
-  const carBrands = brandsWithCounts("car").map((b) => ({
+  const carBrands = carBrandRows.map((b) => ({
     url: `${BASE}/cars/${b.slug}`,
     changeFrequency: "daily" as const,
     priority: 0.65,
   }));
-  const motoBrands = brandsWithCounts("moto").map((b) => ({
+  const motoBrands = motoBrandRows.map((b) => ({
     url: `${BASE}/motorcycles/${b.slug}`,
     changeFrequency: "daily" as const,
     priority: 0.65,

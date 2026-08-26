@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { VEHICLES } from "@/lib/data/vehicles";
 import { THREADS } from "@/lib/data/threads";
 import { trustOf, fairPriceOf } from "@/lib/market";
 import { formatNumber, timeAgo } from "@/lib/format";
@@ -11,29 +10,30 @@ import { vehicleHref } from "@/lib/slug";
 import { artShape } from "@/lib/artshape";
 import { VehicleArt } from "@/components/VehicleArt";
 import { useApp } from "@/store/app";
+import { useMyListings } from "@/lib/useMyListings";
 import {
   ArrowLeft, BadgeCheck, Calendar, Car, Eye, Heart, Message, ShieldCheck,
   Sparkle, TrendingDown, Users,
 } from "@/components/icons";
 
-/** إعلانات البائع التجريبي */
-export const MY_LISTINGS = VEHICLES.filter((v) => v.sellerId === "s01").slice(0, 6);
-
 export function DashboardOverview() {
   const { favorites } = useApp();
   const unread = THREADS.reduce((s, t) => s + t.unread, 0);
 
+  /* إعلاناتك الحقيقية من قاعدة البيانات */
+  const { items: mine } = useMyListings();
+
   const stats = useMemo(() => {
-    const views = MY_LISTINGS.reduce((s, v) => s + v.views, 0);
-    const saves = MY_LISTINGS.reduce((s, v) => s + v.saves, 0);
-    const avgTrust = MY_LISTINGS.length
-      ? Math.round(MY_LISTINGS.reduce((s, v) => s + trustOf(v).score, 0) / MY_LISTINGS.length)
+    const views = mine.reduce((s, v) => s + v.views, 0);
+    const saves = mine.reduce((s, v) => s + v.saves, 0);
+    const avgTrust = mine.length
+      ? Math.round(mine.reduce((s, v) => s + trustOf(v).score, 0) / mine.length)
       : 0;
     return { views, saves, avgTrust };
-  }, []);
+  }, [mine]);
 
   const cards = [
-    { Icon: Car, v: formatNumber(MY_LISTINGS.length), l: "إعلان نشيط", c: "var(--brand)", href: "/dashboard/listings" },
+    { Icon: Car, v: formatNumber(mine.length), l: "إعلان نشيط", c: "var(--brand)", href: "/dashboard/listings" },
     { Icon: Eye, v: formatNumber(stats.views), l: "مشاهدة", c: "var(--data)", href: "/dashboard/listings" },
     { Icon: Heart, v: formatNumber(stats.saves), l: "حفظ", c: "var(--bad)", href: "/dashboard/listings" },
     { Icon: Message, v: formatNumber(unread), l: "رسالة غير مقروءة", c: "var(--good)", href: "/dashboard/messages" },
@@ -41,7 +41,7 @@ export function DashboardOverview() {
     { Icon: Users, v: formatNumber(favorites.length), l: "مركبة محفوظة", c: "var(--text-dim)", href: "/dashboard/favorites" },
   ];
 
-  const weakest = [...MY_LISTINGS].sort((a, b) => trustOf(a).score - trustOf(b).score)[0];
+  const weakest = [...mine].sort((a, b) => trustOf(a).score - trustOf(b).score)[0];
   const weakTrust = weakest ? trustOf(weakest) : null;
 
   return (
@@ -74,7 +74,7 @@ export function DashboardOverview() {
             </Link>
           </header>
           <ul className="divide-y" style={{ borderColor: "var(--line-soft)" }}>
-            {MY_LISTINGS.slice(0, 4).map((v) => {
+            {mine.slice(0, 4).map((v) => {
               const fp = fairPriceOf(v);
               return (
                 <li key={v.id}>

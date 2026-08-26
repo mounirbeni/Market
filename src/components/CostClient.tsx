@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { VEHICLES } from "@/lib/data/vehicles";
+import { useEffect, useMemo, useState } from "react";
+import type { Vehicle } from "@/lib/types";
 import { computeTco } from "@/lib/tco";
 import { TcoCalculator } from "@/components/vehicle/TcoCalculator";
 import { formatNumber } from "@/lib/format";
@@ -11,12 +11,29 @@ import { Car, Chart, Moto, TrendingDown, TrendingUp } from "@/components/icons";
 
 export function CostClient() {
   const [id, setId] = useState("c003");
-  const v = useMemo(() => VEHICLES.find((x) => x.id === id) ?? VEHICLES[0], [id]);
   const [kind, setKind] = useState<"car" | "moto">("car");
+
+  /* المركبات كيجيو من قاعدة البيانات */
+  const [fleet, setFleet] = useState<Vehicle[]>([]);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/listings?limit=200&sort=price-asc")
+      .then((r) => r.json())
+      .then((j) => {
+        if (alive && j?.ok) setFleet(j.data.items as Vehicle[]);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const v = useMemo<Vehicle | undefined>(() => fleet.find((x) => x.id === id) ?? fleet[0], [fleet, id]);
 
   const ranking = useMemo(() => {
     const km = kind === "moto" ? 8000 : 15000;
-    return VEHICLES.filter((x) => x.kind === kind)
+    return fleet
+      .filter((x) => x.kind === kind)
       .map((x) => ({
         v: x,
         tco: computeTco(x, {
@@ -27,7 +44,7 @@ export function CostClient() {
         }),
       }))
       .sort((a, b) => a.tco.perYear - b.tco.perYear);
-  }, [kind]);
+  }, [fleet, kind]);
 
   const cheapest = ranking.slice(0, 8);
   const priciest = ranking.slice(-5).reverse();
@@ -43,7 +60,7 @@ export function CostClient() {
           value={id}
           onChange={(e) => setId(e.target.value)}
         >
-          {VEHICLES.map((x) => (
+          {fleet.map((x) => (
             <option key={x.id} value={x.id}>
               {x.make} {x.model} {x.version} — {x.year} ({formatNumber(x.price)} د.م)
             </option>
@@ -51,7 +68,7 @@ export function CostClient() {
         </select>
       </div>
 
-      <TcoCalculator v={v} />
+      {v && <TcoCalculator v={v} />}
 
       <section className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">

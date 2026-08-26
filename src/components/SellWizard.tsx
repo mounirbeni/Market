@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { estimateValue, trustScore } from "@/lib/market";
-import { makesFor, modelsFor } from "@/lib/data/vehicles";
+import { useCatalog } from "@/lib/useCatalog";
 import { CITIES } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
@@ -191,8 +191,10 @@ export function SellWizard() {
 
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }));
 
-  const makes = useMemo(() => makesFor(d.kind), [d.kind]);
-  const models = useMemo(() => modelsFor(d.make), [d.make]);
+  /* الماركات والموديلات كيجيو من قاعدة البيانات */
+  const { makesFor, modelsFor } = useCatalog();
+  const makes = useMemo(() => makesFor(d.kind), [makesFor, d.kind]);
+  const models = useMemo(() => modelsFor(d.make), [modelsFor, d.make]);
 
   const estimate = useMemo(
     () =>

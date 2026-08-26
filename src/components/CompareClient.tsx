@@ -4,7 +4,7 @@ import Link from "next/link";
 import { vehicleHref } from "@/lib/slug";
 import { useMemo } from "react";
 import { useApp } from "@/store/app";
-import { vehicleById } from "@/lib/data/vehicles";
+import { useVehiclesByIds } from "@/lib/useVehicles";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { computeTco } from "@/lib/tco";
 import { AR, formatNumber } from "@/lib/format";
@@ -40,10 +40,8 @@ interface Group {
 export function CompareClient() {
   const { compare, toggleCompare, clearCompare, ready } = useApp();
 
-  const items = useMemo(
-    () => compare.map((id) => vehicleById(id)).filter(Boolean) as Vehicle[],
-    [compare],
-  );
+  /* التفاصيل كتجي من قاعدة البيانات — المتصفح كيخزّن غير المعرّفات */
+  const { items } = useVehiclesByIds(compare);
 
   const groups = useMemo<Group[]>(() => {
     if (!items.length) return [];

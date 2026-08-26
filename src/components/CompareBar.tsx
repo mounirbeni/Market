@@ -2,16 +2,15 @@
 
 import Link from "next/link";
 import { useApp } from "@/store/app";
-import { vehicleById } from "@/lib/data/vehicles";
+import { useVehiclesByIds } from "@/lib/useVehicles";
 import { VehicleArt } from "./VehicleArt";
 import { Close, Scale, Trash } from "./icons";
 import { artShape } from "@/lib/artshape";
 
 export function CompareBar() {
   const { compare, toggleCompare, clearCompare, ready } = useApp();
+  const { items } = useVehiclesByIds(compare);
   if (!ready || compare.length === 0) return null;
-
-  const items = compare.map((id) => vehicleById(id)).filter(Boolean);
 
   return (
     <div className="fixed inset-x-0 bottom-[60px] z-40 px-3 pb-3 animate-rise sm:bottom-0">

@@ -1,6 +1,8 @@
 import "server-only";
 import type { Seller, Vehicle } from "./types";
 import { applyFilters, type Filters } from "./search";
+import { facetsFromSeed, type Facets } from "./facets";
+import type { CatalogEntry } from "./source-types";
 import { VEHICLES } from "./data/vehicles";
 import { sellerById } from "./data/sellers";
 import { brandsWithCounts } from "./slug";
@@ -201,5 +203,85 @@ export async function getDealerListings(slug: string, sellerId: string): Promise
     return rows.map((r) => rowToVehicle(r));
   } catch {
     return VEHICLES.filter((v) => v.sellerId === sellerId);
+  }
+}
+
+/** مركبات بمجموعة معرّفات — كترجع بنفس ترتيب المعرّفات اللي دخلو */
+export async function findByIds(ids: string[]): Promise<Vehicle[]> {
+  const wanted = [...new Set(ids.filter(Boolean))].slice(0, 60);
+  if (wanted.length === 0) return [];
+
+  const order = (list: Vehicle[]) => {
+    const byId = new Map(list.map((v) => [v.id, v]));
+    return wanted.map((id) => byId.get(id)).filter((v): v is Vehicle => Boolean(v));
+  };
+
+  if (!usingDb()) return order(VEHICLES.filter((v) => wanted.includes(v.id)));
+
+  try {
+    const { listingsByRefs, rowToVehicle } = await db();
+    const rows = await listingsByRefs(wanted);
+    return order(rows.map((r) => rowToVehicle(r)));
+  } catch (e) {
+    console.error("[source] فشل جلب المركبات بالمعرّفات، كنرجعو للبيانات المرفقة:", e);
+    return order(VEHICLES.filter((v) => wanted.includes(v.id)));
+  }
+}
+
+export interface SitemapEntry {
+  slug: string;
+  lastModified: Date;
+}
+
+/** مدخلات خريطة الموقع — slug وآخر تحديث لكل إعلان نشيط */
+export async function getSitemapEntries(): Promise<SitemapEntry[]> {
+  const fromSeed = async () => {
+    const { vehicleSlug } = await import("./slug");
+    return VEHICLES.map((v) => ({
+      slug: vehicleSlug(v),
+      lastModified: new Date(v.publishedAt),
+    }));
+  };
+
+  if (!usingDb()) return fromSeed();
+
+  try {
+    const { listingSitemapRows } = await db();
+    const rows = await listingSitemapRows();
+    return rows.map((r) => ({ slug: r.slug, lastModified: new Date(r.published_at) }));
+  } catch (e) {
+    console.error("[source] فشل جلب خريطة الموقع:", e);
+    return fromSeed();
+  }
+}
+
+/** عدّادات اللوحة الجانبية */
+export async function getFacets(filters: Partial<Filters>): Promise<Facets> {
+  if (!usingDb()) return facetsFromSeed(filters);
+  try {
+    const { facetCounts } = await db();
+    return await facetCounts(filters);
+  } catch (e) {
+    console.error("[source] فشل جلب عدّادات الفلاتر:", e);
+    return facetsFromSeed(filters);
+  }
+}
+
+export type { CatalogEntry };
+
+/** الماركات والموديلات الموجودة فعلاً فالموقع */
+export async function getCatalog(): Promise<CatalogEntry[]> {
+  const fromSeed = () =>
+    VEHICLES.map((v) => ({ kind: v.kind, make: v.make, model: v.model })).sort(
+      (a, b) => a.make.localeCompare(b.make) || a.model.localeCompare(b.model),
+    );
+
+  if (!usingDb()) return fromSeed();
+  try {
+    const { catalogRows } = await db();
+    return await catalogRows();
+  } catch (e) {
+    console.error("[source] فشل جلب الكتالوج:", e);
+    return fromSeed();
   }
 }

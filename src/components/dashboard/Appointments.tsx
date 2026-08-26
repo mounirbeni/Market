@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { vehicleById } from "@/lib/data/vehicles";
+import { useMemo, useState } from "react";
+import { useVehiclesByIds } from "@/lib/useVehicles";
 import { vehicleHref } from "@/lib/slug";
 import { formatDate, formatNumber } from "@/lib/format";
 import { artShape } from "@/lib/artshape";
@@ -34,10 +34,14 @@ const STATE = {
 export function DashboardAppointments() {
   const [states, setStates] = useState<Record<string, Appt["state"]>>({});
 
+  /* المركبات ديال المواعيد كتجي من قاعدة البيانات */
+  const { items } = useVehiclesByIds(APPTS.map((a) => a.vehicleId));
+  const byId = useMemo(() => new Map(items.map((v) => [v.id, v])), [items]);
+
   return (
     <div className="space-y-3">
       {APPTS.map((a) => {
-        const v = vehicleById(a.vehicleId);
+        const v = byId.get(a.vehicleId);
         const state = states[a.id] ?? a.state;
         const st = STATE[state];
         return (
