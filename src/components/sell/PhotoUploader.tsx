@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
 import { MAX_PHOTOS, MAX_PHOTO_BYTES, PHOTO_TYPES } from "@/lib/blob";
+import { prepareImage } from "@/lib/image";
 import { useSession } from "@/store/session";
 import { Camera, Check, Close, Star } from "@/components/icons";
 
@@ -15,29 +16,74 @@ export interface UploadedPhoto {
 
 interface Pending {
   id: string;
+  /** كنحتافظو بالملف باش «عاود» يخدم بلا ما يعاود المستخدم يختارو */
+  file: File;
   preview: string;
   progress: number;
+  stage: "prep" | "up";
   error?: string;
 }
 
-/** كنقراو الأبعاد قبل الرفع باش نخزّنوهم مع الصورة */
-function dimensionsOf(file: File): Promise<{ width?: number; height?: number }> {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
-    const img = new window.Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      resolve({});
-    };
-    img.src = url;
+/** أكبر ملف نقبلو نحلّوه فالمتصفح — فوق هادشي التيليفون كيعلق */
+const MAX_SOURCE_BYTES = 48 * 1024 * 1024;
+/** ملي كيفوت هاد الوقت والرفع ماسالاش، كنوقفوه ونعلمو المستخدم */
+const UPLOAD_DEADLINE_MS = 75_000;
+
+class DeadlineError extends Error {
+  constructor() {
+    super("الرفع طوّل بزاف — الشبكة ضعيفة. عاود.");
+    this.name = "DeadlineError";
+  }
+}
+
+/**
+ * حدّ زمني صارم.
+ *
+ * ماكافيش نصيفطو abort: مكتبة Blob كتعاود المحاولة 10 مرات مع
+ * تأخير كيتضاعف (1، 2، 4، 8… ثانية)، والإشارة ماكتقطعش النوم
+ * بيناتهم — يعني الخطأ كيوصل للمستخدم من بعد نصف ساعة. هنا
+ * كنسابقو الوعد مع مؤقّت: إلا سبق المؤقّت، كنقطعو وكنعلنو الفشل
+ * دغيا حتى إلا بقات المكتبة كتحاول فالخلفية.
+ */
+function withDeadline<T>(work: Promise<T>, ms: number, ctrl: AbortController): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      ctrl.abort();
+      reject(new DeadlineError());
+    }, ms);
+    work.then(
+      (v) => {
+        clearTimeout(timer);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(timer);
+        reject(e);
+      },
+    );
   });
 }
 
 const prettyBytes = (n: number) => `${(n / (1024 * 1024)).toFixed(1)} ميغا`;
+
+/** كنعلمو الخادم بالفشل باش نقدرو نشوفوه فالسجلات — بلا محتوى الملف */
+function report(info: Record<string, unknown>) {
+  try {
+    const payload = JSON.stringify(info);
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon("/api/upload/report", new Blob([payload], { type: "application/json" }));
+      return;
+    }
+    void fetch("/api/upload/report", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: payload,
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* التقرير ماشي مهم بزاف باش يوقف الواجهة */
+  }
+}
 
 export function PhotoUploader({
   photos,
@@ -62,6 +108,71 @@ export function PhotoUploader({
     };
   }, []);
 
+  /** رفع ملف واحد. كترجع الصورة إلا نجح، ولا null إلا طاح. */
+  const runOne = useCallback(
+    async (file: File, id: string, preview: string): Promise<UploadedPhoto | null> => {
+      if (!user) return null;
+
+      setPending((p) =>
+        p.map((x) => (x.id === id ? { ...x, progress: 0, stage: "prep", error: undefined } : x)),
+      );
+
+      const ctrl = new AbortController();
+      const started = Date.now();
+      let percentage = 0;
+
+      try {
+        // كنصغّرو الصورة قبل الرفع — هادشي هو اللي كيخلّي الرفع يسالي
+        const { file: ready, width, height } = await prepareImage(file);
+
+        if (ready.size > MAX_PHOTO_BYTES) {
+          throw new Error(`كبيرة بزاف بعد الضغط (${prettyBytes(ready.size)})`);
+        }
+
+        setPending((p) => p.map((x) => (x.id === id ? { ...x, stage: "up" } : x)));
+
+        // المسار خاصو يبدا بمجلّد المستخدم — الخادم كيرفض غير هادشي
+        const blob = await withDeadline(
+          upload(`listings/${user.id}/${ready.name}`, ready, {
+            access: "public",
+            handleUploadUrl: "/api/upload",
+            abortSignal: ctrl.signal,
+            onUploadProgress: (e) => {
+              percentage = e.percentage;
+              setPending((p) => p.map((x) => (x.id === id ? { ...x, progress: e.percentage } : x)));
+            },
+          }),
+          UPLOAD_DEADLINE_MS,
+          ctrl,
+        );
+
+        setPending((p) => p.filter((x) => x.id !== id));
+        URL.revokeObjectURL(preview);
+        return { url: blob.url, kind: "photo", width, height };
+      } catch (e) {
+        const aborted = ctrl.signal.aborted;
+        const msg =
+          e instanceof Error && e.message
+            ? e.message
+            : aborted
+              ? "الرفع طوّل بزاف — الشبكة ضعيفة. عاود."
+              : "ماقدرناش نرفعوها";
+        setPending((p) => p.map((x) => (x.id === id ? { ...x, error: msg } : x)));
+        report({
+          message: msg,
+          name: e instanceof Error ? e.name : "unknown",
+          percentage,
+          elapsedMs: Date.now() - started,
+          size: file.size,
+          type: file.type,
+          aborted,
+        });
+        return null;
+      }
+    },
+    [user],
+  );
+
   const pick = useCallback(
     async (files: FileList | null) => {
       if (!files || files.length === 0 || !user) return;
@@ -73,57 +184,41 @@ export function PhotoUploader({
         const id = `${file.name}-${Date.now()}-${Math.random()}`;
         const preview = URL.createObjectURL(file);
 
-        if (file.size > MAX_PHOTO_BYTES) {
+        if (file.size > MAX_SOURCE_BYTES) {
           setPending((p) => [
             ...p,
-            { id, preview, progress: 0, error: `كبيرة بزاف (${prettyBytes(file.size)})` },
+            {
+              id,
+              file,
+              preview,
+              progress: 0,
+              stage: "prep",
+              error: `كبيرة بزاف (${prettyBytes(file.size)})`,
+            },
           ]);
           continue;
         }
 
-        setPending((p) => [...p, { id, preview, progress: 0 }]);
-
-        /* شبكة أمان: إلا وقف التقدّم دقيقتين، كنقطعو بدل ما نبقاو
-           دايرين للأبد. شبكة التيليفون كتقطع بلا ما تعلن. */
-        const ctrl = new AbortController();
-        let stall: ReturnType<typeof setTimeout> | undefined;
-        const bump = () => {
-          clearTimeout(stall);
-          stall = setTimeout(() => ctrl.abort(), 120_000);
-        };
-        bump();
-
-        try {
-          const dims = await dimensionsOf(file);
-          // المسار خاصو يبدا بمجلّد المستخدم — الخادم كيرفض غير هادشي
-          const blob = await upload(`listings/${user.id}/${file.name}`, file, {
-            access: "public",
-            handleUploadUrl: "/api/upload",
-            abortSignal: ctrl.signal,
-            onUploadProgress: ({ percentage }) => {
-              bump();
-              setPending((p) => p.map((x) => (x.id === id ? { ...x, progress: percentage } : x)));
-            },
-          });
-          added.push({ url: blob.url, kind: "photo", ...dims });
-          setPending((p) => p.filter((x) => x.id !== id));
-          URL.revokeObjectURL(preview);
-        } catch (e) {
-          const msg = ctrl.signal.aborted
-            ? "الرفع وقف — الشبكة ضعيفة. عاود."
-            : e instanceof Error
-              ? e.message
-              : "ماقدرناش نرفعوها";
-          setPending((p) => p.map((x) => (x.id === id ? { ...x, error: msg } : x)));
-        } finally {
-          clearTimeout(stall);
-        }
+        setPending((p) => [...p, { id, file, preview, progress: 0, stage: "prep" }]);
+        const photo = await runOne(file, id, preview);
+        if (photo) added.push(photo);
       }
 
       if (added.length > 0) onChange([...photos, ...added]);
       if (inputRef.current) inputRef.current.value = "";
     },
-    [photos, onChange, user],
+    [photos, onChange, user, runOne],
+  );
+
+  /** «عاود» على صورة طاحت — بلا ما يعاود المستخدم يختار من التيليفون */
+  const retry = useCallback(
+    async (id: string) => {
+      const entry = pending.find((x) => x.id === id);
+      if (!entry || entry.file.size > MAX_SOURCE_BYTES) return;
+      const photo = await runOne(entry.file, id, entry.preview);
+      if (photo) onChange([...photos, photo]);
+    },
+    [pending, photos, onChange, runOne],
   );
 
   const remove = (url: string) => onChange(photos.filter((p) => p.url !== url));
@@ -223,14 +318,23 @@ export function PhotoUploader({
               {x.error ? (
                 <span className="text-[10px] font-bold leading-tight" style={{ color: "var(--bad)" }}>
                   {x.error}
-                  <button
-                    type="button"
-                    onClick={() => setPending((p) => p.filter((y) => y.id !== x.id))}
-                    className="mt-1 block w-full underline"
-                  >
-                    حيّد
-                  </button>
+                  <span className="mt-1 flex justify-center gap-2">
+                    {x.file.size <= MAX_SOURCE_BYTES && (
+                      <button type="button" onClick={() => void retry(x.id)} className="underline">
+                        عاود
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setPending((p) => p.filter((y) => y.id !== x.id))}
+                      className="underline"
+                    >
+                      حيّد
+                    </button>
+                  </span>
                 </span>
+              ) : x.stage === "prep" ? (
+                <span className="text-[10px] font-bold">كنحضّروها…</span>
               ) : (
                 <span className="num text-[11px] font-bold">{Math.round(x.progress)}%</span>
               )}
@@ -270,7 +374,7 @@ export function PhotoUploader({
         ) : (
           <>
             الإعلانات ب<span className="num">12</span> صورة فما فوق كتوصل ضعف الاتصالات.
-            أقصى حجم للصورة <span className="num">12</span> ميغا.
+            كنصغّرو الصور أوتوماتيكياً قبل الرفع باش تمشي بسرعة.
           </>
         )}
       </p>
