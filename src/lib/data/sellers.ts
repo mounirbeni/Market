@@ -19,4 +19,12 @@ export const SELLERS: Seller[] = [
   { id: "s16", name: "أوطو ديل الجنوب", type: "professionnel", city: "laayoune", since: 2018, idVerified: true, phoneVerified: true, rating: 4.1, salesCount: 88, responseMinutes: 70 },
 ];
 
-export const sellerById = (id: string) => SELLERS.find((s) => s.id === id)!;
+/** بائع محايد ملي المعرّف ماشي من البيانات المرفقة (مثلاً UUID من قاعدة البيانات) */
+const UNKNOWN_SELLER: Seller = {
+  id: "unknown", name: "بائع", type: "particulier", city: "casablanca",
+  since: 2020, idVerified: false, phoneVerified: false,
+  rating: 4, salesCount: 0, responseMinutes: 60,
+};
+
+export const sellerById = (id: string): Seller =>
+  SELLERS.find((s) => s.id === id) ?? UNKNOWN_SELLER;

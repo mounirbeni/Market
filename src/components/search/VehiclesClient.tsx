@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   applyFilters, DEFAULT_FILTERS, filtersFromParams, paramsFromFilters,
   SORT_LABELS, type Filters, type SortKey,
 } from "@/lib/search";
+import type { Vehicle } from "@/lib/types";
 import { VehicleCard, VehicleRow } from "@/components/VehicleCard";
 import { FiltersPanel } from "./FiltersPanel";
 import { SmartSearch } from "@/components/SmartSearch";
@@ -41,7 +42,6 @@ export function VehiclesClient({
   const sp = useSearchParams();
   const router = useRouter();
   const { saveSearch } = useApp();
-  const [visible, setVisible] = useState(PAGE_SIZE);
   const [mobileFilters, setMobileFilters] = useState(false);
   const [saved, setSaved] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -53,7 +53,57 @@ export function VehiclesClient({
     return base;
   }, [sp, lockKind, lockBrand]);
 
-  const results = useMemo(() => applyFilters(filters), [filters]);
+  /* النتائج كتجي من الخادم — قاعدة البيانات ملي تكون موصولة */
+  const [results, setResults] = useState<Vehicle[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const load = useCallback(
+    async (offset: number) => {
+      const qs = paramsFromFilters(filters);
+      qs.set("limit", String(PAGE_SIZE * 2));
+      qs.set("offset", String(offset));
+      const res = await fetch(`/api/listings?${qs.toString()}`);
+      const json = await res.json();
+      if (!json?.ok) throw new Error("bad response");
+      return json.data as { items: Vehicle[]; total: number };
+    },
+    [filters],
+  );
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    load(0)
+      .then((d) => {
+        if (!alive) return;
+        setResults(d.items);
+        setTotal(d.total);
+      })
+      .catch(() => {
+        // الشبكة قاطعة — كنفلترو محلياً باش الصفحة ماتبقاش خاوية
+        if (!alive) return;
+        const local = applyFilters(filters);
+        setResults(local.slice(0, PAGE_SIZE * 2));
+        setTotal(local.length);
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [load, filters]);
+
+  const loadMore = useCallback(() => {
+    setLoadingMore(true);
+    const offset = results.length;
+    load(offset)
+      .then((d) => setResults((prev) => [...prev, ...d.items]))
+      .catch(() => setResults(applyFilters(filters).slice(0, offset + PAGE_SIZE * 2)))
+      .finally(() => setLoadingMore(false));
+  }, [load, results.length, filters]);
 
   const push = useCallback(
     (next: Filters) => {
@@ -62,7 +112,6 @@ export function VehiclesClient({
       if (lockBrand) params.delete("make");
       const qs = params.toString();
       router.replace(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
-      setVisible(PAGE_SIZE);
       setSaved(false);
     },
     [router, basePath, lockKind, lockBrand],
@@ -121,7 +170,7 @@ export function VehiclesClient({
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
         <aside className="hidden lg:block">
           <div className="sticky top-[84px] max-h-[calc(100vh-104px)] overflow-y-auto pl-1">
-            <FiltersPanel filters={filters} set={set} reset={reset} count={results.length} lockKind={lockKind} lockBrand={lockBrand} />
+            <FiltersPanel filters={filters} set={set} reset={reset} count={total} lockKind={lockKind} lockBrand={lockBrand} />
           </div>
         </aside>
 
@@ -138,8 +187,8 @@ export function VehiclesClient({
                 </p>
               )}
               <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
-                <span className="num font-bold" style={{ color: "var(--brand)" }}>{results.length}</span> نتيجة
-                {results.length > 0 && <> · مرتّبة حسب {SORT_LABELS[filters.sort]}</>}
+                <span className="num font-bold" style={{ color: "var(--brand)" }}>{total}</span> نتيجة
+                {total > 0 && <> · مرتّبة حسب {SORT_LABELS[filters.sort]}</>}
               </p>
               </div>
             </div>
@@ -222,7 +271,20 @@ export function VehiclesClient({
           )}
 
           {/* النتائج */}
-          {results.length === 0 ? (
+          {loading && results.length === 0 ? (
+            <div
+              className={view === "grid" ? "grid gap-5 sm:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-4"}
+              aria-busy="true"
+            >
+              {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                <div
+                  key={i}
+                  className="card animate-pulse"
+                  style={{ height: view === "grid" ? 300 : 132, background: "var(--surface-2)" }}
+                />
+              ))}
+            </div>
+          ) : results.length === 0 ? (
             <div className="card flex flex-col items-center p-12 text-center">
               <span
                 className="grid h-14 w-14 place-items-center rounded-2xl"
@@ -251,14 +313,14 @@ export function VehiclesClient({
                     : "flex flex-col gap-4"
                 }
               >
-                {results.slice(0, visible).map((v) =>
+                {results.map((v) =>
                   view === "grid" ? <VehicleCard key={v.id} v={v} /> : <VehicleRow key={v.id} v={v} />,
                 )}
               </div>
-              {visible < results.length && (
+              {results.length < total && (
                 <div className="mt-8 text-center">
-                  <button onClick={() => setVisible((n) => n + PAGE_SIZE)} className="btn btn-solid">
-                    شوف المزيد <span className="num opacity-60">({results.length - visible})</span>
+                  <button onClick={loadMore} disabled={loadingMore} className="btn btn-solid">
+                    {loadingMore ? "كنجيبو…" : <>شوف المزيد <span className="num opacity-60">({total - results.length})</span></>}
                   </button>
                 </div>
               )}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DEALERS } from "@/lib/data/dealers";
-import { VEHICLES } from "@/lib/data/vehicles";
+import { getDealerCounts } from "@/lib/source";
 import { cityName } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { ArrowLeft, BadgeCheck, Car, Clock, MapPin, Star, Users } from "@/components/icons";
@@ -13,10 +13,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/dealers" },
 };
 
-export default function DealersPage() {
+export default async function DealersPage() {
+  const counts = await getDealerCounts();
   const rows = DEALERS.map((d) => ({
     d,
-    count: VEHICLES.filter((v) => v.sellerId === d.id).length,
+    count: counts[d.slug] ?? counts[d.id] ?? 0,
   })).sort((a, b) => b.count - a.count);
 
   const totalListings = rows.reduce((s, r) => s + r.count, 0);

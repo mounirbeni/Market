@@ -89,4 +89,9 @@ export interface Vehicle {
   exchangeAccepted: boolean;
   /** درجة الترويج المدفوعة — شوف lib/promo.ts */
   promo?: import("./promo").PromoTier;
+  /**
+   * البائع مرفق مع المركبة ملي تجي من قاعدة البيانات.
+   * فالبيانات المرفقة كيتلقى بـsellerById عوض ذلك.
+   */
+  seller?: Seller;
 }

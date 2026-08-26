@@ -7,7 +7,6 @@ import { VehicleCard } from "@/components/VehicleCard";
 import { VehicleArt, VehicleGlyph } from "@/components/VehicleArt";
 import { TrustRing } from "@/components/TrustBadge";
 import { artShape } from "@/lib/artshape";
-import { applyFilters } from "@/lib/search";
 import { VEHICLES } from "@/lib/data/vehicles";
 import { trustOf, fairPriceOf } from "@/lib/market";
 import { computeTco } from "@/lib/tco";
@@ -15,7 +14,8 @@ import { formatNumber } from "@/lib/format";
 import { CITIES, cityName } from "@/lib/cities";
 import { DEALERS } from "@/lib/data/dealers";
 import { GUIDES } from "@/lib/data/guides";
-import { brandSlug, brandsWithCounts } from "@/lib/slug";
+import { brandSlug } from "@/lib/slug";
+import { findAll, getBrands, getDealerCounts, getStats } from "@/lib/source";
 import {
   ArrowLeft, BadgeCheck, Calculator, Car, Clock, FileText, GUIDE_ICONS, MapPin, Moto,
   Scale, Search, ShieldCheck, Sparkle, Star, TrendingDown, Users, Wallet, Wrench,
@@ -70,32 +70,35 @@ const CATEGORIES = [
   { key: "custom", label: "كوستوم", kind: "moto" },
 ] as const;
 
-export default function HomePage() {
-  const featuredCars = applyFilters({ kind: "car", sort: "deal" }).slice(0, 4);
-  const featuredMotos = applyFilters({ kind: "moto", sort: "deal" }).slice(0, 4);
-  const carBrands = brandsWithCounts("car").slice(0, 16);
-  const motoBrands = brandsWithCounts("moto").slice(0, 16);
+export default async function HomePage() {
+  const [featuredCars, featuredMotos, carBrands, motoBrands, stats, dealerCounts] =
+    await Promise.all([
+      findAll({ kind: "car", sort: "deal" }, 4),
+      findAll({ kind: "moto", sort: "deal" }, 4),
+      getBrands("car"),
+      getBrands("moto"),
+      getStats(),
+      getDealerCounts(),
+    ]);
   const topGuides = GUIDES.slice(0, 4);
   const topDealers = DEALERS.map((d) => ({
     d,
-    count: VEHICLES.filter((v) => v.sellerId === d.id).length,
+    count: dealerCounts[d.slug] ?? dealerCounts[d.id] ?? 0,
   }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 4);
-  const cars = VEHICLES.filter((v) => v.kind === "car").length;
-  const motos = VEHICLES.filter((v) => v.kind === "moto").length;
-  const avgTrust = Math.round(VEHICLES.reduce((s, v) => s + trustOf(v).score, 0) / VEHICLES.length);
+  const { cars, motos, avgTrust } = stats;
 
-  const hero = [...VEHICLES]
-    .filter((v) => v.inspected && v.photos > 8)
-    .sort((a, b) => trustOf(b).score - trustOf(a).score)[0] ?? VEHICLES[0];
+  // البطل: أعلى ثقة من المفحوصة
+  const heroPool = await findAll({ inspectedOnly: true, sort: "trust-desc" }, 8);
+  const hero = heroPool[0] ?? featuredCars[0] ?? VEHICLES[0];
   const heroTrust = trustOf(hero);
   const heroFp = fairPriceOf(hero);
   const heroTco = computeTco(hero, { kmPerYear: 15000, years: 3, coverage: "tiers", includeDepreciation: false });
 
-  const makes = Array.from(new Set(VEHICLES.map((v) => v.make)));
+  const makes = stats.makes;
   const topCities = CITIES
-    .map((c) => ({ ...c, n: VEHICLES.filter((v) => v.city === c.slug).length }))
+    .map((c) => ({ ...c, n: stats.byCity[c.slug] ?? 0 }))
     .filter((c) => c.n > 0)
     .sort((a, b) => b.n - a.n);
 
@@ -281,7 +284,7 @@ export default function HomePage() {
         <h2 className="h-section mb-7">تصفّح حسب النوع</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {CATEGORIES.map((c) => {
-            const n = VEHICLES.filter((v) => v.body === c.key).length;
+            const n = stats.byBody[c.key] ?? 0;
             if (!n) return null;
             return (
               <Link

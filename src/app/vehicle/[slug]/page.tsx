@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { VEHICLES } from "@/lib/data/vehicles";
-import { brandSlug, vehicleFromSlug, vehicleHref, vehicleSlug } from "@/lib/slug";
+import { brandSlug, vehicleHref } from "@/lib/slug";
+import { findAll, getAllSlugs, getVehicle } from "@/lib/source";
 import { dealerBySellerId } from "@/lib/data/dealers";
-import { sellerById } from "@/lib/data/sellers";
 import { fairPriceOf, trustOf } from "@/lib/market";
-import { similarVehicles } from "@/lib/search";
 import { cityName } from "@/lib/cities";
 import { AR, formatDate, formatDh, formatKm, formatNumber, timeAgo } from "@/lib/format";
 import { NOW } from "@/lib/data/seed";
@@ -32,14 +30,15 @@ import {
 import { VehicleGlyph } from "@/components/VehicleArt";
 import { artShape } from "@/lib/artshape";
 
-export function generateStaticParams() {
-  return VEHICLES.map((v) => ({ slug: vehicleSlug(v) }));
+export async function generateStaticParams() {
+  return (await getAllSlugs()).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const v = vehicleFromSlug(slug);
-  if (!v) return { title: "إعلان غير موجود" };
+  const found = await getVehicle(slug);
+  if (!found) return { title: "إعلان غير موجود" };
+  const v = found.vehicle;
   const title = `${v.make} ${v.model} ${v.version} ${v.year} — ${formatDh(v.price)} في ${cityName(v.city)}`;
   return {
     title,
@@ -51,16 +50,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function VehiclePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const v = vehicleFromSlug(slug);
-  if (!v) notFound();
+  const found = await getVehicle(slug);
+  if (!found) notFound();
+  const { vehicle: v, seller } = found;
 
   const dealer = dealerBySellerId(v.sellerId);
   const section = v.kind === "car" ? "/cars" : "/motorcycles";
 
-  const seller = sellerById(v.sellerId);
   const trust = trustOf(v);
   const fp = fairPriceOf(v);
-  const similar = similarVehicles(v);
+  // المشابهة كتّحسب من نفس المصدر
+  const similar = (await findAll(
+    { kind: v.kind, make: v.make, sort: "pertinence" }, 8,
+  )).filter((s) => s.id !== v.id).slice(0, 4);
   const FuelIcon = FUEL_ICONS[v.fuel];
   const GearIcon = v.gearbox === "automatique" ? AutoGear : Transmission;
 

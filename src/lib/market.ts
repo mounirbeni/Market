@@ -292,7 +292,7 @@ export function trustScore(
   v: Vehicle,
   sellerOverride?: Seller,
 ): TrustResult {
-  const seller = sellerOverride ?? sellerById(v.sellerId);
+  const seller = sellerOverride ?? v.seller ?? sellerById(v.sellerId);
   const parts: TrustPart[] = [];
   const flags: TrustResult["flags"] = [];
   const strengths: string[] = [];

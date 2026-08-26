@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DEALERS, dealerBySlug } from "@/lib/data/dealers";
-import { VEHICLES } from "@/lib/data/vehicles";
+import { getDealerListings } from "@/lib/source";
 import { cityName } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { trustOf } from "@/lib/market";
@@ -35,7 +35,7 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
   const d = dealerBySlug(slug);
   if (!d) notFound();
 
-  const listings = VEHICLES.filter((v) => v.sellerId === d.id);
+  const listings = await getDealerListings(d.slug, d.id);
   const avgTrust = listings.length
     ? Math.round(listings.reduce((s, v) => s + trustOf(v).score, 0) / listings.length)
     : 0;

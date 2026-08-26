@@ -2,10 +2,11 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { VehiclesClient } from "@/components/search/VehiclesClient";
-import { brandFromSlug, brandsWithCounts } from "@/lib/slug";
+import { brandFromSlug } from "@/lib/slug";
+import { getBrands } from "@/lib/source";
 
-export function generateStaticParams() {
-  return brandsWithCounts("car").map((b) => ({ brand: b.slug }));
+export async function generateStaticParams() {
+  return (await getBrands("car")).map((b) => ({ brand: b.slug }));
 }
 
 export async function generateMetadata({

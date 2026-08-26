@@ -1,6 +1,7 @@
 import "server-only";
 import { sql, one } from "./client";
 import { DEFAULT_FILTERS, type Filters, type SortKey } from "@/lib/search";
+import type { HistoryEvent, Seller, Vehicle } from "@/lib/types";
 
 /* ============================================================
    استعلامات الإعلانات
@@ -14,6 +15,7 @@ export interface ListingRow {
   id: string;
   ref: string;
   slug: string;
+  seller_ref: string;
   kind: "car" | "moto";
   make: string;
   model: string;
@@ -43,6 +45,24 @@ export interface ListingRow {
   seller_name: string;
   seller_type: "particulier" | "professionnel";
   dealer_slug: string | null;
+  owners: number;
+  fiscal_power: number;
+  consumption: string | null;
+  displacement: number | null;
+  doors: number | null;
+  technical_control: string | null;
+  service_book: boolean;
+  description: string;
+  equipment: string[];
+  negotiable: boolean;
+  exchange_accepted: boolean;
+  seller_city: string | null;
+  seller_since: string;
+  seller_id_ver: boolean;
+  seller_phone_ver: boolean;
+  seller_rating: string | null;
+  seller_sales: number;
+  seller_resp: number | null;
 }
 
 /** رفعة الترتيب لكل درجة ترويج — خاصها تبقى متطابقة مع lib/promo.ts */
@@ -69,8 +89,15 @@ const SELECT_COLS = `
   l.price_mad, l.fuel, l.gearbox, l.body, l.city, l.condition, l.color,
   l.first_hand, l.papers_ok, l.vin_checked, l.inspected, l.photo_count,
   l.has_video, l.trust_score, l.fair_price_mad, l.fair_price_delta, l.promo,
-  l.views, l.saves, l.published_at,
-  u.name AS seller_name, u.type AS seller_type, d.slug AS dealer_slug`;
+  l.views, l.saves, l.published_at, l.owners, l.fiscal_power, l.consumption,
+  l.displacement, l.doors, l.technical_control, l.service_book, l.description,
+  l.equipment, l.negotiable, l.exchange_accepted,
+  l.seller_id::text AS seller_ref,
+  u.name AS seller_name, u.type AS seller_type, d.slug AS dealer_slug,
+  u.city AS seller_city, u.member_since AS seller_since,
+  u.id_verified AS seller_id_ver, u.phone_verified AS seller_phone_ver,
+  u.rating AS seller_rating, u.sales_count AS seller_sales,
+  u.response_minutes AS seller_resp`;
 
 const FROM = `
   FROM listings l
@@ -221,4 +248,163 @@ export async function recordView(listingId: string, visitorKey: string) {
   if (r.length) {
     await sql("UPDATE listings SET views = views + 1 WHERE id = $1", [listingId]);
   }
+}
+
+/* ============================================================
+   المحوّل: صف قاعدة البيانات → شكل Vehicle
+
+   الواجهة كلها (البطاقات، الفلاتر، المقارنة، الرسومات) مبنية على
+   نوع Vehicle. بدل ما نعاودو كتابتها، كنحوّلو الصف لنفس الشكل.
+   ============================================================ */
+
+/** الأحداث كتّجمع على حدة — الصف وحدو ماكيحملهاش */
+export function rowToVehicle(r: ListingRow, history: HistoryEvent[] = []): Vehicle {
+  return {
+    id: r.ref,
+    kind: r.kind,
+    make: r.make,
+    model: r.model,
+    version: r.version,
+    year: r.year,
+    km: r.km,
+    price: r.price_mad,
+    owners: r.owners,
+    fuel: r.fuel as Vehicle["fuel"],
+    gearbox: r.gearbox as Vehicle["gearbox"],
+    body: r.body as Vehicle["body"],
+    fiscalPower: r.fiscal_power,
+    consumption: Number(r.consumption ?? 0),
+    displacement: r.displacement ?? undefined,
+    doors: r.doors ?? undefined,
+    color: r.color ?? "أبيض",
+    city: r.city,
+    condition: r.condition as Vehicle["condition"],
+    firstHand: r.first_hand,
+    papersOk: r.papers_ok,
+    technicalControl: r.technical_control ?? "",
+    inspected: r.inspected,
+    photos: r.photo_count,
+    hasVideo: r.has_video,
+    serviceBook: r.service_book,
+    vinChecked: r.vin_checked,
+    description: r.description,
+    equipment: r.equipment ?? [],
+    history,
+    sellerId: r.seller_ref,
+    publishedAt: r.published_at,
+    views: r.views,
+    saves: r.saves,
+    priceDrops: [],
+    negotiable: r.negotiable,
+    exchangeAccepted: r.exchange_accepted,
+    promo: r.promo ?? undefined,
+    seller: {
+      id: r.seller_ref,
+      name: r.seller_name,
+      type: r.seller_type,
+      city: r.seller_city ?? "casablanca",
+      since: new Date(r.seller_since).getFullYear(),
+      idVerified: r.seller_id_ver,
+      phoneVerified: r.seller_phone_ver,
+      rating: Number(r.seller_rating ?? 4.5),
+      salesCount: r.seller_sales,
+      responseMinutes: r.seller_resp ?? 60,
+    },
+  };
+}
+
+/** البائع كما كتنتظرو الواجهة */
+export interface SellerRow {
+  ref: string;
+  name: string;
+  type: "particulier" | "professionnel";
+  city: string | null;
+  member_since: string;
+  id_verified: boolean;
+  phone_verified: boolean;
+  rating: string | null;
+  sales_count: number;
+  response_minutes: number | null;
+  phone: string | null;
+}
+
+export function rowToSeller(r: SellerRow): Seller {
+  return {
+    id: r.ref,
+    name: r.name,
+    type: r.type,
+    city: r.city ?? "casablanca",
+    since: new Date(r.member_since).getFullYear(),
+    idVerified: r.id_verified,
+    phoneVerified: r.phone_verified,
+    rating: Number(r.rating ?? 4.5),
+    salesCount: r.sales_count,
+    responseMinutes: r.response_minutes ?? 60,
+  };
+}
+
+/** بائع إعلان معيّن */
+export async function getSellerOf(listingRef: string): Promise<Seller | null> {
+  const r = await one<SellerRow>(
+    `SELECT u.id::text AS ref, u.name, u.type, u.city, u.member_since,
+            u.id_verified, u.phone_verified, u.rating, u.sales_count,
+            u.response_minutes, u.phone
+     FROM listings l JOIN users u ON u.id = l.seller_id
+     WHERE l.ref = $1 OR l.slug = $1`,
+    [listingRef],
+  );
+  return r ? rowToSeller(r) : null;
+}
+
+/** تسجيل مشاهدة بالمرجع القصير (c001) بدل الـuuid */
+export async function recordViewByRef(ref: string, visitorKey: string) {
+  const l = await one<{ id: string }>("SELECT id FROM listings WHERE ref = $1 OR slug = $1", [ref]);
+  if (l) await recordView(l.id, visitorKey);
+}
+
+/** إحصائيات مجمّعة فاستعلام واحد — للصفحة الرئيسية */
+export async function aggregates() {
+  const [kinds, bodies, cities, makes, trust] = await Promise.all([
+    sql<{ kind: string; n: string }>(
+      "SELECT kind, count(*)::text n FROM listings WHERE status='active' GROUP BY kind"),
+    sql<{ body: string; n: string }>(
+      "SELECT body, count(*)::text n FROM listings WHERE status='active' GROUP BY body"),
+    sql<{ city: string; n: string }>(
+      "SELECT city, count(*)::text n FROM listings WHERE status='active' GROUP BY city"),
+    sql<{ make: string }>(
+      "SELECT DISTINCT make FROM listings WHERE status='active' ORDER BY make"),
+    one<{ avg: string | null }>(
+      "SELECT round(avg(trust_score))::text avg FROM listings WHERE status='active'"),
+  ]);
+  const toMap = (rows: { n: string }[], key: string) =>
+    Object.fromEntries(rows.map((r) => [(r as never)[key], Number(r.n)])) as Record<string, number>;
+
+  return {
+    cars: Number(kinds.find((k) => k.kind === "car")?.n ?? 0),
+    motos: Number(kinds.find((k) => k.kind === "moto")?.n ?? 0),
+    byBody: toMap(bodies, "body"),
+    byCity: toMap(cities, "city"),
+    makes: makes.map((m) => m.make),
+    avgTrust: Number(trust?.avg ?? 0),
+  };
+}
+
+/** عدد الإعلانات لكل وكيل، مفهرس بـslug ديال الوكيل */
+export async function dealerListingCounts(): Promise<Record<string, number>> {
+  const rows = await sql<{ slug: string; n: string }>(
+    `SELECT d.slug, count(*)::text n FROM listings l
+     JOIN dealers d ON d.id = l.dealer_id
+     WHERE l.status='active' GROUP BY d.slug`,
+  );
+  return Object.fromEntries(rows.map((r) => [r.slug, Number(r.n)]));
+}
+
+/** إعلانات وكيل معيّن بالـslug */
+export async function listingsOfDealer(slug: string) {
+  return sql<ListingRow>(
+    `SELECT ${SELECT_COLS} ${FROM}
+     WHERE l.status='active' AND d.slug = $1
+     ORDER BY l.published_at DESC`,
+    [slug],
+  );
 }
