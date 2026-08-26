@@ -1,7 +1,7 @@
 import "server-only";
 import { sql, one } from "./client";
 import { DEFAULT_FILTERS, type Filters, type SortKey } from "@/lib/search";
-import type { HistoryEvent, Seller, Vehicle } from "@/lib/types";
+import type { HistoryEvent, MediaItem, Seller, Vehicle } from "@/lib/types";
 import {
   emptyFacets, FLAG_KEYS, HIST_BUCKETS, PRICE_MAX, YEAR_MAX, YEAR_MIN,
   type Facets,
@@ -41,6 +41,7 @@ export interface ListingRow {
   has_video: boolean;
   trust_score: number | null;
   fair_price_mad: number | null;
+  cover_url: string | null;
   fair_price_delta: string | null;
   promo: "featured" | "urgent" | "top" | null;
   views: number;
@@ -101,7 +102,11 @@ const SELECT_COLS = `
   u.city AS seller_city, u.member_since AS seller_since,
   u.id_verified AS seller_id_ver, u.phone_verified AS seller_phone_ver,
   u.rating AS seller_rating, u.sales_count AS seller_sales,
-  u.response_minutes AS seller_resp`;
+  u.response_minutes AS seller_resp,
+  -- أول صورة باش البطاقات مايطلبوش الصور وحدة بوحدة
+  (SELECT m.url FROM listing_media m
+    WHERE m.listing_id = l.id AND m.kind = 'photo'
+    ORDER BY m.position LIMIT 1) AS cover_url`;
 
 const FROM = `
   FROM listings l
@@ -262,7 +267,11 @@ export async function recordView(listingId: string, visitorKey: string) {
    ============================================================ */
 
 /** الأحداث كتّجمع على حدة — الصف وحدو ماكيحملهاش */
-export function rowToVehicle(r: ListingRow, history: HistoryEvent[] = []): Vehicle {
+export function rowToVehicle(
+  r: ListingRow,
+  history: HistoryEvent[] = [],
+  media: MediaItem[] = [],
+): Vehicle {
   return {
     id: r.ref,
     kind: r.kind,
@@ -289,6 +298,8 @@ export function rowToVehicle(r: ListingRow, history: HistoryEvent[] = []): Vehic
     inspected: r.inspected,
     photos: r.photo_count,
     hasVideo: r.has_video,
+    media: media.length ? media : undefined,
+    cover: media[0]?.url ?? r.cover_url ?? undefined,
     serviceBook: r.service_book,
     vinChecked: r.vin_checked,
     description: r.description,

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { VehicleArt } from "@/components/VehicleArt";
+import { SafeImg } from "@/components/SafeImg";
 import { artShape } from "@/lib/artshape";
 import type { Vehicle } from "@/lib/types";
 import { useApp } from "@/store/app";
@@ -12,10 +13,27 @@ import {
 export function Gallery({ v }: { v: Vehicle }) {
   const [active, setActive] = useState(0);
   const { isFavorite, toggleFavorite, inCompare, toggleCompare } = useApp();
-  const shots = Math.min(v.photos, 8);
   const fav = isFavorite(v.id);
   const cmp = inCompare(v.id);
   const shape = artShape(v);
+
+  /* الصور الحقيقية إلا كانو مرفوعين — وإلا كنرسمو المركبة.
+
+     اللائحة كتبقى ثابتة حتى ملي شي صورة ماتحمّلاتش — كنعلّموها
+     وكنرسمو بلاصتها. لو حيّدناها من اللائحة، الأرقام كيتزاحو
+     والمصغّرات كيتخلّطو. */
+  const [broken, setBroken] = useState<Set<string>>(new Set());
+  const markBroken = (url: string) => setBroken((b) => (b.has(url) ? b : new Set(b).add(url)));
+
+  const photos = (v.media ?? []).filter((m) => m.kind === "photo");
+  const usable = photos.filter((m) => !broken.has(m.url)).length;
+  const shots = usable > 0 ? photos.length : Math.min(v.photos, 8) || 1;
+
+  /** الصورة ديال هاد البلاصة، إلا كانت مازال صالحة */
+  const shotAt = (i: number) => {
+    const m = photos[i];
+    return m && !broken.has(m.url) ? m : null;
+  };
 
   const go = (d: number) => setActive((a) => (a + d + shots) % shots);
 
@@ -23,15 +41,25 @@ export function Gallery({ v }: { v: Vehicle }) {
     <div className="min-w-0">
       <div className="card relative overflow-hidden">
         <div className="aspect-[16/10]">
-          <VehicleArt
-            id={v.id}
-            kind={v.kind}
-            body={shape}
-            color={v.color}
-            variant={active}
-            className="h-full w-full"
-            label={`${v.make} ${v.model} — صورة ${active + 1}`}
-          />
+          {shotAt(active) ? (
+            <SafeImg
+              src={shotAt(active)!.url}
+              alt={`${v.make} ${v.model} — صورة ${active + 1}`}
+              className="h-full w-full object-cover"
+              loading={active === 0 ? "eager" : "lazy"}
+              onBroken={markBroken}
+            />
+          ) : (
+            <VehicleArt
+              id={v.id}
+              kind={v.kind}
+              body={shape}
+              color={v.color}
+              variant={active}
+              className="h-full w-full"
+              label={`${v.make} ${v.model} — صورة ${active + 1}`}
+            />
+          )}
         </div>
 
         <div className="absolute top-3 right-3 flex flex-wrap justify-end gap-1.5">
@@ -121,7 +149,16 @@ export function Gallery({ v }: { v: Vehicle }) {
             className="h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition"
             style={{ borderColor: active === i ? "var(--brand)" : "transparent", opacity: active === i ? 1 : 0.6 }}
           >
-            <VehicleArt id={v.id} kind={v.kind} body={shape} color={v.color} variant={i} className="h-full w-full" />
+            {shotAt(i) ? (
+              <SafeImg
+                src={shotAt(i)!.thumbUrl ?? shotAt(i)!.url}
+                alt=""
+                className="h-full w-full object-cover"
+                onBroken={() => markBroken(shotAt(i)!.url)}
+              />
+            ) : (
+              <VehicleArt id={v.id} kind={v.kind} body={shape} color={v.color} variant={i} className="h-full w-full" />
+            )}
           </button>
         ))}
       </div>

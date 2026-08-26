@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { estimateValue, trustScore } from "@/lib/market";
 import { useCatalog } from "@/lib/useCatalog";
+import { PhotoUploader, type UploadedPhoto } from "@/components/sell/PhotoUploader";
 import { CITIES } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
 import {
-  AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, Bookmark, Calendar, Camera,
+  AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, Bookmark, Calendar,
   Car, Check, CircleDot, Coins, FileText, Gauge, Info, MapPin, Moto, Sparkle,
   Plus, TrendingDown, Wrench,
 } from "@/components/icons";
@@ -68,7 +69,7 @@ const initialDraft: Draft = {
   serviceBook: false,
   technicalControlValid: true,
   accident: false,
-  photos: 6,
+  photos: 0,
   hasVideo: false,
   description: "",
   equipment: ["مكيف الهواء", "نظام ABS"],
@@ -147,6 +148,8 @@ export function SellWizard() {
   const [publishing, setPublishing] = useState(false);
   const [publishedHref, setPublishedHref] = useState("");
   const [publishError, setPublishError] = useState("");
+  /* الصور المرفوعة — كتّربط بالإعلان ملي يتنشر */
+  const [uploaded, setUploaded] = useState<UploadedPhoto[]>([]);
   /** حالة المسودة: idle | saved | restored */
   const [draftState, setDraftState] = useState<"idle" | "saved" | "restored">("idle");
   const [hasDraft, setHasDraft] = useState(false);
@@ -255,6 +258,7 @@ export function SellWizard() {
           inspected: d.inspected, serviceBook: d.serviceBook,
           vinChecked: d.vinChecked, description: d.description,
           equipment: d.equipment, photos: d.photos, hasVideo: d.hasVideo,
+          media: uploaded,
         }),
       });
       const json = await res.json();
@@ -300,6 +304,7 @@ export function SellWizard() {
                 setPublishedHref("");
                 setStep(0);
                 setD(initialDraft);
+                setUploaded([]);
               }}
               className="btn btn-ghost"
             >
@@ -491,17 +496,14 @@ export function SellWizard() {
           {step === 2 && (
             <div className="space-y-4">
               <h2 className="text-base font-extrabold">الصور والوصف</h2>
-              <div>
-                <label className="label" htmlFor="sw-photos">
-                  <Camera size={13} /> عدد الصور
-                  <span className="num mr-auto" style={{ color: "var(--brand)" }}>{d.photos}</span>
-                </label>
-                <input id="sw-photos" type="range" min={1} max={20} value={d.photos}
-                  onChange={(e) => set({ photos: Number(e.target.value) })} className="w-full " />
-                <p className="mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                  الإعلانات ب<span className="num">12</span> صورة فما فوق كتوصل ضعف الاتصالات.
-                </p>
-              </div>
+              <PhotoUploader
+                photos={uploaded}
+                onChange={(next) => {
+                  setUploaded(next);
+                  // عدد الصور فمؤشر الثقة كيتبع الصور الحقيقية
+                  set({ photos: next.length });
+                }}
+              />
 
               <label className="flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5" style={{ background: "var(--surface-3)" }}>
                 <input type="checkbox" checked={d.hasVideo} onChange={(e) => set({ hasVideo: e.target.checked })}

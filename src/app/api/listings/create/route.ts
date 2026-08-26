@@ -3,6 +3,7 @@ import { body, dbMissing, fail, ok, unauthorized, writeFail } from "@/lib/api";
 import { fairPrice, trustScore } from "@/lib/market";
 import type { Body, Condition, Fuel, Gearbox, Vehicle } from "@/lib/types";
 import type { NewListing } from "@/lib/db/writes";
+import { MAX_PHOTOS } from "@/lib/blob";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,6 +24,25 @@ const clampInt = (v: unknown, min: number, max: number, fallback: number) => {
 };
 
 const text = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
+
+/**
+ * واش هاد الرابط خارج من الخزّان ديالنا؟
+ *
+ * بلا هاد الفحص شي حد يقدر يبعث رابط صورة من أي موقع ويخلّي
+ * الإعلانات ديالنا كيشدّو صور من برّا (ولا يبعث رابط تتبّع).
+ */
+function isOwnBlobUrl(url: string) {
+  try {
+    const u = new URL(url);
+    return (
+      u.protocol === "https:" &&
+      (u.hostname.endsWith(".public.blob.vercel-storage.com") ||
+        u.hostname === "blob.vercel-storage.com")
+    );
+  } catch {
+    return false;
+  }
+}
 
 export interface CreateBody {
   kind?: string;
@@ -54,6 +74,8 @@ export interface CreateBody {
   exchangeAccepted?: boolean;
   photos?: number;
   hasVideo?: boolean;
+  /** الصور اللي تّرفعو لVercel Blob قبل النشر */
+  media?: { url: string; kind?: string; width?: number; height?: number }[];
 }
 
 /**
@@ -92,7 +114,22 @@ export async function POST(req: Request) {
   if (price < 1000) return fail("الثمن ماشي معقول.");
 
   const owners = clampInt(b.owners, 1, 20, 1);
-  const photos = clampInt(b.photos, 0, 40, 0);
+
+  /* الصور: كنقبلو غير الروابط اللي خرجات من الخزّان ديالنا */
+  const media = (b.media ?? [])
+    .slice(0, MAX_PHOTOS + 4)
+    .filter((m) => typeof m?.url === "string" && isOwnBlobUrl(m.url))
+    .map((m) => ({
+      url: m.url,
+      kind: m.kind === "video" ? ("video" as const) : ("photo" as const),
+      width: Number.isFinite(Number(m.width)) ? Number(m.width) : undefined,
+      height: Number.isFinite(Number(m.height)) ? Number(m.height) : undefined,
+    }));
+
+  const photoRows = media.filter((m) => m.kind === "photo").length;
+  // إلا كانو صور حقيقية هوما اللي كيحسبو، وإلا كناخدو العدد اللي دخل
+  const photos = photoRows > 0 ? photoRows : clampInt(b.photos, 0, 40, 0);
+  const hasVideo = media.some((m) => m.kind === "video") || Boolean(b.hasVideo);
 
   /* كنبنيو مركبة مؤقتة باش نحسبو الثقة والثمن المرجعي بنفس منطق العرض */
   const draft: Vehicle = {
@@ -120,7 +157,7 @@ export async function POST(req: Request) {
     technicalControl: b.technicalControlValid ? "2027-01-01" : "2026-01-01",
     inspected: Boolean(b.inspected),
     photos,
-    hasVideo: Boolean(b.hasVideo),
+    hasVideo,
     serviceBook: Boolean(b.serviceBook),
     vinChecked: Boolean(b.vinChecked),
     description: text(b.description, 4000),
@@ -169,6 +206,7 @@ export async function POST(req: Request) {
     exchangeAccepted: draft.exchangeAccepted,
     photoCount: photos,
     hasVideo: draft.hasVideo,
+    media,
     trustScore: trust.score,
     fairPriceMad: fp.estimate.mid,
     fairPriceDelta: fp.delta,

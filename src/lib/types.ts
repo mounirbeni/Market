@@ -41,6 +41,15 @@ export interface HistoryEvent {
   detail?: string;
 }
 
+/** صورة ولا فيديو ديال إعلان — مخزّنين فـVercel Blob */
+export interface MediaItem {
+  kind: "photo" | "video";
+  url: string;
+  thumbUrl?: string;
+  width?: number;
+  height?: number;
+}
+
 export interface Vehicle {
   id: string;
   kind: VehicleKind;
@@ -74,6 +83,10 @@ export interface Vehicle {
   inspected: boolean;
   photos: number;
   hasVideo: boolean;
+  /** الصور الحقيقية ملي يكونو مرفوعين — إلا كانت خاوية كنرسمو المركبة */
+  media?: MediaItem[];
+  /** أول صورة — كتجي مع نتائج البحث باش البطاقات مايطلبوش كل وحدة على حدة */
+  cover?: string;
   serviceBook: boolean;
   vinChecked: boolean;
   description: string;

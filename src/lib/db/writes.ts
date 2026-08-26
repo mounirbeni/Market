@@ -50,6 +50,8 @@ export interface NewListing {
   exchangeAccepted: boolean;
   photoCount: number;
   hasVideo: boolean;
+  /** الصور المرفوعة — كتّسجل مع الإعلان فنفس العملية */
+  media?: { url: string; kind: "photo" | "video"; width?: number; height?: number }[];
   /* القيم المحسوبة — كتّحسب فالمسار بنفس دوال العرض */
   trustScore: number;
   fairPriceMad: number;
@@ -102,6 +104,28 @@ export async function createListing(sellerId: string, v: NewListing) {
     ],
   );
   if (!row) throw new WriteError("INSERT_FAILED");
+
+  // الصور تّرفعو قبل ما يتنشر الإعلان — دابا كنربطوهم بيه
+  const media = v.media ?? [];
+  for (const [i, m] of media.entries()) {
+    await sql(
+      `INSERT INTO listing_media (listing_id, url, kind, width, height, position)
+       VALUES ($1, $2, $3::media_kind, $4, $5, $6)`,
+      [row.id, m.url, m.kind, m.width ?? null, m.height ?? null, i],
+    );
+  }
+  if (media.length > 0) {
+    await sql(
+      `UPDATE listings SET
+         photo_count = (SELECT count(*) FROM listing_media
+                         WHERE listing_id = $1 AND kind = 'photo'),
+         has_video   = EXISTS (SELECT 1 FROM listing_media
+                                WHERE listing_id = $1 AND kind = 'video')
+       WHERE id = $1`,
+      [row.id],
+    );
+  }
+
   return row;
 }
 

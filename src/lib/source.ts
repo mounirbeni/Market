@@ -81,9 +81,19 @@ export async function getVehicle(
       km: h.km ?? undefined,
       detail: h.detail ?? undefined,
     }));
+    const media = (found.media as unknown as {
+      kind: "photo" | "video"; url: string; thumb_url: string | null;
+      width: number | null; height: number | null;
+    }[]).map((m) => ({
+      kind: m.kind,
+      url: m.url,
+      thumbUrl: m.thumb_url ?? undefined,
+      width: m.width ?? undefined,
+      height: m.height ?? undefined,
+    }));
     const seller = await getSellerOf(key);
     if (!seller) return null;
-    return { vehicle: rowToVehicle(found.listing, history), seller };
+    return { vehicle: rowToVehicle(found.listing, history, media), seller };
   } catch (e) {
     console.error("[source] فشل جلب المركبة، كنرجعو للبيانات المرفقة:", e);
     const { vehicleFromSlug } = await import("./slug");

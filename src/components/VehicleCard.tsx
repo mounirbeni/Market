@@ -8,10 +8,9 @@ import { AR, formatNumber, timeAgo } from "@/lib/format";
 import { NOW } from "@/lib/data/seed";
 import { cityName } from "@/lib/cities";
 import { fairPriceOf, trustOf } from "@/lib/market";
-import { artShape } from "@/lib/artshape";
 import { promoOf } from "@/lib/promo";
 import { useApp } from "@/store/app";
-import { VehicleArt } from "./VehicleArt";
+import { VehicleCover } from "./VehicleCover";
 import { TrustDot } from "./TrustBadge";
 import { FairPriceTag } from "./FairPriceMeter";
 import { Price } from "./Price";
@@ -126,13 +125,9 @@ export function VehicleCard({ v, compact = false }: { v: Vehicle; compact?: bool
     <article className="card card-hover group relative overflow-hidden">
       <Link href={vehicleHref(v)} className="block">
         <div className="relative aspect-[16/10] overflow-hidden">
-          <VehicleArt
-            id={v.id}
-            kind={v.kind}
-            body={artShape(v)}
-            color={v.color}
+          <VehicleCover
+            v={v}
             className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
-            label={`${v.make} ${v.model} ${v.year}`}
           />
           <Badges v={v} />
           <MediaCount v={v} />
@@ -205,13 +200,9 @@ export function VehicleRow({ v }: { v: Vehicle }) {
     <article className="card card-hover group relative overflow-hidden">
       <Link href={vehicleHref(v)} className="flex flex-col sm:flex-row">
         <div className="relative aspect-[16/10] w-full overflow-hidden sm:aspect-auto sm:w-[280px] sm:shrink-0">
-          <VehicleArt
-            id={v.id}
-            kind={v.kind}
-            body={artShape(v)}
-            color={v.color}
+          <VehicleCover
+            v={v}
             className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
-            label={`${v.make} ${v.model} ${v.year}`}
           />
           <MediaCount v={v} />
         </div>
