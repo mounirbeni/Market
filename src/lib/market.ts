@@ -428,24 +428,36 @@ export function trustColor(score: number): string {
   return "var(--bad)";
 }
 
-/* ---------------- ذاكرة مؤقتة ---------------- */
-const fpCache = new Map<string, FairPrice>();
-const tsCache = new Map<string, TrustResult>();
+/* ---------------- ذاكرة مؤقتة ----------------
+
+   المفتاح هو الكائن نفسه ماشي v.id.
+
+   بالـid كانت النقطة كتتجمّد: الخادم كيحسبها أول مرة وكيحتافظ بيها
+   لأنّ الذاكرة مشتركة بين كل الطلبات. البائع كيزيد صور ولا يوثّق
+   دفتر الصيانة — والنقطة ماكتّبدلش حتى يتعاود النشر. هادشي ماكانش
+   كيبان ملي كانت البيانات ثابتة، ولكن دابا الإعلانات كيتبدّلو.
+
+   WeakMap كيحل المشكل: صف جديد من قاعدة البيانات = كائن جديد =
+   حساب جديد. ونفس الكائن (إعادة رسم React) كيرجع من الذاكرة.
+   والكائنات القديمة كيمسحهم جامع القمامة بوحدو.
+   ------------------------------------------------ */
+const fpCache = new WeakMap<Vehicle, FairPrice>();
+const tsCache = new WeakMap<Vehicle, TrustResult>();
 
 export function fairPriceOf(v: Vehicle): FairPrice {
-  let x = fpCache.get(v.id);
+  let x = fpCache.get(v);
   if (!x) {
     x = fairPrice(v);
-    fpCache.set(v.id, x);
+    fpCache.set(v, x);
   }
   return x;
 }
 
 export function trustOf(v: Vehicle): TrustResult {
-  let x = tsCache.get(v.id);
+  let x = tsCache.get(v);
   if (!x) {
     x = trustScore(v);
-    tsCache.set(v.id, x);
+    tsCache.set(v, x);
   }
   return x;
 }

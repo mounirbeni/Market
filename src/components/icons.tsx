@@ -12,9 +12,15 @@ import type { SVGProps } from "react";
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, "size"> {
   size?: number | string;
   strokeWidth?: number;
+  /**
+   * تعمير الأيقونة. غير Heart و Star كيستعملوها، ولكن كل الأيقونات
+   * كتقبلها: القوائم كتمرّر نفس الخصائص لأيقونات مختلفة، وبلا ما
+   * تكون معروفة هنا كتسيل لـ<svg> كخاصية DOM ماشي صالحة.
+   */
+  filled?: boolean;
 }
 
-function base({ size = 20, strokeWidth = 1.75, ...rest }: IconProps) {
+function base({ size = 20, strokeWidth = 1.75, filled: _filled, ...rest }: IconProps) {
   return {
     width: size,
     height: size,
@@ -94,7 +100,7 @@ export const External = (p: P) => (
 );
 
 /* ---------- إجراءات ---------- */
-export const Heart = ({ filled, ...p }: P & { filled?: boolean }) => (
+export const Heart = ({ filled, ...p }: P) => (
   <svg {...base(p)} fill={filled ? "currentColor" : "none"}>
     <path d="M12 20.5 4.4 13a5 5 0 0 1 7.1-7l.5.5.5-.5a5 5 0 0 1 7.1 7z" />
   </svg>
@@ -394,7 +400,7 @@ export const Info = (p: P) => (
 export const Help = (p: P) => (
   <svg {...base(p)}><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.6 2.6 0 1 1 3.4 2.5c-.6.2-.9.8-.9 1.4v.4M12 17h.01" /></svg>
 );
-export const Star = ({ filled, ...p }: P & { filled?: boolean }) => (
+export const Star = ({ filled, ...p }: P) => (
   <svg {...base(p)} fill={filled ? "currentColor" : "none"}>
     <path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z" />
   </svg>

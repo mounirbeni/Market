@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { sql, one } from "./db/client";
+import { mailConfigured, otpMail, send } from "./mail";
 
 /* ============================================================
    الجلسات والمصادقة
@@ -92,7 +93,12 @@ export function normalizeEmail(raw: string): string | null {
 export interface OtpIssue {
   ok: boolean;
   error?: string;
-  /** كيترجع غير فالتطوير — فالإنتاج كيتصيفط بـSMS */
+  /**
+   * كيترجع غير فالتطوير المحلي.
+   *
+   * فالإنتاج عمرو ما كيرجع — لا مع مزوّد إيميل ولا بلاه. لو رجع،
+   * أي واحد كيكتب أي إيميل وكياخد الرمز ديالو ويدخل بحسابو.
+   */
   devCode?: string;
 }
 
@@ -114,13 +120,35 @@ export async function issueOtp(email: string): Promise<OtpIssue> {
     [email, sha256(code), String(OTP_TTL_MIN)],
   );
 
-  // TODO(إنتاج): صيفط الرمز بالإيميل (Resend / Postmark / SES).
-  // ملي يتفعّل الإرسال الحقيقي، الرمز ماكيرجعش أبداً للمتصفح.
   const isProd = process.env.NODE_ENV === "production";
-  const mailerEnabled = Boolean(process.env.EMAIL_PROVIDER);
-  if (!isProd || !mailerEnabled) {
+
+  /* التطوير المحلي: الرمز كيبان فالسجل وفالواجهة — ماشي محتاجين
+     مزوّد إيميل باش نجرّبو الدخول. */
+  if (!isProd) {
     console.log(`[OTP] ${email} → ${code}`);
-    return { ok: true, devCode: mailerEnabled ? undefined : code };
+    if (!mailConfigured()) return { ok: true, devCode: code };
+  }
+
+  /* الإنتاج: بلا مزوّد إيميل ماكاينش دخول.
+     الخيار الآخر — نرجعو الرمز للمتصفح — معناه أي واحد كيدخل
+     بأي إيميل. باب مسدود خير من باب محلول. */
+  if (!mailConfigured()) {
+    if (isProd) {
+      console.error("[OTP] EMAIL_PROVIDER ماشي مضبوط — ماقدرناش نصيفطو الرمز.");
+      return {
+        ok: false,
+        error: "إرسال الإيميل ماشي مضبوط فهاد الموقع. تواصل مع المسؤول.",
+      };
+    }
+    return { ok: true, devCode: code };
+  }
+
+  const sent = await send(otpMail(email, code, OTP_TTL_MIN));
+  if (!sent.ok) {
+    return {
+      ok: false,
+      error: "ماقدرناش نصيفطو الرمز للإيميل ديالك. عاود المحاولة.",
+    };
   }
   return { ok: true };
 }
