@@ -133,20 +133,59 @@ Neon → SQL Editor → الصق → Run.
 المسار كيرجع خطأ واضح بدل ما يرجع الرمز للمتصفح (اللي معناه أي واحد
 كيدخل بأي إيميل).
 
-1. resend.com → سجّل → API Keys → أنشئ مفتاح
-2. زيد فمتغيّرات Vercel: `EMAIL_PROVIDER=resend` و `RESEND_API_KEY`
-3. اختياري: وثّق نطاقك فResend وزيد `EMAIL_FROM`. بلاه كيتصيفط من
-   `onboarding@resend.dev` اللي كيوصل غير للإيميل ديال الحساب ديالك.
-
 فالتطوير المحلي ماشي محتاج والو — الرمز كيبان فالسجل وفالشاشة.
+
+### الخيارات
+
+| المزوّد | المجاني | الطريقة |
+|---|---|---|
+| **Brevo** (منصوح) | 300/يوم | HTTP API |
+| Resend | 3000/شهر | HTTP API |
+| SMTP عام | حسب الخادم | Gmail، Brevo SMTP، أي خادم |
+
+**HTTP خير من SMTP فVercel**: كل استدعاء ديال دالة serverless كيفتح
+اتصال TCP وTLS جديد للخادم ديال SMTP — أبطأ، وأحياناً كيتقطع.
+
+### Brevo
+
+brevo.com → SMTP & API → API Keys → Generate
+
+    EMAIL_PROVIDER=brevo
+    BREVO_API_KEY="xkeysib-xxx"
+    EMAIL_FROM="طريق <contact@نطاقك>"
+
+### SMTP (Gmail مثلاً)
+
+Gmail كيطلب **كلمة سر التطبيقات**، ماشي كلمة السر العادية:
+myaccount.google.com → Security → 2-Step Verification → App passwords
+
+    EMAIL_PROVIDER=smtp
+    SMTP_HOST=smtp.gmail.com
+    SMTP_PORT=587
+    SMTP_USER="you@gmail.com"
+    SMTP_PASS="كلمة سر التطبيقات"
+
+⚠ **حدود Gmail:** ~500 إيميل فاليوم للحساب المجاني. وGmail كيبدّل
+عنوان المُرسِل لعنوان الحساب إلا ماكانش مسجّل كـ«Send mail as».
+مناسب للتجريب، ماشي لسوق فيه زبناء.
+
+### توثيق النطاق
+
+باش الرسائل يوصلو لصندوق الوارد ماشي للـspam، وثّق نطاقك عند المزوّد
+(SPF + DKIM). بلا توثيق:
+· Brevo/Resend كيرفضو الإرسال من نطاق ماشي ديالك
+· Resend بلا نطاق كيصيفط من `onboarding@resend.dev` — كيوصل غير
+  للإيميل ديال حسابك نتا
 
 ## متغيّرات البيئة
 
 | المتغيّر | واجب؟ | لواش |
 |---|---|---|
 | `DATABASE_URL` | ✅ | قاعدة البيانات. بلاها الموقع كيخدم بالبيانات المرفقة (قراءة فقط) |
-| `EMAIL_PROVIDER` | ⚠ | `resend`. **بلاه ماكاينش دخول فالإنتاج** |
-| `RESEND_API_KEY` | ⚠ | من resend.com → API Keys |
-| `EMAIL_FROM` | ❌ | نطاق موثّق. بلاه `onboarding@resend.dev` (كيصيفط غير ليك) |
+| `EMAIL_PROVIDER` | ⚠ | `brevo` \| `resend` \| `smtp`. **بلاه ماكاينش دخول** |
+| `BREVO_API_KEY` | ⚠ | مع `brevo` |
+| `RESEND_API_KEY` | ⚠ | مع `resend` |
+| `SMTP_HOST` `SMTP_PORT` `SMTP_USER` `SMTP_PASS` | ⚠ | مع `smtp` |
+| `EMAIL_FROM` | ❌ | المُرسِل. خاصو نطاق موثّق عند المزوّد |
 | `SETUP_KEY` | ❌ | كيسمح بإعادة تشغيل `/setup` على قاعدة عامرة |
 | `BLOB_READ_WRITE_TOKEN` | ❌ | رفع صور الإعلانات. بلاه الموقع كيرسم المركبة |

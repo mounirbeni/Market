@@ -3,15 +3,36 @@ import "server-only";
 /* ============================================================
    إرسال الإيميل
 
-   مزوّد واحد دابا (Resend) عبر HTTP مباشرة — بلا SDK، باش
-   نبقاو على نفس المبدأ ديال المشروع: أقل ما يمكن من التبعيات.
+   ثلاثة مزوّدين:
+   · brevo  — HTTP API، بلا تبعية (منصوح بيه)
+   · resend — HTTP API، بلا تبعية
+   · smtp   — أي خادم SMTP عبر nodemailer (Gmail، Brevo SMTP…)
 
-   زيادة مزوّد آخر = حالة جديدة فـsend() بلا ما يتبدّل أي شي آخر.
+   HTTP خير من SMTP فVercel: SMTP كيفتح اتصال TCP وTLS جديد فكل
+   استدعاء ديال الدالة، فكيكون أبطأ، وأحياناً كيتقطع.
    ============================================================ */
 
 export const mailProvider = () => process.env.EMAIL_PROVIDER?.trim().toLowerCase() ?? "";
-export const mailConfigured = () =>
-  mailProvider() === "resend" && Boolean(process.env.RESEND_API_KEY);
+
+export function mailConfigured(): boolean {
+  switch (mailProvider()) {
+    case "brevo":
+      return Boolean(process.env.BREVO_API_KEY);
+    case "resend":
+      return Boolean(process.env.RESEND_API_KEY);
+    case "smtp":
+      return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+    default:
+      return false;
+  }
+}
+
+/** «الاسم <العنوان>» → { name, email } — Brevo كيطلبهم مفرّقين */
+function splitFrom(value: string): { name?: string; email: string } {
+  const m = value.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
+  if (m) return { name: m[1] || undefined, email: m[2].trim() };
+  return { email: value.trim() };
+}
 
 /** المُرسِل — خاصو يكون نطاق موثّق عند المزوّد */
 const from = () => process.env.EMAIL_FROM?.trim() || "طريق <onboarding@resend.dev>";
@@ -58,14 +79,78 @@ async function sendResend(mail: Mail): Promise<SendResult> {
   }
 }
 
+async function sendBrevo(mail: Mail): Promise<SendResult> {
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": process.env.BREVO_API_KEY as string,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: splitFrom(from()),
+        to: [{ email: mail.to }],
+        subject: mail.subject,
+        htmlContent: mail.html,
+        textContent: mail.text,
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`[mail] Brevo ${res.status}: ${body.slice(0, 300)}`);
+      return { ok: false, error: "ماقدرناش نصيفطو الإيميل." };
+    }
+    return { ok: true };
+  } catch (e) {
+    console.error("[mail] فشل الاتصال بـBrevo:", e);
+    return { ok: false, error: "ماقدرناش نصيفطو الإيميل." };
+  }
+}
+
+/**
+ * SMTP عام — كيخدم مع Gmail (بكلمة سر التطبيقات)، Brevo SMTP، وغيرهم.
+ *
+ * nodemailer كيتحمّل كسولاً باش ماتّجرّش الحزمة ملي المزوّد HTTP.
+ */
+async function sendSmtp(mail: Mail): Promise<SendResult> {
+  try {
+    const { createTransport } = await import("nodemailer");
+    const port = Number(process.env.SMTP_PORT ?? 587);
+    const transport = createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      // 465 = TLS من البداية، 587 = STARTTLS
+      secure: port === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+
+    await transport.sendMail({
+      from: from(),
+      to: mail.to,
+      subject: mail.subject,
+      text: mail.text,
+      html: mail.html,
+    });
+    return { ok: true };
+  } catch (e) {
+    console.error("[mail] فشل SMTP:", e);
+    return { ok: false, error: "ماقدرناش نصيفطو الإيميل." };
+  }
+}
+
 export async function send(mail: Mail): Promise<SendResult> {
+  if (!mailConfigured()) return { ok: false, error: "مزوّد الإيميل ماشي مضبوط." };
   switch (mailProvider()) {
+    case "brevo":
+      return sendBrevo(mail);
     case "resend":
-      if (!process.env.RESEND_API_KEY)
-        return { ok: false, error: "RESEND_API_KEY ناقص." };
       return sendResend(mail);
+    case "smtp":
+      return sendSmtp(mail);
     default:
-      return { ok: false, error: "مزوّد الإيميل ماشي مضبوط." };
+      return { ok: false, error: "مزوّد الإيميل ماشي معروف." };
   }
 }
 
