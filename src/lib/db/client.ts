@@ -70,3 +70,26 @@ export async function dbReady(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * استعلامات متتالية على نفس الاتصال، داخل transaction.
+ *
+ * الهجرات خاصهم هادشي: BEGIN و COMMIT خاصهم يكونو على نفس الاتصال،
+ * والـpool يقدر يعطي كل استعلام اتصال آخر.
+ */
+export async function transaction<T>(
+  fn: (q: <R extends object>(text: string, params?: unknown[]) => Promise<R[]>) => Promise<T>,
+): Promise<T> {
+  const client = await getPool().connect();
+  try {
+    await client.query("BEGIN");
+    const out = await fn(async (text, params = []) => (await client.query(text, params)).rows);
+    await client.query("COMMIT");
+    return out;
+  } catch (e) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw e;
+  } finally {
+    client.release();
+  }
+}

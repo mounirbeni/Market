@@ -10,9 +10,9 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "add-logo": "node scripts/add-brand-logo.mjs",
-    "db:migrate": "node scripts/db-migrate.mjs",
-    "db:seed": "tsx scripts/db-seed.mts",
-    "db:setup": "node scripts/db-migrate.mjs && tsx scripts/db-seed.mts"
+    "db:migrate": "tsx scripts/db-setup.mts migrate",
+    "db:seed": "tsx scripts/db-setup.mts seed",
+    "db:setup": "tsx scripts/db-setup.mts"
   },
   "dependencies": {
     "@vercel/blob": "^2.8.0",
