@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+// خاصو يجي قبل @vercel/blob — داكشي كيربط globalThis.fetch ملي كيتحمّل
+import { arm, disarm } from "@/lib/fetch-probe";
 import { upload } from "@vercel/blob/client";
 import { MAX_PHOTOS, MAX_PHOTO_BYTES, PHOTO_TYPES } from "@/lib/blob";
 import { prepareImage } from "@/lib/image";
@@ -29,7 +31,7 @@ const MAX_SOURCE_BYTES = 48 * 1024 * 1024;
 /** المحاولة الأولى (بشريط التقدّم) — قصيرة، حيت إلا علقات ماغاديش تفيق */
 const STREAM_DEADLINE_MS = 30_000;
 /** المحاولة الثانية (بلا تقدّم) — الطريق العادي، كنعطيوه وقت كافي */
-const PLAIN_DEADLINE_MS = 60_000;
+const PLAIN_DEADLINE_MS = 45_000;
 
 class DeadlineError extends Error {
   constructor() {
@@ -148,6 +150,7 @@ export function PhotoUploader({
       /** محاولة وحدة. withProgress = واش نطلبو شريط التقدّم. */
       const attempt = async (ready: File, withProgress: boolean) => {
         const ctrl = new AbortController();
+        arm();
         setPending((p) =>
           p.map((x) =>
             x.id === id ? { ...x, stage: withProgress ? "up" : "up-blind", progress: 0 } : x,
@@ -194,6 +197,7 @@ export function PhotoUploader({
               message: first instanceof Error ? first.message : "فشل مجهول",
               name: first instanceof Error ? first.name : "unknown",
               phase: "stream",
+              probe: disarm(),
               percentage,
               elapsedMs: Date.now() - started,
               size: file.size,
@@ -207,6 +211,7 @@ export function PhotoUploader({
           blob = await attempt(ready, false);
         }
 
+        disarm();
         setPending((p) => p.filter((x) => x.id !== id));
         URL.revokeObjectURL(preview);
         return { url: blob.url, kind: "photo", width, height };
@@ -218,6 +223,7 @@ export function PhotoUploader({
           message: msg,
           name: e instanceof Error ? e.name : "unknown",
           phase: streamed ? "plain-after-stream" : "plain",
+          probe: disarm(),
           percentage,
           elapsedMs: Date.now() - started,
           size: file.size,

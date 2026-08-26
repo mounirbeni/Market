@@ -24,6 +24,7 @@ export async function POST(req: Request) {
     size?: number;
     type?: string;
     aborted?: boolean;
+    probe?: unknown[];
   }>(req);
 
   const user = await getCurrentUser().catch(() => null);
@@ -41,6 +42,7 @@ export async function POST(req: Request) {
       size: b?.size ?? null,
       type: b?.type ?? null,
       aborted: Boolean(b?.aborted),
+      probe: Array.isArray(b?.probe) ? b.probe.slice(0, 8) : null,
       ua: req.headers.get("user-agent")?.slice(0, 160) ?? null,
     }),
   );
