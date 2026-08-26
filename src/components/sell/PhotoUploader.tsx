@@ -20,14 +20,16 @@ interface Pending {
   file: File;
   preview: string;
   progress: number;
-  stage: "prep" | "up";
+  stage: "prep" | "up" | "up-blind";
   error?: string;
 }
 
 /** أكبر ملف نقبلو نحلّوه فالمتصفح — فوق هادشي التيليفون كيعلق */
 const MAX_SOURCE_BYTES = 48 * 1024 * 1024;
-/** ملي كيفوت هاد الوقت والرفع ماسالاش، كنوقفوه ونعلمو المستخدم */
-const UPLOAD_DEADLINE_MS = 75_000;
+/** المحاولة الأولى (بشريط التقدّم) — قصيرة، حيت إلا علقات ماغاديش تفيق */
+const STREAM_DEADLINE_MS = 30_000;
+/** المحاولة الثانية (بلا تقدّم) — الطريق العادي، كنعطيوه وقت كافي */
+const PLAIN_DEADLINE_MS = 60_000;
 
 class DeadlineError extends Error {
   constructor() {
@@ -65,6 +67,27 @@ function withDeadline<T>(work: Promise<T>, ms: number, ctrl: AbortController): P
 }
 
 const prettyBytes = (n: number) => `${(n / (1024 * 1024)).toFixed(1)} ميغا`;
+
+/**
+ * واش نقدرو نطلبو شريط التقدّم من مكتبة Blob؟
+ *
+ * باش تعطي النسبة، المكتبة كتصيفط الملف كـstream فداخل fetch
+ * (`duplex: "half"`). هادشي مدعوم غير فChromium على الحاسوب.
+ * فWebKit — يعني كل المتصفحات فiPhone، حتى Chrome — الطلب كيعلق
+ * فنص الجسم وعمرو ما كيكمّل: السجلات بيّنو ملف 750 كيلو واقف
+ * ف٪50 بالضبط، نفس النسبة فكل محاولة.
+ *
+ * فهاد الحالات كنرفعو بلا تقدّم (fetch عادي) — كيخدم فكل مكان.
+ */
+function canStreamProgress() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  // iPhone/iPad: كل المتصفحات مبنية على WebKit
+  if (/iPhone|iPad|iPod/.test(ua)) return false;
+  // Safari على الماك
+  if (/Safari/.test(ua) && !/Chrome|Chromium|Edg\//.test(ua)) return false;
+  return true;
+}
 
 /** كنعلمو الخادم بالفشل باش نقدرو نشوفوه فالسجلات — بلا محتوى الملف */
 function report(info: Record<string, unknown>) {
@@ -114,58 +137,92 @@ export function PhotoUploader({
       if (!user) return null;
 
       setPending((p) =>
-        p.map((x) => (x.id === id ? { ...x, progress: 0, stage: "prep", error: undefined } : x)),
+        p.map((x) =>
+          x.id === id ? { ...x, progress: 0, stage: "prep", error: undefined } : x,
+        ),
       );
 
-      const ctrl = new AbortController();
       const started = Date.now();
       let percentage = 0;
 
+      /** محاولة وحدة. withProgress = واش نطلبو شريط التقدّم. */
+      const attempt = async (ready: File, withProgress: boolean) => {
+        const ctrl = new AbortController();
+        setPending((p) =>
+          p.map((x) =>
+            x.id === id ? { ...x, stage: withProgress ? "up" : "up-blind", progress: 0 } : x,
+          ),
+        );
+        return withDeadline(
+          upload(`listings/${user.id}/${ready.name}`, ready, {
+            access: "public",
+            handleUploadUrl: "/api/upload",
+            abortSignal: ctrl.signal,
+            onUploadProgress: withProgress
+              ? (e) => {
+                  percentage = e.percentage;
+                  setPending((p) =>
+                    p.map((x) => (x.id === id ? { ...x, progress: e.percentage } : x)),
+                  );
+                }
+              : undefined,
+          }),
+          withProgress ? STREAM_DEADLINE_MS : PLAIN_DEADLINE_MS,
+          ctrl,
+        );
+      };
+
+      let streamed = false;
       try {
-        // كنصغّرو الصورة قبل الرفع — هادشي هو اللي كيخلّي الرفع يسالي
+        // كنصغّرو الصورة قبل الرفع — كتخفّ بزاف والرفع كيسالي بسرعة
         const { file: ready, width, height } = await prepareImage(file);
 
         if (ready.size > MAX_PHOTO_BYTES) {
           throw new Error(`كبيرة بزاف بعد الضغط (${prettyBytes(ready.size)})`);
         }
 
-        setPending((p) => p.map((x) => (x.id === id ? { ...x, stage: "up" } : x)));
-
-        // المسار خاصو يبدا بمجلّد المستخدم — الخادم كيرفض غير هادشي
-        const blob = await withDeadline(
-          upload(`listings/${user.id}/${ready.name}`, ready, {
-            access: "public",
-            handleUploadUrl: "/api/upload",
-            abortSignal: ctrl.signal,
-            onUploadProgress: (e) => {
-              percentage = e.percentage;
-              setPending((p) => p.map((x) => (x.id === id ? { ...x, progress: e.percentage } : x)));
-            },
-          }),
-          UPLOAD_DEADLINE_MS,
-          ctrl,
-        );
+        let blob;
+        if (canStreamProgress()) {
+          streamed = true;
+          try {
+            // المسار خاصو يبدا بمجلّد المستخدم — الخادم كيرفض غير هادشي
+            blob = await attempt(ready, true);
+          } catch (first) {
+            /* الطريق ديال التقدّم علق ولا طاح — كنعاودو بالعادي.
+               حتى إلا الكشف ديالنا غالط، هاد الرجعة كتصلّح الأمور. */
+            report({
+              message: first instanceof Error ? first.message : "فشل مجهول",
+              name: first instanceof Error ? first.name : "unknown",
+              phase: "stream",
+              percentage,
+              elapsedMs: Date.now() - started,
+              size: file.size,
+              type: file.type,
+              aborted: true,
+            });
+            percentage = 0;
+            blob = await attempt(ready, false);
+          }
+        } else {
+          blob = await attempt(ready, false);
+        }
 
         setPending((p) => p.filter((x) => x.id !== id));
         URL.revokeObjectURL(preview);
         return { url: blob.url, kind: "photo", width, height };
       } catch (e) {
-        const aborted = ctrl.signal.aborted;
         const msg =
-          e instanceof Error && e.message
-            ? e.message
-            : aborted
-              ? "الرفع طوّل بزاف — الشبكة ضعيفة. عاود."
-              : "ماقدرناش نرفعوها";
+          e instanceof Error && e.message ? e.message : "ماقدرناش نرفعوها";
         setPending((p) => p.map((x) => (x.id === id ? { ...x, error: msg } : x)));
         report({
           message: msg,
           name: e instanceof Error ? e.name : "unknown",
+          phase: streamed ? "plain-after-stream" : "plain",
           percentage,
           elapsedMs: Date.now() - started,
           size: file.size,
           type: file.type,
-          aborted,
+          aborted: true,
         });
         return null;
       }
@@ -335,6 +392,8 @@ export function PhotoUploader({
                 </span>
               ) : x.stage === "prep" ? (
                 <span className="text-[10px] font-bold">كنحضّروها…</span>
+              ) : x.stage === "up-blind" ? (
+                <span className="text-[10px] font-bold">كنرفعوها…</span>
               ) : (
                 <span className="num text-[11px] font-bold">{Math.round(x.progress)}%</span>
               )}

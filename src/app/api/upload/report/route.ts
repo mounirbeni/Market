@@ -18,6 +18,7 @@ export async function POST(req: Request) {
     message?: string;
     name?: string;
     status?: number;
+    phase?: string;
     percentage?: number;
     elapsedMs?: number;
     size?: number;
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
       user: user?.id ?? null,
       name: b?.name ?? null,
       status: b?.status ?? null,
+      phase: b?.phase ?? null,
       message: String(b?.message ?? "").slice(0, 400),
       percentage: b?.percentage ?? null,
       elapsedMs: b?.elapsedMs ?? null,
