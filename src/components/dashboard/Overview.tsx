@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
-import { THREADS } from "@/lib/data/threads";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "@/store/session";
 import { trustOf, fairPriceOf } from "@/lib/market";
 import { formatNumber, timeAgo } from "@/lib/format";
-import { NOW } from "@/lib/data/seed";
 import { vehicleHref } from "@/lib/slug";
 import { artShape } from "@/lib/artshape";
 import { VehicleArt } from "@/components/VehicleArt";
@@ -18,7 +17,25 @@ import {
 
 export function DashboardOverview() {
   const { favorites } = useApp();
-  const unread = THREADS.reduce((s, t) => s + t.unread, 0);
+  /* عدد الرسائل غير المقروءة كيجي من الجلسة — الخادم هو اللي كيحسبو */
+  const { unread } = useSession();
+
+  /* آخر المحادثات من قاعدة البيانات */
+  const [threads, setThreads] = useState<
+    { id: string; other_name: string; last_body: string | null; last_at: string }[]
+  >([]);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/threads")
+      .then((r) => r.json())
+      .then((j) => {
+        if (alive && j?.ok) setThreads(j.data.threads);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   /* إعلاناتك الحقيقية من قاعدة البيانات */
   const { items: mine } = useMyListings();
@@ -138,26 +155,29 @@ export function DashboardOverview() {
             <h2 className="flex items-center gap-2 text-[13px] font-bold">
               <Message size={15} style={{ color: "var(--brand)" }} /> آخر الرسائل
             </h2>
-            <ul className="mt-3 space-y-3">
-              {THREADS.slice(0, 3).map((t) => {
-                const last = t.messages[t.messages.length - 1];
-                return (
+            {threads.length === 0 ? (
+              <p className="mt-3 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                ماكاين حتى محادثة دابا. ملي شي مشتري يراسلك، كتبان هنا.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {threads.slice(0, 3).map((t) => (
                   <li key={t.id}>
                     <Link href="/dashboard/messages" className="block">
                       <span className="flex items-center justify-between gap-2">
-                        <span className="truncate text-[12px] font-bold">{t.person}</span>
+                        <span className="truncate text-[12px] font-bold">{t.other_name}</span>
                         <span className="shrink-0 text-[10px]" style={{ color: "var(--text-dim)" }}>
-                          {timeAgo(last.at, NOW)}
+                          {timeAgo(t.last_at)}
                         </span>
                       </span>
                       <span className="mt-0.5 block truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
-                        {last.text}
+                        {t.last_body ?? "بلا رسائل بعد"}
                       </span>
                     </Link>
                   </li>
-                );
-              })}
-            </ul>
+                ))}
+              </ul>
+            )}
           </section>
 
           {/* إجراءات */}

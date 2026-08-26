@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
-import { THREADS } from "@/lib/data/threads";
 import {
   BadgeCheck, Calendar, Car, Chart, Heart, Message, Plus, Sliders, Users,
 } from "@/components/icons";
@@ -22,8 +21,7 @@ const NAV = [
 export function DashboardShell({ title, children }: { title: string; children: ReactNode }) {
   const pathname = usePathname();
   const { favorites, ready } = useApp();
-  const { user, signOut } = useSession();
-  const unread = THREADS.reduce((s, t) => s + t.unread, 0);
+  const { user, signOut, unread } = useSession();
 
   if (!ready) return null;
 
