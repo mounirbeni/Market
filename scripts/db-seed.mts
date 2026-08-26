@@ -122,7 +122,12 @@ for (const v of VEHICLES) {
              CASE WHEN $38::promo_tier IS NULL THEN NULL
                   ELSE now() + ($39::int || ' days')::interval END,
              $40,$41,$42)
-     ON CONFLICT (ref) DO UPDATE SET price_mad = EXCLUDED.price_mad
+     ON CONFLICT (ref) DO UPDATE SET
+       price_mad        = EXCLUDED.price_mad,
+       trust_score      = EXCLUDED.trust_score,
+       fair_price_mad   = EXCLUDED.fair_price_mad,
+       fair_price_delta = EXCLUDED.fair_price_delta,
+       updated_at       = now()
      RETURNING id`,
     [v.id, vehicleSlug(v), sellerUuid, dealerIds.get(v.sellerId) ?? null,
      v.kind, v.make, v.model, v.version, v.year, v.km, v.price, v.owners,
@@ -130,7 +135,7 @@ for (const v of VEHICLES) {
      v.displacement ?? null, v.doors ?? null, v.color, v.city, v.condition,
      v.firstHand, v.papersOk, v.technicalControl, v.inspected, v.serviceBook,
      v.vinChecked, v.description, v.equipment, v.negotiable, v.exchangeAccepted,
-     trust, fp.fair, fp.delta.toFixed(4), v.photos, v.hasVideo,
+     trust, fp.estimate.mid, fp.delta.toFixed(4), v.photos, v.hasVideo,
      v.promo ?? null, promoDays, v.views, v.saves, v.publishedAt],
   );
   const listingId = rows[0].id;

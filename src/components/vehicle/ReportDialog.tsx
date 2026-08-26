@@ -19,6 +19,8 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -32,6 +34,29 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
       document.body.style.overflow = prev;
     };
   }, [onClose]);
+
+  /** كيسجّل التبليغ فقاعدة البيانات — بلا ما يكون المستخدم داخل */
+  async function send() {
+    setSending(true);
+    setError("");
+    try {
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ref: v.id, reason, note }),
+      });
+      const json = await res.json();
+      if (!json?.ok) {
+        setError(json?.error ?? "ماقدرناش نسجّلو التبليغ. عاود المحاولة.");
+        return;
+      }
+      setSent(true);
+    } catch {
+      setError("الشبكة قاطعة. عاود المحاولة.");
+    } finally {
+      setSending(false);
+    }
+  }
 
   return (
     <div
@@ -143,14 +168,20 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
                 </span>
               </div>
 
+              {error && (
+                <p className="mt-3 text-[12px] font-semibold" style={{ color: "var(--bad)" }}>
+                  {error}
+                </p>
+              )}
+
               <div className="mt-5 flex gap-2">
                 <button
-                  onClick={() => setSent(true)}
-                  disabled={!reason}
+                  onClick={send}
+                  disabled={!reason || sending}
                   className="btn btn-primary flex-1"
                   style={reason ? { background: "var(--bad)" } : undefined}
                 >
-                  <Check size={16} /> صيفط التبليغ
+                  <Check size={16} /> {sending ? "كنصيفطو…" : "صيفط التبليغ"}
                 </button>
                 <button onClick={onClose} className="btn btn-ghost">إلغاء</button>
               </div>

@@ -143,6 +143,10 @@ export function SellWizard() {
   const [step, setStep] = useState(0);
   const [d, setD] = useState<Draft>(initialDraft);
   const [published, setPublished] = useState(false);
+  /* نتيجة النشر الحقيقية: الرابط ديال الإعلان، ولا رسالة الخطأ */
+  const [publishing, setPublishing] = useState(false);
+  const [publishedHref, setPublishedHref] = useState("");
+  const [publishError, setPublishError] = useState("");
   /** حالة المسودة: idle | saved | restored */
   const [draftState, setDraftState] = useState<"idle" | "saved" | "restored">("idle");
   const [hasDraft, setHasDraft] = useState(false);
@@ -233,6 +237,45 @@ export function SellWizard() {
     return t.sort((a, b) => Number(a.done) - Number(b.done) || b.gain - a.gain);
   }, [d]);
 
+  /** كيبعت الإعلان للخادم وكيسجّلو فقاعدة البيانات */
+  async function publish() {
+    setPublishing(true);
+    setPublishError("");
+    try {
+      const res = await fetch("/api/listings/create", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          kind: d.kind, make: d.make, model: d.model, version: d.version,
+          year: d.year, km: d.km, price: d.price, owners: d.owners,
+          fuel: d.fuel, gearbox: d.gearbox,
+          body: d.kind === "moto" ? "roadster" : "berline",
+          city: d.city, condition: d.condition,
+          papersOk: d.papersOk, technicalControlValid: d.technicalControlValid,
+          inspected: d.inspected, serviceBook: d.serviceBook,
+          vinChecked: d.vinChecked, description: d.description,
+          equipment: d.equipment, photos: d.photos, hasVideo: d.hasVideo,
+        }),
+      });
+      const json = await res.json();
+      if (!json?.ok) {
+        setPublishError(
+          res.status === 401
+            ? "خاصك تسجّل الدخول باش تنشر إعلان."
+            : json?.error ?? "ماقدرناش ننشرو الإعلان. عاود المحاولة.",
+        );
+        return;
+      }
+      setPublishedHref(`/vehicle/${json.data.slug}`);
+      dropDraft();
+      setPublished(true);
+    } catch {
+      setPublishError("الشبكة قاطعة. عاود المحاولة.");
+    } finally {
+      setPublishing(false);
+    }
+  }
+
   if (published) {
     return (
       <div className="card-raised zellige relative overflow-hidden p-12 text-center">
@@ -250,14 +293,22 @@ export function SellWizard() {
             <b className="num">{trust.score}/100</b>. الإعلانات اللي نقطتها فوق{" "}
             <span className="num">75</span> كتباع بسرعة أكبر بـ<span className="num">3</span> مرات.
           </p>
-          <div className="mt-3 text-xs" style={{ color: "var(--text-dim)" }}>
-            (هادي منصة تجريبية — الإعلان ما تسجّلش فأي خادم)
-          </div>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <button onClick={() => { setPublished(false); setStep(0); setD(initialDraft); }} className="btn btn-ghost">
+            <button
+              onClick={() => {
+                setPublished(false);
+                setPublishedHref("");
+                setStep(0);
+                setD(initialDraft);
+              }}
+              className="btn btn-ghost"
+            >
               إعلان جديد
             </button>
-            <Link href="/vehicles" className="btn btn-primary">تصفح السوق</Link>
+            {publishedHref && (
+              <Link href={publishedHref} className="btn btn-primary">شوف الإعلان ديالك</Link>
+            )}
+            <Link href="/dashboard/listings" className="btn btn-ghost">إعلاناتي</Link>
           </div>
         </div>
       </div>
@@ -591,11 +642,17 @@ export function SellWizard() {
               </div>
 
               <button
-                onClick={() => { dropDraft(); setPublished(true); }}
+                onClick={publish}
+                disabled={publishing}
                 className="btn btn-primary w-full"
               >
-                <Sparkle size={16} /> انشر الإعلان مجاناً
+                <Sparkle size={16} /> {publishing ? "كننشرو…" : "انشر الإعلان مجاناً"}
               </button>
+              {publishError && (
+                <p className="mt-3 text-center text-[12px] font-semibold" style={{ color: "var(--bad)" }}>
+                  {publishError}
+                </p>
+              )}
             </div>
           )}
 

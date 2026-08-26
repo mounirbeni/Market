@@ -25,6 +25,9 @@ export function PromoteClient() {
   /* الإعلان كيتجاب من قاعدة البيانات حسب المعرّف اللي فالرابط */
   const listing = useVehiclesByIds(wanted).items[0];
   const [picked, setPicked] = useState<PromoTier>("urgent");
+  const [sending, setSending] = useState(false);
+  const [requested, setRequested] = useState(false);
+  const [error, setError] = useState("");
   const meta = PROMOS[picked];
 
   /** تقدير المشاهدات: أساس الإعلان × مضاعف الدرجة على مدة الترويج */
@@ -33,6 +36,34 @@ export function PromoteClient() {
     const plain = baseDaily * meta.days;
     return { plain, boosted: Math.round(plain * meta.liftX), baseDaily };
   }, [listing, meta]);
+
+  /** كيسجّل طلب الترويج — الثمن كيتّاخد من الخادم ماشي من هنا */
+  async function request() {
+    if (!listing) return;
+    setSending(true);
+    setError("");
+    try {
+      const res = await fetch("/api/promotions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ref: listing.id, tier: picked }),
+      });
+      const json = await res.json();
+      if (!json?.ok) {
+        setError(
+          res.status === 401
+            ? "خاصك تسجّل الدخول باش تروّج إعلانك."
+            : json?.error ?? "ماقدرناش نسجّلو الطلب. عاود المحاولة.",
+        );
+        return;
+      }
+      setRequested(true);
+    } catch {
+      setError("الشبكة قاطعة. عاود المحاولة.");
+    } finally {
+      setSending(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-[1100px] px-4 py-10">
@@ -175,21 +206,43 @@ export function PromoteClient() {
         </div>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <button className="btn btn-primary btn-lg flex-1" style={{ background: meta.color }}>
-            <Wallet size={17} /> فعّل «{meta.label}» بـ<span className="num">{meta.price}</span> د.م
+          <button
+            onClick={request}
+            disabled={!listing || sending || requested}
+            className="btn btn-primary btn-lg flex-1"
+            style={{ background: meta.color }}
+          >
+            <Wallet size={17} />{" "}
+            {requested
+              ? "تسجّل الطلب"
+              : sending
+                ? "كنسجّلو…"
+                : <>فعّل «{meta.label}» بـ<span className="num">{meta.price}</span> د.م</>}
           </button>
           <Link href="/dashboard/listings" className="btn btn-ghost btn-lg">
             رجع للإعلانات
           </Link>
         </div>
 
+        {error && (
+          <p className="mt-4 text-[12px] font-semibold" style={{ color: "var(--bad)" }}>
+            {error}
+          </p>
+        )}
+        {!listing && (
+          <p className="mt-4 text-[12px]" style={{ color: "var(--text-dim)" }}>
+            اختر إعلان من <Link href="/dashboard/listings" className="underline">إعلاناتك</Link> باش تروّجو.
+          </p>
+        )}
+
         <p
           className="mt-4 flex items-start gap-2 rounded-xl p-3 text-[11.5px] leading-relaxed"
           style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
         >
           <Info size={14} className="mt-0.5 shrink-0" style={{ color: "var(--brand)" }} />
-          هادي نسخة تجريبية — الأداء ماشي مفعّل. فالنسخة النهائية غادي يتزاد الأداء
-          بالبطاقة البنكية وعبر الوكالات، مع فاتورة إلكترونية لكل عملية.
+          {requested
+            ? "الطلب ديالك تسجّل. الترويج كيتفعّل ملي يتأكّد الأداء — غادي نعيطو ليك."
+            : "الأداء بالبطاقة البنكية وعبر الوكالات مازال ماتفعّلش. دابا كيتسجّل الطلب وكنتواصلو معاك باش تخلّص."}
         </p>
       </section>
 

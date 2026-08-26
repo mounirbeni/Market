@@ -18,6 +18,7 @@ import { StickyActionBar } from "@/components/vehicle/StickyActionBar";
 import { FairPriceMeter } from "@/components/FairPriceMeter";
 import { VehicleCard } from "@/components/VehicleCard";
 import { RecentlyViewed } from "@/components/vehicle/RecentlyViewed";
+import { ViewTracker } from "@/components/vehicle/ViewTracker";
 import { Price } from "@/components/Price";
 import { Mixed } from "@/components/Mixed";
 import { TrustRing } from "@/components/TrustBadge";
@@ -283,6 +284,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
         </section>
       )}
 
+      <ViewTracker listingRef={v.id} />
       <RecentlyViewed currentId={v.id} />
     </div>
   );

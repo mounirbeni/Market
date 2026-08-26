@@ -9,6 +9,7 @@ import { hashCode } from "@/lib/data/seed";
 import { vehicleHref } from "@/lib/slug";
 import { ReportDialog } from "./ReportDialog";
 import { ContactSellerButton } from "./ContactSellerButton";
+import { AppointmentDialog } from "./AppointmentDialog";
 import {
   BadgeCheck, Calendar, Check, Clock, Flag, MapPin, Phone, Share,
   ShieldAlert, Star, Whatsapp, Wrench,
@@ -30,6 +31,7 @@ export function SellerCard({ seller, v }: { seller: Seller; v: Vehicle }) {
   const [revealed, setRevealed] = useState(false);
   const [shared, setShared] = useState(false);
   const [reporting, setReporting] = useState(false);
+  const [booking, setBooking] = useState(false);
 
   const title = `${v.make} ${v.model} ${v.year}`;
   const waText = encodeURIComponent(
@@ -105,9 +107,9 @@ export function SellerCard({ seller, v }: { seller: Seller; v: Vehicle }) {
           </a>
           <div className="grid grid-cols-2 gap-2">
             <ContactSellerButton listingRef={v.id} label="رسالة داخلية" />
-            <Link href={`/messages?appointment=${v.id}`} className="btn btn-solid btn-sm">
+            <button onClick={() => setBooking(true)} className="btn btn-solid btn-sm">
               <Calendar size={14} /> اطلب موعد
-            </Link>
+            </button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button onClick={share} className="btn btn-solid btn-sm" aria-live="polite">
@@ -129,6 +131,7 @@ export function SellerCard({ seller, v }: { seller: Seller; v: Vehicle }) {
       </div>
 
       {reporting && <ReportDialog v={v} onClose={() => setReporting(false)} />}
+      {booking && <AppointmentDialog v={v} onClose={() => setBooking(false)} />}
 
       <div
         className="flex gap-2.5 border-t p-4 text-[11px] leading-relaxed"

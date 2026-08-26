@@ -5,6 +5,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Unit } from "@/lib/format";
+import { useSession } from "./session";
 
 export interface SavedSearch {
   id: string;
@@ -99,6 +100,101 @@ export function AppProvider({ children }: { children: ReactNode }) {
     document.documentElement.setAttribute("data-theme", state.theme);
   }, [state, ready]);
 
+  /* ============================================================
+     المزامنة مع الحساب
+
+     ملي يكون المستخدم داخل، المفضّلة والبحوث المحفوظة كيعيشو
+     فقاعدة البيانات ماشي فالمتصفح — باش يلقاهم من أي جهاز.
+     اللي حفظ قبل ما يدخل كيتّرفع للحساب أول مرة.
+     ============================================================ */
+  const { user } = useSession();
+  const userId = user?.id ?? null;
+
+  useEffect(() => {
+    if (!ready) return;
+    if (!userId) return;
+    let alive = true;
+
+    (async () => {
+      try {
+        const [favRes, srchRes] = await Promise.all([
+          fetch("/api/me/favorites").then((r) => r.json()),
+          fetch("/api/me/searches").then((r) => r.json()),
+        ]);
+        if (!alive || !favRes?.ok) return;
+
+        const remoteFavs: string[] = favRes.data.favorites ?? [];
+        const remoteWatch: string[] = favRes.data.priceWatch ?? [];
+
+        // اللي محفوظ محلياً وماشي فالحساب — كنرفعوه
+        const toUpload = state.favorites.filter((id) => !remoteFavs.includes(id));
+        await Promise.all(
+          toUpload.map((ref) =>
+            fetch("/api/me/favorites", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ ref, on: true }),
+            }).catch(() => {}),
+          ),
+        );
+
+        const remoteSearches = srchRes?.ok
+          ? (srchRes.data.items as { id: string; label: string; query: string; alert: boolean; created_at: string }[])
+          : [];
+        const known = new Set(remoteSearches.map((x) => x.query));
+        await Promise.all(
+          state.searches
+            .filter((x) => !known.has(x.query))
+            .map((x) =>
+              fetch("/api/me/searches", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ label: x.label, query: x.query }),
+              }).catch(() => {}),
+            ),
+        );
+
+        if (!alive) return;
+        setState((prev) => ({
+          ...prev,
+          favorites: [...new Set([...toUpload, ...remoteFavs])],
+          priceWatch: [...new Set([...prev.priceWatch, ...remoteWatch])],
+          searches: [
+            ...prev.searches.filter((x) => !known.has(x.query)),
+            ...remoteSearches.map((x) => ({
+              id: x.id,
+              label: x.label,
+              query: x.query,
+              alert: x.alert,
+              createdAt: new Date(x.created_at).getTime(),
+            })),
+          ].slice(0, 12),
+        }));
+      } catch {
+        /* الشبكة قاطعة — كنكملو بالتخزين المحلي */
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+    // كنمشيو غير ملي يتبدّل المستخدم — ماشي مع كل تغيير فالحالة
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, userId]);
+
+  /** كتبعت التغيير للحساب ملي يكون المستخدم داخل — الفشل ماكيوقفش الواجهة */
+  const push = useCallback(
+    (url: string, payload: unknown, method = "POST") => {
+      if (!userId) return;
+      fetch(url, {
+        method,
+        headers: { "content-type": "application/json" },
+        body: method === "DELETE" ? undefined : JSON.stringify(payload),
+      }).catch(() => {});
+    },
+    [userId],
+  );
+
   const setUnit = useCallback((unit: Unit) => setState((s) => ({ ...s, unit })), []);
   const toggleUnit = useCallback(
     () => setState((s) => ({ ...s, unit: s.unit === "dh" ? "million" : "dh" })), []);
@@ -106,13 +202,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => setState((s) => ({ ...s, theme: s.theme === "dark" ? "light" : "dark" })), []);
 
   const toggleFavorite = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      favorites: s.favorites.includes(id)
-        ? s.favorites.filter((x) => x !== id)
-        : [id, ...s.favorites],
-    }));
-  }, []);
+    setState((s) => {
+      const on = !s.favorites.includes(id);
+      push("/api/me/favorites", { ref: id, on });
+      return {
+        ...s,
+        favorites: on ? [id, ...s.favorites] : s.favorites.filter((x) => x !== id),
+      };
+    });
+  }, [push]);
 
   const toggleCompare = useCallback((id: string) => {
     let added = false;
@@ -128,6 +226,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearCompare = useCallback(() => setState((s) => ({ ...s, compare: [] })), []);
 
   const saveSearch = useCallback((s: Omit<SavedSearch, "id" | "createdAt">) => {
+    push("/api/me/searches", { label: s.label, query: s.query });
     setState((prev) => ({
       ...prev,
       searches: [
@@ -135,10 +234,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...prev.searches.filter((x) => x.query !== s.query),
       ].slice(0, 12),
     }));
-  }, []);
+  }, [push]);
 
   const removeSearch = useCallback(
-    (id: string) => setState((s) => ({ ...s, searches: s.searches.filter((x) => x.id !== id) })), []);
+    (id: string) => {
+      if (userId) fetch(`/api/me/searches?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
+      setState((s) => ({ ...s, searches: s.searches.filter((x) => x.id !== id) }));
+    },
+    [userId],
+  );
 
   const pushRecent = useCallback((id: string) => {
     setState((s) =>
@@ -147,13 +251,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const togglePriceWatch = useCallback((id: string) => {
-    setState((s) => ({
-      ...s,
-      priceWatch: s.priceWatch.includes(id)
-        ? s.priceWatch.filter((x) => x !== id)
-        : [...s.priceWatch, id],
-    }));
-  }, []);
+    setState((s) => {
+      const watch = !s.priceWatch.includes(id);
+      push("/api/me/favorites", { ref: id, watch });
+      return {
+        ...s,
+        priceWatch: watch ? [...s.priceWatch, id] : s.priceWatch.filter((x) => x !== id),
+      };
+    });
+  }, [push]);
 
   const markRead = useCallback((id: string) => {
     setState((s) =>
