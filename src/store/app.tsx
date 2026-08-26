@@ -45,10 +45,6 @@ interface AppState {
   togglePriceWatch: (id: string) => void;
   isWatched: (id: string) => boolean;
 
-  /** الإشعارات المقروءة */
-  readNotifications: string[];
-  markRead: (id: string) => void;
-  markAllRead: (ids: string[]) => void;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -62,7 +58,6 @@ interface Persisted {
   searches: SavedSearch[];
   recent: string[];
   priceWatch: string[];
-  readNotifications: string[];
 }
 
 const initial: Persisted = {
@@ -73,7 +68,6 @@ const initial: Persisted = {
   searches: [],
   recent: [],
   priceWatch: [],
-  readNotifications: [],
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -261,17 +255,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, [push]);
 
-  const markRead = useCallback((id: string) => {
-    setState((s) =>
-      s.readNotifications.includes(id)
-        ? s
-        : { ...s, readNotifications: [...s.readNotifications, id] },
-    );
-  }, []);
-  const markAllRead = useCallback((ids: string[]) => {
-    setState((s) => ({ ...s, readNotifications: Array.from(new Set([...s.readNotifications, ...ids])) }));
-  }, []);
-
   const value = useMemo<AppState>(
     () => ({
       ready,
@@ -285,11 +268,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       recent: state.recent, pushRecent,
       priceWatch: state.priceWatch, togglePriceWatch,
       isWatched: (id) => state.priceWatch.includes(id),
-      readNotifications: state.readNotifications, markRead, markAllRead,
     }),
     [ready, state, setUnit, toggleUnit, toggleTheme, toggleFavorite, toggleCompare,
       clearCompare, saveSearch, removeSearch, pushRecent,
-      togglePriceWatch, markRead, markAllRead],
+      togglePriceWatch],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

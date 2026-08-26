@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useApp } from "@/store/app";
-import { NOTIFICATIONS } from "@/lib/data/notifications";
+import { useCallback, useEffect, useState } from "react";
+import { useSession } from "@/store/session";
 import { timeAgo } from "@/lib/format";
-import { NOW } from "@/lib/data/seed";
 import {
   Bell, BadgeCheck, Calendar, Check, Message, ShieldCheck, TrendingDown,
 } from "@/components/icons";
@@ -17,11 +16,76 @@ const META = {
   system: { Icon: ShieldCheck, color: "var(--text-dim)", label: "النظام" },
 } as const;
 
-export function NotificationsClient() {
-  const { readNotifications, markRead, markAllRead, ready } = useApp();
-  if (!ready) return null;
+interface Notif {
+  id: string;
+  type: keyof typeof META;
+  title: string;
+  body: string | null;
+  href: string | null;
+  read_at: string | null;
+  created_at: string;
+}
 
-  const unread = NOTIFICATIONS.filter((n) => !readNotifications.includes(n.id));
+export function NotificationsClient() {
+  const { user } = useSession();
+  const [items, setItems] = useState<Notif[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    let alive = true;
+    fetch("/api/me/notifications")
+      .then((r) => r.json())
+      .then((j) => {
+        if (alive && j?.ok) setItems(j.data.items as Notif[]);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
+  const markRead = useCallback((id: string) => {
+    setItems((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n)),
+    );
+    fetch("/api/me/notifications", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ids: [id] }),
+    }).catch(() => {});
+  }, []);
+
+  const markAllRead = useCallback(() => {
+    const now = new Date().toISOString();
+    setItems((prev) => prev.map((n) => ({ ...n, read_at: n.read_at ?? now })));
+    fetch("/api/me/notifications", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ all: true }),
+    }).catch(() => {});
+  }, []);
+
+  if (!user) {
+    return (
+      <div className="card flex flex-col items-center p-12 text-center">
+        <Bell size={30} style={{ color: "var(--text-dim)" }} />
+        <p className="mt-4 text-sm" style={{ color: "var(--text-muted)" }}>
+          سجّل الدخول باش تشوف الإشعارات ديالك.
+        </p>
+        <Link href="/login?next=%2Fnotifications" className="btn btn-primary mt-5">تسجيل الدخول</Link>
+      </div>
+    );
+  }
+  if (loading) return null;
+
+  const unread = items.filter((n) => !n.read_at);
 
   return (
     <div>
@@ -30,23 +94,20 @@ export function NotificationsClient() {
           <span className="num font-bold" style={{ color: "var(--brand)" }}>{unread.length}</span> إشعار غير مقروء
         </p>
         {unread.length > 0 && (
-          <button
-            onClick={() => markAllRead(NOTIFICATIONS.map((n) => n.id))}
-            className="btn btn-ghost btn-sm"
-          >
+          <button onClick={markAllRead} className="btn btn-ghost btn-sm">
             <Check size={13} /> علّم الكل كمقروء
           </button>
         )}
       </div>
 
       <ul className="space-y-2.5">
-        {NOTIFICATIONS.map((n) => {
-          const isRead = readNotifications.includes(n.id);
-          const m = META[n.type];
+        {items.map((n) => {
+          const isRead = Boolean(n.read_at);
+          const m = META[n.type] ?? META.system;
           return (
             <li key={n.id}>
               <Link
-                href={n.href}
+                href={n.href ?? "#"}
                 onClick={() => markRead(n.id)}
                 className="card card-hover flex gap-3.5 p-4"
                 style={{ borderColor: isRead ? "var(--line-soft)" : "var(--brand)" }}
@@ -69,7 +130,7 @@ export function NotificationsClient() {
                   </p>
                   <div className="mt-2 flex items-center gap-2 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
                     <span className="tag tag-mute">{m.label}</span>
-                    <span>{timeAgo(n.at, NOW)}</span>
+                    <span>{timeAgo(n.created_at)}</span>
                   </div>
                 </div>
               </Link>
@@ -78,7 +139,7 @@ export function NotificationsClient() {
         })}
       </ul>
 
-      {NOTIFICATIONS.length === 0 && (
+      {items.length === 0 && (
         <div className="card flex flex-col items-center p-12 text-center">
           <Bell size={30} style={{ color: "var(--text-dim)" }} />
           <p className="mt-4 text-sm" style={{ color: "var(--text-muted)" }}>ماكاين حتى إشعار.</p>

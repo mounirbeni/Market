@@ -7,7 +7,6 @@ import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
 import { Logo } from "./Logo";
 import { UnitToggle } from "./Price";
-import { NOTIFICATIONS } from "@/lib/data/notifications";
 import {
   Bell, Car, Close, Coins, FileText, Heart, Menu, Moon, Moto, Plus, Scale,
   Search, ShieldCheck, Sun, Users, Wallet,
@@ -64,7 +63,7 @@ function NavIconButton({
 }
 
 export function Header() {
-  const { favorites, compare, theme, toggleTheme, readNotifications } = useApp();
+  const { favorites, compare, theme, toggleTheme } = useApp();
   const { user } = useSession();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -78,7 +77,25 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const unread = NOTIFICATIONS.filter((n) => !readNotifications.includes(n.id)).length;
+  /* عدد الإشعارات غير المقروءة — من قاعدة البيانات */
+  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    if (!user) {
+      setUnread(0);
+      return;
+    }
+    let alive = true;
+    fetch("/api/me/notifications")
+      .then((r) => r.json())
+      .then((j) => {
+        if (alive && j?.ok)
+          setUnread((j.data.items as { read_at: string | null }[]).filter((n) => !n.read_at).length);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user]);
 
   return (
     <header

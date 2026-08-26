@@ -372,3 +372,33 @@ export async function addMedia(
 }
 
 export type { Vehicle };
+
+/* ---------- الإشعارات ---------- */
+
+export async function listNotifications(userId: string) {
+  return sql<{
+    id: string; type: string; title: string; body: string | null;
+    href: string | null; read_at: Date | null; created_at: Date;
+  }>(
+    `SELECT id::text, type::text, title, body, href, read_at, created_at
+     FROM notifications WHERE user_id = $1
+     ORDER BY created_at DESC LIMIT 60`,
+    [userId],
+  );
+}
+
+/** كيعلّم إشعار (ولا الكل) كمقروء */
+export async function markNotificationsRead(userId: string, ids?: string[]) {
+  if (ids && ids.length > 0) {
+    await sql(
+      `UPDATE notifications SET read_at = now()
+       WHERE user_id = $1 AND read_at IS NULL AND id = ANY($2::bigint[])`,
+      [userId, ids],
+    );
+    return;
+  }
+  await sql(
+    "UPDATE notifications SET read_at = now() WHERE user_id = $1 AND read_at IS NULL",
+    [userId],
+  );
+}
