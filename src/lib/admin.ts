@@ -22,6 +22,9 @@ const admins = () =>
 
 export const adminConfigured = () => admins().size > 0;
 
+/** شحال من مشرف مضبوط — للفحص، بلا ما نبيّنو الإيميلات */
+export const adminCount = () => admins().size;
+
 /** المستخدم الحالي إلا كان مشرفاً — وإلا null */
 export async function getAdmin() {
   const list = admins();

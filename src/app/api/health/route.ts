@@ -1,5 +1,6 @@
 import { mailConfigured, mailProvider } from "@/lib/mail";
 import { blobConfigured } from "@/lib/blob";
+import { adminCount } from "@/lib/admin";
 import { ok } from "@/lib/api";
 import { sql } from "@/lib/db/client";
 
@@ -23,10 +24,23 @@ export async function GET() {
     }
   }
 
+  let users = 0;
+  if (db) {
+    try {
+      const r = await sql<{ n: string }>("SELECT count(*)::text AS n FROM users");
+      users = Number(r[0].n);
+    } catch {
+      /* ماشي حرج */
+    }
+  }
+
   return ok({
     db,
     listings,
+    users,
     blob: blobConfigured(),
     mail: { configured: mailConfigured(), provider: mailProvider() || null },
+    // شحال من إيميل فADMIN_EMAILS — الرقم فقط، بلا ما نبيّنو شكون
+    admins: adminCount(),
   });
 }
