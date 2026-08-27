@@ -40,7 +40,20 @@ export function NotificationsClient() {
     fetch("/api/me/notifications")
       .then((r) => r.json())
       .then((j) => {
-        if (alive && j?.ok) setItems(j.data.items as Notif[]);
+        if (!alive || !j?.ok) return;
+        const list = j.data.items as Notif[];
+        setItems(list);
+
+        /* فتحتي الصفحة = شفتيهم. كنعلّموهم كمقروئين فالخادم باش
+           الرقم فوق الجرس يمشي، ولكن كنخلّيو العلامة الزرقاء
+           فهاد العرض — باش تعرف شنو كان جديد ملي دخلتي. */
+        if (list.some((n) => !n.read_at)) {
+          fetch("/api/me/notifications", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ all: true }),
+          }).catch(() => {});
+        }
       })
       .catch(() => {})
       .finally(() => {

@@ -120,9 +120,13 @@ export const Phone = (p: P) => (
 export const Message = (p: P) => (
   <svg {...base(p)}><path d="M21 11.5a8 8 0 0 1-11.6 7.1L4 20l1.4-5.3A8 8 0 1 1 21 11.5" /></svg>
 );
-export const Bell = (p: P) => (
+/* filled = كاينين إشعارات ماتقراوش — الجرس معمّر باش يبان من بعيد */
+export const Bell = ({ filled, ...p }: P) => (
   <svg {...base(p)}>
-    <path d="M6.5 9a5.5 5.5 0 0 1 11 0c0 6 2 7.5 2 7.5h-15S6.5 15 6.5 9" />
+    <path
+      d="M6.5 9a5.5 5.5 0 0 1 11 0c0 6 2 7.5 2 7.5h-15S6.5 15 6.5 9"
+      fill={filled ? "currentColor" : "none"}
+    />
     <path d="M10.2 20a2 2 0 0 0 3.6 0" />
   </svg>
 );

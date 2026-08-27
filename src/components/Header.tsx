@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
+import { useUnreadNotifications } from "@/lib/useUnreadNotifications";
 import { Logo } from "./Logo";
 import { UnitToggle } from "./Price";
 import {
@@ -78,24 +79,7 @@ export function Header() {
   }, []);
 
   /* عدد الإشعارات غير المقروءة — من قاعدة البيانات */
-  const [unread, setUnread] = useState(0);
-  useEffect(() => {
-    if (!user) {
-      setUnread(0);
-      return;
-    }
-    let alive = true;
-    fetch("/api/me/notifications")
-      .then((r) => r.json())
-      .then((j) => {
-        if (alive && j?.ok)
-          setUnread((j.data.items as { read_at: string | null }[]).filter((n) => !n.read_at).length);
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [user]);
+  const unread = useUnreadNotifications();
 
   return (
     <header
@@ -131,11 +115,14 @@ export function Header() {
             {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
           </NavIconButton>
 
-          <div className="hidden sm:block">
+          {/* الجرس كان مخبّي تحت sm: فالتيليفون ماكانش كيبان أبداً،
+              وفالحاسوب كان كيبان حتى للزائر اللي ماعندوش إشعارات.
+              دابا: كيبان ملي يكون شي واحد داخل، وفكل المقاسات. */}
+          {user && (
             <NavIconButton href="/notifications" label="الإشعارات" count={unread} active={unread > 0}>
-              <Bell size={17} />
+              <Bell size={17} filled={unread > 0} />
             </NavIconButton>
-          </div>
+          )}
 
           <NavIconButton href="/favorites" label="المفضلة" count={favorites.length} active={favorites.length > 0}>
             <Heart size={17} filled={favorites.length > 0} />
