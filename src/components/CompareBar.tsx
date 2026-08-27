@@ -13,7 +13,9 @@ export function CompareBar() {
   if (!ready || compare.length === 0) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-[60px] z-40 px-3 pb-3 animate-rise sm:bottom-0">
+    <div
+      className="fixed inset-x-0 bottom-[calc(60px+env(safe-area-inset-bottom))] z-40 px-3 pb-3 animate-rise sm:bottom-0"
+    >
       <div
         className="mx-auto flex max-w-3xl items-center gap-3 rounded-2xl border p-2.5 shadow-2xl"
         style={{

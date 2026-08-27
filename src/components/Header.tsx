@@ -84,7 +84,12 @@ export function Header() {
   return (
     <header
       className="navbar sticky top-0 z-50 transition-shadow duration-300"
-      style={{ boxShadow: scrolled ? "0 8px 26px -18px rgba(3,8,18,0.95)" : "none" }}
+      style={{
+        boxShadow: scrolled ? "0 8px 26px -18px rgba(3,8,18,0.95)" : "none",
+        // ملي التطبيق مزاد للشاشة الرئيسية وstatus bar شفّاف، هادشي
+        // كيبعّد الهيدر على الـnotch/الجزيرة الديناميكية. صفر فالمتصفح العادي.
+        paddingTop: "env(safe-area-inset-top)",
+      }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1400px] items-center gap-3 px-4">
         <Link href="/" aria-label="الصفحة الرئيسية" className="shrink-0">
@@ -229,7 +234,13 @@ export function MobileNav() {
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t sm:hidden"
-      style={{ background: "var(--surface-1)", borderColor: "var(--line-soft)" }}
+      style={{
+        background: "var(--surface-1)",
+        borderColor: "var(--line-soft)",
+        // بلا هادشي الأزرار كتّغطّى بمقبض الإيماءة ديال آيفون ملي
+        // التطبيق مزاد للشاشة الرئيسية
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
       aria-label="التنقل السريع"
     >
       <div className="mx-auto grid max-w-md grid-cols-5">

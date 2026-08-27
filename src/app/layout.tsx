@@ -8,6 +8,7 @@ import { unreadCount } from "@/lib/db/chat";
 import { Header, MobileNav } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CompareBar } from "@/components/CompareBar";
+import { PwaRegister } from "@/components/PwaRegister";
 
 /** نص المتن */
 const body = IBM_Plex_Sans_Arabic({
@@ -59,6 +60,12 @@ export const metadata: Metadata = {
     images: [{ url: "/hero-vehicles.webp", width: 1774, height: 887, alt: "طريق TRIQ" }],
   },
   robots: { index: true, follow: true },
+  /* ملي كيتزاد للشاشة الرئيسية فiOS: بلا شريط سفاري، وباسم مختصر */
+  appleWebApp: {
+    capable: true,
+    title: "طريق",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
@@ -68,6 +75,9 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  // بلا هادشي المحتوى ماكيتمدّش تحت الـnotch/الجزيرة الديناميكية
+  // ملي التطبيق مزاد للشاشة الرئيسية — كيبقى فراغ أبيض فوق وتحت
+  viewportFit: "cover",
 };
 
 /** يمنع وميض الوضع الفاتح/الداكن قبل التحميل */
@@ -81,6 +91,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="ar" dir="rtl" data-theme="light" className={`${body.variable} ${kufi.variable} ${num.variable}`}>
       <head>
+        {/* Next كيصيفط mobile-web-app-capable وحدو؛ آيفون قبل iOS 16.4
+            كيقرا غير هاد الوسم القديم باش يفتح بلا شريط سفاري */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-screen antialiased">
@@ -93,10 +106,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             تخطَّ إلى المحتوى
           </a>
           <Header />
-          <main id="main" className="pb-16 sm:pb-0">{children}</main>
+          <main id="main" className="pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-0">
+            {children}
+          </main>
           <Footer />
           <CompareBar />
           <MobileNav />
+          <PwaRegister />
         </AppProvider>
         </SessionProvider>
       </body>

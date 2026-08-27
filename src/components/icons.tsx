@@ -95,6 +95,14 @@ export const Check = (p: P) => (<svg {...base(p)}><path d="m5 12.5 4.5 4.5L19 7"
 export const Reset = (p: P) => (
   <svg {...base(p)}><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
 );
+export const WifiOff = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M2 8.5a17 17 0 0 1 5.3-3.4M22 8.5a17 17 0 0 0-8.4-4.3M6 12.5a11.4 11.4 0 0 1 3.4-2M18 12.5a11.4 11.4 0 0 0-2.8-1.9" />
+    <path d="M9 16.3a6 6 0 0 1 6 0" />
+    <circle cx="12" cy="19.5" r="1.1" fill="currentColor" stroke="none" />
+    <path d="M3 3l18 18" />
+  </svg>
+);
 export const External = (p: P) => (
   <svg {...base(p)}><path d="M14 4h6v6M20 4l-8 8" /><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg>
 );

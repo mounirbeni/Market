@@ -34,7 +34,9 @@ export function StickyActionBar({ v }: { v: Vehicle }) {
   return (
     <div
       className="fixed inset-x-0 z-30 px-3 pb-3 lg:hidden animate-rise"
-      style={{ bottom: compare.length > 0 ? 132 : 60 }}
+      style={{
+        bottom: `calc(${compare.length > 0 ? 132 : 60}px + env(safe-area-inset-bottom))`,
+      }}
     >
       <div
         className="flex items-center gap-2.5 rounded-2xl border p-2.5"
