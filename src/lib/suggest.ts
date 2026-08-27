@@ -167,7 +167,7 @@ function buildIndex(): IndexEntry[] {
     out.push({
       kind: "model",
       label: `${make} ${model}`,
-      sub: sample.kind === "moto" ? "دراجة نارية" : FR_BODY[sample.body] ?? "",
+      sub: sample.kind === "moto" ? "دراجة نارية" : (sample.body && FR_BODY[sample.body]) || "سيارة",
       count: n,
       filters: { make, model },
       query: `${make} ${model}`,
@@ -180,7 +180,9 @@ function buildIndex(): IndexEntry[] {
 
   // أنواع الهياكل — بالفرنسية أساساً
   const bodyCount = new Map<string, number>();
-  for (const v of CATALOG) bodyCount.set(v.body, (bodyCount.get(v.body) ?? 0) + 1);
+  for (const v of CATALOG) {
+    if (v.body) bodyCount.set(v.body, (bodyCount.get(v.body) ?? 0) + 1);
+  }
   for (const [body, n] of bodyCount) {
     out.push({
       kind: "body",
@@ -303,7 +305,7 @@ export function modelsOfMake(make: string, limit = 10): Suggestion[] {
     .map((c) => ({
       kind: "model" as const,
       label: `${make} ${c.model}`,
-      sub: c.kind === "moto" ? "دراجة نارية" : FR_BODY[c.body] ?? "",
+      sub: c.kind === "moto" ? "دراجة نارية" : (c.body && FR_BODY[c.body]) || "سيارة",
       count: 1,
       filters: { make, model: c.model },
       query: `${make} ${c.model}`,

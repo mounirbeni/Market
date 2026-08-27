@@ -281,25 +281,29 @@ export type { CatalogEntry };
  * الإعلانات الموجودة كتزيد فوقو (موديل ماشي فالكتالوج).
  */
 export async function getCatalog(): Promise<CatalogEntry[]> {
+  /* النسخة المرفقة هي الأساس: كتضمن أنّ القوائم كتعمّر حتى ملي
+     تكون القاعدة بعيدة ولا طايحة. جدول catalog_models كيزيد
+     فوقها، والإعلانات النشيطة كتزيد أي موديل ماشي فبجوجهم. */
   const base: CatalogEntry[] = CATALOG.map((c) => ({
     kind: c.kind,
     make: c.make,
     model: c.model,
   }));
+  const seen = new Set(base.map((c) => `${c.kind}|${c.make}|${c.model}`));
+  const add = (r: CatalogEntry) => {
+    const key = `${r.kind}|${r.make}|${r.model}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    base.push({ kind: r.kind, make: r.make, model: r.model });
+  };
 
   if (!usingDb()) return sortCatalog(base);
 
   try {
-    const { catalogRows } = await db();
-    const rows = await catalogRows();
-    const seen = new Set(base.map((c) => `${c.kind}|${c.make}|${c.model}`));
-    for (const r of rows) {
-      const key = `${r.kind}|${r.make}|${r.model}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        base.push(r);
-      }
-    }
+    const { catalogModels, catalogRows } = await db();
+    const [models, listed] = await Promise.all([catalogModels(), catalogRows()]);
+    for (const r of models) add(r);
+    for (const r of listed) add(r);
     return sortCatalog(base);
   } catch (e) {
     console.error("[source] فشل جلب الكتالوج:", e);

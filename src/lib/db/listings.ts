@@ -624,10 +624,18 @@ export async function comparableListings(
   );
 }
 
+/** الموديلات اللي عندها إعلانات نشيطة — كتزيد فوق الكتالوج */
 export async function catalogRows() {
   return sql<{ kind: "car" | "moto"; make: string; model: string }>(
     `SELECT DISTINCT kind, make, model FROM listings
      WHERE status = 'active' ORDER BY make, model`,
+  );
+}
+
+/** كتالوج الماركات والموديلات — المرجع اللي كيعمّر قوائم البيع */
+export async function catalogModels() {
+  return sql<{ kind: "car" | "moto"; make: string; model: string; body: string | null }>(
+    `SELECT kind, make, model, body FROM catalog_models ORDER BY make, model`,
   );
 }
 
