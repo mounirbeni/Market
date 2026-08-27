@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CITIES } from "@/lib/cities";
+import { TOP_CITIES } from "@/lib/cities";
 import { brandsOf } from "@/lib/slug";
 import { Logo } from "./Logo";
 import {
@@ -148,7 +148,7 @@ export function Footer() {
               المدن
             </h4>
             <div className="flex flex-wrap gap-1.5">
-              {CITIES.map((c) => (
+              {TOP_CITIES.map((c) => (
                 <Link
                   key={c.slug}
                   href={`/cars?city=${c.slug}`}

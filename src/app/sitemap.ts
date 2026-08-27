@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { CITIES } from "@/lib/cities";
+import { TOP_CITIES } from "@/lib/cities";
 import { GUIDES } from "@/lib/data/guides";
 import { brandsOf } from "@/lib/slug";
 import { getDealers, getSitemapEntries } from "@/lib/source";
@@ -72,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const cities = CITIES.map((c) => ({
+  const cities = TOP_CITIES.map((c) => ({
     url: `${BASE}/cars?city=${c.slug}`,
     changeFrequency: "daily" as const,
     priority: 0.55,
