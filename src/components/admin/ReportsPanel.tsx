@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { timeAgo } from "@/lib/format";
-import { AlertTriangle, BadgeCheck, Check, Close, ShieldAlert } from "@/components/icons";
+import { adminAction } from "./actions";
+import { AlertTriangle, BadgeCheck, Check, Close } from "@/components/icons";
 
 interface Report {
   id: string;
@@ -41,7 +42,7 @@ const TABS = [
   { key: "all", label: "كلشي" },
 ];
 
-export function ModerationPanel({
+export function ReportsPanel({
   reports,
   counts,
   status,
@@ -57,28 +58,17 @@ export function ModerationPanel({
   async function act(key: string, payload: Record<string, string>) {
     setBusy(key);
     setError(null);
-    try {
-      const res = await fetch("/api/admin/moderate", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش.");
-      router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "ماقدرناش.");
-    } finally {
-      setBusy(null);
-    }
+    const err = await adminAction(payload);
+    if (err) setError(err);
+    else router.refresh();
+    setBusy(null);
   }
 
   return (
     <div>
-      <header className="mb-7">
-        <span className="eyebrow"><ShieldAlert size={13} /> إشراف</span>
-        <h1 className="h-page mt-3">التبليغات</h1>
-        <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+      <header className="mb-5">
+        <h2 className="text-[17px] font-extrabold">التبليغات</h2>
+        <p className="mt-1 text-[12.5px]" style={{ color: "var(--text-muted)" }}>
           كل تبليغ فيه الإعلان والبائع. «حيّد» كيخرّج الإعلان من الموقع،
           و«حضر» كيوقف الحساب وكيخرّج كل الإعلانات ديالو.
         </p>
@@ -88,7 +78,7 @@ export function ModerationPanel({
         {TABS.map((t) => (
           <Link
             key={t.key}
-            href={`/admin?status=${t.key}`}
+            href={`/admin/reports?status=${t.key}`}
             className="chip transition"
             style={{
               borderColor: status === t.key ? "var(--brand)" : "var(--line)",
@@ -156,7 +146,10 @@ export function ModerationPanel({
                       className="btn btn-solid btn-sm"
                       disabled={busy !== null}
                       onClick={() =>
-                        act(r.id + "l", { action: hidden ? "restore" : "hide", ref: r.listing_ref })
+                        act(r.id + "l", {
+                          action: hidden ? "listing:restore" : "listing:hide",
+                          ref: r.listing_ref,
+                        })
                       }
                     >
                       {hidden ? "رجّع الإعلان" : <><Close size={13} /> حيّد الإعلان</>}
@@ -166,7 +159,10 @@ export function ModerationPanel({
                       style={{ background: banned ? "var(--surface-3)" : "var(--bad)", color: banned ? "var(--text)" : "#fff" }}
                       disabled={busy !== null}
                       onClick={() =>
-                        act(r.id + "u", { action: banned ? "unban" : "ban", userId: r.seller_id })
+                        act(r.id + "u", {
+                          action: banned ? "user:unban" : "user:ban",
+                          userId: r.seller_id,
+                        })
                       }
                     >
                       {banned ? "رفع الحضر" : "حضر البائع"}
@@ -176,14 +172,14 @@ export function ModerationPanel({
                         <button
                           className="btn btn-primary btn-sm"
                           disabled={busy !== null}
-                          onClick={() => act(r.id + "a", { action: "actioned", reportId: r.id })}
+                          onClick={() => act(r.id + "a", { action: "report:actioned", reportId: r.id })}
                         >
                           <Check size={13} /> تعالج
                         </button>
                         <button
                           className="btn btn-ghost btn-sm"
                           disabled={busy !== null}
-                          onClick={() => act(r.id + "d", { action: "dismissed", reportId: r.id })}
+                          onClick={() => act(r.id + "d", { action: "report:dismissed", reportId: r.id })}
                         >
                           ماشي مشكل
                         </button>
