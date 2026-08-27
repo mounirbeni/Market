@@ -9,6 +9,7 @@ import { Header, MobileNav } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CompareBar } from "@/components/CompareBar";
 import { PwaRegister } from "@/components/PwaRegister";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 /** نص المتن */
 const body = IBM_Plex_Sans_Arabic({
@@ -106,6 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             تخطَّ إلى المحتوى
           </a>
           <Header />
+          <InstallPrompt />
           <main id="main" className="pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-0">
             {children}
           </main>
