@@ -51,7 +51,13 @@ export interface NewListing {
   photoCount: number;
   hasVideo: boolean;
   /** الصور المرفوعة — كتّسجل مع الإعلان فنفس العملية */
-  media?: { url: string; kind: "photo" | "video"; width?: number; height?: number }[];
+  media?: {
+    url: string;
+    kind: "photo" | "video";
+    thumbUrl?: string;
+    width?: number;
+    height?: number;
+  }[];
   /* القيم المحسوبة — كتّحسب فالمسار بنفس دوال العرض */
   trustScore: number;
   fairPriceMad: number;
@@ -64,7 +70,29 @@ export interface NewListing {
  * المرجع كيجي من تسلسل Postgres باش ماكاينش تصادم بين طلبين
  * فنفس اللحظة، والـslug كيتبنى منّو بنفس صيغة باقي الموقع.
  */
+/* حدود النشر — بلاهم شي واحد يقدر يعمّر الموقع بإعلانات فدقيقة.
+   بائع عادي كينشر مركبة ولا جوج فالشهر؛ حتى معرض كبير ماكيوصلش
+   لهاد الأرقام فيوم. */
+const MAX_PER_HOUR = 10;
+const MAX_PER_DAY = 30;
+
+/** كيرمي RATE_LIMIT إلا فات المستخدم الحد */
+async function assertPublishAllowed(sellerId: string) {
+  const r = await one<{ h: string; d: string }>(
+    `SELECT
+       count(*) FILTER (WHERE created_at > now() - interval '1 hour')::text AS h,
+       count(*) FILTER (WHERE created_at > now() - interval '1 day')::text  AS d
+     FROM listings WHERE seller_id = $1`,
+    [sellerId],
+  );
+  if (Number(r?.h ?? 0) >= MAX_PER_HOUR || Number(r?.d ?? 0) >= MAX_PER_DAY) {
+    throw new Error("RATE_LIMIT");
+  }
+}
+
 export async function createListing(sellerId: string, v: NewListing) {
+  await assertPublishAllowed(sellerId);
+
   const prefix = v.kind === "moto" ? "m" : "c";
   const row = await one<{ id: string; ref: string; slug: string }>(
     `WITH r AS (
@@ -109,9 +137,9 @@ export async function createListing(sellerId: string, v: NewListing) {
   const media = v.media ?? [];
   for (const [i, m] of media.entries()) {
     await sql(
-      `INSERT INTO listing_media (listing_id, url, kind, width, height, position)
-       VALUES ($1, $2, $3::media_kind, $4, $5, $6)`,
-      [row.id, m.url, m.kind, m.width ?? null, m.height ?? null, i],
+      `INSERT INTO listing_media (listing_id, url, thumb_url, kind, width, height, position)
+       VALUES ($1, $2, $3, $4::media_kind, $5, $6, $7)`,
+      [row.id, m.url, m.thumbUrl ?? null, m.kind, m.width ?? null, m.height ?? null, i],
     );
   }
   if (media.length > 0) {
@@ -424,5 +452,83 @@ export async function markNotificationsRead(userId: string, ids?: string[]) {
   await sql(
     "UPDATE notifications SET read_at = now() WHERE user_id = $1 AND read_at IS NULL",
     [userId],
+  );
+}
+
+/* ============================================================
+   المعارض
+
+   أي مستخدم يقدر يصاوب ملف معرض. الملف كيولّي الحساب
+   «محترف»، وكيبان فصفحة /dealers مع المخزون ديالو.
+
+   التوثيق (`verified`) ماكيتحطش من هنا: كيتحط باليد ملي يتأكّد
+   السجل التجاري. شارة موثّقة اللي كياخدها الواحد بوحدو ماعندها
+   معنى.
+   ============================================================ */
+
+export interface DealerProfile {
+  name: string;
+  slug: string;
+  tagline: string;
+  about: string;
+  address: string;
+  hours: string;
+  city: string;
+  brands: string[];
+}
+
+/** كيصاوب ولا كيحيّن ملف المعرض ديال المستخدم */
+export async function upsertDealer(ownerId: string, p: DealerProfile) {
+  const existing = await one<{ id: string; slug: string }>(
+    "SELECT id::text, slug FROM dealers WHERE owner_id = $1",
+    [ownerId],
+  );
+
+  // الـslug خاصو يكون فريد — إلا كان مأخوذ عند شي واحد آخر كنزيدو رقم
+  let slug = slugify(p.slug || p.name) || "dealer";
+  for (let n = 0; n < 40; n++) {
+    const taken = await one<{ id: string }>(
+      "SELECT id::text FROM dealers WHERE slug = $1 AND owner_id <> $2",
+      [slug, ownerId],
+    );
+    if (!taken) break;
+    slug = `${slugify(p.slug || p.name) || "dealer"}-${n + 2}`;
+  }
+
+  const args = [
+    ownerId, slug, p.name, p.tagline || null, p.about || null,
+    p.address || null, p.hours || null, p.city, p.brands,
+  ];
+
+  const row = existing
+    ? await one<{ slug: string }>(
+        `UPDATE dealers SET slug=$2, name=$3, tagline=$4, about=$5,
+           address=$6, hours=$7, city=$8, brands=$9, updated_at=now()
+         WHERE owner_id=$1 RETURNING slug`,
+        args,
+      )
+    : await one<{ slug: string }>(
+        `INSERT INTO dealers (owner_id, slug, name, tagline, about, address, hours, city, brands)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING slug`,
+        args,
+      );
+
+  if (!row) throw new WriteError("INSERT_FAILED");
+
+  // صاحب معرض = بائع محترف
+  await sql("UPDATE users SET type = 'professionnel', updated_at = now() WHERE id = $1", [ownerId]);
+  return row;
+}
+
+/** ملف المعرض ديال المستخدم — للفورمير */
+export async function myDealer(ownerId: string) {
+  return one<{
+    slug: string; name: string; tagline: string | null; about: string | null;
+    address: string | null; hours: string | null; city: string;
+    brands: string[]; verified: boolean;
+  }>(
+    `SELECT slug, name, tagline, about, address, hours, city, brands, verified
+       FROM dealers WHERE owner_id = $1`,
+    [ownerId],
   );
 }

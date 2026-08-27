@@ -15,6 +15,7 @@ const NAV = [
   { href: "/dashboard/messages", label: "الرسائل", Icon: Message },
   { href: "/dashboard/appointments", label: "المواعيد", Icon: Calendar },
   { href: "/dashboard/favorites", label: "المفضلة", Icon: Heart },
+  { href: "/dashboard/dealer", label: "المعرض ديالي", Icon: Users },
   { href: "/dashboard/settings", label: "الإعدادات", Icon: Sliders },
 ];
 

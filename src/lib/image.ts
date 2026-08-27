@@ -28,8 +28,14 @@ const STEPS: { edge: number; quality: number }[] = [
   { edge: 1024, quality: 0.55 },
 ];
 
+/** أطول ضلع فالمصغّرة — البطاقة كتوري 400px تقريباً */
+const THUMB_EDGE = 480;
+const THUMB_QUALITY = 0.72;
+
 export interface Prepared {
   file: File;
+  /** نسخة صغيرة للبطاقات — بلاها كل بطاقة كتحمّل صورة 1920px */
+  thumb?: File;
   width?: number;
   height?: number;
 }
@@ -143,11 +149,18 @@ export async function prepareImage(file: File): Promise<Prepared> {
       return { file, width: w, height: h };
     }
 
+    /* المصغّرة: صفحة النتائج فيها 24 بطاقة. بلا هادي كيتحمّل
+       24 × صورة كاملة باش نوريو مربّعات ديال 400px — بيانات
+       ديال المستخدم وفواتير عليك بلا فايدة. */
+    const small = await encodeAt(src, w, h, THUMB_EDGE, THUMB_QUALITY);
+    const name = jpegName(file.name);
+
     return {
-      file: new File([best.blob], jpegName(file.name), {
-        type: "image/jpeg",
-        lastModified: Date.now(),
-      }),
+      file: new File([best.blob], name, { type: "image/jpeg", lastModified: Date.now() }),
+      thumb:
+        small && small.blob.size < best.blob.size
+          ? new File([small.blob], `t-${name}`, { type: "image/jpeg", lastModified: Date.now() })
+          : undefined,
       width: best.width,
       height: best.height,
     };

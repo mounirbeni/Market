@@ -9,6 +9,8 @@ import { Camera, Check, Close, Star } from "@/components/icons";
 export interface UploadedPhoto {
   url: string;
   kind: "photo" | "video";
+  /** نسخة صغيرة للبطاقات */
+  thumbUrl?: string;
   width?: number;
   height?: number;
 }
@@ -151,7 +153,7 @@ export function PhotoUploader({
 
       try {
         // كنصغّرو الصورة قبل الرفع — كتخفّ بزاف وكتبقى تحت حد الجسم
-        const { file: ready, width, height } = await prepareImage(file);
+        const { file: ready, thumb, width, height } = await prepareImage(file);
 
         if (ready.size > MAX_UPLOAD_BYTES) {
           throw new Error(`كبيرة بزاف بعد الضغط (${prettyBytes(ready.size)})`);
@@ -168,9 +170,20 @@ export function PhotoUploader({
           ctrl.signal,
         );
 
+        /* المصغّرة ثانوية: إلا فشلت كنكملو بالصورة الكاملة بدل ما
+           نضيّعو رفع نجح. */
+        let thumbUrl: string | undefined;
+        if (thumb) {
+          try {
+            thumbUrl = (await putPhoto(thumb, () => {}, ctrl.signal)).url;
+          } catch {
+            thumbUrl = undefined;
+          }
+        }
+
         setPending((p) => p.filter((x) => x.id !== id));
         URL.revokeObjectURL(preview);
-        return { url, kind: "photo", width, height };
+        return { url, kind: "photo", thumbUrl, width, height };
       } catch (e) {
         const msg = e instanceof Error && e.message ? e.message : "ماقدرناش نرفعوها";
         setPending((p) => p.map((x) => (x.id === id ? { ...x, error: msg } : x)));

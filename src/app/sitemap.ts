@@ -1,18 +1,19 @@
 import type { MetadataRoute } from "next";
 import { CITIES } from "@/lib/cities";
-import { getDealers } from "@/lib/source";
 import { GUIDES } from "@/lib/data/guides";
-import { getBrands, getSitemapEntries } from "@/lib/source";
+import { brandsOf } from "@/lib/slug";
+import { getDealers, getSitemapEntries } from "@/lib/source";
 
 const BASE = "https://triq.ma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  /* الإعلانات والماركات كيجيو من قاعدة البيانات ملي تكون موصولة */
-  const [entries, carBrandRows, motoBrandRows] = await Promise.all([
-    getSitemapEntries(),
-    getBrands("car"),
-    getBrands("moto"),
-  ]);
+  const entries = await getSitemapEntries();
+
+  /* صفحات الماركات كتجي من الكتالوج ماشي من الإعلانات: الصفحة
+     موجودة وخدّامة حتى إلا ماكانش فيها إعلان دابا، وGoogle خاصو
+     يعرفها من الأول باش تكون مفهرسة ملي تجي السلعة. */
+  const carBrandRows = brandsOf("car");
+  const motoBrandRows = brandsOf("moto");
 
   const staticPages = [
     { p: "", pr: 1 },

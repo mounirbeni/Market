@@ -78,7 +78,7 @@ export interface CreateBody {
   photos?: number;
   hasVideo?: boolean;
   /** الصور اللي تّرفعو لVercel Blob قبل النشر */
-  media?: { url: string; kind?: string; width?: number; height?: number }[];
+  media?: { url: string; kind?: string; thumbUrl?: string; width?: number; height?: number }[];
 }
 
 /**
@@ -125,6 +125,7 @@ export async function POST(req: Request) {
     .map((m) => ({
       url: m.url,
       kind: m.kind === "video" ? ("video" as const) : ("photo" as const),
+      thumbUrl: typeof m.thumbUrl === "string" && isOwnBlobUrl(m.thumbUrl) ? m.thumbUrl : undefined,
       width: Number.isFinite(Number(m.width)) ? Number(m.width) : undefined,
       height: Number.isFinite(Number(m.height)) ? Number(m.height) : undefined,
     }));

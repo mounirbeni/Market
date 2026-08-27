@@ -104,8 +104,9 @@ const SELECT_COLS = `
   u.id_verified AS seller_id_ver, u.phone_verified AS seller_phone_ver,
   u.rating AS seller_rating, u.sales_count AS seller_sales,
   u.response_minutes AS seller_resp, u.phone AS seller_phone,
-  -- أول صورة باش البطاقات مايطلبوش الصور وحدة بوحدة
-  (SELECT m.url FROM listing_media m
+  -- أول صورة باش البطاقات مايطلبوش الصور وحدة بوحدة.
+  -- المصغّرة إلا كانت: البطاقة ماكتحتاجش صورة 1920px
+  (SELECT coalesce(m.thumb_url, m.url) FROM listing_media m
     WHERE m.listing_id = l.id AND m.kind = 'photo'
     ORDER BY m.position LIMIT 1) AS cover_url`;
 
@@ -300,7 +301,7 @@ export function rowToVehicle(
     photos: r.photo_count,
     hasVideo: r.has_video,
     media: media.length ? media : undefined,
-    cover: media[0]?.url ?? r.cover_url ?? undefined,
+    cover: media[0]?.thumbUrl ?? media[0]?.url ?? r.cover_url ?? undefined,
     serviceBook: r.service_book,
     vinChecked: r.vin_checked,
     description: r.description,
