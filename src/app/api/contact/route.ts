@@ -1,5 +1,5 @@
 import { body, fail, ok } from "@/lib/api";
-import { mailConfigured, send } from "@/lib/mail";
+import { contactNotifyMail, mailConfigured, send } from "@/lib/mail";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,8 +20,6 @@ const TOPICS = [
 ];
 
 const clean = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
-const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 function inbox(): string | null {
   const raw = process.env.CONTACT_EMAIL || process.env.EMAIL_FROM || "";
@@ -47,20 +45,17 @@ export async function POST(req: Request) {
     return fail("إرسال الرسائل ماشي مضبوط فهاد الموقع دابا. جرّب من بعد.", 503);
   }
 
-  const text = `الموضوع: ${topic}\nالاسم: ${name}\nالتواصل: ${contact}\n\n${message}`;
-  const sent = await send({
-    to,
-    subject: `[طريق] ${topic} — ${name}`,
-    // كنخلّيو المرسل ديالنا: مزوّدي البريد كيرفضو عناوين ماشي موثقة
-    replyTo: /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact) ? contact : undefined,
-    text,
-    html: `<div dir="rtl" style="font-family:system-ui,sans-serif;line-height:1.7">
-      <p><b>الموضوع:</b> ${esc(topic)}</p>
-      <p><b>الاسم:</b> ${esc(name)}</p>
-      <p><b>التواصل:</b> ${esc(contact)}</p>
-      <hr><p style="white-space:pre-wrap">${esc(message)}</p>
-    </div>`,
-  });
+  const sent = await send(
+    contactNotifyMail({
+      to,
+      topic,
+      name,
+      contact,
+      message,
+      // كنخلّيو المرسل ديالنا: مزوّدي البريد كيرفضو عناوين ماشي موثقة
+      replyTo: /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contact) ? contact : undefined,
+    }),
+  );
 
   if (!sent.ok) return fail("ماقدرناش نصيفطو الرسالة. عاود المحاولة.", 502);
   return ok({ sent: true });

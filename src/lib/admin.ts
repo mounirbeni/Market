@@ -2,7 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { sql, one } from "./db/client";
-import { mailConfigured, send } from "./mail";
+import { adminOtpMail, mailConfigured, send } from "./mail";
 
 /* ============================================================
    الإشراف — دخول مستقل تماماً
@@ -175,17 +175,7 @@ export async function startAdminLogin(
     return { ok: false, error: "إرسال الإيميل ماشي مضبوط. ماقدرناش نصيفطو الرمز." };
   }
 
-  const sent = await send({
-    to: email,
-    subject: `رمز دخول الإشراف: ${code}`,
-    text: `رمز دخول لوحة الإشراف ديال طريق: ${code}\nصالح ${CODE_TTL_MIN} دقايق.\n\nإلا ماشي نتا اللي طلبتيه، شي واحد عندو كلمة السر — بدّلها دابا.`,
-    html: `<div dir="rtl" style="font-family:system-ui,sans-serif;line-height:1.7">
-      <p>رمز دخول <b>لوحة الإشراف</b> ديال طريق:</p>
-      <p style="font-size:30px;font-weight:800;letter-spacing:6px">${code}</p>
-      <p style="color:#666">صالح ${CODE_TTL_MIN} دقايق.</p>
-      <p style="color:#a33">إلا ماشي نتا اللي طلبتيه، شي واحد عندو كلمة السر — بدّلها دابا.</p>
-    </div>`,
-  });
+  const sent = await send(adminOtpMail(email, code, CODE_TTL_MIN));
   if (!sent.ok) return { ok: false, error: "ماقدرناش نصيفطو الرمز." };
   return { ok: true };
 }
