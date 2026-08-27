@@ -30,5 +30,7 @@ export function useMyListings() {
     };
   }, []);
 
-  return { items, loading };
+  /* setItems كيخرج باش الأزرار (إيقاف، مباع، حذف) يحيّنو اللائحة
+     على طول بلا ما يعاودو يجيبوها كاملة من الخادم. */
+  return { items, setItems, loading };
 }

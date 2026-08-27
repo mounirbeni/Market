@@ -28,9 +28,50 @@ const asStatus = (s: string): Status => (s in STATUS ? (s as Status) : "active")
 
 export function DashboardListings() {
   const [filter, setFilter] = useState<Status | "all">("all");
+  /* الإعلان اللي فيه عملية دابا — باش نعطّلو أزرارو وحدو */
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<string | null>(null);
 
   /* إعلاناتك الحقيقية من قاعدة البيانات */
-  const { items: mine } = useMyListings();
+  const { items: mine, setItems } = useMyListings();
+
+  /* الأزرار كانو مرسومين بلا onClick — كيبانو خدّامين وماكيديرو
+     والو. دابا كل واحد كيمشي لـ/api/me/listings/<المرجع>. */
+  async function setStatus(ref: string, status: Status) {
+    setError(null);
+    setBusy(ref);
+    try {
+      const res = await fetch(`/api/me/listings/${ref}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const json = await res.json();
+      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش.");
+      setItems((list) => list.map((x) => (x.id === ref ? { ...x, status } : x)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "ماقدرناش.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function remove(ref: string) {
+    setError(null);
+    setBusy(ref);
+    try {
+      const res = await fetch(`/api/me/listings/${ref}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نمسحوه.");
+      setItems((list) => list.filter((x) => x.id !== ref));
+      setConfirming(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "ماقدرناش نمسحوه.");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   const rows = mine
     .map((v) => ({ v, status: asStatus(v.status) }))
@@ -70,6 +111,12 @@ export function DashboardListings() {
         </div>
         <Link href="/sell" className="btn btn-primary btn-sm"><Plus size={14} /> إعلان جديد</Link>
       </div>
+
+      {error && (
+        <p className="card mb-3 p-3 text-[12.5px] font-bold" style={{ color: "var(--bad)" }}>
+          {error}
+        </p>
+      )}
 
       <div className="space-y-3">
         {rows.map(({ v, status }) => {
@@ -128,15 +175,73 @@ export function DashboardListings() {
                 className="flex flex-wrap gap-1.5 border-t px-4 py-2.5"
                 style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
               >
-                <button className="btn btn-solid btn-sm">تعديل</button>
-                <button className="btn btn-solid btn-sm">إيقاف مؤقت</button>
-                <button className="btn btn-sm" style={{ background: "var(--brand)", color: "#fff" }}>
+                <Link href={`/dashboard/listings/${v.id}/edit`} className="btn btn-solid btn-sm">
+                  تعديل
+                </Link>
+
+                {status === "active" ? (
+                  <button
+                    type="button" className="btn btn-solid btn-sm" disabled={busy === v.id}
+                    onClick={() => setStatus(v.id, "draft")}
+                  >
+                    إيقاف مؤقت
+                  </button>
+                ) : status !== "sold" ? (
+                  <button
+                    type="button" className="btn btn-solid btn-sm" disabled={busy === v.id}
+                    onClick={() => setStatus(v.id, "active")}
+                  >
+                    نشّر من جديد
+                  </button>
+                ) : null}
+
+                <Link
+                  href={`/promote?listing=${v.id}`}
+                  className="btn btn-sm"
+                  style={{ background: "var(--brand)", color: "#fff" }}
+                >
                   <Sparkle size={13} /> ترويج
-                </button>
-                <button className="btn btn-solid btn-sm"><Check size={13} /> علّم كمباع</button>
-                <button className="btn btn-ghost btn-sm mr-auto" style={{ color: "var(--bad)", borderColor: "var(--line)" }}>
-                  <Trash size={13} /> حذف
-                </button>
+                </Link>
+
+                {status !== "sold" && (
+                  <button
+                    type="button" className="btn btn-solid btn-sm" disabled={busy === v.id}
+                    onClick={() => setStatus(v.id, "sold")}
+                  >
+                    <Check size={13} /> علّم كمباع
+                  </button>
+                )}
+
+                {/* الحذف نهائي وماكاينش تراجع — خاصو تأكيد */}
+                {confirming === v.id ? (
+                  <span className="mr-auto flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold" style={{ color: "var(--bad)" }}>
+                      تمسحو نهائياً؟
+                    </span>
+                    <button
+                      type="button" className="btn btn-sm" disabled={busy === v.id}
+                      style={{ background: "var(--bad)", color: "#fff" }}
+                      onClick={() => remove(v.id)}
+                    >
+                      {busy === v.id ? "…" : "إيه، امسحو"}
+                    </button>
+                    <button
+                      type="button" className="btn btn-solid btn-sm"
+                      onClick={() => setConfirming(null)}
+                    >
+                      لا
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm mr-auto"
+                    style={{ color: "var(--bad)", borderColor: "var(--line)" }}
+                    onClick={() => { setError(null); setConfirming(v.id); }}
+                  >
+                    <Trash size={13} /> حذف
+                  </button>
+                )}
               </div>
             </article>
           );

@@ -8,6 +8,7 @@ import { useCatalog } from "@/lib/useCatalog";
 import { PhotoUploader, type UploadedPhoto } from "@/components/sell/PhotoUploader";
 import { VideoUploader, type UploadedVideo } from "@/components/sell/VideoUploader";
 import { CITIES } from "@/lib/cities";
+import { EQUIPMENT } from "@/lib/equipment";
 import { formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
 import {
@@ -47,12 +48,6 @@ interface Draft {
   idVerified: boolean;
   phoneVerified: boolean;
 }
-
-const EQUIPMENT = [
-  "مكيف الهواء", "نظام ABS", "وسائد هوائية", "زجاج كهربائي", "راديو Bluetooth",
-  "شاشة تعمل باللمس", "كاميرا الرجوع للخلف", "حساسات ركن", "مثبت السرعة",
-  "جنطات ألومنيوم", "GPS", "فتحة سقف", "مقاعد جلدية", "أضواء LED",
-];
 
 const initialDraft: Draft = {
   kind: "car",

@@ -183,6 +183,105 @@ export async function updateListingPrice(sellerId: string, ref: string, price: n
   return { changed: true };
 }
 
+/* ============================================================
+   تعديل إعلان
+
+   ماكيتبدّلش: النوع، الماركة، الموديل، والسنة. هادو هوما هوية
+   الإعلان — فيهم الرابط (slug)، والمشاهدات والمفضّلة والدردشات
+   كلها مربوطة بيهم. اللي بغا يبدّل السيارة خاصو إعلان جديد،
+   ماشي يقلب إعلان قديم لسلعة أخرى وياخد معاه المشاهدات.
+
+   الثمن كيدوز من updateListingPrice باش يتسجّل فتاريخ الأثمنة
+   وينبّه اللي كيراقبو.
+   ============================================================ */
+export interface ListingEdit {
+  version: string;
+  km: number;
+  price: number;
+  owners: number;
+  fuel: string;
+  gearbox: string;
+  body: string;
+  fiscalPower: number;
+  consumption: number;
+  displacement: number | null;
+  doors: number | null;
+  color: string;
+  city: string;
+  condition: string;
+  papersOk: boolean;
+  technicalControl: string | null;
+  inspected: boolean;
+  serviceBook: boolean;
+  vinChecked: boolean;
+  description: string;
+  equipment: string[];
+  negotiable: boolean;
+  exchangeAccepted: boolean;
+  trustScore: number;
+  fairPriceMad: number;
+  fairPriceDelta: number;
+}
+
+export async function updateListing(sellerId: string, ref: string, p: ListingEdit) {
+  const l = await one<{ id: string; slug: string }>(
+    "SELECT id, slug FROM listings WHERE ref = $1 AND seller_id = $2",
+    [ref, sellerId],
+  );
+  if (!l) throw new WriteError("NOT_FOUND");
+
+  // الثمن أولاً: عندو تاريخ وتنبيهات ديالو
+  await updateListingPrice(sellerId, ref, p.price);
+
+  await sql(
+    `UPDATE listings SET
+       version = $2, km = $3::int, owners = $4::smallint,
+       fuel = $5::fuel_type, gearbox = $6::gearbox_type, body = $7::body_type,
+       fiscal_power = $8::smallint, consumption = $9::numeric,
+       displacement = $10::int, doors = $11::smallint, color = $12,
+       city = $13, condition = $14::condition_type,
+       first_hand = ($4::smallint = 1), papers_ok = $15::bool,
+       technical_control = $16::date, inspected = $17::bool,
+       service_book = $18::bool, vin_checked = $19::bool,
+       description = $20, equipment = $21::text[],
+       negotiable = $22::bool, exchange_accepted = $23::bool,
+       trust_score = $24::smallint, fair_price_mad = $25::int,
+       fair_price_delta = $26::numeric,
+       updated_at = now()
+     WHERE id = $1`,
+    [
+      l.id, p.version, p.km, p.owners, p.fuel, p.gearbox, p.body,
+      p.fiscalPower, p.consumption, p.displacement, p.doors, p.color,
+      p.city, p.condition, p.papersOk, p.technicalControl, p.inspected,
+      p.serviceBook, p.vinChecked, p.description, p.equipment,
+      p.negotiable, p.exchangeAccepted, p.trustScore, p.fairPriceMad,
+      p.fairPriceDelta.toFixed(4),
+    ],
+  );
+  return { slug: l.slug };
+}
+
+/**
+ * حذف إعلان ديال صاحبو.
+ *
+ * كنرجّعو مسارات الصور قبل الحذف: الصفوف كيمشيو بـCASCADE ولكن
+ * الملفات فالخزّان كيبقاو كيتخلّصو عليهم. الطريق هو اللي كيمسحهم.
+ */
+export async function deleteListing(sellerId: string, ref: string) {
+  const l = await one<{ id: string }>(
+    "SELECT id FROM listings WHERE ref = $1 AND seller_id = $2",
+    [ref, sellerId],
+  );
+  if (!l) throw new WriteError("NOT_FOUND");
+
+  const media = await sql<{ url: string; thumb_url: string | null }>(
+    "SELECT url, thumb_url FROM listing_media WHERE listing_id = $1",
+    [l.id],
+  );
+  await sql("DELETE FROM listings WHERE id = $1", [l.id]);
+  return media.flatMap((m) => [m.url, m.thumb_url].filter((u): u is string => Boolean(u)));
+}
+
 /** تغيير حالة إعلان (مباع، منتهي…) */
 export async function setListingStatus(sellerId: string, ref: string, status: string) {
   const allowed = ["active", "sold", "expired", "draft"];
