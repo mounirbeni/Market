@@ -25,6 +25,8 @@ export interface Overview {
   messages7d: number;
   appointments: number;
   models: number;
+  promosPending: number;
+  promosActive: number;
 }
 
 export async function overview(): Promise<Overview> {
@@ -43,7 +45,9 @@ export async function overview(): Promise<Overview> {
       (SELECT count(*) FROM reports WHERE status = 'open')::text                AS "reportsOpen",
       (SELECT count(*) FROM messages WHERE created_at > now() - interval '7 days')::text AS "messages7d",
       (SELECT count(*) FROM appointments WHERE status = 'pending')::text        AS appointments,
-      (SELECT count(*) FROM catalog_models)::text                               AS models
+      (SELECT count(*) FROM catalog_models)::text                               AS models,
+      (SELECT count(*) FROM promotions WHERE paid_at IS NULL)::text              AS "promosPending",
+      (SELECT count(*) FROM promotions WHERE paid_at IS NOT NULL AND ends_at > now())::text AS "promosActive"
   `);
   const n = (k: string) => Number(r?.[k] ?? 0);
   return {
@@ -52,6 +56,7 @@ export async function overview(): Promise<Overview> {
     listings: n("listings"), active: n("active"), hidden: n("hidden"),
     listingsToday: n("listingsToday"), reportsOpen: n("reportsOpen"),
     messages7d: n("messages7d"), appointments: n("appointments"), models: n("models"),
+    promosPending: n("promosPending"), promosActive: n("promosActive"),
   };
 }
 
@@ -308,4 +313,164 @@ export async function removeCatalogModel(kind: string, make: string, model: stri
     "DELETE FROM catalog_models WHERE kind = $1::vehicle_kind AND make = $2 AND model = $3",
     [kind, make, model],
   );
+}
+
+/* ---------------- الترويج ---------------- */
+
+export interface PromoRow {
+  id: string;
+  tier: string;
+  amount_mad: number;
+  days: number;
+  paid_at: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  created_at: string;
+  provider: string | null;
+  listing_ref: string;
+  listing_slug: string;
+  listing_title: string;
+  listing_promo: string | null;
+  seller_name: string;
+  seller_email: string | null;
+  seller_phone: string | null;
+}
+
+/**
+ * طلبات الترويج.
+ * `pending` = تسجّل الطلب وباقي ماتأكّدش الأداء.
+ */
+export async function listPromotions(filter = "pending", limit = 80) {
+  return sql<PromoRow>(
+    `SELECT p.id::text, p.tier::text, p.amount_mad, p.days, p.paid_at,
+            p.starts_at, p.ends_at, p.created_at, p.provider,
+            l.ref AS listing_ref, l.slug AS listing_slug,
+            l.make || ' ' || l.model || ' ' || l.year AS listing_title,
+            l.promo::text AS listing_promo,
+            u.name AS seller_name, u.email AS seller_email, u.phone AS seller_phone
+       FROM promotions p
+       JOIN listings l ON l.id = p.listing_id
+       JOIN users u    ON u.id = p.user_id
+      WHERE ($1 = 'all'
+             OR ($1 = 'pending' AND p.paid_at IS NULL)
+             OR ($1 = 'active'  AND p.paid_at IS NOT NULL AND p.ends_at > now())
+             OR ($1 = 'ended'   AND p.ends_at <= now()))
+      ORDER BY (p.paid_at IS NULL) DESC, p.created_at DESC
+      LIMIT $2`,
+    [filter, limit],
+  );
+}
+
+export async function promoCounts() {
+  const r = await one<{ pending: string; active: string }>(
+    `SELECT count(*) FILTER (WHERE paid_at IS NULL)::text AS pending,
+            count(*) FILTER (WHERE paid_at IS NOT NULL AND ends_at > now())::text AS active
+       FROM promotions`,
+  );
+  return { pending: Number(r?.pending ?? 0), active: Number(r?.active ?? 0) };
+}
+
+/**
+ * تأكيد الأداء وتفعيل الترويج.
+ *
+ * كنحسبو النهاية من دابا ماشي من وقت الطلب — البائع خلّص اليوم،
+ * فالمدة كتبدا اليوم. وعمود listings.promo هو اللي كيدير الشارة
+ * والرفعة فالترتيب، ولهذا كنحيّنوه هنا.
+ */
+export async function activatePromotion(id: string) {
+  const p = await one<{ listing_id: string; tier: string; days: number }>(
+    `UPDATE promotions
+        SET paid_at = coalesce(paid_at, now()),
+            starts_at = now(),
+            ends_at = now() + (days || ' days')::interval
+      WHERE id = $1::uuid
+      RETURNING listing_id::text, tier::text, days`,
+    [id],
+  );
+  if (!p) return null;
+  await sql(
+    "UPDATE listings SET promo = $2::promo_tier, updated_at = now() WHERE id = $1::uuid",
+    [p.listing_id, p.tier],
+  );
+  return p;
+}
+
+/** إلغاء طلب ولا وقف ترويج شغّال */
+export async function cancelPromotion(id: string) {
+  const p = await one<{ listing_id: string }>(
+    "UPDATE promotions SET ends_at = now() WHERE id = $1::uuid RETURNING listing_id::text",
+    [id],
+  );
+  if (!p) return null;
+  await syncListingPromo(p.listing_id);
+  return p;
+}
+
+/** ترويج مجاني من الإشراف — كيتسجّل بحال أي واحد آخر باش الانتهاء يشملو */
+export async function grantPromotion(
+  ref: string,
+  tier: string,
+  days: number,
+  adminEmail: string,
+) {
+  const l = await one<{ id: string; seller_id: string }>(
+    "SELECT id::text, seller_id::text FROM listings WHERE ref = $1",
+    [ref],
+  );
+  if (!l) return null;
+  const p = await one<{ id: string }>(
+    `INSERT INTO promotions
+       (listing_id, user_id, tier, amount_mad, days, provider, provider_ref,
+        paid_at, starts_at, ends_at)
+     VALUES ($1::uuid, $2::uuid, $3::promo_tier, 0, $4::int, 'admin', $5,
+             now(), now(), now() + ($4::text || ' days')::interval)
+     RETURNING id::text`,
+    [l.id, l.seller_id, tier, days, adminEmail],
+  );
+  await sql(
+    "UPDATE listings SET promo = $2::promo_tier, updated_at = now() WHERE id = $1::uuid",
+    [l.id, tier],
+  );
+  return p?.id ?? null;
+}
+
+/**
+ * كيرجّع عمود listings.promo لأقوى ترويج شغّال — ولا NULL.
+ * الأقوى: top > urgent > featured، نفس الترتيب ديال lib/promo.ts.
+ */
+async function syncListingPromo(listingId: string) {
+  await sql(
+    `UPDATE listings l SET promo = (
+       SELECT p.tier FROM promotions p
+        WHERE p.listing_id = l.id AND p.paid_at IS NOT NULL AND p.ends_at > now()
+        ORDER BY CASE p.tier WHEN 'top' THEN 3 WHEN 'urgent' THEN 2 ELSE 1 END DESC
+        LIMIT 1
+     ), updated_at = now()
+     WHERE l.id = $1::uuid`,
+    [listingId],
+  );
+}
+
+/**
+ * انتهاء الترويجات.
+ *
+ * كيتّنادى من /api/cron/expire كل يوم. كيحيّد الشارة من كل إعلان
+ * ماعندوش ترويج شغّال، وكيرجّعها للي عندو واحد آخر مازال حيّ
+ * (بائع خلّص جوج مرات).
+ */
+export async function expirePromotions() {
+  const rows = await sql<{ n: string }>(
+    `WITH stale AS (
+       SELECT l.id FROM listings l
+        WHERE l.promo IS NOT NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM promotions p
+             WHERE p.listing_id = l.id AND p.paid_at IS NOT NULL AND p.ends_at > now()
+          )
+     )
+     UPDATE listings l SET promo = NULL, updated_at = now()
+       FROM stale WHERE l.id = stale.id
+     RETURNING 1 AS n`,
+  );
+  return rows.length;
 }

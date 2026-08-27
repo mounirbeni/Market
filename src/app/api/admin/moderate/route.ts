@@ -1,5 +1,6 @@
 import { body, dbMissing, fail, forbidden, ok } from "@/lib/api";
 import { getAdmin, logAdmin } from "@/lib/admin";
+import { PROMOS, type PromoTier } from "@/lib/promo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,13 +40,33 @@ export async function POST(req: Request) {
         await logAdmin(admin.email, action, ref);
         break;
       }
-      case "listing:promo": {
+      /* ---- الترويج ---- */
+      case "promo:activate": {
+        const id = need("promoId");
+        if (!(await m.activatePromotion(id))) return fail("ماكاينش الطلب.", 404);
+        await logAdmin(admin.email, action, id);
+        break;
+      }
+      case "promo:cancel": {
+        const id = need("promoId");
+        if (!(await m.cancelPromotion(id))) return fail("ماكاينش الطلب.", 404);
+        await logAdmin(admin.email, action, id);
+        break;
+      }
+      case "promo:grant": {
         const ref = need("ref");
-        const tier = b?.tier || null;
-        if (tier && !["featured", "urgent", "top"].includes(tier))
-          return fail("نوع الترويج ماشي معروف.", 400);
-        if (!(await m.setListingPromo(ref, tier))) return fail("ماكاينش الإعلان.", 404);
-        await logAdmin(admin.email, action, ref, tier ?? "بلا");
+        const tier = need("tier");
+        if (!(tier in PROMOS)) return fail("نوع الترويج ماشي معروف.", 400);
+        const days = PROMOS[tier as PromoTier].days;
+        if (!(await m.grantPromotion(ref, tier, days, admin.email)))
+          return fail("ماكاينش الإعلان.", 404);
+        await logAdmin(admin.email, action, ref, `${tier} · ${days} يوم`);
+        break;
+      }
+      case "promo:clear": {
+        const ref = need("ref");
+        if (!(await m.setListingPromo(ref, null))) return fail("ماكاينش الإعلان.", 404);
+        await logAdmin(admin.email, action, ref);
         break;
       }
       case "listing:delete": {

@@ -132,7 +132,12 @@ export function ListingsPanel({ rows }: { rows: Row[] }) {
                       value={r.promo ?? ""}
                       disabled={busy !== null}
                       onChange={(e) =>
-                        act(r.ref + "p", { action: "listing:promo", ref: r.ref, tier: e.target.value || null })
+                        act(
+                          r.ref + "p",
+                          e.target.value
+                            ? { action: "promo:grant", ref: r.ref, tier: e.target.value }
+                            : { action: "promo:clear", ref: r.ref },
+                        )
                       }
                     >
                       <option value="">بلا ترويج</option>

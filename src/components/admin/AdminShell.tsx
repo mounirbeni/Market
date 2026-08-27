@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import {
-  BadgeCheck, Car, Chart, FileText, ShieldAlert, Sliders, Users,
+  BadgeCheck, Car, Chart, FileText, ShieldAlert, Sliders, Star, Users,
 } from "@/components/icons";
 
 const NAV = [
@@ -13,6 +13,7 @@ const NAV = [
   { href: "/admin/listings", label: "الإعلانات", Icon: Car },
   { href: "/admin/users", label: "الحسابات", Icon: Users },
   { href: "/admin/dealers", label: "المعارض", Icon: BadgeCheck },
+  { href: "/admin/promos", label: "الترويج", Icon: Star },
   { href: "/admin/catalog", label: "الكتالوج", Icon: Sliders },
   { href: "/admin/log", label: "السجل", Icon: FileText },
 ];
