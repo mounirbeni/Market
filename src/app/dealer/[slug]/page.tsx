@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDealer, getDealerListings, getDealers } from "@/lib/source";
+import { getDealer, getDealerListings } from "@/lib/source";
 import { cityName } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { trustOf } from "@/lib/market";
@@ -12,9 +12,16 @@ import {
   BadgeCheck, Car, Clock, MapPin, Navigation, ShieldCheck, Star, Timer, Users,
 } from "@/components/icons";
 
-export async function generateStaticParams() {
-  return (await getDealers()).map((d) => ({ slug: d.slug }));
-}
+/* الصفحة كتّرندر عند كل طلب.
+
+   قبل كانت `generateStaticParams` وNext كيصنّفها SSG. المشكل: التخطيط
+   الجذري كيقرا الكوكي (الجلسة فالهيدر)، يعني حتى صفحة ماتقدرش تتّبنى
+   ساكنة بصح. ملي البناء كيلقى القائمة خاوية (قاعدة الإنتاج كانت خاوية
+   ملي تبنا الموقع)، كل رابط جديد كيتحاول يتّبنى ساكن عند أول طلب —
+   وتما كتطيح cookies() بـDYNAMIC_SERVER_USAGE و500 بدل الصفحة.
+
+   يعني: كل إعلان جديد كان كيعطي 500. */
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
