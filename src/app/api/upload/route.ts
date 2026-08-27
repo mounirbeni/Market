@@ -5,6 +5,7 @@ import {
   BLOB_ACCESS,
   PHOTO_TYPES,
   blobConfigured,
+  docPath,
   mediaPath,
   mediaUrl,
   pathnameFromMediaUrl,
@@ -56,13 +57,21 @@ export async function POST(req: Request) {
 
   const name = req.headers.get("x-filename") ?? "photo.jpg";
 
+  /* وثيقة هوية: كتمشي تحت private/ — مسار الصور العام كيرفض
+     هاد البادئة، وغير المشرف كيقدر يشوفها. */
+  const isDoc = req.headers.get("x-purpose") === "doc";
+  const path = isDoc ? docPath(user.id, name) : mediaPath(user.id, name);
+
   try {
-    const blob = await put(mediaPath(user.id, name), bytes, {
+    const blob = await put(path, bytes, {
       access: BLOB_ACCESS,
       addRandomSuffix: true,
       contentType: type,
     });
-    return ok({ url: mediaUrl(blob.pathname), pathname: blob.pathname });
+    return ok({
+      url: isDoc ? null : mediaUrl(blob.pathname),
+      pathname: blob.pathname,
+    });
   } catch (e) {
     console.error("[upload] الخزّان رفض:", e);
     return fail("ماقدرناش نسجّلو الصورة. عاود المحاولة.", 502);

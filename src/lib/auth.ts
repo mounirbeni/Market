@@ -199,3 +199,24 @@ export async function upsertUserByEmail(email: string, name?: string) {
   );
   return created!.id;
 }
+
+/**
+ * تنظيف رقم مغربي.
+ *
+ * كنقبلو الأشكال اللي كيكتبو بيهم الناس: 0612345678،
+ * +212612345678، 00212 612 34 56 78 — وكنخزنو ديما بشكل واحد
+ * (+212XXXXXXXXX) باش البحث والواتساب يخدمو.
+ */
+export function normalizePhone(raw: string): string | null {
+  const d = raw.replace(/[^\d+]/g, "");
+  let rest: string;
+  if (d.startsWith("+212")) rest = d.slice(4);
+  else if (d.startsWith("00212")) rest = d.slice(5);
+  else if (d.startsWith("212")) rest = d.slice(3);
+  else if (d.startsWith("0")) rest = d.slice(1);
+  else rest = d;
+
+  // 9 أرقام، وخاصو يبدا ب6 ولا 7 (موبايل) ولا 5 (ثابت)
+  if (!/^[567]\d{8}$/.test(rest)) return null;
+  return `+212${rest}`;
+}

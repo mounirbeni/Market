@@ -1,104 +1,108 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
+import { CITIES } from "@/lib/cities";
 import {
-  BadgeCheck, Bell, IdCard, Info, Lock2, Message, Phone, ShieldCheck, Users,
+  BadgeCheck, Bell, Check, IdCard, Info, MapPin, Phone, ShieldCheck, Users,
 } from "@/components/icons";
+
+interface VerifState {
+  verified: boolean;
+  request: { kind: string; status: string; note: string | null; created_at: string } | null;
+}
 
 export function DashboardSettings() {
   const { unit, setUnit, theme, toggleTheme } = useApp();
   const { user, signOut } = useSession();
-  const [name, setName] = useState(user?.name ?? "");
-  const [alerts, setAlerts] = useState({ priceDrops: true, messages: true, listings: true, newsletter: false });
+
+  const [form, setForm] = useState({
+    name: user?.name ?? "",
+    phone: user?.phone ?? "",
+    city: user?.city ?? "casablanca",
+  });
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await fetch("/api/me/profile", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const json = await res.json();
+      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نسجّلو.");
+      setSaved(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "ماقدرناش نسجّلو.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <section className="card p-5">
+      <form onSubmit={save} className="card p-5">
         <h2 className="flex items-center gap-2 text-[14px] font-bold">
           <Users size={16} style={{ color: "var(--brand)" }} /> معلومات الحساب
         </h2>
         <div className="mt-4 space-y-3">
           <div>
             <label className="label" htmlFor="st-name"><Users size={13} /> الاسم</label>
-            <input id="st-name" className="field" value={name} onChange={(e) => setName(e.target.value)} />
+            <input
+              id="st-name" className="field" required maxLength={80}
+              value={form.name}
+              onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setSaved(false); }}
+            />
           </div>
           <div>
             <label className="label" htmlFor="st-phone"><Phone size={13} /> الهاتف</label>
-            <input id="st-phone" className="field num" dir="ltr" defaultValue={user?.phone ?? ""} readOnly />
+            <input
+              id="st-phone" className="field num" dir="ltr" inputMode="tel"
+              placeholder="0612345678"
+              value={form.phone}
+              onChange={(e) => { setForm((f) => ({ ...f, phone: e.target.value })); setSaved(false); }}
+            />
+            <p className="mt-1 text-[10.5px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
+              هادا هو الرقم اللي غادي يبان فالإعلانات ديالك. بلاه المشتري
+              ماعندو غير الدردشة.
+            </p>
           </div>
-          <button className="btn btn-primary btn-sm">حفظ التغييرات</button>
-        </div>
-      </section>
-
-      <section className="card p-5">
-        <h2 className="flex items-center gap-2 text-[14px] font-bold">
-          <ShieldCheck size={16} style={{ color: "var(--brand)" }} /> التوثيق
-        </h2>
-        <ul className="mt-4 space-y-2.5">
-          {[
-            { Icon: Phone, label: "رقم الهاتف", done: true },
-            { Icon: IdCard, label: "البطاقة الوطنية", done: true },
-            { Icon: BadgeCheck, label: "السجل التجاري (للمحترفين)", done: false },
-          ].map((v) => (
-            <li
-              key={v.label}
-              className="flex items-center gap-2.5 rounded-lg p-3"
-              style={{ background: "var(--surface-3)" }}
+          <div>
+            <label className="label" htmlFor="st-city"><MapPin size={13} /> المدينة</label>
+            <select
+              id="st-city" className="field" value={form.city}
+              onChange={(e) => { setForm((f) => ({ ...f, city: e.target.value })); setSaved(false); }}
             >
-              <v.Icon size={16} style={{ color: v.done ? "var(--good)" : "var(--text-dim)" }} />
-              <span className="flex-1 text-[12.5px] font-semibold">{v.label}</span>
-              {v.done ? (
-                <span className="tag tag-good"><BadgeCheck size={11} /> موثّق</span>
-              ) : (
-                <button className="btn btn-solid btn-sm">وثّق</button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="card p-5">
-        <h2 className="flex items-center gap-2 text-[14px] font-bold">
-          <Bell size={16} style={{ color: "var(--brand)" }} /> الإشعارات
-        </h2>
-        <div className="mt-4 space-y-2">
-          {([
-            ["priceDrops", "انخفاض ثمن مركبة محفوظة"],
-            ["messages", "رسائل جديدة"],
-            ["listings", "حالة إعلاناتي"],
-            ["newsletter", "نصائح وعروض المنصة"],
-          ] as const).map(([k, label]) => (
-            <label
-              key={k}
-              className="flex cursor-pointer items-center gap-2.5 rounded-lg p-3"
-              style={{ background: "var(--surface-3)" }}
-            >
-              <input
-                type="checkbox"
-                checked={alerts[k]}
-                onChange={(e) => setAlerts((a) => ({ ...a, [k]: e.target.checked }))}
-              />
-              <span className="text-[12.5px]">{label}</span>
-            </label>
-          ))}
+              {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.ar}</option>)}
+            </select>
+          </div>
+          {error && <p className="text-[12px] font-bold" style={{ color: "var(--bad)" }}>{error}</p>}
+          <button className="btn btn-primary btn-sm" disabled={busy}>
+            {saved ? <><Check size={14} /> تسجّل</> : busy ? "…" : "حفظ التغييرات"}
+          </button>
         </div>
-      </section>
+      </form>
+
+      <VerificationCard verified={Boolean(user?.id_verified)} pro={user?.type === "professionnel"} />
 
       <section className="card p-5">
         <h2 className="flex items-center gap-2 text-[14px] font-bold">
-          <Lock2 size={16} style={{ color: "var(--brand)" }} /> التفضيلات
+          <Bell size={16} style={{ color: "var(--brand)" }} /> العرض
         </h2>
         <div className="mt-4 space-y-3">
           <div>
-            <span className="label">وحدة عرض الثمن</span>
+            <span className="label">وحدة الثمن</span>
             <div className="flex gap-1.5">
               {(["dh", "million"] as const).map((u) => (
                 <button
-                  key={u}
-                  onClick={() => setUnit(u)}
-                  aria-pressed={unit === u}
+                  key={u} type="button" onClick={() => setUnit(u)}
                   className="chip transition"
                   style={{
                     borderColor: unit === u ? "var(--brand)" : "var(--line)",
@@ -106,32 +110,149 @@ export function DashboardSettings() {
                     color: unit === u ? "var(--brand)" : "var(--text-muted)",
                   }}
                 >
-                  {u === "dh" ? "بالدرهم" : "بالمليون"}
+                  {u === "dh" ? "درهم" : "مليون"}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <span className="label">مظهر الموقع</span>
-            <button onClick={toggleTheme} className="btn btn-solid btn-sm">
-              {theme === "dark" ? "تفعيل الوضع النهاري" : "تفعيل الوضع الليلي"}
+            <span className="label">المظهر</span>
+            <button type="button" onClick={toggleTheme} className="btn btn-solid btn-sm">
+              {theme === "dark" ? "فاتح" : "غامق"}
             </button>
           </div>
-          <div className="border-t pt-3" style={{ borderColor: "var(--line-soft)" }}>
-            <button onClick={() => void signOut()} className="btn btn-ghost btn-sm" style={{ color: "var(--bad)" }}>
-              تسجيل الخروج
-            </button>
-          </div>
+          <p
+            className="flex gap-2 rounded-lg p-3 text-[10.5px] leading-relaxed"
+            style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
+          >
+            <Info size={13} className="mt-px shrink-0" style={{ color: "var(--data)" }} />
+            هاد الإعدادات كتبقى فالمتصفح ديال هاد الجهاز وحدو.
+          </p>
         </div>
+      </section>
 
-        <p
-          className="mt-5 flex gap-2 rounded-lg p-3 text-[10.5px] leading-relaxed"
-          style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
-        >
-          <Info size={13} className="mt-px shrink-0" style={{ color: "var(--data)" }} />
-          هاد الإعدادات كتبقى فالمتصفح ديال هاد الجهاز وحدو.
-        </p>
+      <section className="card p-5">
+        <h2 className="flex items-center gap-2 text-[14px] font-bold">
+          <ShieldCheck size={16} style={{ color: "var(--brand)" }} /> الحساب
+        </h2>
+        <button onClick={signOut} className="btn btn-solid btn-sm mt-4">خروج</button>
       </section>
     </div>
+  );
+}
+
+/* ============================================================
+   توثيق الهوية
+
+   قبل كانت لائحة ثابتة كتقول «موثّق» بلا ما يوقع والو. دابا:
+   كترفع البطاقة، والمشرف كيشوفها وكيقرّر.
+   ============================================================ */
+function VerificationCard({ verified, pro }: { verified: boolean; pro: boolean }) {
+  const [state, setState] = useState<VerifState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const front = useRef<HTMLInputElement>(null);
+  const back = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetch("/api/me/verification")
+      .then((r) => r.json())
+      .then((j) => j?.ok && setState(j.data))
+      .catch(() => {});
+  }, []);
+
+  /** كنرفعو الوثيقة لمسار خاص — ماكتّقدّمش من مسار الصور العام */
+  async function upload(file: File): Promise<string> {
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      headers: {
+        "content-type": file.type || "image/jpeg",
+        "x-filename": "doc.jpg",
+        "x-purpose": "doc",
+      },
+      body: file,
+    });
+    const json = await res.json();
+    if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نرفعو الوثيقة.");
+    return json.data.pathname as string;
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const f = front.current?.files?.[0];
+    if (!f) return;
+    setError(null);
+    setBusy(true);
+    try {
+      const doc = await upload(f);
+      const b = back.current?.files?.[0];
+      const backPath = b ? await upload(b) : undefined;
+
+      const res = await fetch("/api/me/verification", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ kind: pro ? "registre" : "cin", doc, back: backPath }),
+      });
+      const json = await res.json();
+      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نسجّلو الطلب.");
+      setState({ verified: false, request: { kind: "cin", status: "pending", note: null, created_at: new Date().toISOString() } });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "ماقدرناش.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const status = state?.request?.status;
+  const done = verified || state?.verified;
+
+  return (
+    <section className="card p-5">
+      <h2 className="flex items-center gap-2 text-[14px] font-bold">
+        <IdCard size={16} style={{ color: "var(--brand)" }} /> توثيق الهوية
+      </h2>
+
+      {done ? (
+        <p className="mt-4 flex items-center gap-2 rounded-lg p-3 text-[12.5px]"
+          style={{ background: "var(--good-soft)", color: "var(--good)" }}>
+          <BadgeCheck size={16} /> هويتك موثّقة. الشارة كتبان فكل إعلاناتك.
+        </p>
+      ) : status === "pending" ? (
+        <p className="mt-4 rounded-lg p-3 text-[12.5px] leading-relaxed"
+          style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}>
+          الطلب ديالك فانتظار المراجعة. غادي نجاوبوك فأقرب وقت.
+        </p>
+      ) : (
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          {status === "rejected" && (
+            <p className="rounded-lg p-3 text-[12px] leading-relaxed"
+              style={{ background: "var(--bad-soft, var(--surface-3))", color: "var(--bad)" }}>
+              الطلب السابق تّرفض.
+              {state?.request?.note ? ` السبب: ${state.request.note}` : ""} تقدّر تعاود.
+            </p>
+          )}
+          <p className="text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+            صوّر {pro ? "السجل التجاري" : "البطاقة الوطنية"} وارفعها. الوثيقة
+            كيشوفها غير فريق المراجعة — عمرها ما كتبان فالموقع.
+          </p>
+          <div>
+            <label className="label" htmlFor="v-front">
+              {pro ? "السجل التجاري" : "الوجه الأمامي"}
+            </label>
+            <input id="v-front" ref={front} type="file" accept="image/*" required className="field" />
+          </div>
+          {!pro && (
+            <div>
+              <label className="label" htmlFor="v-back">الوجه الخلفي (اختياري)</label>
+              <input id="v-back" ref={back} type="file" accept="image/*" className="field" />
+            </div>
+          )}
+          {error && <p className="text-[12px] font-bold" style={{ color: "var(--bad)" }}>{error}</p>}
+          <button className="btn btn-primary btn-sm" disabled={busy}>
+            {busy ? "كنرفعو…" : "صيفط للمراجعة"}
+          </button>
+        </form>
+      )}
+    </section>
   );
 }

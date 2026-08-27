@@ -30,6 +30,18 @@ export const MAX_PHOTOS = 20;
 
 export const blobConfigured = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 
+/**
+ * بادئة الملفات الخاصة (وثائق الهوية).
+ * مسار الصور العام كيرفضها — غير المشرف كيقدر يشوفها.
+ */
+export const PRIVATE_PREFIX = "private/";
+
+/** مسار وثيقة هوية — ماكيتقدّمش من /api/media */
+export function docPath(userId: string, filename: string) {
+  const ext = (filename.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+  return `${PRIVATE_PREFIX}${userId}/${Date.now()}.${ext || "jpg"}`;
+}
+
 /** الرابط اللي كيتخزّن فقاعدة البيانات وكيتحط ف<img> */
 export const mediaUrl = (pathname: string) =>
   `/api/media/${pathname.split("/").map(encodeURIComponent).join("/")}`;

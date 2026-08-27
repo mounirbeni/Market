@@ -1,5 +1,5 @@
 import { get } from "@vercel/blob";
-import { BLOB_ACCESS, blobConfigured } from "@/lib/blob";
+import { BLOB_ACCESS, PRIVATE_PREFIX, blobConfigured } from "@/lib/blob";
 
 export const runtime = "nodejs";
 
@@ -27,6 +27,10 @@ export async function GET(req: Request, ctx: { params: Promise<{ path: string[] 
 
   // ماكاين حتى سبب باش شي مسار يطلع لفوق — كنرفضوه على طول
   if (!pathname || pathname.includes("..")) return new Response("مسار ماشي صحيح", { status: 400 });
+
+  /* وثائق الهوية ماكتّقدّمش من هنا مهما كان. هاد المسار عام:
+     اللي عندو الرابط كيشوف الملف. */
+  if (pathname.startsWith(PRIVATE_PREFIX)) return new Response("ماكايناش", { status: 404 });
 
   const range = req.headers.get("range");
 

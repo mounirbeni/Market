@@ -99,6 +99,17 @@ export async function POST(req: Request) {
         break;
       }
 
+      /* ---- توثيق الهوية ---- */
+      case "verif:approve":
+      case "verif:reject": {
+        const id = need("verifId");
+        const approve = action === "verif:approve";
+        if (!(await m.reviewVerification(id, approve, admin.email, b?.note)))
+          return fail("ماكاينش الطلب.", 404);
+        await logAdmin(admin.email, action, id, b?.note);
+        break;
+      }
+
       /* ---- المعارض ---- */
       case "dealer:verify":
       case "dealer:unverify": {

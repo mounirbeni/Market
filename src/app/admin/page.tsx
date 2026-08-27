@@ -2,7 +2,7 @@ import Link from "next/link";
 import { overview, recentLog } from "@/lib/db/moderation";
 import { timeAgo, formatNumber } from "@/lib/format";
 import {
-  AlertTriangle, BadgeCheck, Calendar, Car, Message, ShieldAlert, Sliders, Star, Users,
+  AlertTriangle, BadgeCheck, Calendar, Car, IdCard, Message, ShieldAlert, Sliders, Star, Users,
 } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +15,7 @@ export default async function AdminHome() {
     { l: "إعلانات نشيطة", v: s.active, sub: s.listingsToday ? `+${s.listingsToday} اليوم` : null, Icon: Car, href: "/admin/listings" as const },
     { l: "تبليغات مفتوحة", v: s.reportsOpen, sub: null, Icon: ShieldAlert, href: "/admin/reports" as const, warn: s.reportsOpen > 0 },
     { l: "ترويج فانتظار الأداء", v: s.promosPending, sub: s.promosActive ? `${s.promosActive} شغّال` : null, Icon: Star, href: "/admin/promos" as const, warn: s.promosPending > 0 },
+    { l: "توثيق فانتظار", v: s.verifsPending, sub: null, Icon: IdCard, href: "/admin/verifications" as const, warn: s.verifsPending > 0 },
     { l: "معارض", v: s.dealers, sub: s.dealersUnverified ? `${s.dealersUnverified} ماشي موثّق` : null, Icon: BadgeCheck, href: "/admin/dealers" as const },
     { l: "إعلانات محيّدة", v: s.hidden, sub: null, Icon: AlertTriangle, href: "/admin/listings" as const },
     { l: "حسابات محضورة", v: s.banned, sub: null, Icon: AlertTriangle, href: "/admin/users" as const },

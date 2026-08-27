@@ -27,6 +27,7 @@ export interface Overview {
   models: number;
   promosPending: number;
   promosActive: number;
+  verifsPending: number;
 }
 
 export async function overview(): Promise<Overview> {
@@ -47,7 +48,8 @@ export async function overview(): Promise<Overview> {
       (SELECT count(*) FROM appointments WHERE status = 'pending')::text        AS appointments,
       (SELECT count(*) FROM catalog_models)::text                               AS models,
       (SELECT count(*) FROM promotions WHERE paid_at IS NULL)::text              AS "promosPending",
-      (SELECT count(*) FROM promotions WHERE paid_at IS NOT NULL AND ends_at > now())::text AS "promosActive"
+      (SELECT count(*) FROM promotions WHERE paid_at IS NOT NULL AND ends_at > now())::text AS "promosActive",
+      (SELECT count(*) FROM verifications WHERE status = 'pending')::text        AS "verifsPending"
   `);
   const n = (k: string) => Number(r?.[k] ?? 0);
   return {
@@ -57,6 +59,7 @@ export async function overview(): Promise<Overview> {
     listingsToday: n("listingsToday"), reportsOpen: n("reportsOpen"),
     messages7d: n("messages7d"), appointments: n("appointments"), models: n("models"),
     promosPending: n("promosPending"), promosActive: n("promosActive"),
+    verifsPending: n("verifsPending"),
   };
 }
 
@@ -473,4 +476,71 @@ export async function expirePromotions() {
      RETURNING 1 AS n`,
   );
   return rows.length;
+}
+
+/* ---------------- توثيق الهوية ---------------- */
+
+export interface VerificationRow {
+  id: string;
+  kind: string;
+  doc_path: string;
+  doc_back_path: string | null;
+  status: string;
+  note: string | null;
+  created_at: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  user_id: string;
+  user_name: string;
+  user_email: string | null;
+  user_phone: string | null;
+  user_type: string;
+  user_verified: boolean;
+}
+
+export async function listVerifications(status = "pending", limit = 60) {
+  return sql<VerificationRow>(
+    `SELECT v.id::text, v.kind::text, v.doc_path, v.doc_back_path, v.status::text,
+            v.note, v.created_at, v.reviewed_by, v.reviewed_at,
+            u.id::text AS user_id, u.name AS user_name, u.email AS user_email,
+            u.phone AS user_phone, u.type::text AS user_type, u.id_verified AS user_verified
+       FROM verifications v JOIN users u ON u.id = v.user_id
+      WHERE ($1 = 'all' OR v.status::text = $1)
+      ORDER BY (v.status = 'pending') DESC, v.created_at DESC
+      LIMIT $2`,
+    [status, limit],
+  );
+}
+
+export async function verificationCounts() {
+  const r = await one<{ pending: string }>(
+    "SELECT count(*) FILTER (WHERE status = 'pending')::text AS pending FROM verifications",
+  );
+  return { pending: Number(r?.pending ?? 0) };
+}
+
+/**
+ * قرار المراجعة.
+ * القبول كيحط id_verified — وهي اللي كتعطي الشارة ونقط الثقة.
+ */
+export async function reviewVerification(
+  id: string,
+  approve: boolean,
+  adminEmail: string,
+  note?: string,
+) {
+  const v = await one<{ user_id: string }>(
+    `UPDATE verifications
+        SET status = $2::verification_status, note = $3,
+            reviewed_by = $4, reviewed_at = now()
+      WHERE id = $1::uuid
+      RETURNING user_id::text`,
+    [id, approve ? "approved" : "rejected", note ?? null, adminEmail],
+  );
+  if (!v) return null;
+  await sql("UPDATE users SET id_verified = $2, updated_at = now() WHERE id = $1::uuid", [
+    v.user_id,
+    approve,
+  ]);
+  return v;
 }
