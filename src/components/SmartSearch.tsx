@@ -7,7 +7,8 @@ import {
   hasArabic, KIND_LABEL, latinHint, modelsOfMake, suggest, topMakes,
   type Suggestion,
 } from "@/lib/suggest";
-import { applyFilters, paramsFromFilters, type Filters } from "@/lib/search";
+import { paramsFromFilters, type Filters } from "@/lib/search";
+import { useListings } from "@/hooks/useListings";
 import { BrandMark } from "./BrandMark";
 import {
   ArrowLeft, Car, Close, Fuel, Info, MapPin, Search, Sparkle, Transmission,
@@ -52,9 +53,10 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
   }, [value, pickedMake, arabicTyped]);
 
   const parsed = useMemo(() => parseDarija(value), [value]);
-  const count = useMemo(
-    () => (value.trim() && !arabicTyped ? applyFilters(toFilters(parsed)).length : null),
-    [parsed, value, arabicTyped],
+  /* شحال من نتيجة غادي يعطي هاد البحث — العدّاد كيجي من الخادم */
+  const { total: count } = useListings(
+    value.trim() && !arabicTyped ? toFilters(parsed) : null,
+    1,
   );
 
   useEffect(() => setCursor(-1), [value, pickedMake]);
@@ -233,8 +235,10 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
                     </bdi>
                   )}
                 </span>
+                {/* الاقتراحات كتجي من كتالوج المركبات، ماشي من عدد
+                    النتائج — فماكاين علاش نوريو رقم ماكيعنيش والو */}
                 <span className="chip chip-plain shrink-0 text-[10px]">
-                  {KIND_LABEL[s.kind]} · <span className="num">{s.count}</span>
+                  {KIND_LABEL[s.kind]}
                 </span>
                 {s.kind === "make" && !pickedMake && (
                   <ArrowLeft size={13} className="shrink-0" style={{ color: "var(--text-dim)" }} />

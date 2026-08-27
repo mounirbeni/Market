@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { body, dbMissing, fail, ok, unauthorized, writeFail } from "@/lib/api";
 import { fairPrice, trustScore } from "@/lib/market";
+import { comparablesFor } from "@/lib/source";
 import type { Body, Condition, Fuel, Gearbox, Vehicle } from "@/lib/types";
 import type { NewListing } from "@/lib/db/writes";
 import { MAX_PHOTOS, isMediaUrl } from "@/lib/blob";
@@ -174,8 +175,11 @@ export async function POST(req: Request) {
     exchangeAccepted: Boolean(b.exchangeAccepted),
   };
 
-  const trust = trustScore(draft);
-  const fp = fairPrice(draft);
+  /* الثمن المرجعي كيتحسب هنا مرة وحدة، من إعلانات حقيقية منشورة،
+     وكيتخزّن مع الإعلان — البطاقات كيقراوه بلا ما يعاودو الحساب. */
+  const pool = await comparablesFor(kind, make);
+  const fp = fairPrice(draft, pool);
+  const trust = trustScore(draft, undefined, fp);
 
   const payload: NewListing = {
     kind,

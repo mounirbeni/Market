@@ -1,20 +1,18 @@
 #!/usr/bin/env tsx
 /**
- * الهجرة + التعمير من سطر الأوامر.
+ * تطبيق هجرات قاعدة البيانات.
  *
- *   npm run db:migrate            # الهجرات فقط
+ *   npm run db:migrate
  *   npm run db:migrate -- --status
- *   npm run db:seed               # التعمير فقط
- *   npm run db:seed -- --reset    # مسح كلشي وإعادة التعمير
- *   npm run db:setup              # بجوج
  *
- * نفس الدوال اللي كيستعمل مسار /api/admin/setup — نسخة وحدة.
+ * ماكاينش «تعمير» ديال بيانات: الموقع كيتعمّر بالإعلانات الحقيقية
+ * اللي كينشرو الناس. كانت كاينة بذرة ب104 إعلان مخترع للتجريب —
+ * تحيّدات باش ماتوصلش للإنتاج.
  */
 import pg from "pg";
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { migrationStatus, runMigrations, type Query } from "../src/lib/db/migrate";
-import { resetTables, seedDatabase, tableCounts } from "../src/lib/db/seed";
 
 const G = "\x1b[32m", Y = "\x1b[33m", R = "\x1b[31m", X = "\x1b[0m";
 
@@ -58,9 +56,6 @@ const tx = async <T,>(fn: (q: Query) => Promise<T>): Promise<T> => {
 };
 
 const argv = process.argv.slice(2);
-const only = argv.find((a) => a === "migrate" || a === "seed");
-const doMigrate = !only || only === "migrate";
-const doSeed = !only || only === "seed";
 
 try {
   if (argv.includes("--status")) {
@@ -71,23 +66,9 @@ try {
     process.exit(0);
   }
 
-  if (doMigrate) {
-    const ran = await runMigrations(q, tx);
-    for (const f of ran) console.log(`  → ${f} … ${G}✓${X}`);
-    console.log(ran.length ? `${G}✓${X} تطبّقات ${ran.length} هجرة.` : "كلشي محدّث.");
-  }
-
-  if (doSeed) {
-    if (argv.includes("--reset")) {
-      await resetTables(q);
-      console.log("· تمسحات البيانات القديمة");
-    }
-    const c = await seedDatabase(q);
-    console.log(`· ${c.users} مستخدم · ${c.dealers} معرض · ${c.listings} إعلان`);
-    console.log("\nالمجموع:");
-    for (const [t, n] of Object.entries(await tableCounts(q)))
-      console.log(`  ${t.padEnd(18)} ${n}`);
-  }
+  const ran = await runMigrations(q, tx);
+  for (const f of ran) console.log(`  → ${f} … ${G}✓${X}`);
+  console.log(ran.length ? `${G}✓${X} تطبّقات ${ran.length} هجرة.` : "كلشي محدّث.");
 } catch (e) {
   console.error(`\n${R}✗${X} ${(e as Error).message}\n`);
   await client.end();

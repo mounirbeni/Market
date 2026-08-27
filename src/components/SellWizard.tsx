@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { estimateValue, trustScore } from "@/lib/market";
+import { trustScore } from "@/lib/market";
+import { useEstimate } from "@/hooks/useEstimate";
 import { useCatalog } from "@/lib/useCatalog";
 import { PhotoUploader, type UploadedPhoto } from "@/components/sell/PhotoUploader";
 import { VideoUploader, type UploadedVideo } from "@/components/sell/VideoUploader";
@@ -205,20 +206,16 @@ export function SellWizard() {
   const makes = useMemo(() => makesFor(d.kind), [makesFor, d.kind]);
   const models = useMemo(() => modelsFor(d.make), [modelsFor, d.make]);
 
-  const estimate = useMemo(
-    () =>
-      estimateValue({
-        kind: d.kind,
-        make: d.make,
-        model: d.model,
-        year: d.year,
-        km: d.km,
-        fuel: d.fuel,
-        gearbox: d.gearbox,
-        condition: d.condition,
-      }),
-    [d.kind, d.make, d.model, d.year, d.km, d.fuel, d.gearbox, d.condition],
-  );
+  const { estimate } = useEstimate({
+    kind: d.kind,
+    make: d.make,
+    model: d.model,
+    year: d.year,
+    km: d.km,
+    fuel: d.fuel,
+    gearbox: d.gearbox,
+    condition: d.condition,
+  });
 
   const trust = useMemo(
     () => trustScore(draftToVehicle(d), draftSeller(d)),

@@ -28,6 +28,8 @@ export interface Seller {
   /** هوية موثقة عبر البطاقة الوطنية / السجل التجاري */
   idVerified: boolean;
   phoneVerified: boolean;
+  /** رقم التواصل — كيبان غير ملي يضغط الزائر «أظهر الرقم» */
+  phone?: string | null;
   rating: number;
   salesCount: number;
   responseMinutes: number;
@@ -102,9 +104,14 @@ export interface Vehicle {
   exchangeAccepted: boolean;
   /** درجة الترويج المدفوعة — شوف lib/promo.ts */
   promo?: import("./promo").PromoTier;
-  /**
-   * البائع مرفق مع المركبة ملي تجي من قاعدة البيانات.
-   * فالبيانات المرفقة كيتلقى بـsellerById عوض ذلك.
-   */
+  /** البائع مرفق مع المركبة ملي تجي من قاعدة البيانات */
   seller?: Seller;
+  /**
+   * الثمن المرجعي كما تحسب فالخادم ملي تنشر الإعلان.
+   * المتصفح ماعندوش الإعلانات الأخرى باش يقارن، فكيقرا هادو.
+   */
+  fairPriceMad?: number;
+  fairPriceDelta?: number;
+  /** مؤشر الثقة المخزّن — كيتحسب فالخادم حتى هو */
+  trustScoreStored?: number;
 }

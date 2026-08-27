@@ -8,8 +8,8 @@ const STYLE = {
 } as const;
 
 /** كشف الإعلانات المشبوهة — كيبان غير إلا كانت شي إشارة */
-export function RiskPanel({ v }: { v: Vehicle }) {
-  const flags = suspicionFlags(v);
+export function RiskPanel({ v, duplicates = 0 }: { v: Vehicle; duplicates?: number }) {
+  const flags = suspicionFlags(v, duplicates);
   const level = riskLevel(flags);
 
   if (!level) {

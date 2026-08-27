@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { applyFilters, paramsFromFilters, type Filters } from "@/lib/search";
+import { useEffect, useMemo, useState } from "react";
+import { paramsFromFilters, type Filters } from "@/lib/search";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { computeTco } from "@/lib/tco";
 import { CITIES } from "@/lib/cities";
@@ -89,14 +89,43 @@ export function AssistantClient() {
   const set = (patch: Partial<Answers>) => setA((p) => ({ ...p, ...patch }));
   const done = step >= STEP_TITLES.length;
 
-  const results = useMemo(() => {
-    if (!done) return [];
+  const [results, setResults] = useState<Vehicle[]>([]);
+
+  /* النتائج كتجي من قاعدة البيانات. إلا كانو قليلين كنوسّعو
+     المعايير على مراحل — نوع الهيكل أولاً، ومن بعد المدينة
+     والوقود — بدل ما نرجعو للمستخدم بلا والو. */
+  useEffect(() => {
+    if (!done) {
+      setResults([]);
+      return;
+    }
+    const ctrl = new AbortController();
     const f = toFilters(a);
-    let list = applyFilters(f);
-    // إلا كانت النتائج قليلة، نوسّعو: كنحيّدو نوع الهيكل من بعد المدينة
-    if (list.length < 3) list = applyFilters({ ...f, body: "" });
-    if (list.length < 3) list = applyFilters({ ...f, body: "", city: "", fuel: "" });
-    return list.slice(0, 6);
+    const tries: Partial<Filters>[] = [
+      f,
+      { ...f, body: "" },
+      { ...f, body: "", city: "", fuel: "" },
+    ];
+
+    (async () => {
+      for (const filters of tries) {
+        const qs = paramsFromFilters(filters);
+        qs.set("limit", "6");
+        try {
+          const res = await fetch(`/api/listings?${qs.toString()}`, { signal: ctrl.signal });
+          const json = await res.json();
+          const items = json?.ok ? (json.data.items as Vehicle[]) : [];
+          if (items.length >= 3 || filters === tries[tries.length - 1]) {
+            setResults(items);
+            return;
+          }
+        } catch {
+          return;
+        }
+      }
+    })();
+
+    return () => ctrl.abort();
   }, [a, done]);
 
   const budgets = a.kind === "car" ? BUDGETS : MOTO_BUDGETS;

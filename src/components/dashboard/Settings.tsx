@@ -129,7 +129,7 @@ export function DashboardSettings() {
           style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
         >
           <Info size={13} className="mt-px shrink-0" style={{ color: "var(--data)" }} />
-          نسخة تجريبية: الإعدادات كتبقى فمتصفحك وماكتتصيفطش لأي خادم.
+          هاد الإعدادات كتبقى فالمتصفح ديال هاد الجهاز وحدو.
         </p>
       </section>
     </div>

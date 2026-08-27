@@ -7,15 +7,13 @@ import { VehicleCard } from "@/components/VehicleCard";
 import { VehicleArt, VehicleGlyph } from "@/components/VehicleArt";
 import { TrustRing } from "@/components/TrustBadge";
 import { artShape } from "@/lib/artshape";
-import { VEHICLES } from "@/lib/data/vehicles";
 import { trustOf, fairPriceOf } from "@/lib/market";
 import { computeTco } from "@/lib/tco";
 import { formatNumber } from "@/lib/format";
 import { CITIES, cityName } from "@/lib/cities";
-import { DEALERS } from "@/lib/data/dealers";
 import { GUIDES } from "@/lib/data/guides";
-import { brandSlug } from "@/lib/slug";
-import { findAll, getBrands, getDealerCounts, getStats } from "@/lib/source";
+import { brandSlug, brandsOf } from "@/lib/slug";
+import { findAll, getBrands, getDealerCounts, getDealers, getStats } from "@/lib/source";
 import {
   ArrowLeft, BadgeCheck, Calculator, Car, Clock, FileText, GUIDE_ICONS, MapPin, Moto,
   Scale, Search, ShieldCheck, Sparkle, Star, TrendingDown, Users, Wallet, Wrench,
@@ -80,21 +78,30 @@ export default async function HomePage() {
       getStats(),
       getDealerCounts(),
     ]);
+  const dealers = await getDealers();
+
+  /* ملي مازال ماكاينش إعلان، كنوريو ماركات الكتالوج: الصفحات
+     ديالها موجودة وكتبيّن حالة فارغة — أحسن من شبكة خاوية. */
+  type Tile = { make: string; slug: string; count?: number };
+  const carTiles: Tile[] = carBrands.length ? carBrands : brandsOf("car");
+  const motoTiles: Tile[] = motoBrands.length ? motoBrands : brandsOf("moto");
   const topGuides = GUIDES.slice(0, 4);
-  const topDealers = DEALERS.map((d) => ({
-    d,
-    count: dealerCounts[d.slug] ?? dealerCounts[d.id] ?? 0,
-  }))
+  const topDealers = dealers
+    .map((d) => ({ d, count: dealerCounts[d.slug] ?? 0 }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 4);
   const { cars, motos, avgTrust } = stats;
 
   // البطل: أعلى ثقة من المفحوصة
   const heroPool = await findAll({ inspectedOnly: true, sort: "trust-desc" }, 8);
-  const hero = heroPool[0] ?? featuredCars[0] ?? VEHICLES[0];
-  const heroTrust = trustOf(hero);
-  const heroFp = fairPriceOf(hero);
-  const heroTco = computeTco(hero, { kmPerYear: 15000, years: 3, coverage: "tiers", includeDepreciation: false });
+  /* «مثال حي» كيوري إعلاناً حقيقياً من المنصة. ملي مازال ماكاينش
+     حتى إعلان، القسم كامل ماكيبانش — أحسن من مثال مخترع. */
+  const hero = heroPool[0] ?? featuredCars[0] ?? null;
+  const heroTrust = hero ? trustOf(hero) : null;
+  const heroFp = hero ? fairPriceOf(hero) : null;
+  const heroTco = hero
+    ? computeTco(hero, { kmPerYear: 15000, years: 3, coverage: "tiers", includeDepreciation: false })
+    : null;
 
   const makes = stats.makes;
   const topCities = CITIES
@@ -221,8 +228,9 @@ export default async function HomePage() {
             {[
               { k: formatNumber(cars), l: "سيارة معروضة", Icon: Car },
               { k: formatNumber(motos), l: "دراجة نارية", Icon: Moto },
-              { k: `${avgTrust}/100`, l: "متوسط مؤشر الثقة", Icon: ShieldCheck },
-              { k: formatNumber(topCities.length), l: "مدينة مغربية", Icon: MapPin },
+              // متوسط الثقة ماعندو معنى بلا إعلانات
+              { k: avgTrust > 0 ? `${avgTrust}/100` : "—", l: "متوسط مؤشر الثقة", Icon: ShieldCheck },
+              { k: formatNumber(topCities.length || CITIES.length), l: "مدينة مغربية", Icon: MapPin },
             ].map((s) => (
               <div key={s.l} className="card flex items-center gap-3 p-4">
                 <span
@@ -313,6 +321,7 @@ export default async function HomePage() {
       </section>
 
       {/* ================= سيارات مميزة ================= */}
+      {featuredCars.length > 0 && (
       <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
         <div className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
@@ -330,8 +339,10 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ================= دراجات مميزة ================= */}
+      {featuredMotos.length > 0 && (
       <section>
         <div className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
@@ -349,6 +360,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       <SuggestedForYou />
 
@@ -364,8 +376,13 @@ export default async function HomePage() {
             <Car size={14} /> سيارات
           </h3>
           <div className="mb-8 grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
-            {carBrands.map((b) => (
-              <BrandTile key={b.slug} name={b.make} count={b.count} href={`/cars/${b.slug}`} />
+            {carTiles.map((b) => (
+              <BrandTile
+                key={b.slug}
+                name={b.make}
+                count={b.count}
+                href={`/cars/${b.slug}`}
+              />
             ))}
           </div>
 
@@ -373,14 +390,21 @@ export default async function HomePage() {
             <Moto size={14} /> دراجات نارية
           </h3>
           <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
-            {motoBrands.map((b) => (
-              <BrandTile key={b.slug} name={b.make} count={b.count} href={`/motorcycles/${b.slug}`} kind="moto" />
+            {motoTiles.map((b) => (
+              <BrandTile
+                key={b.slug}
+                name={b.make}
+                count={b.count}
+                href={`/motorcycles/${b.slug}`}
+                kind="moto"
+              />
             ))}
           </div>
         </div>
       </section>
 
       {/* ================= المدن ================= */}
+      {topCities.length > 0 && (
       <section className="mx-auto max-w-[1400px] px-4 py-16">
         <h2 className="h-section mb-2">المركبات حسب المدينة</h2>
         <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
@@ -407,8 +431,10 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+      )}
 
       {/* ================= الوكلاء ================= */}
+      {topDealers.length > 0 && (
       <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
         <div className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
@@ -454,6 +480,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ================= علاش طريق ================= */}
       <section className="mx-auto max-w-[1400px] px-4 py-16">
@@ -501,6 +528,7 @@ export default async function HomePage() {
       </section>
 
       {/* ================= مثال حي ================= */}
+      {hero && heroTrust && heroFp && heroTco && (
       <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
         <div className="mx-auto grid max-w-[1400px] items-center gap-12 px-4 py-20 lg:grid-cols-2">
           <div>
@@ -582,6 +610,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ================= الأدلة ================= */}
       <section>

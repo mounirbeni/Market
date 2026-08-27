@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  applyFilters, DEFAULT_FILTERS, filtersFromParams, paramsFromFilters,
+  DEFAULT_FILTERS, filtersFromParams, paramsFromFilters,
   SORT_LABELS, type Filters, type SortKey,
 } from "@/lib/search";
 import type { Vehicle } from "@/lib/types";
@@ -82,11 +82,10 @@ export function VehiclesClient({
         setTotal(d.total);
       })
       .catch(() => {
-        // الشبكة قاطعة — كنفلترو محلياً باش الصفحة ماتبقاش خاوية
+        // الشبكة قاطعة — كنبيّنو حالة خاوية بدل نتائج ماشي حقيقية
         if (!alive) return;
-        const local = applyFilters(filters);
-        setResults(local.slice(0, PAGE_SIZE * 2));
-        setTotal(local.length);
+        setResults([]);
+        setTotal(0);
       })
       .finally(() => {
         if (alive) setLoading(false);
@@ -101,7 +100,9 @@ export function VehiclesClient({
     const offset = results.length;
     load(offset)
       .then((d) => setResults((prev) => [...prev, ...d.items]))
-      .catch(() => setResults(applyFilters(filters).slice(0, offset + PAGE_SIZE * 2)))
+      .catch(() => {
+        /* «زيد» طاح — كنخلّيو اللي بان، والمستخدم يقدر يعاود */
+      })
       .finally(() => setLoadingMore(false));
   }, [load, results.length, filters]);
 

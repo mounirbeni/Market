@@ -6,7 +6,6 @@ import { useMyListings } from "@/lib/useMyListings";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { promoOf } from "@/lib/promo";
 import { formatNumber, timeAgo } from "@/lib/format";
-import { NOW } from "@/lib/data/seed";
 import { vehicleHref } from "@/lib/slug";
 import { artShape } from "@/lib/artshape";
 import { VehicleArt } from "@/components/VehicleArt";
@@ -115,7 +114,7 @@ export function DashboardListings() {
                   <div className="mt-2 flex flex-wrap gap-3 text-[11px]" style={{ color: "var(--text-dim)" }}>
                     <span className="flex items-center gap-1"><Eye size={12} /> <span className="num">{formatNumber(v.views)}</span> مشاهدة</span>
                     <span className="flex items-center gap-1"><Heart size={12} /> <span className="num">{v.saves}</span> حفظ</span>
-                    <span className="flex items-center gap-1"><Timer size={12} /> نُشر {timeAgo(v.publishedAt, NOW)}</span>
+                    <span className="flex items-center gap-1"><Timer size={12} /> نُشر {timeAgo(v.publishedAt)}</span>
                     <span className="tag tag-mute">{fp.weak ? "مراجع محدودة" : fp.label}</span>
                   </div>
                 </div>

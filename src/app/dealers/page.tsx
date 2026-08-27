@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DEALERS } from "@/lib/data/dealers";
-import { getDealerCounts } from "@/lib/source";
+import { getDealerCounts, getDealers } from "@/lib/source";
 import { cityName } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { ArrowLeft, BadgeCheck, Car, Clock, MapPin, Star, Users } from "@/components/icons";
@@ -14,11 +13,10 @@ export const metadata: Metadata = {
 };
 
 export default async function DealersPage() {
-  const counts = await getDealerCounts();
-  const rows = DEALERS.map((d) => ({
-    d,
-    count: counts[d.slug] ?? counts[d.id] ?? 0,
-  })).sort((a, b) => b.count - a.count);
+  const [counts, dealers] = await Promise.all([getDealerCounts(), getDealers()]);
+  const rows = dealers
+    .map((d) => ({ d, count: counts[d.slug] ?? 0 }))
+    .sort((a, b) => b.count - a.count);
 
   const totalListings = rows.reduce((s, r) => s + r.count, 0);
 
@@ -28,9 +26,18 @@ export default async function DealersPage() {
         <span className="eyebrow"><Users size={13} /> بائعون محترفون</span>
         <h1 className="h-page mt-4">الوكلاء والمعارض</h1>
         <p className="mt-3 text-[15px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          <span className="num">{DEALERS.length}</span> معرضاً معتمداً كيعرضو{" "}
-          <span className="num">{formatNumber(totalListings)}</span> مركبة. كل معرض موثّق
-          بهوية تجارية وتقييمات من مشترين حقيقيين.
+          {rows.length > 0 ? (
+            <>
+              <span className="num">{rows.length}</span> معرضاً معتمداً كيعرضو{" "}
+              <span className="num">{formatNumber(totalListings)}</span> مركبة. كل معرض موثّق
+              بهوية تجارية وتقييمات من مشترين حقيقيين.
+            </>
+          ) : (
+            <>
+              باقي ماتسجّل حتى معرض. المعارض المعتمدة كيتوثّقو بالسجل التجاري،
+              وكيبانو هنا بالمخزون ديالهم وساعات العمل والعنوان.
+            </>
+          )}
         </p>
       </header>
 

@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { brandSlug, vehicleHref } from "@/lib/slug";
-import { findAll, getAllSlugs, getVehicle } from "@/lib/source";
-import { dealerBySellerId } from "@/lib/data/dealers";
-import { fairPriceOf, trustOf } from "@/lib/market";
+import {
+  estimateFor, findAll, getAllSlugs, getDealerOfSeller, getDuplicateCount, getVehicle,
+} from "@/lib/source";
+import { fairPriceFrom, trustOf, trustScore } from "@/lib/market";
 import { cityName } from "@/lib/cities";
 import { AR, formatDate, formatDh, formatKm, formatNumber, timeAgo } from "@/lib/format";
-import { NOW } from "@/lib/data/seed";
 import { Gallery } from "@/components/vehicle/Gallery";
 import { TrustPanel } from "@/components/vehicle/TrustPanel";
 import { RiskPanel } from "@/components/vehicle/RiskPanel";
@@ -55,11 +55,23 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
   if (!found) notFound();
   const { vehicle: v, seller } = found;
 
-  const dealer = dealerBySellerId(v.sellerId);
+  const dealer = await getDealerOfSeller(v.sellerId);
   const section = v.kind === "car" ? "/cars" : "/motorcycles";
 
-  const trust = trustOf(v);
-  const fp = fairPriceOf(v);
+  /* الثمن المرجعي كيتحسب هنا فالخادم من إعلانات حقيقية مشابهة —
+     بهاد الطريقة كنقدرو نوريو حتى الإعلانات اللي دخلات فالحساب. */
+  const estimate = await estimateFor(
+    {
+      kind: v.kind, make: v.make, model: v.model, year: v.year, km: v.km,
+      fuel: v.fuel, gearbox: v.gearbox, body: v.body, condition: v.condition,
+      power: v.kind === "moto" ? v.displacement : v.fiscalPower,
+    },
+    { excludeId: v.id },
+  );
+  const fp = fairPriceFrom(v, estimate);
+  // إشارة التكرار كتحتاج الإعلانات الأخرى ديال نفس البائع
+  const duplicates = await getDuplicateCount(v);
+  const trust = trustScore(v, seller, fp);
   // المشابهة كتّحسب من نفس المصدر
   const similar = (await findAll(
     { kind: v.kind, make: v.make, sort: "pertinence" }, 8,
@@ -169,7 +181,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
               <div className="flex gap-4 text-[11px]" style={{ color: "var(--text-dim)" }}>
                 <span className="flex items-center gap-1"><Eye size={12} /><span className="num">{formatNumber(v.views)}</span></span>
                 <span className="flex items-center gap-1"><Heart size={12} /><span className="num">{v.saves}</span></span>
-                <span>نُشر {timeAgo(v.publishedAt, NOW)}</span>
+                <span>نُشر {timeAgo(v.publishedAt)}</span>
               </div>
             </div>
           </header>
@@ -242,7 +254,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
         {/* ---------- العمود الجانبي ---------- */}
         <aside className="min-w-0 space-y-6 lg:sticky lg:top-[84px] lg:h-fit">
           <SellerCard seller={seller} v={v} />
-          <RiskPanel v={v} />
+          <RiskPanel v={v} duplicates={duplicates} />
           <TrustPanel trust={trust} />
 
           {fp.estimate.comparables.length > 0 && (

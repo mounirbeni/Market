@@ -5,7 +5,6 @@ import { vehicleHref } from "@/lib/slug";
 import { useMemo } from "react";
 import type { Vehicle } from "@/lib/types";
 import { AR, formatNumber, timeAgo } from "@/lib/format";
-import { NOW } from "@/lib/data/seed";
 import { cityName } from "@/lib/cities";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { promoOf } from "@/lib/promo";
@@ -162,7 +161,7 @@ export function VehicleCard({ v, compact = false }: { v: Vehicle; compact?: bool
             >
               <span className="flex items-center gap-1"><MapPin size={12} /> {cityName(v.city)}</span>
               {!compact && (
-                <span className="flex items-center gap-1"><Clock size={12} /> {timeAgo(v.publishedAt, NOW)}</span>
+                <span className="flex items-center gap-1"><Clock size={12} /> {timeAgo(v.publishedAt)}</span>
               )}
             </div>
           </div>
@@ -252,7 +251,7 @@ export function VehicleRow({ v }: { v: Vehicle }) {
             </div>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                <Clock size={12} /> {timeAgo(v.publishedAt, NOW)}
+                <Clock size={12} /> {timeAgo(v.publishedAt)}
               </span>
               <CardActions v={v} />
             </div>

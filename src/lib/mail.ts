@@ -42,6 +42,12 @@ export interface Mail {
   subject: string;
   html: string;
   text: string;
+  /**
+   * العنوان اللي كيتجاوب عليه.
+   * المرسل كيبقى ديالنا — مزوّدي البريد كيرفضو عنواناً ماشي موثق —
+   * وهاد الرأس كيخلّي «رد» يمشي مباشرة للي صيفط.
+   */
+  replyTo?: string;
 }
 
 export interface SendResult {
@@ -63,6 +69,7 @@ async function sendResend(mail: Mail): Promise<SendResult> {
         subject: mail.subject,
         html: mail.html,
         text: mail.text,
+        ...(mail.replyTo ? { reply_to: [mail.replyTo] } : {}),
       }),
     });
 
@@ -94,6 +101,7 @@ async function sendBrevo(mail: Mail): Promise<SendResult> {
         subject: mail.subject,
         htmlContent: mail.html,
         textContent: mail.text,
+        ...(mail.replyTo ? { replyTo: { email: mail.replyTo } } : {}),
       }),
     });
 
@@ -132,6 +140,7 @@ async function sendSmtp(mail: Mail): Promise<SendResult> {
       subject: mail.subject,
       text: mail.text,
       html: mail.html,
+      ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
     });
     return { ok: true };
   } catch (e) {

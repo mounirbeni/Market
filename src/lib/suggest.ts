@@ -1,4 +1,4 @@
-import { VEHICLES } from "./data/vehicles";
+import { CATALOG } from "./data/catalog";
 import { CITIES } from "./cities";
 import type { Filters } from "./search";
 
@@ -133,7 +133,7 @@ function buildIndex(): IndexEntry[] {
 
   // الماركات
   const makeCount = new Map<string, { n: number; kinds: Set<string> }>();
-  for (const v of VEHICLES) {
+  for (const v of CATALOG) {
     const e = makeCount.get(v.make) ?? { n: 0, kinds: new Set<string>() };
     e.n++;
     e.kinds.add(v.kind);
@@ -157,13 +157,13 @@ function buildIndex(): IndexEntry[] {
 
   // الموديلات — كيتعرضو دائماً «Make Model»
   const modelCount = new Map<string, number>();
-  for (const v of VEHICLES) {
+  for (const v of CATALOG) {
     const k = `${v.make}|${v.model}`;
     modelCount.set(k, (modelCount.get(k) ?? 0) + 1);
   }
   for (const [k, n] of modelCount) {
     const [make, model] = k.split("|");
-    const sample = VEHICLES.find((v) => v.make === make && v.model === model)!;
+    const sample = CATALOG.find((v) => v.make === make && v.model === model)!;
     out.push({
       kind: "model",
       label: `${make} ${model}`,
@@ -178,37 +178,9 @@ function buildIndex(): IndexEntry[] {
     });
   }
 
-  // النسخ المشهورة (AMG, GTI, dCi…) — كتّجمع من حقل version
-  const trimCount = new Map<string, number>();
-  // نسخ الأداء والتجهيز فقط — أكواد المحرك العامة (dCi/HDi) ماكتزيد والو
-  const TRIMS = ["AMG", "GTI", "GTD", "TDI", "Quattro", "xDrive", "4Matic"];
-  for (const v of VEHICLES) {
-    for (const t of TRIMS) {
-      if (latinize(v.version).includes(latinize(t))) {
-        const k = `${v.make}|${t}`;
-        trimCount.set(k, (trimCount.get(k) ?? 0) + 1);
-      }
-    }
-  }
-  for (const [k, n] of trimCount) {
-    if (n < 1) continue;
-    const [make, trim] = k.split("|");
-    out.push({
-      kind: "model",
-      label: `${make} ${trim}`,
-      sub: "نسخة",
-      count: n,
-      filters: { make, q: trim },
-      query: `${make} ${trim}`,
-      primary: latinize(trim),
-      alt: [latinize(make + trim)],
-      arabic: [],
-    });
-  }
-
   // أنواع الهياكل — بالفرنسية أساساً
   const bodyCount = new Map<string, number>();
-  for (const v of VEHICLES) bodyCount.set(v.body, (bodyCount.get(v.body) ?? 0) + 1);
+  for (const v of CATALOG) bodyCount.set(v.body, (bodyCount.get(v.body) ?? 0) + 1);
   for (const [body, n] of bodyCount) {
     out.push({
       kind: "body",
@@ -224,9 +196,8 @@ function buildIndex(): IndexEntry[] {
   }
 
   // الوقود
-  const fuelCount = new Map<string, number>();
-  for (const v of VEHICLES) fuelCount.set(v.fuel, (fuelCount.get(v.fuel) ?? 0) + 1);
-  for (const [fuel, n] of fuelCount) {
+  for (const fuel of ["diesel", "essence", "hybride", "electrique"] as const) {
+    const n = 1;
     out.push({
       kind: "fuel",
       label: FR_FUEL[fuel],
@@ -241,9 +212,8 @@ function buildIndex(): IndexEntry[] {
   }
 
   // الناقل
-  const gbCount = new Map<string, number>();
-  for (const v of VEHICLES) gbCount.set(v.gearbox, (gbCount.get(v.gearbox) ?? 0) + 1);
-  for (const [gb, n] of gbCount) {
+  for (const gb of ["manuelle", "automatique"] as const) {
+    const n = 1;
     out.push({
       kind: "gearbox",
       label: FR_GEARBOX[gb],
@@ -258,11 +228,8 @@ function buildIndex(): IndexEntry[] {
   }
 
   // المدن — الاسم الفرنسي هو المعروض، العربي كسطر ثانوي
-  const cityCount = new Map<string, number>();
-  for (const v of VEHICLES) cityCount.set(v.city, (cityCount.get(v.city) ?? 0) + 1);
   for (const c of CITIES) {
-    const n = cityCount.get(c.slug) ?? 0;
-    if (n === 0) continue;
+    const n = 1;
     out.push({
       kind: "city",
       label: c.fr,
@@ -331,25 +298,16 @@ export function suggest(input: string, limit = 8): Suggestion[] {
 
 /** الموديلات ديال ماركة معيّنة — كتبان ملي المستخدم يختار ماركة */
 export function modelsOfMake(make: string, limit = 10): Suggestion[] {
-  const counts = new Map<string, number>();
-  for (const v of VEHICLES) {
-    if (v.make !== make) continue;
-    counts.set(v.model, (counts.get(v.model) ?? 0) + 1);
-  }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
+  return CATALOG.filter((c) => c.make === make)
     .slice(0, limit)
-    .map(([model, count]) => {
-      const sample = VEHICLES.find((v) => v.make === make && v.model === model)!;
-      return {
-        kind: "model" as const,
-        label: `${make} ${model}`,
-        sub: sample.kind === "moto" ? "دراجة نارية" : FR_BODY[sample.body] ?? "",
-        count,
-        filters: { make, model },
-        query: `${make} ${model}`,
-      };
-    });
+    .map((c) => ({
+      kind: "model" as const,
+      label: `${make} ${c.model}`,
+      sub: c.kind === "moto" ? "دراجة نارية" : FR_BODY[c.body] ?? "",
+      count: 1,
+      filters: { make, model: c.model },
+      query: `${make} ${c.model}`,
+    }));
 }
 
 /** أشهر الماركات — كتبان ملي يكون الحقل خاوي */

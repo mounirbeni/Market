@@ -1,21 +1,21 @@
 import "server-only";
 import type { Seller, Vehicle } from "./types";
-import { applyFilters, type Filters } from "./search";
-import { facetsFromSeed, type Facets } from "./facets";
+import type { Filters } from "./search";
+import type { Facets } from "./facets";
 import type { CatalogEntry } from "./source-types";
-import { VEHICLES } from "./data/vehicles";
-import { sellerById } from "./data/sellers";
-import { brandsWithCounts } from "./slug";
-import { trustOf } from "./market";
+import { CATALOG } from "./data/catalog";
+import { estimateValue, trustOf, type Estimate, type EstimateInput } from "./market";
 
 /* ============================================================
-   مصدر البيانات الموحّد
+   مصدر البيانات
 
-   · إلا كانت قاعدة البيانات موصولة → كنقراو منها.
-   · إلا ماكانتش → كنرجعو للبيانات المرفقة (نفس اللي كان).
+   قاعدة البيانات هي المصدر الوحيد. كان كاين رجوع لبيانات مرفقة
+   مع الموقع ملي تطيح القاعدة — تحيّد: داكشي كان إعلانات مخترعة،
+   وموقع حقيقي خاصو يبيّن «ماكاين حتى إعلان» بدل ما يخترع سلعة
+   ماكايناش.
 
-   بهاد الطريقة الموقع كيخدم قبل وبعد ربط قاعدة البيانات، بلا أي
-   تراجع، والانتقال كيوقع بمجرد ضبط DATABASE_URL.
+   ملي تطيح القاعدة كنسجّلو الخطأ وكنرجعو نتيجة خاوية — الصفحة
+   كتبقى كتخدم وكتبيّن حالة فارغة.
    ============================================================ */
 
 export const usingDb = () => Boolean(process.env.DATABASE_URL);
@@ -37,19 +37,15 @@ export async function findVehicles(
 ): Promise<VehiclePage> {
   const { limit = 24, offset = 0 } = opts;
 
-  if (!usingDb()) {
-    const all = applyFilters(filters);
-    return { items: all.slice(offset, offset + limit), total: all.length };
-  }
+  if (!usingDb()) return { items: [], total: 0 };
 
   try {
     const { searchListings, rowToVehicle } = await db();
     const { rows, total } = await searchListings(filters, { limit, offset });
     return { items: rows.map((r) => rowToVehicle(r)), total };
   } catch (e) {
-    console.error("[source] فشل استعلام قاعدة البيانات، كنرجعو للبيانات المرفقة:", e);
-    const all = applyFilters(filters);
-    return { items: all.slice(offset, offset + limit), total: all.length };
+    console.error("[source] فشل استعلام قاعدة البيانات:", e);
+    return { items: [], total: 0 };
   }
 }
 
@@ -62,11 +58,7 @@ export async function findAll(filters: Partial<Filters>, limit = 24): Promise<Ve
 export async function getVehicle(
   key: string,
 ): Promise<{ vehicle: Vehicle; seller: Seller } | null> {
-  if (!usingDb()) {
-    const { vehicleFromSlug } = await import("./slug");
-    const v = vehicleFromSlug(key) ?? VEHICLES.find((x) => x.id === key);
-    return v ? { vehicle: v, seller: sellerById(v.sellerId) } : null;
-  }
+  if (!usingDb()) return null;
 
   try {
     const { getListingBySlug, rowToVehicle, getSellerOf } = await db();
@@ -95,16 +87,14 @@ export async function getVehicle(
     if (!seller) return null;
     return { vehicle: rowToVehicle(found.listing, history, media), seller };
   } catch (e) {
-    console.error("[source] فشل جلب المركبة، كنرجعو للبيانات المرفقة:", e);
-    const { vehicleFromSlug } = await import("./slug");
-    const v = vehicleFromSlug(key) ?? VEHICLES.find((x) => x.id === key);
-    return v ? { vehicle: v, seller: sellerById(v.sellerId) } : null;
+    console.error("[source] فشل جلب المركبة:", e);
+    return null;
   }
 }
 
 /** الماركات مع العدد */
 export async function getBrands(kind?: "car" | "moto") {
-  if (!usingDb()) return brandsWithCounts(kind ?? "all");
+  if (!usingDb()) return [];
 
   try {
     const { brandCounts } = await db();
@@ -117,22 +107,18 @@ export async function getBrands(kind?: "car" | "moto") {
     }));
   } catch (e) {
     console.error("[source] فشل جلب الماركات:", e);
-    return brandsWithCounts(kind ?? "all");
+    return [];
   }
 }
 
 /** كل الـslugs — للتوليد المسبق */
 export async function getAllSlugs(): Promise<string[]> {
-  if (!usingDb()) {
-    const { vehicleSlug } = await import("./slug");
-    return VEHICLES.map(vehicleSlug);
-  }
+  if (!usingDb()) return [];
   try {
     const { allListingSlugs } = await db();
     return await allListingSlugs();
   } catch {
-    const { vehicleSlug } = await import("./slug");
-    return VEHICLES.map(vehicleSlug);
+    return [];
   }
 }
 
@@ -147,6 +133,33 @@ export async function trackView(listingRef: string, visitorKey: string) {
   }
 }
 
+/**
+ * الثمن المرجعي لمركبة — كيتحسب من إعلانات حقيقية فقاعدة البيانات.
+ *
+ * بلا قاعدة بيانات ولا بلا إعلانات كافية، كيرجع تقدير خاوي
+ * (sampleSize صفر) والواجهة كتقول «مراجع محدودة». عمرنا ما
+ * نخترعو ثمن من بيانات مرفقة.
+ */
+export async function estimateFor(
+  target: EstimateInput,
+  opts: { excludeId?: string } = {},
+): Promise<Estimate> {
+  const empty: Estimate = {
+    low: 0, mid: 0, high: 0, confidence: 0, sampleSize: 0, comparables: [],
+  };
+  if (!usingDb()) return empty;
+
+  try {
+    const { comparableListings, rowToVehicle } = await db();
+    const rows = await comparableListings(target.kind, target.make);
+    if (!rows.length) return empty;
+    return estimateValue(target, rows.map((r) => rowToVehicle(r)), opts);
+  } catch (e) {
+    console.error("[source] فشل حساب الثمن المرجعي:", e);
+    return empty;
+  }
+}
+
 export interface SiteStats {
   cars: number;
   motos: number;
@@ -158,61 +171,39 @@ export interface SiteStats {
 
 /** إحصائيات الصفحة الرئيسية */
 export async function getStats(): Promise<SiteStats> {
-  if (!usingDb()) return statsFromSeed();
+  const empty: SiteStats = {
+    cars: 0, motos: 0, byBody: {}, byCity: {}, makes: [], avgTrust: 0,
+  };
+  if (!usingDb()) return empty;
   try {
     const { aggregates } = await db();
     return await aggregates();
   } catch (e) {
     console.error("[source] فشل جلب الإحصائيات:", e);
-    return statsFromSeed();
+    return empty;
   }
-}
-
-function statsFromSeed(): SiteStats {
-  const byBody: Record<string, number> = {};
-  const byCity: Record<string, number> = {};
-  for (const v of VEHICLES) {
-    byBody[v.body] = (byBody[v.body] ?? 0) + 1;
-    byCity[v.city] = (byCity[v.city] ?? 0) + 1;
-  }
-  return {
-    cars: VEHICLES.filter((v) => v.kind === "car").length,
-    motos: VEHICLES.filter((v) => v.kind === "moto").length,
-    byBody,
-    byCity,
-    makes: Array.from(new Set(VEHICLES.map((v) => v.make))).sort(),
-    avgTrust: Math.round(
-      VEHICLES.reduce((s, v) => s + trustOf(v).score, 0) / VEHICLES.length,
-    ),
-  };
 }
 
 /** عدد إعلانات كل وكيل */
 export async function getDealerCounts(): Promise<Record<string, number>> {
-  if (!usingDb()) {
-    const out: Record<string, number> = {};
-    for (const v of VEHICLES) out[v.sellerId] = (out[v.sellerId] ?? 0) + 1;
-    return out;
-  }
+  if (!usingDb()) return {};
   try {
     const { dealerListingCounts } = await db();
     return await dealerListingCounts();
   } catch {
-    const out: Record<string, number> = {};
-    for (const v of VEHICLES) out[v.sellerId] = (out[v.sellerId] ?? 0) + 1;
-    return out;
+    return {};
   }
 }
 
 /** إعلانات وكيل */
-export async function getDealerListings(slug: string, sellerId: string): Promise<Vehicle[]> {
-  if (!usingDb()) return VEHICLES.filter((v) => v.sellerId === sellerId);
+export async function getDealerListings(slug: string): Promise<Vehicle[]> {
+  if (!usingDb()) return [];
   try {
     const { listingsOfDealer, rowToVehicle } = await db();
     const rows = await listingsOfDealer(slug);
     return rows.map((r) => rowToVehicle(r));
   } catch {
-    return VEHICLES.filter((v) => v.sellerId === sellerId);
+    return [];
   }
 }
 
@@ -226,15 +217,15 @@ export async function findByIds(ids: string[]): Promise<Vehicle[]> {
     return wanted.map((id) => byId.get(id)).filter((v): v is Vehicle => Boolean(v));
   };
 
-  if (!usingDb()) return order(VEHICLES.filter((v) => wanted.includes(v.id)));
+  if (!usingDb()) return [];
 
   try {
     const { listingsByRefs, rowToVehicle } = await db();
     const rows = await listingsByRefs(wanted);
     return order(rows.map((r) => rowToVehicle(r)));
   } catch (e) {
-    console.error("[source] فشل جلب المركبات بالمعرّفات، كنرجعو للبيانات المرفقة:", e);
-    return order(VEHICLES.filter((v) => wanted.includes(v.id)));
+    console.error("[source] فشل جلب المركبات بالمعرّفات:", e);
+    return [];
   }
 }
 
@@ -245,15 +236,7 @@ export interface SitemapEntry {
 
 /** مدخلات خريطة الموقع — slug وآخر تحديث لكل إعلان نشيط */
 export async function getSitemapEntries(): Promise<SitemapEntry[]> {
-  const fromSeed = async () => {
-    const { vehicleSlug } = await import("./slug");
-    return VEHICLES.map((v) => ({
-      slug: vehicleSlug(v),
-      lastModified: new Date(v.publishedAt),
-    }));
-  };
-
-  if (!usingDb()) return fromSeed();
+  if (!usingDb()) return [];
 
   try {
     const { listingSitemapRows } = await db();
@@ -261,37 +244,169 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
     return rows.map((r) => ({ slug: r.slug, lastModified: new Date(r.published_at) }));
   } catch (e) {
     console.error("[source] فشل جلب خريطة الموقع:", e);
-    return fromSeed();
+    return [];
   }
 }
 
 /** عدّادات اللوحة الجانبية */
 export async function getFacets(filters: Partial<Filters>): Promise<Facets> {
-  if (!usingDb()) return facetsFromSeed(filters);
+  const empty: Facets = {
+    total: 0,
+    kind: { all: 0, car: 0, moto: 0 },
+    body: {}, fuel: {}, gearbox: {}, condition: {}, city: {},
+    flags: {
+      goodDealsOnly: 0, inspectedOnly: 0, verifiedOnly: 0,
+      firstHandOnly: 0, urgentOnly: 0,
+    },
+    makes: {}, models: {},
+    priceHist: [], yearHist: [],
+  };
+  if (!usingDb()) return empty;
   try {
     const { facetCounts } = await db();
     return await facetCounts(filters);
   } catch (e) {
     console.error("[source] فشل جلب عدّادات الفلاتر:", e);
-    return facetsFromSeed(filters);
+    return empty;
   }
 }
 
 export type { CatalogEntry };
 
-/** الماركات والموديلات الموجودة فعلاً فالموقع */
+/**
+ * الماركات والموديلات لقوائم البيع والتقييم.
+ *
+ * هنا كنرجعو الكتالوج المرجعي كامل، ماشي غير اللي مسوّق دابا:
+ * البائع خاصو يقدر ينشر موديل حتى إلا كان أول واحد كيبيعو.
+ * الإعلانات الموجودة كتزيد فوقو (موديل ماشي فالكتالوج).
+ */
 export async function getCatalog(): Promise<CatalogEntry[]> {
-  const fromSeed = () =>
-    VEHICLES.map((v) => ({ kind: v.kind, make: v.make, model: v.model })).sort(
-      (a, b) => a.make.localeCompare(b.make) || a.model.localeCompare(b.model),
-    );
+  const base: CatalogEntry[] = CATALOG.map((c) => ({
+    kind: c.kind,
+    make: c.make,
+    model: c.model,
+  }));
 
-  if (!usingDb()) return fromSeed();
+  if (!usingDb()) return sortCatalog(base);
+
   try {
     const { catalogRows } = await db();
-    return await catalogRows();
+    const rows = await catalogRows();
+    const seen = new Set(base.map((c) => `${c.kind}|${c.make}|${c.model}`));
+    for (const r of rows) {
+      const key = `${r.kind}|${r.make}|${r.model}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        base.push(r);
+      }
+    }
+    return sortCatalog(base);
   } catch (e) {
     console.error("[source] فشل جلب الكتالوج:", e);
-    return fromSeed();
+    return sortCatalog(base);
+  }
+}
+
+const sortCatalog = (list: CatalogEntry[]) =>
+  list.sort((a, b) => a.make.localeCompare(b.make) || a.model.localeCompare(b.model));
+
+/** إعلانات مشابهة كـVehicle — كيستعملها الخادم ملي كينشر إعلان جديد */
+export async function comparablesFor(
+  kind: "car" | "moto",
+  make: string,
+): Promise<Vehicle[]> {
+  if (!usingDb()) return [];
+  try {
+    const { comparableListings, rowToVehicle } = await db();
+    const rows = await comparableListings(kind, make);
+    return rows.map((r) => rowToVehicle(r));
+  } catch (e) {
+    console.error("[source] فشل جلب المشابهات:", e);
+    return [];
+  }
+}
+
+/* ---------------- المعارض ---------------- */
+
+import type { Dealer } from "./dealers";
+import { DEFAULT_COVER } from "./dealers";
+
+function toDealer(r: {
+  slug: string; name: string; tagline: string | null; about: string | null;
+  address: string | null; hours: string | null; city: string; verified: boolean;
+  brands: string[]; cover_from: string | null; cover_to: string | null;
+  owner_ref: string; rating: string | null; sales_count: number;
+  response_minutes: number | null; member_since: string;
+  id_verified: boolean; phone_verified: boolean;
+  owner_type: "particulier" | "professionnel"; phone: string | null;
+}): Dealer {
+  return {
+    id: r.owner_ref,
+    name: r.name,
+    type: r.owner_type,
+    city: r.city,
+    since: new Date(r.member_since).getFullYear(),
+    idVerified: r.id_verified,
+    phoneVerified: r.phone_verified,
+    rating: Number(r.rating ?? 0),
+    salesCount: r.sales_count,
+    responseMinutes: r.response_minutes ?? 60,
+    slug: r.slug,
+    tagline: r.tagline ?? "",
+    about: r.about ?? "",
+    address: r.address ?? "",
+    hours: r.hours ?? "",
+    verified: r.verified,
+    brands: r.brands ?? [],
+    cover: [r.cover_from ?? DEFAULT_COVER[0], r.cover_to ?? DEFAULT_COVER[1]],
+    phone: r.phone,
+  };
+}
+
+/** كل المعارض المسجّلة */
+export async function getDealers(): Promise<Dealer[]> {
+  if (!usingDb()) return [];
+  try {
+    const { allDealers } = await db();
+    return (await allDealers()).map(toDealer);
+  } catch (e) {
+    console.error("[source] فشل جلب المعارض:", e);
+    return [];
+  }
+}
+
+/** معرض واحد بالـslug */
+export async function getDealer(slug: string): Promise<Dealer | null> {
+  if (!usingDb()) return null;
+  try {
+    const { dealerBySlugRow } = await db();
+    const row = await dealerBySlugRow(slug);
+    return row ? toDealer(row) : null;
+  } catch (e) {
+    console.error("[source] فشل جلب المعرض:", e);
+    return null;
+  }
+}
+
+/** المعرض ديال بائع — كيبان فصفحة الإعلان */
+export async function getDealerOfSeller(sellerRef: string): Promise<Dealer | null> {
+  if (!usingDb()) return null;
+  try {
+    const { dealerOfSeller } = await db();
+    const row = await dealerOfSeller(sellerRef);
+    return row ? toDealer(row) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** عدد إعلانات نفس البائع بنفس الموديل والسنة — إشارة تكرار */
+export async function getDuplicateCount(v: Vehicle): Promise<number> {
+  if (!usingDb()) return 0;
+  try {
+    const { duplicateListingCount } = await db();
+    return await duplicateListingCount(v.sellerId, v.make, v.model, v.year);
+  } catch {
+    return 0;
   }
 }

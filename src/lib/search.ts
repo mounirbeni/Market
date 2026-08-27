@@ -1,8 +1,6 @@
 import type { Vehicle } from "./types";
-import { VEHICLES } from "./data/vehicles";
 import { fairPriceOf, trustOf } from "./market";
 import { normalize } from "./darija";
-import { sellerById } from "./data/sellers";
 import { promoRank } from "./promo";
 
 export interface Filters {
@@ -95,7 +93,14 @@ export function cachedDelta(v: Vehicle): number {
   return d;
 }
 
-export function applyFilters(filters: Partial<Filters>, source = VEHICLES): Vehicle[] {
+/**
+ * فلترة لائحة معطاة.
+ *
+ * كان `source` كيتّخذ قيمة افتراضية من إعلانات مرفقة مع الموقع.
+ * تحيّدات: البحث الحقيقي كيوقع فـSQL، وهاد الدالة بقات غير باش
+ * نفلترو لائحة اللي عندنا أصلاً فاليد.
+ */
+export function applyFilters(filters: Partial<Filters>, source: Vehicle[]): Vehicle[] {
   const f = { ...DEFAULT_FILTERS, ...filters };
   const q = f.q ? normalize(f.q) : "";
 
@@ -114,7 +119,7 @@ export function applyFilters(filters: Partial<Filters>, source = VEHICLES): Vehi
     if (f.yearMin && v.year < f.yearMin) return false;
     if (f.yearMax && v.year > f.yearMax) return false;
     if (f.kmMax && v.km > f.kmMax) return false;
-    if (f.sellerType && sellerById(v.sellerId).type !== f.sellerType) return false;
+    if (f.sellerType && v.seller?.type !== f.sellerType) return false;
     if (f.inspectedOnly && !v.inspected) return false;
     if (f.firstHandOnly && !v.firstHand) return false;
     if (f.verifiedOnly && !(v.papersOk && v.vinChecked)) return false;
@@ -217,8 +222,9 @@ export function paramsFromFilters(f: Partial<Filters>): URLSearchParams {
   return sp;
 }
 
-export function similarVehicles(v: Vehicle, limit = 4): Vehicle[] {
-  return VEHICLES.filter((c) => c.id !== v.id && c.kind === v.kind)
+export function similarVehicles(v: Vehicle, pool: Vehicle[], limit = 4): Vehicle[] {
+  return pool
+    .filter((c) => c.id !== v.id && c.kind === v.kind)
     .map((c) => {
       let s = 0;
       if (c.make === v.make) s += 3;
@@ -238,10 +244,12 @@ export function similarVehicles(v: Vehicle, limit = 4): Vehicle[] {
  * اقتراحات مبنية على اللي شافه المستخدم — كتوزن الماركة، نوع الهيكل،
  * الوقود، المدينة ونطاق الثمن ديال آخر المركبات المتصفَّحة.
  */
-export function suggestFromRecent(recentIds: string[], limit = 4): Vehicle[] {
-  const seen = recentIds
-    .map((id) => VEHICLES.find((v) => v.id === id))
-    .filter(Boolean) as Vehicle[];
+export function suggestFromRecent(
+  recentIds: string[],
+  seen: Vehicle[],
+  pool: Vehicle[],
+  limit = 4,
+): Vehicle[] {
   if (seen.length === 0) return [];
 
   const weight = <T extends string | number>(vals: T[]) => {
@@ -256,7 +264,8 @@ export function suggestFromRecent(recentIds: string[], limit = 4): Vehicle[] {
   const avgPrice = seen.reduce((s, v) => s + v.price, 0) / seen.length;
   const kinds = new Set(seen.map((v) => v.kind));
 
-  return VEHICLES.filter((v) => !recentIds.includes(v.id) && kinds.has(v.kind))
+  return pool
+    .filter((v) => !recentIds.includes(v.id) && kinds.has(v.kind))
     .map((v) => {
       const priceGap = Math.abs(v.price - avgPrice) / Math.max(1, avgPrice);
       const score =

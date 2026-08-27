@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CITIES } from "@/lib/cities";
-import { brandsWithCounts } from "@/lib/slug";
+import { brandsOf } from "@/lib/slug";
 import { Logo } from "./Logo";
 import {
   Coins, Message, Navigation, ShieldCheck,
@@ -63,8 +63,8 @@ const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
 ];
 
 export function Footer() {
-  const carBrands = brandsWithCounts("car").slice(0, 12);
-  const motoBrands = brandsWithCounts("moto").slice(0, 9);
+  const carBrands = brandsOf("car").slice(0, 12);
+  const motoBrands = brandsOf("moto").slice(0, 9);
 
   return (
     <footer
@@ -166,8 +166,8 @@ export function Footer() {
           style={{ borderColor: "var(--line-soft)", color: "var(--text-dim)" }}
         >
           <p>
-            © <span className="num">2026</span> طريق TRIQ — منصة تجريبية. الأثمنة والمعطيات
-            المعروضة لأغراض العرض التقني.
+            © <span className="num">2026</span> طريق TRIQ — سوق المركبات المستعملة
+            فالمغرب. الأثمنة المرجعية محسوبة من الإعلانات المنشورة، وكتبقى تقديرية.
           </p>
           <div className="flex items-center gap-4">
             <span>

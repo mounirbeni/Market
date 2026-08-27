@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useApp } from "@/store/app";
-import { suggestFromRecent } from "@/lib/search";
+import type { Vehicle } from "@/lib/types";
 import { VehicleCard } from "@/components/VehicleCard";
 import { Sparkle } from "@/components/icons";
 
@@ -12,7 +12,29 @@ import { Sparkle } from "@/components/icons";
  */
 export function SuggestedForYou({ limit = 4 }: { limit?: number }) {
   const { recent, ready } = useApp();
-  const items = useMemo(() => suggestFromRecent(recent, limit), [recent, limit]);
+  const [items, setItems] = useState<Vehicle[]>([]);
+  const key = recent.join(",");
+
+  /* الاقتراح كيتحسب فالخادم — هو اللي عندو الإعلانات الحقيقية.
+     المعرّفات كتبقى فالمتصفح، وكنصيفطوهم غير باش نجيبو المشابه. */
+  useEffect(() => {
+    if (!ready || recent.length < 2) {
+      setItems([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    fetch("/api/suggest", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ recent, limit }),
+      signal: ctrl.signal,
+    })
+      .then((r) => r.json())
+      .then((j) => setItems(j?.ok ? (j.data.items as Vehicle[]) : []))
+      .catch(() => setItems([]));
+    return () => ctrl.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, ready, limit]);
 
   if (!ready || recent.length < 2 || items.length === 0) return null;
 

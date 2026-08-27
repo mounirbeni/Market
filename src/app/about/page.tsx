@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DEALERS } from "@/lib/data/dealers";
-import { getStats } from "@/lib/source";
+import { getDealers, getStats } from "@/lib/source";
 import { CITIES } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import {
@@ -18,11 +17,11 @@ export const metadata: Metadata = {
 
 export default async function AboutPage() {
   /* العدّ كيجي من قاعدة البيانات ملي تكون موصولة */
-  const site = await getStats();
+  const [site, dealers] = await Promise.all([getStats(), getDealers()]);
 
   const stats = [
     { Icon: Car, v: formatNumber(site.cars + site.motos), l: "مركبة معروضة" },
-    { Icon: Users, v: formatNumber(DEALERS.length), l: "معرض معتمد" },
+    { Icon: Users, v: formatNumber(dealers.length), l: "معرض معتمد" },
     { Icon: MapPin, v: formatNumber(CITIES.length), l: "مدينة مغربية" },
     { Icon: BadgeCheck, v: "120", l: "نقطة فحص" },
   ];

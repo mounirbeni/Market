@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { VehicleCard } from "@/components/VehicleCard";
-import { applyFilters } from "@/lib/search";
+import { findAll } from "@/lib/source";
 import {
   AirCon, ArrowLeft, BadgeCheck, Battery, Belt, BrakePad, BrakeRotor, Car,
   ClipboardCheck, Clock, Diagnostic, EngineBlock, FileText, Gauge, Headlight,
@@ -97,8 +97,8 @@ const PRICING = [
   { name: "سيارة فاخرة / 4×4", price: "650", points: "140 نقطة", note: "مع تشخيص متقدم", Icon: Gauge },
 ];
 
-export default function InspectionPage() {
-  const inspected = applyFilters({ inspectedOnly: true, sort: "trust-desc" }).slice(0, 4);
+export default async function InspectionPage() {
+  const inspected = await findAll({ inspectedOnly: true, sort: "trust-desc" }, 4);
   const total = SECTIONS.reduce((s, x) => s + x.points, 0);
 
   return (

@@ -3,7 +3,7 @@
  * يحوّل جملة عادية ("كليو ديزل تحت 12 مليون فكازا") إلى فلاتر بحث.
  */
 import { CITIES } from "./cities";
-import { VEHICLES } from "./data/vehicles";
+import { CATALOG } from "./data/catalog";
 import { formatNumber } from "./format";
 
 export interface ParsedQuery {
@@ -266,17 +266,17 @@ export function parseDarija(input: string): ParsedQuery {
   if (make) {
     q.make = make;
     q.chips.push({ label: make, kind: "الماركة" });
-    const isMoto = VEHICLES.some((v) => v.make === make && v.kind === "moto");
-    const isCar = VEHICLES.some((v) => v.make === make && v.kind === "car");
+    const isMoto = CATALOG.some((v) => v.make === make && v.kind === "moto");
+    const isCar = CATALOG.some((v) => v.make === make && v.kind === "car");
     if (!q.kind && isMoto !== isCar) q.kind = isMoto ? "moto" : "car";
   }
 
   const model = findAlias(text, MODEL_ALIASES);
-  if (model && (!make || VEHICLES.some((v) => v.model === model && v.make === make))) {
+  if (model && (!make || CATALOG.some((v) => v.model === model && v.make === make))) {
     q.model = model;
     q.chips.push({ label: model, kind: "الموديل" });
     if (!q.make) {
-      const found = VEHICLES.find((v) => v.model === model);
+      const found = CATALOG.find((v) => v.model === model);
       if (found) {
         q.make = found.make;
         q.kind = q.kind ?? found.kind;

@@ -1,4 +1,3 @@
-import { applyFilters, DEFAULT_FILTERS, type Filters } from "./search";
 
 /* ============================================================
    عدّادات الفلاتر (facets)
@@ -68,44 +67,3 @@ export function emptyFacets(): Facets {
 }
 
 /** الحساب من البيانات المرفقة — المرجع اللي كتقاس عليه نسخة SQL */
-export function facetsFromSeed(partial: Partial<Filters>): Facets {
-  const f: Filters = { ...DEFAULT_FILTERS, ...partial };
-  const out = emptyFacets();
-
-  const countOf = (patch: Partial<Filters>) => applyFilters({ ...f, ...patch }).length;
-  const tally = <K extends keyof Filters>(key: K, rows: { [P in K]: unknown }[]) => {
-    const acc: Record<string, number> = {};
-    for (const r of rows) {
-      const k = String(r[key]);
-      acc[k] = (acc[k] ?? 0) + 1;
-    }
-    return acc;
-  };
-
-  out.total = applyFilters(f).length;
-
-  const kindBase = { make: "", model: "", body: "" } as const;
-  out.kind = {
-    all: countOf({ ...kindBase, kind: "all" }),
-    car: countOf({ ...kindBase, kind: "car" }),
-    moto: countOf({ ...kindBase, kind: "moto" }),
-  };
-
-  out.body = tally("body", applyFilters({ ...f, body: "" }));
-  out.fuel = tally("fuel", applyFilters({ ...f, fuel: "" }));
-  out.gearbox = tally("gearbox", applyFilters({ ...f, gearbox: "" }));
-  out.condition = tally("condition", applyFilters({ ...f, condition: "" }));
-  out.city = tally("city", applyFilters({ ...f, city: "" }));
-
-  for (const flag of FLAG_KEYS) out.flags[flag] = countOf({ [flag]: true } as Partial<Filters>);
-
-  out.makes = tally("make", applyFilters({ ...f, make: "", model: "" }));
-  out.models = f.make ? tally("model", applyFilters({ ...f, model: "" })) : {};
-
-  for (const v of applyFilters({ ...f, priceMin: undefined, priceMax: undefined }))
-    out.priceHist[bucketOf(v.price, 0, PRICE_MAX)]++;
-  for (const v of applyFilters({ ...f, yearMin: undefined, yearMax: undefined }))
-    out.yearHist[bucketOf(v.year, YEAR_MIN, YEAR_MAX)]++;
-
-  return out;
-}

@@ -2,7 +2,7 @@ import type { Body, VehicleKind } from "@/lib/types";
 
 /** شكل العرض: أنواع الهياكل + البيك أب كشكل مستقل */
 export type ArtShape = Body | "pickup";
-import { hashCode } from "@/lib/data/seed";
+import { hashCode } from "@/lib/rng";
 
 /* ============================================================
    رسوم المركبات — مولّدة بالكامل كـ SVG (بدون صور خارجية)

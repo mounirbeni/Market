@@ -68,6 +68,7 @@ export interface ListingRow {
   seller_rating: string | null;
   seller_sales: number;
   seller_resp: number | null;
+  seller_phone: string | null;
 }
 
 /** رفعة الترتيب لكل درجة ترويج — خاصها تبقى متطابقة مع lib/promo.ts */
@@ -102,7 +103,7 @@ const SELECT_COLS = `
   u.city AS seller_city, u.member_since AS seller_since,
   u.id_verified AS seller_id_ver, u.phone_verified AS seller_phone_ver,
   u.rating AS seller_rating, u.sales_count AS seller_sales,
-  u.response_minutes AS seller_resp,
+  u.response_minutes AS seller_resp, u.phone AS seller_phone,
   -- أول صورة باش البطاقات مايطلبوش الصور وحدة بوحدة
   (SELECT m.url FROM listing_media m
     WHERE m.listing_id = l.id AND m.kind = 'photo'
@@ -313,6 +314,9 @@ export function rowToVehicle(
     negotiable: r.negotiable,
     exchangeAccepted: r.exchange_accepted,
     promo: r.promo ?? undefined,
+    fairPriceMad: r.fair_price_mad ?? undefined,
+    fairPriceDelta: r.fair_price_delta != null ? Number(r.fair_price_delta) : undefined,
+    trustScoreStored: r.trust_score ?? undefined,
     seller: {
       id: r.seller_ref,
       name: r.seller_name,
@@ -324,6 +328,7 @@ export function rowToVehicle(
       rating: Number(r.seller_rating ?? 4.5),
       salesCount: r.seller_sales,
       responseMinutes: r.seller_resp ?? 60,
+      phone: r.seller_phone,
     },
   };
 }
@@ -355,6 +360,7 @@ export function rowToSeller(r: SellerRow): Seller {
     rating: Number(r.rating ?? 4.5),
     salesCount: r.sales_count,
     responseMinutes: r.response_minutes ?? 60,
+    phone: r.phone,
   };
 }
 
@@ -402,6 +408,70 @@ export async function aggregates() {
     makes: makes.map((m) => m.make),
     avgTrust: Number(trust?.avg ?? 0),
   };
+}
+
+/** المعارض كما كتنتظرهم الواجهة */
+export interface DealerRow {
+  slug: string;
+  name: string;
+  tagline: string | null;
+  about: string | null;
+  address: string | null;
+  hours: string | null;
+  city: string;
+  verified: boolean;
+  brands: string[];
+  logo_url: string | null;
+  cover_from: string | null;
+  cover_to: string | null;
+  owner_ref: string;
+  rating: string | null;
+  sales_count: number;
+  response_minutes: number | null;
+  member_since: string;
+  id_verified: boolean;
+  phone_verified: boolean;
+  owner_type: "particulier" | "professionnel";
+  phone: string | null;
+}
+
+const DEALER_COLS = `
+  d.slug, d.name, d.tagline, d.about, d.address, d.hours, d.city,
+  d.verified, d.brands, d.logo_url, d.cover_from, d.cover_to,
+  u.id::text AS owner_ref, u.rating, u.sales_count, u.response_minutes,
+  u.member_since, u.id_verified, u.phone_verified, u.type AS owner_type,
+  u.phone
+  FROM dealers d JOIN users u ON u.id = d.owner_id`;
+
+/** كل المعارض */
+export async function allDealers(): Promise<DealerRow[]> {
+  return sql<DealerRow>(`SELECT ${DEALER_COLS} ORDER BY d.name`);
+}
+
+/** معرض واحد بالـslug */
+export async function dealerBySlugRow(slug: string): Promise<DealerRow | null> {
+  return one<DealerRow>(`SELECT ${DEALER_COLS} WHERE d.slug = $1`, [slug]);
+}
+
+/** المعرض ديال بائع معيّن — كيبان فصفحة الإعلان */
+export async function dealerOfSeller(sellerRef: string): Promise<DealerRow | null> {
+  return one<DealerRow>(`SELECT ${DEALER_COLS} WHERE u.id::text = $1`, [sellerRef]);
+}
+
+/** كم من إعلان عند نفس البائع بنفس الموديل والسنة — إشارة تكرار */
+export async function duplicateListingCount(
+  sellerRef: string,
+  make: string,
+  model: string,
+  year: number,
+): Promise<number> {
+  const r = await one<{ n: string }>(
+    `SELECT count(*)::text n FROM listings l
+      WHERE l.status='active' AND l.seller_id::text = $1
+        AND l.make = $2 AND l.model = $3 AND l.year = $4`,
+    [sellerRef, make, model, year],
+  );
+  return Number(r?.n ?? 0);
 }
 
 /** عدد الإعلانات لكل وكيل، مفهرس بـslug ديال الوكيل */
@@ -532,6 +602,28 @@ export async function facetCounts(filters: Partial<Filters>): Promise<Facets> {
 }
 
 /** كتالوج الماركات والموديلات — للقوائم المنسدلة */
+/**
+ * إعلانات مشابهة لحساب الثمن المرجعي.
+ *
+ * كناخدو إعلانات نشيطة من نفس النوع فقط — الباقي (الماركة،
+ * السنة، الكيلومتراج) كيتوزن فـmarket.ts. كنقدّمو نفس الماركة
+ * حيت هي اللي كتعطي أقوى مشابهة، وكنحدّو العدد باش الاستعلام
+ * يبقى خفيف حتى ملي يكبر الموقع.
+ */
+export async function comparableListings(
+  kind: "car" | "moto",
+  make: string,
+  limit = 300,
+): Promise<ListingRow[]> {
+  return sql<ListingRow>(
+    `SELECT ${SELECT_COLS} ${FROM}
+      WHERE l.status = 'active' AND l.kind = $1
+      ORDER BY (l.make = $2) DESC, l.published_at DESC
+      LIMIT $3`,
+    [kind, make, limit],
+  );
+}
+
 export async function catalogRows() {
   return sql<{ kind: "car" | "moto"; make: string; model: string }>(
     `SELECT DISTINCT kind, make, model FROM listings

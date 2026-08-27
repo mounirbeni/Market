@@ -5,7 +5,6 @@ import Link from "next/link";
 import type { Seller, Vehicle } from "@/lib/types";
 import { cityName } from "@/lib/cities";
 import { AR } from "@/lib/format";
-import { hashCode } from "@/lib/data/seed";
 import { vehicleHref } from "@/lib/slug";
 import { ReportDialog } from "./ReportDialog";
 import { ContactSellerButton } from "./ContactSellerButton";
@@ -16,16 +15,14 @@ import {
 } from "@/components/icons";
 
 /** رقم دولي للواتساب من نفس البذرة ديال الرقم المحلي */
-function waNumber(id: string) {
-  return "212" + phoneFor(id).replace(/\D/g, "").slice(1);
-}
+/** رقم واتساب من الرقم المغربي: 0612… ← 212612… */
+const waNumber = (phone: string) => {
+  const d = phone.replace(/\D/g, "");
+  return d.startsWith("212") ? d : `212${d.replace(/^0/, "")}`;
+};
 
-function phoneFor(id: string) {
-  const h = hashCode(id);
-  const prefix = ["06", "07"][h % 2];
-  const rest = String(h % 100000000).padStart(8, "0");
-  return `${prefix} ${rest.slice(0, 2)} ${rest.slice(2, 4)} ${rest.slice(4, 6)} ${rest.slice(6, 8)}`;
-}
+/* الرقم كان مولّداً من معرّف الإعلان — رقم مغربي حقيقي ديال شي
+   واحد آخر. دابا كيجي من حساب البائع، وإلا ماكانش كنخبّيو الأزرار. */
 
 export function SellerCard({ seller, v }: { seller: Seller; v: Vehicle }) {
   const [revealed, setRevealed] = useState(false);
@@ -92,19 +89,29 @@ export function SellerCard({ seller, v }: { seller: Seller; v: Vehicle }) {
         </div>
 
         <div className="mt-5 grid gap-2">
-          <button onClick={() => setRevealed(true)} className="btn btn-primary w-full" aria-live="polite">
-            <Phone size={16} />
-            {revealed ? <span className="num tracking-wider">{phoneFor(v.id)}</span> : "أظهر رقم الهاتف"}
-          </button>
-          <a
-            href={`https://wa.me/${waNumber(v.id)}?text=${waText}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn w-full font-bold"
-            style={{ background: "#25D366", color: "#062d16" }}
-          >
-            <Whatsapp size={17} /> راسلو على واتساب
-          </a>
+          {seller.phone ? (
+            revealed ? (
+              <a href={`tel:${seller.phone}`} className="btn btn-primary w-full">
+                <Phone size={16} />
+                <span className="num tracking-wider">{seller.phone}</span>
+              </a>
+            ) : (
+              <button onClick={() => setRevealed(true)} className="btn btn-primary w-full" aria-live="polite">
+                <Phone size={16} /> أظهر رقم الهاتف
+              </button>
+            )
+          ) : null}
+          {seller.phone && (
+            <a
+              href={`https://wa.me/${waNumber(seller.phone)}?text=${waText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn w-full font-bold"
+              style={{ background: "#25D366", color: "#062d16" }}
+            >
+              <Whatsapp size={17} /> راسلو على واتساب
+            </a>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <ContactSellerButton listingRef={v.id} label="رسالة داخلية" />
             <button onClick={() => setBooking(true)} className="btn btn-solid btn-sm">

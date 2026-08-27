@@ -1,6 +1,4 @@
 import type { Condition, Seller, Vehicle } from "./types";
-import { VEHICLES } from "./data/vehicles";
-import { sellerById } from "./data/sellers";
 import { formatNumber } from "./format";
 
 export const CURRENT_YEAR = 2026;
@@ -118,9 +116,17 @@ function similarity(target: EstimateInput, c: Vehicle): number {
   return w;
 }
 
-/** ثمن مرجعي مبني على إعلانات مشابهة، معدّل حسب السنة والكيلومتراج والحالة */
+/**
+ * ثمن مرجعي مبني على إعلانات مشابهة، معدّل حسب السنة والكيلومتراج والحالة.
+ *
+ * المشابهات كتجي من برّا — من قاعدة البيانات، إعلانات حقيقية منشورة.
+ * الدالة صافية: نفس المدخل كيعطي نفس المخرج، وماكتقراش من أي مصدر.
+ * بلا مشابهات كترجع تقدير خاوي وsampleSize صفر، والواجهة كتقول
+ * «مراجع محدودة» بدل ما تخترع ثمن.
+ */
 export function estimateValue(
   target: EstimateInput,
+  pool: Vehicle[],
   { excludeId }: { excludeId?: string } = {},
 ): Estimate {
   const kmRate = KM_RATE[target.kind];
@@ -130,7 +136,8 @@ export function estimateValue(
   const targetCurve = valueCurve(targetAge, target.kind);
   const targetFuel = FUEL_VALUE[target.fuel ?? "essence"] ?? 1;
 
-  const scored = VEHICLES.filter((v) => v.id !== excludeId)
+  const scored = pool
+    .filter((v) => v.id !== excludeId)
     .map((c) => ({ c, w: similarity(target, c) }))
     .filter((x) => x.w >= 0.03)
     .sort((a, b) => b.w - a.w)
@@ -224,7 +231,78 @@ const VERDICTS: Record<PriceVerdict, string> = {
   "tres-haut": "مرتفع عن السوق",
 };
 
-export function fairPrice(v: Vehicle): FairPrice {
+/** مؤشر الثمن مبني على تقدير محسوب سلفاً */
+export function fairPriceFrom(v: Vehicle, estimate: Estimate): FairPrice {
+  const delta = estimate.mid ? (v.price - estimate.mid) / estimate.mid : 0;
+  const weak = estimate.confidence < 0.5 || estimate.sampleSize < 3;
+  const verdict = verdictOf(delta);
+  const span = estimate.high - estimate.low || 1;
+
+  return {
+    estimate,
+    weak,
+    delta,
+    deltaDh: Math.round(v.price - estimate.mid),
+    verdict,
+    label: weak ? "مراجع محدودة" : VERDICTS[verdict],
+    position: Math.max(0, Math.min(1, (v.price - estimate.low) / span)),
+  };
+}
+
+const verdictOf = (delta: number): PriceVerdict =>
+  delta <= -0.14 ? "tres-bas"
+    : delta <= -0.045 ? "bas"
+      : delta < 0.045 ? "juste"
+        : delta < 0.14 ? "haut"
+          : "tres-haut";
+
+/**
+ * مؤشر الثمن من القيمة المخزّنة فقاعدة البيانات.
+ *
+ * الثمن المرجعي كيتحسب مرة وحدة فالخادم ملي كينشر الإعلان
+ * وكيتخزّن فالصف. البطاقات كتقراه من هنا بدل ما تعاود الحساب —
+ * المتصفح ماعندوش الإعلانات الأخرى باش يقارن بيهم أصلاً.
+ */
+export function fairPriceOf(v: Vehicle): FairPrice {
+  const mid = v.fairPriceMad ?? 0;
+  if (!mid) {
+    return {
+      estimate: { low: 0, mid: 0, high: 0, confidence: 0, sampleSize: 0, comparables: [] },
+      weak: true,
+      delta: 0,
+      deltaDh: 0,
+      verdict: "juste",
+      label: "مراجع محدودة",
+      position: 0.5,
+    };
+  }
+
+  const delta = v.fairPriceDelta ?? (v.price - mid) / mid;
+  const spread = 0.1;
+  const estimate: Estimate = {
+    low: Math.round((mid * (1 - spread)) / 500) * 500,
+    mid,
+    high: Math.round((mid * (1 + spread)) / 500) * 500,
+    confidence: 0.7,
+    sampleSize: 3,
+    comparables: [],
+  };
+  const verdict = verdictOf(delta);
+  const span = estimate.high - estimate.low || 1;
+
+  return {
+    estimate,
+    weak: false,
+    delta,
+    deltaDh: Math.round(v.price - mid),
+    verdict,
+    label: VERDICTS[verdict],
+    position: Math.max(0, Math.min(1, (v.price - estimate.low) / span)),
+  };
+}
+
+/** حساب كامل — كيحتاج إعلانات مشابهة حقيقية، فكيتّنادى غير فالخادم */
+export function fairPrice(v: Vehicle, pool: Vehicle[]): FairPrice {
   const estimate = estimateValue(
     {
       kind: v.kind,
@@ -238,30 +316,10 @@ export function fairPrice(v: Vehicle): FairPrice {
       condition: v.condition,
       power: v.kind === "moto" ? v.displacement : v.fiscalPower,
     },
+    pool,
     { excludeId: v.id },
   );
-
-  const delta = estimate.mid ? (v.price - estimate.mid) / estimate.mid : 0;
-  const weak = estimate.confidence < 0.5 || estimate.sampleSize < 3;
-  const verdict: PriceVerdict =
-    delta <= -0.14 ? "tres-bas"
-      : delta <= -0.045 ? "bas"
-        : delta < 0.045 ? "juste"
-          : delta < 0.14 ? "haut"
-            : "tres-haut";
-
-  const span = estimate.high - estimate.low || 1;
-  const position = Math.max(0, Math.min(1, (v.price - estimate.low) / span));
-
-  return {
-    estimate,
-    weak,
-    delta,
-    deltaDh: Math.round(v.price - estimate.mid),
-    verdict,
-    label: weak ? "مراجع محدودة" : VERDICTS[verdict],
-    position,
-  };
+  return fairPriceFrom(v, estimate);
 }
 
 /* ============================================================
@@ -291,8 +349,23 @@ function kmPerYear(v: Vehicle) {
 export function trustScore(
   v: Vehicle,
   sellerOverride?: Seller,
+  fairPriceOverride?: FairPrice,
 ): TrustResult {
-  const seller = sellerOverride ?? v.seller ?? sellerById(v.sellerId);
+  /* بلا معلومات على البائع كنحسبو بأقل التقديرات — بائع جديد
+     بلا توثيق. أحسن من أن نفترض سمعة ماكايناش. */
+  const seller: Seller = sellerOverride ??
+    v.seller ?? {
+      id: v.sellerId,
+      name: "بائع",
+      type: "particulier",
+      city: v.city,
+      since: CURRENT_YEAR,
+      idVerified: false,
+      phoneVerified: false,
+      rating: 3.5,
+      salesCount: 0,
+      responseMinutes: 120,
+    };
   const parts: TrustPart[] = [];
   const flags: TrustResult["flags"] = [];
   const strengths: string[] = [];
@@ -384,7 +457,7 @@ export function trustScore(
     flags.push({ level: "info", text: "كيلومتراج سنوي مرتفع مقارنة بالمعدل" });
   }
 
-  const fp = fairPrice(v);
+  const fp = fairPriceOverride ?? fairPriceOf(v);
   if (fp.weak) coherence += 4;
   else if (fp.verdict === "juste" || fp.verdict === "bas" || fp.verdict === "haut") coherence += 6;
   else if (fp.verdict === "tres-bas") {
@@ -441,17 +514,7 @@ export function trustColor(score: number): string {
    حساب جديد. ونفس الكائن (إعادة رسم React) كيرجع من الذاكرة.
    والكائنات القديمة كيمسحهم جامع القمامة بوحدو.
    ------------------------------------------------ */
-const fpCache = new WeakMap<Vehicle, FairPrice>();
 const tsCache = new WeakMap<Vehicle, TrustResult>();
-
-export function fairPriceOf(v: Vehicle): FairPrice {
-  let x = fpCache.get(v);
-  if (!x) {
-    x = fairPrice(v);
-    fpCache.set(v, x);
-  }
-  return x;
-}
 
 export function trustOf(v: Vehicle): TrustResult {
   let x = tsCache.get(v);

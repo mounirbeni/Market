@@ -6,16 +6,16 @@ import { useApp } from "@/store/app";
 import { Price } from "@/components/Price";
 import { trustColor, trustOf } from "@/lib/market";
 import { Heart, Phone, ShieldCheck, Whatsapp } from "@/components/icons";
-import { hashCode } from "@/lib/data/seed";
 
-function phoneFor(id: string) {
-  const h = hashCode(id);
-  const prefix = ["06", "07"][h % 2];
-  const rest = String(h % 100000000).padStart(8, "0");
-  return `${prefix} ${rest.slice(0, 2)} ${rest.slice(2, 4)} ${rest.slice(4, 6)} ${rest.slice(6, 8)}`;
-}
+/* الرقم كان مولّداً من معرّف الإعلان — رقم مغربي حقيقي ديال شي
+   واحد آخر. دابا كيجي من حساب البائع، وإلا ماكانش كنخبّيو الأزرار. */
+const waNumber = (phone: string) => {
+  const d = phone.replace(/\D/g, "");
+  return d.startsWith("212") ? d : `212${d.replace(/^0/, "")}`;
+};
 
 export function StickyActionBar({ v }: { v: Vehicle }) {
+  const phone = v.seller?.phone ?? null;
   const { isFavorite, toggleFavorite, compare, ready } = useApp();
   const [revealed, setRevealed] = useState(false);
   const [show, setShow] = useState(false);
@@ -69,23 +69,32 @@ export function StickyActionBar({ v }: { v: Vehicle }) {
           <Heart size={17} filled={fav} />
         </button>
 
-        <a
-          href={`https://wa.me/212${phoneFor(v.id).replace(/\D/g, "").slice(1)}?text=${encodeURIComponent(
-            `سلام، شفت الإعلان ديال ${v.make} ${v.model} ${v.year} فطريق. واش مازال متوفر؟`,
-          )}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="واتساب"
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
-          style={{ background: "#25D366", color: "#062d16" }}
-        >
-          <Whatsapp size={18} />
-        </a>
+        {phone && (
+          <a
+            href={`https://wa.me/${waNumber(phone)}?text=${encodeURIComponent(
+              `سلام، شفت الإعلان ديال ${v.make} ${v.model} ${v.year} فطريق. واش مازال متوفر؟`,
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="واتساب"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
+            style={{ background: "#25D366", color: "#062d16" }}
+          >
+            <Whatsapp size={18} />
+          </a>
+        )}
 
-        <button onClick={() => setRevealed(true)} className="btn btn-primary shrink-0">
-          <Phone size={15} />
-          {revealed ? <span className="num text-[12px]">{phoneFor(v.id)}</span> : "اتصل"}
-        </button>
+        {phone &&
+          (revealed ? (
+            <a href={`tel:${phone}`} className="btn btn-primary shrink-0">
+              <Phone size={15} />
+              <span className="num text-[12px]">{phone}</span>
+            </a>
+          ) : (
+            <button onClick={() => setRevealed(true)} className="btn btn-primary shrink-0">
+              <Phone size={15} /> اتصل
+            </button>
+          ))}
       </div>
     </div>
   );

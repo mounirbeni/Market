@@ -1,6 +1,5 @@
 import type { Vehicle } from "./types";
 import { fairPriceOf } from "./market";
-import { VEHICLES } from "./data/vehicles";
 
 export type FlagLevel = "warn" | "danger";
 
@@ -10,25 +9,14 @@ export interface Flag {
   detail: string;
 }
 
-/** كم من إعلان عند نفس البائع بنفس الماركة والموديل والسنة */
-const dupCache = new Map<string, number>();
-function duplicateCount(v: Vehicle) {
-  const key = `${v.sellerId}|${v.make}|${v.model}|${v.year}`;
-  let n = dupCache.get(key);
-  if (n === undefined) {
-    n = VEHICLES.filter(
-      (o) => o.sellerId === v.sellerId && o.make === v.make && o.model === v.model && o.year === v.year,
-    ).length;
-    dupCache.set(key, n);
-  }
-  return n;
-}
-
 /**
  * كشف الإعلانات المشبوهة — إشارات موضوعية كتّحسب من المعطيات،
  * ماشي حكم نهائي على البائع.
+ *
+ * `duplicates` كيجي من الخادم (عدد إعلانات نفس البائع بنفس
+ * الموديل والسنة) — المتصفح ماعندوش الإعلانات الأخرى.
  */
-export function suspicionFlags(v: Vehicle): Flag[] {
+export function suspicionFlags(v: Vehicle, duplicates = 0): Flag[] {
   const flags: Flag[] = [];
   const fp = fairPriceOf(v);
 
@@ -77,7 +65,7 @@ export function suspicionFlags(v: Vehicle): Flag[] {
   }
 
   // 5. إعلانات مكررة عند نفس البائع
-  const dups = duplicateCount(v);
+  const dups = duplicates;
   if (dups > 1) {
     flags.push({
       level: "warn",
@@ -87,7 +75,7 @@ export function suspicionFlags(v: Vehicle): Flag[] {
   }
 
   // 6. فحص تقني منتهي
-  if (Date.parse(v.technicalControl) < Date.parse("2026-08-25")) {
+  if (v.technicalControl && Date.parse(v.technicalControl) < Date.now()) {
     flags.push({
       level: "warn",
       label: "الفحص التقني منتهي",

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DEALERS, dealerBySlug } from "@/lib/data/dealers";
-import { getDealerListings } from "@/lib/source";
+import { getDealer, getDealerListings, getDealers } from "@/lib/source";
 import { cityName } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { trustOf } from "@/lib/market";
@@ -13,15 +12,15 @@ import {
   BadgeCheck, Car, Clock, MapPin, Navigation, ShieldCheck, Star, Timer, Users,
 } from "@/components/icons";
 
-export function generateStaticParams() {
-  return DEALERS.map((d) => ({ slug: d.slug }));
+export async function generateStaticParams() {
+  return (await getDealers()).map((d) => ({ slug: d.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const d = dealerBySlug(slug);
+  const d = await getDealer(slug);
   if (!d) return { title: "معرض غير موجود" };
   return {
     title: `${d.name} — ${cityName(d.city)}`,
@@ -32,10 +31,10 @@ export async function generateMetadata({
 
 export default async function DealerPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const d = dealerBySlug(slug);
+  const d = await getDealer(slug);
   if (!d) notFound();
 
-  const listings = await getDealerListings(d.slug, d.id);
+  const listings = await getDealerListings(d.slug);
   const avgTrust = listings.length
     ? Math.round(listings.reduce((s, v) => s + trustOf(v).score, 0) / listings.length)
     : 0;
@@ -49,7 +48,9 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
     name: d.name,
     description: d.about,
     address: { "@type": "PostalAddress", streetAddress: d.address, addressLocality: cityName(d.city), addressCountry: "MA" },
-    aggregateRating: { "@type": "AggregateRating", ratingValue: d.rating, bestRating: 5, ratingCount: d.salesCount },
+    ...(d.rating > 0 && d.salesCount > 0
+      ? { aggregateRating: { "@type": "AggregateRating", ratingValue: d.rating, bestRating: 5, ratingCount: d.salesCount } }
+      : {}),
     openingHours: d.hours,
   };
 

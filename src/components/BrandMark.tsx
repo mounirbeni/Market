@@ -82,7 +82,7 @@ export function BrandMark({ name, size = 44, variant = "wordmark", className = "
 /** بطاقة ماركة كاملة — الشارة + العدد، كتستعمل فالشبكات */
 export function BrandTile({
   name, count, href, kind,
-}: { name: string; count: number; href: string; kind?: "car" | "moto" }) {
+}: { name: string; count?: number; href: string; kind?: "car" | "moto" }) {
   const meta = brandByName(name);
   const accent = meta?.accent ?? "var(--brand)";
 
@@ -99,9 +99,13 @@ export function BrandTile({
       <bdi dir="ltr" className="w-full truncate text-[12.5px] font-extrabold leading-none">
         {name}
       </bdi>
-      <span className="text-[10px] leading-none" style={{ color: "var(--text-dim)" }}>
-        <span className="num">{count}</span> {kind === "moto" ? "دراجة" : "إعلان"}
-      </span>
+      {/* بلا عدد ملي مازال ماكاينش إعلان فهاد الماركة — الصفحة
+          كتبقى موجودة وكتبيّن حالة فارغة */}
+      {count !== undefined && count > 0 && (
+        <span className="text-[10px] leading-none" style={{ color: "var(--text-dim)" }}>
+          <span className="num">{count}</span> {kind === "moto" ? "دراجة" : "إعلان"}
+        </span>
+      )}
     </a>
   );
 }

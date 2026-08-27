@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { vehicleHref } from "@/lib/slug";
 import { useEffect, useMemo, useState } from "react";
-import { estimateValue } from "@/lib/market";
+import { useEstimate } from "@/hooks/useEstimate";
 import { useCatalog } from "@/lib/useCatalog";
 import { formatNumber } from "@/lib/format";
 import { CITIES } from "@/lib/cities";
@@ -64,10 +64,9 @@ export function EstimateTool() {
     setModel(modelsFor(m)[0] ?? "");
   }
 
-  const est = useMemo(
-    () => estimateValue({ kind, make, model, year, km, fuel, gearbox, condition }),
-    [kind, make, model, year, km, fuel, gearbox, condition],
-  );
+  const { estimate: est } = useEstimate({
+    kind, make, model, year, km, fuel, gearbox, condition,
+  });
 
   // توقّع القيمة على 5 سنوات
   const projection = useMemo(() => {
