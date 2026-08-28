@@ -74,14 +74,33 @@ export const brandBySlug = (slug: string) => BY_SLUG.get(slug);
  * شوف public/brands/README.md للمصادر وللوضع القانوني.
  */
 export const OFFICIAL_LOGOS = new Set<string>([
-  "audi", "bajaj", "bmw", "chevrolet", "citroen", "dacia", "fiat", "ford",
-  "harley-davidson", "honda", "hyundai", "isuzu", "jeep", "kia", "ktm",
-  "land-rover", "mercedes", "mitsubishi", "nissan", "opel", "peugeot",
-  "renault", "royal-enfield", "seat", "skoda", "suzuki", "tesla", "toyota",
-  "vespa", "volkswagen", "yamaha",
+  "abarth", "audi", "alfa-romeo", "alpine", "aston-martin", "baic", "bajaj", "dacia",
+  "bentley", "bmw", "byd", "changan", "chevrolet", "chery", "citroen",
+  "cupra", "deepal", "ds", "dongfeng", "exeed", "ferrari", "fiat", "ford",
+  "foton", "gaz", "geely", "harley-davidson", "honda", "hyundai", "isuzu",
+  "jac", "jaguar", "jeep", "jetour", "kia", "land-rover", "leapmotor", "lexus",
+  "mahindra", "maserati", "mazda", "mercedes", "mg", "mini", "mitsubishi",
+  "nissan", "opel", "peugeot", "porsche", "renault", "royal-enfield", "rox",
+  "seat", "skoda", "smart", "soueast", "ssangyong", "subaru", "suzuki",
+  "tata", "tesla", "toyota", "vespa", "volkswagen", "volvo", "yamaha", "xpeng",
+  "zeekr",
+]);
+
+/** الشعارات التي أُضيفت من carlogos.org بصيغة PNG. */
+export const PNG_LOGOS = new Set<string>([
+  "abarth", "alfa-romeo", "alpine", "aston-martin", "baic", "bentley", "byd",
+  "changan", "chery", "cupra", "deepal", "ds", "dongfeng", "exeed", "ferrari",
+  "foton", "gaz", "geely", "jac", "jaguar", "jetour", "leapmotor", "lexus", "mahindra",
+  "maserati", "mazda", "mg", "mini", "porsche", "rox", "smart", "soueast", "ssangyong",
+  "subaru", "tata", "volvo", "xpeng", "zeekr",
 ]);
 
 export const hasOfficialLogo = (slug: string) => OFFICIAL_LOGOS.has(slug);
+
+export const brandLogoPath = (slug: string) => {
+  if (!hasOfficialLogo(slug)) return undefined;
+  return `/brands/${slug}.${PNG_LOGOS.has(slug) ? "png" : "svg"}`;
+};
 
 /** أوّل حرفين للشارة المختصرة: BMW → BM، Land Rover → LR */
 export function brandInitials(name: string): string {

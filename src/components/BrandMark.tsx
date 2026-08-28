@@ -1,15 +1,14 @@
-import { brandByName, brandInitials, hasOfficialLogo } from "@/lib/brands";
+import { brandByName, brandInitials, brandLogoPath } from "@/lib/brands";
+import { brandSlug } from "@/lib/slug";
 
 /* ============================================================
    شارة الماركة
 
-   ماكنستعملوش الشعارات الرسمية للصانعين — هي علامات تجارية مسجّلة.
-   كنعرضو شارة نصية مصمّمة (اسم الماركة بحروف لاتينية + لون مرجعي).
+   الشعارات كتتخزّن محلياً باش مايبقاش العرض مربوط بخدمة خارجية.
+   إلا ماكانش ملف الشعار، كنعرضو شارة نصية مصمّمة كبديل.
 
-   إلا توفّر عندك حق استعمال الشعار الرسمي:
-     1. حطّ الملف فـ public/brands/<slug>.svg
-     2. زيد الـslug فـ OFFICIAL_LOGOS داخل src/lib/brands.ts
-   وغادي يتبدّل تلقائياً فكل الموقع.
+   صيغة الملف كتتحدد تلقائياً من PNG_LOGOS وOFFICIAL_LOGOS داخل
+   src/lib/brands.ts، وكتخدم نفس الطريقة فكل الموقع.
    ============================================================ */
 
 interface Props {
@@ -24,10 +23,12 @@ interface Props {
 export function BrandMark({ name, size = 44, variant = "wordmark", className = "" }: Props) {
   const meta = brandByName(name);
   const accent = meta?.accent ?? "var(--brand)";
-  const slug = meta?.slug;
+  // بعض الماركات كتجي من الكتالوج وماشي من BRANDS المختصرة، لذلك كنولدوا slug مباشرة.
+  const slug = meta?.slug ?? brandSlug(name);
 
-  // شعار الماركة — كيتعرض داخل مربع فاتح باش يبان فالوضعين فاتح وداكن
-  if (slug && hasOfficialLogo(slug)) {
+  // الشعار كيتعرض داخل مربع باش يبان فالوضعين الفاتح والداكن
+  const logoPath = slug ? brandLogoPath(slug) : undefined;
+  if (logoPath) {
     return (
       <span
         className={`logo-plate grid shrink-0 place-items-center ${className}`}
@@ -35,7 +36,7 @@ export function BrandMark({ name, size = 44, variant = "wordmark", className = "
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={`/brands/${slug}.svg`}
+          src={logoPath}
           alt={name}
           width={Math.round(size * 0.62)}
           height={Math.round(size * 0.62)}
