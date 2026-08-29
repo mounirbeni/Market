@@ -302,6 +302,9 @@ export function PhotoUploader({
           {photos.length}/{MAX_PHOTOS}
         </span>
       </label>
+      <p className="mt-1 text-[10.5px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
+        كتتحفظ صورك بعلامة مائية خاصة بـTRIQ باش تصعّب الاستغلال وإعادة النشر.
+      </p>
 
       <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
         {photos.map((p, i) => (

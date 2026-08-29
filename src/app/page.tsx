@@ -80,11 +80,20 @@ export default async function HomePage() {
     ]);
   const dealers = await getDealers();
 
-  /* ملي مازال ماكاينش إعلان، كنوريو ماركات الكتالوج: الصفحات
-     ديالها موجودة وكتبيّن حالة فارغة — أحسن من شبكة خاوية. */
+  /* الكتالوج ديما هو الأساس: حتى الماركة اللي ماعندهاش إعلان خاصها
+     تبقى باينة بصفحتها. كنزيدو عدد الإعلانات الحقيقية غير ملي كاين. */
   type Tile = { make: string; slug: string; count?: number };
-  const carTiles: Tile[] = carBrands.length ? carBrands : brandsOf("car");
-  const motoTiles: Tile[] = motoBrands.length ? motoBrands : brandsOf("moto");
+  function catalogTiles(catalog: Tile[], live: Tile[]): Tile[] {
+    const liveBySlug = new Map(live.map((b) => [b.slug, b]));
+    const catalogSlugs = new Set(catalog.map((b) => b.slug));
+    return [
+      ...catalog.map((b) => ({ ...b, count: liveBySlug.get(b.slug)?.count })),
+      // إلا دخلات ماركة جديدة من قاعدة البيانات قبل تحديث الكتالوج، مانوضّعوهاش تضيع.
+      ...live.filter((b) => !catalogSlugs.has(b.slug)),
+    ];
+  }
+  const carTiles = catalogTiles(brandsOf("car"), carBrands);
+  const motoTiles = catalogTiles(brandsOf("moto"), motoBrands);
   const topGuides = GUIDES.slice(0, 4);
   const topDealers = dealers
     .map((d) => ({ d, count: dealerCounts[d.slug] ?? 0 }))

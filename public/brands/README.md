@@ -1,6 +1,6 @@
 # شعارات الماركات — Brand logos
 
-هاد المجلد فيه **31 شعار من 38 ماركة**. الباقي كيتعرض بشارة نصية مصمّمة.
+هاد المجلد فيه **69 شعاراً محلياً**: 31 ملف SVG و38 ملف PNG. الواجهة كتختار الامتداد المناسب تلقائياً، والباقي كيتعرض بشارة نصية مصمّمة.
 
 ## الوضع القانوني — قراه قبل الإطلاق
 
@@ -33,18 +33,20 @@ Moteur.ma) هو **الاستعمال الإشاري** (nominative fair use): ك�
 | [car-brand-logos](https://www.npmjs.com/package/car-brand-logos) | MIT | Isuzu |
 | [Arcticons](https://arcticons.onnno.nl) | CC0 / GPL-3.0 | Harley-Davidson، Royal Enfield |
 | [theSVG](https://github.com/glincker/thesvg) | MIT | Bajaj |
+| [CarLogos](https://www.carlogos.org/car-brands/) | شروط المصدر غير محددة هنا — خاص التحقق قبل الإطلاق التجاري | 38 PNG لماركات السيارات |
 
-## الناقصين (7)
+## الماركات التي ما زالت بلا شعار محلي
+
+في كتالوج السيارات ما زالت هذه الماركات بلا ملف محلي من المسار المتاح في CarLogos:
+
+`DFSK` · `GWM` · `Jaecoo` · `KGM` · `Lynk & Co` · `Neo Motors` · `Omoda` · `Seres`
+
+وفي قائمة الماركات العامة ما زالت هذه الشعارات تحتاج مصدراً منفصلاً:
 
 `Benelli` · `Docker` · `Haojue` · `Kawasaki` · `Kymco` · `MBK` · `SYM`
 
-**تحقّقنا من 241 مجموعة أيقونات مفتوحة** (كل فهرس Iconify + Simple Icons +
-theSVG + Arcticons + car-brand-logos). هاد السبعة ماكايناش فحتى وحدة —
-كلهم ماركات دراجات وسكوترات، والمجموعات المفتوحة كتركّز على ماركات السيارات
-والتقنية.
-
 ملاحظة: `Docker` هنا هي ماركة السيارات النفعية المغربية — **ماشي** أداة
-الحاويات. المجموعات كلها عندها `docker` = الحوت الأزرق، فماخذيناهش عمداً.
+الحاويات. المجموعات المفتوحة كلها تقريباً عندها `docker` = الحوت الأزرق، فماخذيناهش عمداً.
 
 ## كيفاش تزيد شعار — أمر واحد
 
@@ -64,7 +66,7 @@ npm run add-logo kawasaki ~/Downloads/kawasaki.svg
 npm run add-logo kawasaki ~/Downloads/kawasaki.svg -- --color "#3fa535"
 ```
 
-**فين تلقاهم**: press / media kit ديال الصانع مع الـBrand Guidelines ديالو.
+**فين تلقاهم**: press / media kit ديال الصانع مع الـBrand Guidelines ديالو. ملفات CarLogos المضافة حالياً مخزنة محلياً داخل المشروع، وماكاينش تحميل مباشر وقت التشغيل.
 للسبعة الناقصين:
 
 | الماركة | المصدر |
