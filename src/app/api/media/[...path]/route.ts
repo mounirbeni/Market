@@ -47,6 +47,9 @@ export async function GET(req: Request, ctx: { params: Promise<{ path: string[] 
       "cache-control": `public, max-age=${YEAR}, immutable`,
       "content-disposition": "inline",
       "x-content-type-options": "nosniff",
+      "cross-origin-resource-policy": "same-site",
+      "referrer-policy": "no-referrer",
+      "x-robots-tag": "noimageindex, noarchive, nosnippet",
       "accept-ranges": "bytes",
     });
 

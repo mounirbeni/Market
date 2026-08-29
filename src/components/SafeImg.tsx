@@ -36,9 +36,12 @@ export function SafeImg({
       ref={check}
       src={src}
       alt={alt}
-      className={className}
+      className={`${className ?? ""} select-none`}
       loading={loading}
       decoding="async"
+      draggable={false}
+      onDragStart={(event) => event.preventDefault()}
+      onContextMenu={(event) => event.preventDefault()}
       onError={() => onBroken(src)}
     />
   );

@@ -2,6 +2,7 @@ import "server-only";
 import { sql, one } from "./client";
 import { DEFAULT_FILTERS, type Filters, type SortKey } from "@/lib/search";
 import type { HistoryEvent, MediaItem, Seller, Vehicle } from "@/lib/types";
+import { pathnameFromMediaUrl } from "@/lib/blob";
 import {
   emptyFacets, FLAG_KEYS, HIST_BUCKETS, PRICE_MAX, YEAR_MAX, YEAR_MIN,
   type Facets,
@@ -269,11 +270,27 @@ export async function recordView(listingId: string, visitorKey: string) {
    ============================================================ */
 
 /** الأحداث كتّجمع على حدة — الصف وحدو ماكيحملهاش */
+function isOwnListingMedia(url: string, sellerRef: string) {
+  const pathname = pathnameFromMediaUrl(url);
+  return Boolean(pathname && pathname.startsWith(`listings/${sellerRef}/`));
+}
+
 export function rowToVehicle(
   r: ListingRow,
   history: HistoryEvent[] = [],
   media: MediaItem[] = [],
 ): Vehicle {
+  // حتى الصور القديمة أو المدخلة يدوياً ماخاصهاش تدوز إلا كانت من مسارنا.
+  const safeMedia = media
+    .filter((m) => isOwnListingMedia(m.url, r.seller_ref))
+    .map((m) => ({
+      ...m,
+      thumbUrl: m.thumbUrl && isOwnListingMedia(m.thumbUrl, r.seller_ref) ? m.thumbUrl : undefined,
+    }));
+  const safeCover = r.cover_url && isOwnListingMedia(r.cover_url, r.seller_ref)
+    ? r.cover_url
+    : undefined;
+
   return {
     id: r.ref,
     kind: r.kind,
@@ -300,8 +317,8 @@ export function rowToVehicle(
     inspected: r.inspected,
     photos: r.photo_count,
     hasVideo: r.has_video,
-    media: media.length ? media : undefined,
-    cover: media[0]?.thumbUrl ?? media[0]?.url ?? r.cover_url ?? undefined,
+    media: safeMedia.length ? safeMedia : undefined,
+    cover: safeMedia[0]?.thumbUrl ?? safeMedia[0]?.url ?? safeCover,
     serviceBook: r.service_book,
     vinChecked: r.vin_checked,
     description: r.description,

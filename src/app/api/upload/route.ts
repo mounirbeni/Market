@@ -1,4 +1,5 @@
 import { del, put } from "@vercel/blob";
+import sharp from "sharp";
 import { getCurrentUser } from "@/lib/auth";
 import { body, fail, ok, unauthorized } from "@/lib/api";
 import {
@@ -17,6 +18,54 @@ export const maxDuration = 60;
 
 /** نفس السقف اللي كيحترمو المتصفح (lib/image.ts) مع شوية هامش */
 const MAX_BODY_BYTES = 3.6 * 1024 * 1024;
+const WATERMARK_EDGE = 1920;
+const WATERMARK_QUALITIES = [84, 78, 70, 62];
+
+/** علامة مائية متكررة وصعبة القصّ من صور الإعلانات. */
+function watermarkSvg() {
+  return Buffer.from(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="480" height="180" viewBox="0 0 480 180">
+      <defs>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="1.4" result="blur"/>
+          <feOffset dy="1" result="offset"/>
+          <feComponentTransfer><feFuncA type="linear" slope="0.65"/></feComponentTransfer>
+          <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <g transform="rotate(-18 240 90)" opacity="0.58" filter="url(#shadow)">
+        <circle cx="62" cy="90" r="30" fill="#0a1e3d" fill-opacity="0.76" stroke="#ffffff" stroke-opacity="0.88" stroke-width="3"/>
+        <text x="62" y="101" text-anchor="middle" font-family="Arial, sans-serif" font-size="27" font-weight="800" fill="#ffffff">T</text>
+        <text x="108" y="88" font-family="Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="2" fill="#ffffff">TRIQ</text>
+        <text x="109" y="113" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5" fill="#ffffff">MARKET MAROC</text>
+      </g>
+    </svg>
+  `);
+}
+
+/** كيحوّل الصورة إلى JPEG مائية قبل ما تدخل للخزّان. */
+async function watermarkPhoto(input: Buffer) {
+  let normalized: Buffer;
+  try {
+    normalized = await sharp(input, { limitInputPixels: 40_000_000 })
+      .rotate()
+      .resize({ width: WATERMARK_EDGE, height: WATERMARK_EDGE, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 84, mozjpeg: true })
+      .toBuffer();
+  } catch {
+    throw new Error("IMAGE_UNSUPPORTED");
+  }
+
+  const overlay = await sharp(watermarkSvg()).png().toBuffer();
+  for (const quality of WATERMARK_QUALITIES) {
+    const output = await sharp(normalized)
+      .composite([{ input: overlay, tile: true, blend: "over" }])
+      .jpeg({ quality, mozjpeg: true })
+      .toBuffer();
+    if (output.byteLength <= MAX_BODY_BYTES) return output;
+  }
+  throw new Error("IMAGE_TOO_LARGE");
+}
 
 /* ============================================================
    رفع الصور — الملف كيدوز من هنا
@@ -60,20 +109,27 @@ export async function POST(req: Request) {
   /* وثيقة هوية: كتمشي تحت private/ — مسار الصور العام كيرفض
      هاد البادئة، وغير المشرف كيقدر يشوفها. */
   const isDoc = req.headers.get("x-purpose") === "doc";
-  const path = isDoc ? docPath(user.id, name) : mediaPath(user.id, name);
+  const path = isDoc ? docPath(user.id, name) : mediaPath(user.id, "photo.jpg");
 
   try {
-    const blob = await put(path, bytes, {
+    // وثائق الهوية لا تدخل هذا المسار؛ صور الإعلانات تُخزَّن مائية فقط.
+    const storedBytes = isDoc ? bytes : await watermarkPhoto(bytes);
+    const storedType = isDoc ? type : "image/jpeg";
+    const blob = await put(path, storedBytes, {
       access: BLOB_ACCESS,
       addRandomSuffix: true,
-      contentType: type,
+      contentType: storedType,
     });
     return ok({
       url: isDoc ? null : mediaUrl(blob.pathname),
       pathname: blob.pathname,
     });
   } catch (e) {
-    console.error("[upload] الخزّان رفض:", e);
+    if (e instanceof Error && e.message === "IMAGE_UNSUPPORTED")
+      return fail("هاد الصيغة ماقدرناش نعالجوها بعلامة مائية. حوّلها إلى JPG أو PNG.", 415);
+    if (e instanceof Error && e.message === "IMAGE_TOO_LARGE")
+      return fail("الصورة كبيرة بزاف من بعد إضافة العلامة المائية. جرّب صورة أخرى.", 413);
+    console.error("[upload] الخزّان أو معالجة الصورة فشلات:", e);
     return fail("ماقدرناش نسجّلو الصورة. عاود المحاولة.", 502);
   }
 }

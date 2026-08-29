@@ -4,7 +4,7 @@ import { fairPrice, trustScore } from "@/lib/market";
 import { comparablesFor } from "@/lib/source";
 import type { Body, Condition, Fuel, Gearbox, Vehicle } from "@/lib/types";
 import type { NewListing } from "@/lib/db/writes";
-import { MAX_PHOTOS, isMediaUrl } from "@/lib/blob";
+import { MAX_PHOTOS, pathnameFromMediaUrl } from "@/lib/blob";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,19 +32,11 @@ const text = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
  * بلا هاد الفحص شي حد يقدر يبعث رابط صورة من أي موقع ويخلّي
  * الإعلانات ديالنا كيشدّو صور من برّا (ولا يبعث رابط تتبّع).
  */
-function isOwnBlobUrl(url: string) {
-  // الخزّان خاص، فالصور كتّقدّم من /api/media/… ديالنا
-  if (isMediaUrl(url)) return true;
-  try {
-    const u = new URL(url);
-    return (
-      u.protocol === "https:" &&
-      (u.hostname.endsWith(".public.blob.vercel-storage.com") ||
-        u.hostname === "blob.vercel-storage.com")
-    );
-  } catch {
-    return false;
-  }
+function isOwnBlobUrl(url: string, userId: string) {
+  // غير الرابط الوسيط ديالنا مقبول؛ الرابط المباشر لـBlob أو أي موقع آخر
+  // يقدر يجيب صورة بلا علامة مائية، لذلك كنرفضوه حتى لو كان HTTPS.
+  const pathname = pathnameFromMediaUrl(url);
+  return Boolean(pathname && pathname.startsWith(`listings/${userId}/`));
 }
 
 export interface CreateBody {
@@ -118,17 +110,22 @@ export async function POST(req: Request) {
 
   const owners = clampInt(b.owners, 1, 20, 1);
 
-  /* الصور: كنقبلو غير الروابط اللي خرجات من الخزّان ديالنا */
-  const media = (b.media ?? [])
-    .slice(0, MAX_PHOTOS + 4)
-    .filter((m) => typeof m?.url === "string" && isOwnBlobUrl(m.url))
-    .map((m) => ({
-      url: m.url,
-      kind: m.kind === "video" ? ("video" as const) : ("photo" as const),
-      thumbUrl: typeof m.thumbUrl === "string" && isOwnBlobUrl(m.thumbUrl) ? m.thumbUrl : undefined,
-      width: Number.isFinite(Number(m.width)) ? Number(m.width) : undefined,
-      height: Number.isFinite(Number(m.height)) ? Number(m.height) : undefined,
-    }));
+  /* الصور: كنقبلو غير الروابط اللي خرجات من الخزّان ديالنا.
+     الرفض صريح، ماشي غير إسقاط الرابط، باش المستخدم يعرف علاش ما تنشرش. */
+  const incomingMedia = Array.isArray(b.media) ? b.media.slice(0, MAX_PHOTOS + 4) : [];
+  for (const m of incomingMedia) {
+    if (!m || typeof m.url !== "string" || !isOwnBlobUrl(m.url, user.id))
+      return fail("صور الإعلانات خاصها تترفع من داخل المنصة، ماشي من موقع خارجي.", 400);
+    if (m.thumbUrl != null && (typeof m.thumbUrl !== "string" || !isOwnBlobUrl(m.thumbUrl, user.id)))
+      return fail("المصغّرة ديال الصورة ماشي من تخزين المنصة.", 400);
+  }
+  const media = incomingMedia.map((m) => ({
+    url: m.url,
+    kind: m.kind === "video" ? ("video" as const) : ("photo" as const),
+    thumbUrl: typeof m.thumbUrl === "string" ? m.thumbUrl : undefined,
+    width: Number.isFinite(Number(m.width)) ? Number(m.width) : undefined,
+    height: Number.isFinite(Number(m.height)) ? Number(m.height) : undefined,
+  }));
 
   const photoRows = media.filter((m) => m.kind === "photo").length;
   // إلا كانو صور حقيقية هوما اللي كيحسبو، وإلا كناخدو العدد اللي دخل
