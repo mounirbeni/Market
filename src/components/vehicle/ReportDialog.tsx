@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { Vehicle } from "@/lib/types";
-import { AlertTriangle, Check, Close, Flag, ShieldCheck } from "@/components/icons";
+import { Modal, ModalCloseButton, useModalClose } from "@/components/Modal";
+import { AlertTriangle, Check, Flag, ShieldCheck } from "@/components/icons";
 
 const REASONS = [
   { value: "fake", label: "إعلان كذاب", hint: "المركبة ماكايناش أصلاً" },
@@ -21,19 +22,6 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
-  const boxRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    boxRef.current?.focus();
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
 
   /** كيسجّل التبليغ فقاعدة البيانات — بلا ما يكون المستخدم داخل */
   async function send() {
@@ -59,37 +47,9 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-end justify-center p-0 sm:items-center sm:p-4"
-      style={{ background: "rgba(4,12,26,0.55)", backdropFilter: "blur(3px)" }}
-      onClick={onClose}
-      role="presentation"
-    >
-      <div
-        ref={boxRef}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-label="التبليغ عن إعلان"
-        onClick={(e) => e.stopPropagation()}
-        className="card-raised max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-b-none sm:rounded-b-2xl"
-      >
+    <Modal onClose={onClose} ariaLabel="التبليغ عن إعلان" maxWidth="max-w-lg">
         {sent ? (
-          <div className="p-8 text-center">
-            <span
-              className="mx-auto grid h-14 w-14 place-items-center rounded-2xl"
-              style={{ background: "color-mix(in oklab, var(--good) 14%, transparent)", color: "var(--good)" }}
-            >
-              <ShieldCheck size={26} />
-            </span>
-            <h2 className="mt-5 text-lg font-extrabold">تسجّل التبليغ ديالك</h2>
-            <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              فريق المراجعة غادي يشوف الإعلان داخل <span className="num">24</span> ساعة.
-              إلا تأكد المشكل غادي يتحيّد الإعلان ويتنبّه البائع.
-              شكراً — بهاد الطريقة كنحافظو على نظافة السوق.
-            </p>
-            <button onClick={onClose} className="btn btn-primary mt-6">سالينا</button>
-          </div>
+          <ReportSentBody />
         ) : (
           <>
             <header
@@ -100,9 +60,7 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
                 <Flag size={18} style={{ color: "var(--bad)" }} />
                 بلّغ على الإعلان
               </h2>
-              <button onClick={onClose} className="btn btn-icon btn-sm" aria-label="سدّ">
-                <Close size={16} />
-              </button>
+              <ModalCloseButton label="سدّ" className="btn btn-icon btn-sm" />
             </header>
 
             <div className="p-5">
@@ -183,12 +141,37 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
                 >
                   <Check size={16} /> {sending ? "كنصيفطو…" : "صيفط التبليغ"}
                 </button>
-                <button onClick={onClose} className="btn btn-ghost">إلغاء</button>
+                <CancelButton />
               </div>
             </div>
           </>
         )}
-      </div>
+    </Modal>
+  );
+}
+
+function ReportSentBody() {
+  const close = useModalClose();
+  return (
+    <div className="p-8 text-center">
+      <span
+        className="mx-auto grid h-14 w-14 place-items-center rounded-2xl"
+        style={{ background: "color-mix(in oklab, var(--good) 14%, transparent)", color: "var(--good)" }}
+      >
+        <ShieldCheck size={26} />
+      </span>
+      <h2 className="mt-5 text-lg font-extrabold">تسجّل التبليغ ديالك</h2>
+      <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+        فريق المراجعة غادي يشوف الإعلان داخل <span className="num">24</span> ساعة.
+        إلا تأكد المشكل غادي يتحيّد الإعلان ويتنبّه البائع.
+        شكراً — بهاد الطريقة كنحافظو على نظافة السوق.
+      </p>
+      <button onClick={close} className="btn btn-primary mt-6">سالينا</button>
     </div>
   );
+}
+
+function CancelButton() {
+  const close = useModalClose();
+  return <button onClick={close} className="btn btn-ghost">إلغاء</button>;
 }

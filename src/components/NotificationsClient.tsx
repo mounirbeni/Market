@@ -96,7 +96,24 @@ export function NotificationsClient() {
       </div>
     );
   }
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div aria-busy="true" aria-label="كنحمّلو الإشعارات">
+        <div className="skeleton mb-5 h-4 w-40 rounded" />
+        <ul className="space-y-2.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <li key={i} className="card flex items-center gap-3 p-3.5">
+              <div className="skeleton h-9 w-9 shrink-0 rounded-xl" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <div className="skeleton h-3.5 w-2/3 rounded" />
+                <div className="skeleton h-3 w-1/3 rounded" />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
 
   const unread = items.filter((n) => !n.read_at);
 

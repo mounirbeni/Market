@@ -83,7 +83,7 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
           </span>
           <div className="min-w-0 flex-1 pb-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-extrabold tracking-tight">{d.name}</h1>
+              <h1 className="h-section">{d.name}</h1>
               {d.verified && (
                 <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
                   <BadgeCheck size={11} /> وكيل موثّق

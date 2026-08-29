@@ -38,7 +38,7 @@ export function DashboardOverview() {
   }, []);
 
   /* إعلاناتك الحقيقية من قاعدة البيانات */
-  const { items: mine } = useMyListings();
+  const { items: mine, loading } = useMyListings();
 
   const stats = useMemo(() => {
     const views = mine.reduce((s, v) => s + v.views, 0);
@@ -63,19 +63,27 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {cards.map((c) => (
-          <Link key={c.l} href={c.href} className="card card-hover p-4">
-            <span
-              className="grid h-9 w-9 place-items-center rounded-lg"
-              style={{ background: `color-mix(in oklab, ${c.c} 12%, transparent)`, color: c.c }}
-            >
-              <c.Icon size={17} />
-            </span>
-            <div className="num mt-3 text-xl font-extrabold">{c.v}</div>
-            <div className="mt-0.5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>{c.l}</div>
-          </Link>
-        ))}
+      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6" aria-busy={loading}>
+        {loading
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="card p-4">
+                <div className="skeleton h-9 w-9 rounded-lg" />
+                <div className="skeleton mt-3 h-6 w-12 rounded" />
+                <div className="skeleton mt-2 h-3 w-16 rounded" />
+              </div>
+            ))
+          : cards.map((c) => (
+              <Link key={c.l} href={c.href} className="card card-hover p-4">
+                <span
+                  className="grid h-9 w-9 place-items-center rounded-lg"
+                  style={{ background: `color-mix(in oklab, ${c.c} 12%, transparent)`, color: c.c }}
+                >
+                  <c.Icon size={17} />
+                </span>
+                <div className="num mt-3 text-xl font-extrabold">{c.v}</div>
+                <div className="mt-0.5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>{c.l}</div>
+              </Link>
+            ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">

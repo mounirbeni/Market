@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { VehiclesClient } from "@/components/search/VehiclesClient";
+import { VehiclesPageSkeleton } from "@/components/VehicleGridSkeleton";
 
 export const metadata: Metadata = {
   title: "دراجات نارية مستعملة للبيع في المغرب",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function MotorcyclesPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-[1400px] px-4 py-20 text-center text-sm">كنحمّلو…</div>}>
+    <Suspense fallback={<VehiclesPageSkeleton />}>
       <VehiclesClient
         lockKind="moto"
         basePath="/motorcycles"

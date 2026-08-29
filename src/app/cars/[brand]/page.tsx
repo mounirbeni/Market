@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { VehiclesClient } from "@/components/search/VehiclesClient";
+import { VehiclesPageSkeleton } from "@/components/VehicleGridSkeleton";
 import { brandFromSlug } from "@/lib/slug";
 
 /* الصفحة كتّرندر عند كل طلب.
@@ -34,7 +35,7 @@ export default async function CarBrandPage({ params }: { params: Promise<{ brand
   if (!make) notFound();
 
   return (
-    <Suspense fallback={<div className="mx-auto max-w-[1400px] px-4 py-20 text-center text-sm">كنحمّلو…</div>}>
+    <Suspense fallback={<VehiclesPageSkeleton />}>
       <VehiclesClient
         lockKind="car"
         lockBrand={make}

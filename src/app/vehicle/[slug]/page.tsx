@@ -162,7 +162,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
               <div className="min-w-0">
                 <div className="flex items-center gap-2.5">
                   <VehicleGlyph shape={artShape(v)} kind={v.kind} size={26} strokeWidth={11} className="shrink-0" style={{ color: "var(--text-dim)" }} />
-                  <h1 className="text-2xl font-extrabold tracking-tight">{v.make} {v.model}</h1>
+                  <h1 className="h-section">{v.make} {v.model}</h1>
                 </div>
                 <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>{v.version}</p>
                 <div className="mt-3.5 flex flex-wrap gap-1.5">

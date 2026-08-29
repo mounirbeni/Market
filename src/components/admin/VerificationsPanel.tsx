@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { adminAction } from "./actions";
 import { Toolbar } from "./Toolbar";
 import { timeAgo } from "@/lib/format";
+import { Modal } from "@/components/Modal";
 import { BadgeCheck, Check, Close, IdCard } from "@/components/icons";
 
 interface Row {
@@ -163,14 +164,12 @@ export function VerificationsPanel({
       )}
 
       {zoom && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center p-4"
-          style={{ background: "rgba(0,0,0,0.85)" }}
-          onClick={() => setZoom(null)}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={zoom} alt="وثيقة" className="max-h-full max-w-full object-contain" />
-        </div>
+        <Modal onClose={() => setZoom(null)} ariaLabel="تكبير الوثيقة" maxWidth="max-w-4xl">
+          <div className="grid place-items-center p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={zoom} alt="وثيقة" className="max-h-[80vh] max-w-full rounded-lg object-contain" />
+          </div>
+        </Modal>
       )}
     </div>
   );

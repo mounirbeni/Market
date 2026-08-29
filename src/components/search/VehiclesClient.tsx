@@ -8,6 +8,8 @@ import {
 } from "@/lib/search";
 import type { Vehicle } from "@/lib/types";
 import { VehicleCard, VehicleRow } from "@/components/VehicleCard";
+import { VehicleGridSkeleton } from "@/components/VehicleGridSkeleton";
+import { Modal, useModalClose } from "@/components/Modal";
 import { FiltersPanel } from "./FiltersPanel";
 import { SmartSearch } from "@/components/SmartSearch";
 import { BrandMark } from "@/components/BrandMark";
@@ -295,18 +297,7 @@ export function VehiclesClient({
 
           {/* النتائج */}
           {loading && results.length === 0 ? (
-            <div
-              className={view === "grid" ? "grid gap-5 sm:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-4"}
-              aria-busy="true"
-            >
-              {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                <div
-                  key={i}
-                  className="card animate-pulse"
-                  style={{ height: view === "grid" ? 300 : 132, background: "var(--surface-2)" }}
-                />
-              ))}
-            </div>
+            <VehicleGridSkeleton count={PAGE_SIZE} view={view} />
           ) : results.length === 0 ? (
             <div className="card flex flex-col items-center p-12 text-center">
               <span
@@ -354,32 +345,47 @@ export function VehiclesClient({
 
       {/* فلاتر الموبايل */}
       {mobileFilters && (
-        <div className="fixed inset-0 z-[60] lg:hidden">
-          <div className="absolute inset-0 bg-black/65 animate-fade" onClick={() => setMobileFilters(false)} aria-hidden="true" />
-          <div
-            className="absolute inset-y-0 right-0 flex w-[90%] max-w-sm flex-col"
-            style={{ background: "var(--bg)" }}
-          >
-            <div
-              className="flex items-center justify-between border-b px-4 py-3"
-              style={{ borderColor: "var(--line-soft)" }}
-            >
-              <h2 className="text-sm font-bold">تصفية النتائج</h2>
-              <button onClick={() => setMobileFilters(false)} aria-label="إغلاق" className="grid h-8 w-8 place-items-center rounded-lg border" style={{ borderColor: "var(--line)" }}>
-                <Close size={16} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-3">
-              <FiltersPanel filters={filters} set={set} reset={reset} count={results.length} lockKind={lockKind} lockBrand={lockBrand} />
-            </div>
-            <div className="border-t p-3" style={{ borderColor: "var(--line-soft)" }}>
-              <button onClick={() => setMobileFilters(false)} className="btn btn-primary w-full">
-                عرض <span className="num">{results.length}</span> نتيجة
-              </button>
-            </div>
-          </div>
-        </div>
+        <Modal onClose={() => setMobileFilters(false)} ariaLabel="تصفية النتائج" variant="drawer" maxWidth="max-w-sm">
+          <MobileFiltersBody
+            filters={filters} set={set} reset={reset} count={results.length}
+            lockKind={lockKind} lockBrand={lockBrand}
+          />
+        </Modal>
       )}
     </div>
+  );
+}
+
+function MobileFiltersBody({
+  filters, set, reset, count, lockKind, lockBrand,
+}: {
+  filters: Filters;
+  set: (patch: Partial<Filters>) => void;
+  reset: () => void;
+  count: number;
+  lockKind?: "car" | "moto";
+  lockBrand?: string;
+}) {
+  const close = useModalClose();
+  return (
+    <>
+      <div
+        className="flex items-center justify-between border-b px-4 py-3"
+        style={{ borderColor: "var(--line-soft)" }}
+      >
+        <h2 className="text-sm font-bold">تصفية النتائج</h2>
+        <button onClick={close} aria-label="إغلاق" className="grid h-8 w-8 place-items-center rounded-lg border" style={{ borderColor: "var(--line)" }}>
+          <Close size={16} />
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-3">
+        <FiltersPanel filters={filters} set={set} reset={reset} count={count} lockKind={lockKind} lockBrand={lockBrand} />
+      </div>
+      <div className="border-t p-3" style={{ borderColor: "var(--line-soft)" }}>
+        <button onClick={close} className="btn btn-primary w-full">
+          عرض <span className="num">{count}</span> نتيجة
+        </button>
+      </div>
+    </>
   );
 }

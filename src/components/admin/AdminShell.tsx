@@ -32,7 +32,7 @@ export function AdminShell({ email, children }: { email: string; children: React
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <span className="eyebrow"><ShieldAlert size={13} /> إشراف</span>
-          <h1 className="mt-2 text-[22px] font-extrabold">لوحة التحكّم</h1>
+          <h1 className="h-section mt-2">لوحة التحكّم</h1>
         </div>
         <div className="flex items-center gap-2">
           <bdi dir="ltr" className="text-[11.5px]" style={{ color: "var(--text-dim)" }}>
