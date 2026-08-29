@@ -8,8 +8,12 @@ import { EQUIPMENT } from "@/lib/equipment";
 import { formatNumber } from "@/lib/format";
 import { vehicleHref } from "@/lib/slug";
 import { useMyListings } from "@/lib/useMyListings";
-import type { Condition, Fuel, Gearbox } from "@/lib/types";
-import { Check, ChevronLeft, Plus } from "@/components/icons";
+import { VehicleGlyph } from "@/components/VehicleArt";
+import {
+  CAR_BODIES, DOOR_OPTIONS, DRIVETRAINS, MOTO_BODIES, ORIGINS,
+} from "@/lib/vehicle-options";
+import type { Body, Condition, Drivetrain, Fuel, Gearbox, Origin } from "@/lib/types";
+import { Check, ChevronLeft, Door, Plus } from "@/components/icons";
 
 /* ============================================================
    تعديل إعلان
@@ -31,6 +35,11 @@ interface Form {
   gearbox: Gearbox;
   city: string;
   color: string;
+  body: Body;
+  doors: number;
+  fiscalPower: number;
+  drivetrain: Drivetrain | "";
+  origin: Origin | "";
   condition: Condition;
   description: string;
   equipment: string[];
@@ -72,6 +81,11 @@ export function EditListing({ listingRef }: { listingRef: string }) {
       gearbox: v.gearbox,
       city: v.city,
       color: v.color,
+      body: v.body,
+      doors: v.doors ?? (v.kind === "car" ? 5 : 0),
+      fiscalPower: v.fiscalPower,
+      drivetrain: v.drivetrain ?? "",
+      origin: v.origin ?? "",
       condition: v.condition,
       description: v.description,
       equipment: v.equipment ?? [],
@@ -102,12 +116,12 @@ export function EditListing({ listingRef }: { listingRef: string }) {
         body: JSON.stringify({
           edit: {
             ...form,
-            /* الخادم كيعاود يحسب هادو، ولكن كيسناهم فالجسم */
-            body: v?.body,
-            fiscalPower: v?.fiscalPower,
+            doors: v?.kind === "moto" ? undefined : form.doors,
+            drivetrain: form.drivetrain || undefined,
+            origin: form.origin || undefined,
+            /* الخادم كيعاود يحسب هادو */
             consumption: v?.consumption,
             displacement: v?.displacement,
-            doors: v?.doors,
           },
         }),
       });
@@ -246,6 +260,74 @@ export function EditListing({ listingRef }: { listingRef: string }) {
             </label>
             <input id="ed-owners" type="range" min={1} max={5} value={form.owners}
               onChange={(e) => set({ owners: Number(e.target.value) })} className="w-full" />
+          </div>
+          <div>
+            <label className="label" htmlFor="ed-power">
+              القوة الجبائية <span className="num mr-auto" style={{ color: "var(--brand)" }}>{form.fiscalPower} حصان</span>
+            </label>
+            <input id="ed-power" type="range" min={1} max={v.kind === "moto" ? 6 : 30} value={form.fiscalPower}
+              onChange={(e) => set({ fiscalPower: Number(e.target.value) })} className="w-full" />
+          </div>
+          {v.kind === "car" && (
+            <div>
+              <span className="label"><Door size={13} /> عدد الأبواب</span>
+              <div className="grid grid-cols-4 gap-1.5">
+                {DOOR_OPTIONS.map((n) => (
+                  <button
+                    key={n} type="button" onClick={() => set({ doors: n })}
+                    aria-pressed={form.doors === n}
+                    className="rounded-lg py-2 text-xs font-bold transition"
+                    style={{
+                      background: form.doors === n ? "var(--brand)" : "var(--surface-3)",
+                      color: form.doors === n ? "var(--brand-ink)" : "var(--text-muted)",
+                    }}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {v.kind === "car" && (
+            <div>
+              <label className="label" htmlFor="ed-drivetrain">الدفع</label>
+              <select id="ed-drivetrain" className="field" value={form.drivetrain}
+                onChange={(e) => set({ drivetrain: e.target.value as Drivetrain | "" })}>
+                <option value="">ماشي معروف</option>
+                {DRIVETRAINS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+              </select>
+            </div>
+          )}
+          <div>
+            <label className="label" htmlFor="ed-origin">مصدر السيارة</label>
+            <select id="ed-origin" className="field" value={form.origin}
+              onChange={(e) => set({ origin: e.target.value as Origin | "" })}>
+              <option value="">ماشي معروف</option>
+              {ORIGINS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <span className="label">نوع الهيكل</span>
+          <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+            {(v.kind === "moto" ? MOTO_BODIES : CAR_BODIES).map((b) => (
+              <button
+                key={b.value}
+                type="button"
+                onClick={() => set({ body: b.value as Body })}
+                aria-pressed={form.body === b.value}
+                className="flex flex-col items-center gap-1 rounded-lg border py-2.5 text-[10.5px] font-bold transition"
+                style={{
+                  borderColor: form.body === b.value ? "var(--brand)" : "var(--line)",
+                  background: form.body === b.value ? "var(--brand-soft)" : "var(--surface-1)",
+                  color: form.body === b.value ? "var(--brand)" : "var(--text)",
+                }}
+              >
+                <VehicleGlyph shape={b.value as never} kind={v.kind} size={22} strokeWidth={10} />
+                {b.label}
+              </button>
+            ))}
           </div>
         </div>
 

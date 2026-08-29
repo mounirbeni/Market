@@ -17,6 +17,12 @@ export type Body =
 
 export type Condition = "excellent" | "tres-bon" | "bon" | "moyen";
 
+/** الدفع — أمامي، خلفي، كلي (4x4) */
+export type Drivetrain = "fwd" | "rwd" | "awd";
+
+/** مصدر السيارة: مغربية الأصل ولا مستوردة (مؤدى عنها الرسوم الجمركية) */
+export type Origin = "maghribia" | "mostawrada";
+
 export type SellerType = "particulier" | "professionnel";
 
 export interface Seller {
@@ -74,6 +80,10 @@ export interface Vehicle {
   displacement?: number;
   doors?: number;
   color: string;
+  /** الدفع — اختياري، ماكاينش فالإعلانات القديمة */
+  drivetrain?: Drivetrain;
+  /** مصدر السيارة — اختياري */
+  origin?: Origin;
   city: string;
   condition: Condition;
   firstHand: boolean;

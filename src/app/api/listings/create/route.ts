@@ -17,6 +17,8 @@ const BODIES: Body[] = [
   "scooter", "roadster", "trail", "sportive", "custom",
 ];
 const CONDITIONS: Condition[] = ["excellent", "tres-bon", "bon", "moyen"];
+const DRIVETRAINS = ["fwd", "rwd", "awd"] as const;
+const ORIGINS = ["maghribia", "mostawrada"] as const;
 
 /** كيقصّ ويحدّ رقم داخل مجال معقول */
 const clampInt = (v: unknown, min: number, max: number, fallback: number) => {
@@ -56,6 +58,8 @@ export interface CreateBody {
   displacement?: number;
   doors?: number;
   color?: string;
+  drivetrain?: string;
+  origin?: string;
   city?: string;
   condition?: string;
   papersOk?: boolean;
@@ -97,11 +101,16 @@ export async function POST(req: Request) {
   /* أي قيمة ماشي من اللائحة كترجع للافتراضي — القيم كتمشي لـenum فقاعدة البيانات */
   const pick = <T extends string>(list: T[], v: unknown, fallback: T): T =>
     list.includes(v as T) ? (v as T) : fallback;
+  /* خيار اختياري — ماكاينش افتراضي، البقاء بلا قيمة أحسن من تخمين */
+  const pickOptional = <T extends string>(list: readonly T[], v: unknown): T | undefined =>
+    list.includes(v as T) ? (v as T) : undefined;
 
   const fuel = pick(FUELS, b.fuel, "essence");
   const gearbox = pick(GEARBOXES, b.gearbox, "manuelle");
   const bodyType = pick(BODIES, b.body, kind === "moto" ? "scooter" : "berline");
   const condition = pick(CONDITIONS, b.condition, "bon");
+  const drivetrain = pickOptional(DRIVETRAINS, b.drivetrain);
+  const origin = pickOptional(ORIGINS, b.origin);
 
   const year = clampInt(b.year, 1950, 2100, 2018);
   const km = clampInt(b.km, 0, 2000000, 0);
@@ -151,6 +160,8 @@ export async function POST(req: Request) {
     displacement: b.displacement ? clampInt(b.displacement, 49, 3000, 125) : undefined,
     doors: b.doors ? clampInt(b.doors, 2, 7, 5) : undefined,
     color: text(b.color, 40) || "أبيض",
+    drivetrain,
+    origin,
     city: text(b.city, 60) || "casablanca",
     condition,
     firstHand: owners === 1,
@@ -196,6 +207,8 @@ export async function POST(req: Request) {
     displacement: draft.displacement ?? null,
     doors: draft.doors ?? null,
     color: draft.color,
+    drivetrain: draft.drivetrain ?? null,
+    origin: draft.origin ?? null,
     city: draft.city,
     condition,
     firstHand: draft.firstHand,

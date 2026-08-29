@@ -140,6 +140,28 @@ export function VehiclesClient({
     if (filters.yearMax) out.push({ label: `إلى ${filters.yearMax}`, clear: { yearMax: undefined } });
     if (filters.kmMax) out.push({ label: `أقل من ${formatNumber(filters.kmMax)} كم`, clear: { kmMax: undefined } });
     if (filters.trustMin) out.push({ label: `ثقة ${filters.trustMin}+`, clear: { trustMin: undefined } });
+    if (filters.color) out.push({ label: filters.color, clear: { color: "" } });
+    if (filters.doors) out.push({ label: `${filters.doors} أبواب`, clear: { doors: undefined } });
+    if (filters.powerMax) out.push({ label: `حتى ${filters.powerMax} حصان`, clear: { powerMax: undefined } });
+    if (filters.powerMin) out.push({ label: `من ${filters.powerMin} حصان`, clear: { powerMin: undefined } });
+    if (filters.drivetrain) {
+      out.push({
+        label: { fwd: "دفع أمامي", rwd: "دفع خلفي", awd: "دفع كلي" }[filters.drivetrain] ?? filters.drivetrain,
+        clear: { drivetrain: "" },
+      });
+    }
+    if (filters.origin) {
+      out.push({
+        label: { maghribia: "مغربية الأصل", mostawrada: "مستوردة" }[filters.origin] ?? filters.origin,
+        clear: { origin: "" },
+      });
+    }
+    filters.equipment.split(",").filter(Boolean).forEach((tag) => {
+      out.push({
+        label: tag,
+        clear: { equipment: filters.equipment.split(",").filter((t) => t !== tag).join(",") },
+      });
+    });
     if (filters.goodDealsOnly) out.push({ label: "صفقات فقط", clear: { goodDealsOnly: false } });
     if (filters.inspectedOnly) out.push({ label: "مفحوصة", clear: { inspectedOnly: false } });
     if (filters.verifiedOnly) out.push({ label: "وثائق موثقة", clear: { verifiedOnly: false } });

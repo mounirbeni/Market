@@ -36,6 +36,8 @@ export interface NewListing {
   displacement?: number | null;
   doors?: number | null;
   color?: string | null;
+  drivetrain?: string | null;
+  origin?: string | null;
   city: string;
   condition: string;
   firstHand: boolean;
@@ -106,7 +108,7 @@ export async function createListing(sellerId: string, v: NewListing) {
        displacement, doors, color, city, condition, first_hand, papers_ok,
        technical_control, inspected, service_book, vin_checked, description,
        equipment, negotiable, exchange_accepted, trust_score, fair_price_mad,
-       fair_price_delta, photo_count, has_video, published_at)
+       fair_price_delta, photo_count, has_video, drivetrain, origin, published_at)
      SELECT
        r.ref,
        $2 || '-' || $3 || '-' || $4::text || '-' || r.ref,
@@ -116,7 +118,7 @@ export async function createListing(sellerId: string, v: NewListing) {
        $20, $21, $22::condition_type, $23::bool, $24::bool, $25::date,
        $26::bool, $27::bool, $28::bool, $29, $30::text[], $31::bool,
        $32::bool, $33::smallint, $34::int, $35::numeric, $36::smallint,
-       $37::bool, now()
+       $37::bool, $38::drivetrain_type, $39::origin_type, now()
      FROM r
      RETURNING id, ref, slug`,
     [
@@ -128,7 +130,7 @@ export async function createListing(sellerId: string, v: NewListing) {
       v.technicalControl ?? null, v.inspected, v.serviceBook, v.vinChecked,
       v.description, v.equipment, v.negotiable, v.exchangeAccepted,
       v.trustScore, v.fairPriceMad, v.fairPriceDelta.toFixed(4),
-      v.photoCount, v.hasVideo,
+      v.photoCount, v.hasVideo, v.drivetrain ?? null, v.origin ?? null,
     ],
   );
   if (!row) throw new WriteError("INSERT_FAILED");
@@ -207,6 +209,8 @@ export interface ListingEdit {
   displacement: number | null;
   doors: number | null;
   color: string;
+  drivetrain: string | null;
+  origin: string | null;
   city: string;
   condition: string;
   papersOk: boolean;
@@ -247,6 +251,7 @@ export async function updateListing(sellerId: string, ref: string, p: ListingEdi
        negotiable = $22::bool, exchange_accepted = $23::bool,
        trust_score = $24::smallint, fair_price_mad = $25::int,
        fair_price_delta = $26::numeric,
+       drivetrain = $27::drivetrain_type, origin = $28::origin_type,
        updated_at = now()
      WHERE id = $1`,
     [
@@ -255,7 +260,7 @@ export async function updateListing(sellerId: string, ref: string, p: ListingEdi
       p.city, p.condition, p.papersOk, p.technicalControl, p.inspected,
       p.serviceBook, p.vinChecked, p.description, p.equipment,
       p.negotiable, p.exchangeAccepted, p.trustScore, p.fairPriceMad,
-      p.fairPriceDelta.toFixed(4),
+      p.fairPriceDelta.toFixed(4), p.drivetrain, p.origin,
     ],
   );
   return { slug: l.slug };

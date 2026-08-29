@@ -24,12 +24,13 @@ import { Mixed } from "@/components/Mixed";
 import { TrustRing } from "@/components/TrustBadge";
 import {
   AutoGear, BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Door,
-  Driveshaft, EQUIPMENT_ICONS, Eye, FUEL_ICONS, Heart, Horsepower, MapPin,
+  Driveshaft, EQUIPMENT_ICONS, Eye, Flag, FUEL_ICONS, Heart, Horsepower, MapPin,
   Odometer, OilCan, Palette, Piston, Road, Scale, Seat, Sparkle,
   Transmission, TrendingDown, Users,
 } from "@/components/icons";
 import { VehicleGlyph } from "@/components/VehicleArt";
 import { artShape } from "@/lib/artshape";
+import { DRIVETRAINS, ORIGINS } from "@/lib/vehicle-options";
 
 /* الصفحة كتّرندر عند كل طلب.
 
@@ -96,11 +97,17 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
       ? [
           { Icon: Door, label: "عدد الأبواب", value: String(v.doors ?? "-") },
           { Icon: Seat, label: "عدد المقاعد", value: (v.doors ?? 5) >= 5 ? "5" : "4" },
-          { Icon: Driveshaft, label: "نوع الدفع", value: v.body === "suv" || v.body === "utilitaire" ? "دفع رباعي" : "دفع أمامي" },
+          /* v.drivetrain اختياري — البائع هو اللي كيعمّرو، بلا تخمين */
+          ...(v.drivetrain
+            ? [{ Icon: Driveshaft, label: "نوع الدفع", value: DRIVETRAINS.find((d) => d.value === v.drivetrain)?.label ?? "-" }]
+            : []),
         ]
       : [{ Icon: Piston, label: "سعة المحرك", value: `${v.displacement} سم³` }]),
     { Icon: OilCan, label: "الاستهلاك", value: `${v.consumption} ل/100كم` },
     { Icon: Palette, label: "اللون", value: v.color },
+    ...(v.origin
+      ? [{ Icon: Flag, label: "مصدر السيارة", value: ORIGINS.find((o) => o.value === v.origin)?.label ?? "-" }]
+      : []),
     { Icon: BadgeCheck, label: "الحالة العامة", value: AR.condition[v.condition] },
     { Icon: Users, label: "عدد الملاّك", value: String(v.owners) },
     { Icon: ClipboardCheck, label: "الفحص التقني", value: formatDate(v.technicalControl) },

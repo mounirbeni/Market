@@ -11,12 +11,16 @@ import { CITIES } from "@/lib/cities";
 import { EQUIPMENT } from "@/lib/equipment";
 import { formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
+import { VehicleGlyph } from "@/components/VehicleArt";
+import {
+  CAR_BODIES, COMMON_COLORS, DOOR_OPTIONS, DRIVETRAINS, MOTO_BODIES, ORIGINS,
+} from "@/lib/vehicle-options";
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, Bookmark, Calendar,
-  Car, Check, CircleDot, Coins, FileText, Gauge, Info, MapPin, Moto, Sparkle,
-  Plus, TrendingDown, Wrench,
+  Car, Check, CircleDot, Coins, Door, FileText, Gauge, Horsepower, Info,
+  MapPin, Moto, Palette, Sparkle, Plus, TrendingDown, Wrench,
 } from "@/components/icons";
-import type { Condition, Seller, Vehicle } from "@/lib/types";
+import type { Body, Condition, Drivetrain, Origin, Seller, Vehicle } from "@/lib/types";
 
 const STEPS = ["المركبة", "الحالة والوثائق", "الصور والوصف", "الثمن", "المعاينة"];
 
@@ -29,6 +33,12 @@ interface Draft {
   km: number;
   fuel: string;
   gearbox: string;
+  body: Body;
+  color: string;
+  doors: number;
+  fiscalPower: number;
+  drivetrain: Drivetrain | "";
+  origin: Origin | "";
   city: string;
   condition: Condition;
   owners: number;
@@ -58,6 +68,12 @@ const initialDraft: Draft = {
   km: 120000,
   fuel: "diesel",
   gearbox: "manuelle",
+  body: "berline",
+  color: "أبيض",
+  doors: 5,
+  fiscalPower: 6,
+  drivetrain: "",
+  origin: "",
   city: "casablanca",
   condition: "tres-bon",
   owners: 1,
@@ -91,10 +107,13 @@ function draftToVehicle(d: Draft): Vehicle {
     owners: d.owners,
     fuel: d.fuel as Vehicle["fuel"],
     gearbox: d.gearbox as Vehicle["gearbox"],
-    body: (d.kind === "moto" ? "roadster" : "berline") as Vehicle["body"],
-    fiscalPower: d.kind === "moto" ? 2 : 6,
+    body: d.body,
+    fiscalPower: d.fiscalPower,
     consumption: d.kind === "moto" ? 3 : 5,
-    color: "أبيض",
+    doors: d.kind === "car" ? d.doors : undefined,
+    color: d.color,
+    drivetrain: d.drivetrain || undefined,
+    origin: d.origin || undefined,
     city: d.city,
     condition: d.condition,
     firstHand: d.owners === 1,
@@ -245,8 +264,10 @@ export function SellWizard() {
         body: JSON.stringify({
           kind: d.kind, make: d.make, model: d.model, version: d.version,
           year: d.year, km: d.km, price: d.price, owners: d.owners,
-          fuel: d.fuel, gearbox: d.gearbox,
-          body: d.kind === "moto" ? "roadster" : "berline",
+          fuel: d.fuel, gearbox: d.gearbox, body: d.body,
+          color: d.color, fiscalPower: d.fiscalPower,
+          doors: d.kind === "car" ? d.doors : undefined,
+          drivetrain: d.drivetrain || undefined, origin: d.origin || undefined,
           city: d.city, condition: d.condition,
           papersOk: d.papersOk, technicalControlValid: d.technicalControlValid,
           inspected: d.inspected, serviceBook: d.serviceBook,
@@ -352,7 +373,12 @@ export function SellWizard() {
                     key={k}
                     onClick={() => {
                       const m = makesFor(k)[0];
-                      set({ kind: k, make: m, model: modelsFor(m)[0] ?? "" });
+                      set({
+                        kind: k, make: m, model: modelsFor(m)[0] ?? "",
+                        body: k === "moto" ? "roadster" : "berline",
+                        fiscalPower: k === "moto" ? 2 : 6,
+                        drivetrain: "",
+                      });
                     }}
                     aria-pressed={d.kind === k}
                     className="flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition"
@@ -429,6 +455,97 @@ export function SellWizard() {
                   <label className="label" htmlFor="sw-city"><MapPin size={13} /> المدينة</label>
                   <select id="sw-city" className="field" value={d.city} onChange={(e) => set({ city: e.target.value })}>
                     {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.ar}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <span className="label"><Car size={13} /> نوع الهيكل</span>
+                <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
+                  {(d.kind === "moto" ? MOTO_BODIES : CAR_BODIES).map((b) => (
+                    <button
+                      key={b.value}
+                      type="button"
+                      onClick={() => set({ body: b.value as Body })}
+                      aria-pressed={d.body === b.value}
+                      className="flex flex-col items-center gap-1 rounded-lg border py-2.5 text-[10.5px] font-bold transition"
+                      style={{
+                        borderColor: d.body === b.value ? "var(--brand)" : "var(--line)",
+                        background: d.body === b.value ? "var(--brand-soft)" : "var(--surface-1)",
+                        color: d.body === b.value ? "var(--brand)" : "var(--text)",
+                      }}
+                    >
+                      <VehicleGlyph shape={b.value as never} kind={d.kind} size={22} strokeWidth={10} />
+                      {b.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <label className="label" htmlFor="sw-color"><Palette size={13} /> اللون</label>
+                  <input
+                    id="sw-color" className="field" list="sw-colors" maxLength={40}
+                    value={d.color} onChange={(e) => set({ color: e.target.value })}
+                  />
+                  <datalist id="sw-colors">
+                    {COMMON_COLORS.map((c) => <option key={c} value={c} />)}
+                  </datalist>
+                </div>
+                {d.kind === "car" && (
+                  <div>
+                    <span className="label"><Door size={13} /> عدد الأبواب</span>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {DOOR_OPTIONS.map((n) => (
+                        <button
+                          key={n} type="button" onClick={() => set({ doors: n })}
+                          aria-pressed={d.doors === n}
+                          className="rounded-lg py-2 text-xs font-bold transition"
+                          style={{
+                            background: d.doors === n ? "var(--brand)" : "var(--surface-3)",
+                            color: d.doors === n ? "var(--brand-ink)" : "var(--text-muted)",
+                          }}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <label className="label" htmlFor="sw-power">
+                    <Horsepower size={13} /> القوة الجبائية
+                    <span className="num mr-auto" style={{ color: "var(--brand)" }}>{d.fiscalPower} حصان</span>
+                  </label>
+                  <input
+                    id="sw-power" type="range" min={1} max={d.kind === "moto" ? 6 : 30} value={d.fiscalPower}
+                    onChange={(e) => set({ fiscalPower: Number(e.target.value) })} className="w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {d.kind === "car" && (
+                  <div>
+                    <label className="label" htmlFor="sw-drivetrain">الدفع (اختياري)</label>
+                    <select
+                      id="sw-drivetrain" className="field" value={d.drivetrain}
+                      onChange={(e) => set({ drivetrain: e.target.value as Drivetrain | "" })}
+                    >
+                      <option value="">ماشي معروف</option>
+                      {DRIVETRAINS.map((dr) => <option key={dr.value} value={dr.value}>{dr.label}</option>)}
+                    </select>
+                  </div>
+                )}
+                <div>
+                  <label className="label" htmlFor="sw-origin">مصدر السيارة (اختياري)</label>
+                  <select
+                    id="sw-origin" className="field" value={d.origin}
+                    onChange={(e) => set({ origin: e.target.value as Origin | "" })}
+                  >
+                    <option value="">ماشي معروف</option>
+                    {ORIGINS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
               </div>

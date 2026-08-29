@@ -5,37 +5,19 @@ import { useRouter } from "next/navigation";
 import { CITIES } from "@/lib/cities";
 
 import { paramsFromFilters, type Filters } from "@/lib/search";
-import { emptyFacets, type Facets } from "@/lib/facets";
+import { emptyFacets, POWER_MAX, type Facets } from "@/lib/facets";
 import { formatNumber } from "@/lib/format";
 import { AR } from "@/lib/format";
+import { EQUIPMENT } from "@/lib/equipment";
 import {
-  BadgeCheck, Bolt, Calendar, Car, Coins, Droplet, Fuel, Gauge, Gearbox, Key,
-  Leaf, MapPin, Moto, Odometer, Reset, Search, ShieldCheck, Transmission,
-  TrendingDown, Wrench,
+  CAR_BODIES, DOOR_OPTIONS, DRIVETRAINS, FUELS, MOTO_BODIES, ORIGINS,
+} from "@/lib/vehicle-options";
+import {
+  BadgeCheck, Calendar, Car, Check, Coins, Door, Fuel, Gauge, Gearbox,
+  Key, MapPin, Moto, Odometer, Palette, Plus, Reset, Search, ShieldCheck,
+  Sparkle, Transmission, TrendingDown, Wrench,
 } from "@/components/icons";
 import { VehicleGlyph } from "@/components/VehicleArt";
-
-const CAR_BODIES = [
-  { value: "citadine", label: "مدينية" },
-  { value: "berline", label: "صالون" },
-  { value: "suv", label: "دفع رباعي" },
-  { value: "break", label: "بريك" },
-  { value: "utilitaire", label: "نفعية" },
-  { value: "cabriolet", label: "مكشوفة" },
-];
-const MOTO_BODIES = [
-  { value: "scooter", label: "سكوتر" },
-  { value: "roadster", label: "رودستر" },
-  { value: "trail", label: "طرق وعرة" },
-  { value: "sportive", label: "رياضية" },
-  { value: "custom", label: "كوستوم" },
-];
-const FUELS = [
-  { value: "diesel", label: "ديزل", Icon: Droplet },
-  { value: "essence", label: "بنزين", Icon: Fuel },
-  { value: "hybride", label: "هجين", Icon: Leaf },
-  { value: "electrique", label: "كهربائي", Icon: Bolt },
-];
 
 function Field({
   label, Icon, children,
@@ -77,6 +59,14 @@ export function AdvancedSearch() {
   const models = useMemo(() => Object.keys(f9s.models).sort(), [f9s]);
   const bodies = kind === "moto" ? MOTO_BODIES : kind === "car" ? CAR_BODIES : [...CAR_BODIES, ...MOTO_BODIES];
   const count = f9s.total;
+
+  const equipmentTags = useMemo(() => (f.equipment ?? "").split(",").filter(Boolean), [f.equipment]);
+  const toggleEquipment = (tag: string) => {
+    const next = equipmentTags.includes(tag)
+      ? equipmentTags.filter((t) => t !== tag)
+      : [...equipmentTags, tag];
+    set({ equipment: next.join(",") });
+  };
 
   function submit() {
     const params = paramsFromFilters(f);
@@ -248,6 +238,78 @@ export function AdvancedSearch() {
           </div>
         </section>
 
+        {/* المواصفات والتفاصيل */}
+        <section className="card p-5">
+          <h2 className="mb-4 flex items-center gap-2 text-[14px] font-bold">
+            <Palette size={16} style={{ color: "var(--brand)" }} /> المواصفات والتفاصيل
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Field label="اللون" Icon={Palette}>
+              <select className="field" value={f.color ?? ""} onChange={(e) => set({ color: e.target.value })}>
+                <option value="">أي لون</option>
+                {Object.keys(f9s.color).sort().map((c) => (
+                  <option key={c} value={c}>{c} ({f9s.color[c]})</option>
+                ))}
+              </select>
+            </Field>
+            {kind !== "moto" && (
+              <Field label="عدد الأبواب" Icon={Door}>
+                <select className="field" value={f.doors ?? ""} onChange={(e) => set({ doors: e.target.value ? +e.target.value : undefined })}>
+                  <option value="">أي عدد</option>
+                  {DOOR_OPTIONS.map((d) => (
+                    <option key={d} value={d}>{d} ({f9s.doors[String(d)] ?? 0})</option>
+                  ))}
+                </select>
+              </Field>
+            )}
+            {kind !== "moto" && (
+              <Field label="الدفع" Icon={Car}>
+                <select className="field" value={f.drivetrain ?? ""} onChange={(e) => set({ drivetrain: e.target.value })}>
+                  <option value="">أي دفع</option>
+                  {DRIVETRAINS.map((d) => (
+                    <option key={d.value} value={d.value}>{d.label} ({f9s.drivetrain[d.value] ?? 0})</option>
+                  ))}
+                </select>
+              </Field>
+            )}
+            <Field label="مصدر السيارة" Icon={MapPin}>
+              <select className="field" value={f.origin ?? ""} onChange={(e) => set({ origin: e.target.value })}>
+                <option value="">أي مصدر</option>
+                {ORIGINS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label} ({f9s.origin[o.value] ?? 0})</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="قوة المحرك من (حصان)" Icon={Gauge}>
+              <input type="number" min={0} max={POWER_MAX} className="field num" placeholder="0"
+                value={f.powerMin ?? ""} onChange={(e) => set({ powerMin: e.target.value ? +e.target.value : undefined })} />
+            </Field>
+            <Field label="قوة المحرك إلى (حصان)" Icon={Gauge}>
+              <input type="number" min={0} max={POWER_MAX} className="field num" placeholder="بلا حد"
+                value={f.powerMax ?? ""} onChange={(e) => set({ powerMax: e.target.value ? +e.target.value : undefined })} />
+            </Field>
+          </div>
+
+          <span className="label mt-4"><Sparkle size={13} /> المواصفات والخيارات</span>
+          <div className="flex flex-wrap gap-1.5">
+            {EQUIPMENT.map((eq) => {
+              const on = equipmentTags.includes(eq);
+              return (
+                <button key={eq} type="button" onClick={() => toggleEquipment(eq)} aria-pressed={on}
+                  className="chip transition"
+                  style={{
+                    background: on ? "var(--brand)" : "var(--surface-1)",
+                    color: on ? "var(--brand-ink)" : "var(--text-muted)",
+                    borderColor: on ? "transparent" : "var(--line)",
+                  }}>
+                  {on ? <Check size={11} /> : <Plus size={11} />} {eq}
+                  <span className="num opacity-55">{f9s.equipment[eq] ?? 0}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
         {/* الضمانات */}
         <section className="card p-5">
           <h2 className="mb-4 flex items-center gap-2 text-[14px] font-bold">
@@ -300,6 +362,23 @@ export function AdvancedSearch() {
               </li>
             )}
             {f.kmMax && <li className="flex justify-between"><span>الكيلومتراج</span><b className="num">حتى {formatNumber(f.kmMax)}</b></li>}
+            {f.color && <li className="flex justify-between"><span>اللون</span><b>{f.color}</b></li>}
+            {f.doors && <li className="flex justify-between"><span>الأبواب</span><b className="num">{f.doors}</b></li>}
+            {f.drivetrain && (
+              <li className="flex justify-between">
+                <span>الدفع</span>
+                <b>{DRIVETRAINS.find((d) => d.value === f.drivetrain)?.label}</b>
+              </li>
+            )}
+            {f.origin && (
+              <li className="flex justify-between">
+                <span>المصدر</span>
+                <b>{ORIGINS.find((o) => o.value === f.origin)?.label}</b>
+              </li>
+            )}
+            {equipmentTags.length > 0 && (
+              <li className="flex justify-between"><span>المواصفات</span><b className="num">{equipmentTags.length}</b></li>
+            )}
           </ul>
 
           <button onClick={submit} disabled={!count} className="btn btn-primary mt-6 w-full">

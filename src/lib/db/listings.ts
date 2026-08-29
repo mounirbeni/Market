@@ -4,7 +4,7 @@ import { DEFAULT_FILTERS, type Filters, type SortKey } from "@/lib/search";
 import type { HistoryEvent, MediaItem, Seller, Vehicle } from "@/lib/types";
 import { pathnameFromMediaUrl } from "@/lib/blob";
 import {
-  emptyFacets, FLAG_KEYS, HIST_BUCKETS, PRICE_MAX, YEAR_MAX, YEAR_MIN,
+  emptyFacets, FLAG_KEYS, HIST_BUCKETS, POWER_MAX, PRICE_MAX, YEAR_MAX, YEAR_MIN,
   type Facets,
 } from "@/lib/facets";
 
@@ -34,6 +34,8 @@ export interface ListingRow {
   city: string;
   condition: string;
   color: string | null;
+  drivetrain: "fwd" | "rwd" | "awd" | null;
+  origin: "maghribia" | "mostawrada" | null;
   first_hand: boolean;
   papers_ok: boolean;
   vin_checked: boolean;
@@ -94,6 +96,7 @@ const ORDER_BY: Record<SortKey, string> = {
 const SELECT_COLS = `
   l.id, l.ref, l.slug, l.kind, l.make, l.model, l.version, l.year, l.km,
   l.price_mad, l.fuel, l.gearbox, l.body, l.city, l.condition, l.color,
+  l.drivetrain, l.origin,
   l.first_hand, l.papers_ok, l.vin_checked, l.inspected, l.photo_count,
   l.has_video, l.trust_score, l.fair_price_mad, l.fair_price_delta, l.promo,
   l.views, l.saves, l.published_at, l.owners, l.fiscal_power, l.consumption,
@@ -139,6 +142,16 @@ function buildWhere(f: Filters) {
   if (f.yearMin) add("l.year >= ?", f.yearMin);
   if (f.yearMax) add("l.year <= ?", f.yearMax);
   if (f.kmMax) add("l.km <= ?", f.kmMax);
+  if (f.color) add("l.color = ?", f.color);
+  if (f.doors) add("l.doors = ?", f.doors);
+  if (f.powerMin) add("l.fiscal_power >= ?", f.powerMin);
+  if (f.powerMax) add("l.fiscal_power <= ?", f.powerMax);
+  if (f.drivetrain) add("l.drivetrain = ?::drivetrain_type", f.drivetrain);
+  if (f.origin) add("l.origin = ?::origin_type", f.origin);
+  if (f.equipment?.trim()) {
+    const tags = f.equipment.split(",").map((t) => t.trim()).filter(Boolean);
+    if (tags.length) add("l.equipment @> ?::text[]", tags);
+  }
   if (f.trustMin) add("l.trust_score >= ?", f.trustMin);
   if (f.inspectedOnly) where.push("l.inspected");
   if (f.firstHandOnly) where.push("l.first_hand");
@@ -309,6 +322,8 @@ export function rowToVehicle(
     displacement: r.displacement ?? undefined,
     doors: r.doors ?? undefined,
     color: r.color ?? "أبيض",
+    drivetrain: r.drivetrain ?? undefined,
+    origin: r.origin ?? undefined,
     city: r.city,
     condition: r.condition as Vehicle["condition"],
     firstHand: r.first_hand,
@@ -599,6 +614,18 @@ async function histCount(
   return out;
 }
 
+/** عدد الإعلانات فكل تجهيز — كل صف عندو لائحة، فخاصنا unnest */
+async function equipmentCounts(f: Filters): Promise<Record<string, number>> {
+  const { clause, params } = buildWhere(f);
+  const rows = await sql<{ k: string; n: string }>(
+    `SELECT unnest(l.equipment) AS k, count(*)::text AS n ${FROM} WHERE ${clause} GROUP BY 1`,
+    params,
+  );
+  const out: Record<string, number> = {};
+  for (const r of rows) out[r.k] = Number(r.n);
+  return out;
+}
+
 /** كل عدّادات اللوحة الجانبية فضربة وحدة */
 export async function facetCounts(filters: Partial<Filters>): Promise<Facets> {
   const f: Filters = { ...DEFAULT_FILTERS, ...filters };
@@ -609,6 +636,7 @@ export async function facetCounts(filters: Partial<Filters>): Promise<Facets> {
     body, fuel, gearbox, condition, city,
     makeRows, modelRows,
     priceHist, yearHist,
+    color, doors, drivetrain, origin, powerHist, equipment,
     ...flagCounts
   ] = await Promise.all([
     plainCount(f),
@@ -624,6 +652,12 @@ export async function facetCounts(filters: Partial<Filters>): Promise<Facets> {
     f.make ? groupCount({ ...f, model: "" }, "l.model") : Promise.resolve({}),
     histCount({ ...f, priceMin: undefined, priceMax: undefined }, "l.price_mad", 0, PRICE_MAX),
     histCount({ ...f, yearMin: undefined, yearMax: undefined }, "l.year", YEAR_MIN, YEAR_MAX),
+    groupCount({ ...f, color: "" }, "l.color"),
+    groupCount({ ...f, doors: undefined }, "l.doors"),
+    groupCount({ ...f, drivetrain: "" }, "l.drivetrain"),
+    groupCount({ ...f, origin: "" }, "l.origin"),
+    histCount({ ...f, powerMin: undefined, powerMax: undefined }, "l.fiscal_power", 0, POWER_MAX),
+    equipmentCounts({ ...f, equipment: "" }),
     ...FLAG_KEYS.map((flag) => plainCount({ ...f, [flag]: true })),
   ]);
 
@@ -639,6 +673,12 @@ export async function facetCounts(filters: Partial<Filters>): Promise<Facets> {
   out.models = modelRows;
   out.priceHist = priceHist;
   out.yearHist = yearHist;
+  out.color = color;
+  out.doors = doors;
+  out.drivetrain = drivetrain;
+  out.origin = origin;
+  out.powerHist = powerHist;
+  out.equipment = equipment;
   FLAG_KEYS.forEach((flag, i) => { out.flags[flag] = flagCounts[i] as number; });
   return out;
 }

@@ -1,7 +1,7 @@
 import "server-only";
 import type { Seller, Vehicle } from "./types";
 import type { Filters } from "./search";
-import type { Facets } from "./facets";
+import { emptyFacets, type Facets } from "./facets";
 import type { CatalogEntry } from "./source-types";
 import { CATALOG } from "./data/catalog";
 import { estimateValue, trustOf, type Estimate, type EstimateInput } from "./market";
@@ -255,17 +255,7 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
 
 /** عدّادات اللوحة الجانبية */
 export async function getFacets(filters: Partial<Filters>): Promise<Facets> {
-  const empty: Facets = {
-    total: 0,
-    kind: { all: 0, car: 0, moto: 0 },
-    body: {}, fuel: {}, gearbox: {}, condition: {}, city: {},
-    flags: {
-      goodDealsOnly: 0, inspectedOnly: 0, verifiedOnly: 0,
-      firstHandOnly: 0, urgentOnly: 0,
-    },
-    makes: {}, models: {},
-    priceHist: [], yearHist: [],
-  };
+  const empty: Facets = emptyFacets();
   if (!usingDb()) return empty;
   try {
     const { facetCounts } = await db();

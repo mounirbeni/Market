@@ -27,6 +27,8 @@ const BODIES: Body[] = [
   "scooter", "roadster", "trail", "sportive", "custom",
 ];
 const CONDITIONS: Condition[] = ["excellent", "tres-bon", "bon", "moyen"];
+const DRIVETRAINS = ["fwd", "rwd", "awd"] as const;
+const ORIGINS = ["maghribia", "mostawrada"] as const;
 
 const clampInt = (v: unknown, min: number, max: number, fallback: number) => {
   const n = Math.trunc(Number(v));
@@ -35,6 +37,8 @@ const clampInt = (v: unknown, min: number, max: number, fallback: number) => {
 const text = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
 const pick = <T extends string>(list: T[], v: unknown, fallback: T): T =>
   list.includes(v as T) ? (v as T) : fallback;
+const pickOptional = <T extends string>(list: readonly T[], v: unknown): T | undefined =>
+  list.includes(v as T) ? (v as T) : undefined;
 
 interface PatchBody {
   /** تبديل الحالة وحدها: active | draft | sold */
@@ -123,6 +127,8 @@ export async function PATCH(
     displacement: e.displacement ? clampInt(e.displacement, 49, 3000, 125) : undefined,
     doors: e.doors ? clampInt(e.doors, 2, 7, 5) : undefined,
     color: text(e.color, 40) || "أبيض",
+    drivetrain: pickOptional(DRIVETRAINS, e.drivetrain),
+    origin: pickOptional(ORIGINS, e.origin),
     city: city || "casablanca",
     condition,
     firstHand: owners === 1,
@@ -165,6 +171,8 @@ export async function PATCH(
       displacement: draft.displacement ?? null,
       doors: draft.doors ?? null,
       color: draft.color,
+      drivetrain: draft.drivetrain ?? null,
+      origin: draft.origin ?? null,
       city: draft.city,
       condition,
       papersOk: draft.papersOk,

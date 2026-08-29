@@ -27,6 +27,8 @@ export const FLAG_KEYS: FlagKey[] = [
   "urgentOnly",
 ];
 
+export const POWER_MAX = 30;
+
 export interface Facets {
   total: number;
   kind: { all: number; car: number; moto: number };
@@ -40,6 +42,13 @@ export interface Facets {
   models: Record<string, number>;
   priceHist: number[];
   yearHist: number[];
+  color: Record<string, number>;
+  doors: Record<string, number>;
+  drivetrain: Record<string, number>;
+  origin: Record<string, number>;
+  powerHist: number[];
+  /** عدد الإعلانات اللي فيها كل تجهيز */
+  equipment: Record<string, number>;
 }
 
 /** نفس التقسيم اللي كان كيتّدار فالمتصفح — باش الرسم مايتبدّلش */
@@ -63,6 +72,12 @@ export function emptyFacets(): Facets {
     models: {},
     priceHist: new Array(HIST_BUCKETS).fill(0),
     yearHist: new Array(HIST_BUCKETS).fill(0),
+    color: {},
+    doors: {},
+    drivetrain: {},
+    origin: {},
+    powerHist: new Array(HIST_BUCKETS).fill(0),
+    equipment: {},
   };
 }
 

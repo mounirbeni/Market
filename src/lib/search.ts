@@ -21,6 +21,19 @@ export interface Filters {
   yearMin?: number;
   yearMax?: number;
   kmMax?: number;
+  /** اللون — كتابة حرة، مطابقة تامة */
+  color: string;
+  /** عدد الأبواب (سيارات) */
+  doors?: number;
+  /** القوة الجبائية — من/إلى */
+  powerMin?: number;
+  powerMax?: number;
+  /** الدفع */
+  drivetrain: string;
+  /** مصدر السيارة */
+  origin: string;
+  /** تجهيزات مطلوبة — مفصولة بفاصلة، لازم تكون كلها موجودة */
+  equipment: string;
   sellerType: string;
   /** خيارات الثقة */
   trustMin?: number;
@@ -63,6 +76,10 @@ export const DEFAULT_FILTERS: Filters = {
   body: "",
   condition: "",
   urgentOnly: false,
+  color: "",
+  drivetrain: "",
+  origin: "",
+  equipment: "",
   sellerType: "",
   inspectedOnly: false,
   verifiedOnly: false,
@@ -119,6 +136,16 @@ export function applyFilters(filters: Partial<Filters>, source: Vehicle[]): Vehi
     if (f.yearMin && v.year < f.yearMin) return false;
     if (f.yearMax && v.year > f.yearMax) return false;
     if (f.kmMax && v.km > f.kmMax) return false;
+    if (f.color && v.color !== f.color) return false;
+    if (f.doors && v.doors !== f.doors) return false;
+    if (f.powerMin && v.fiscalPower < f.powerMin) return false;
+    if (f.powerMax && v.fiscalPower > f.powerMax) return false;
+    if (f.drivetrain && v.drivetrain !== f.drivetrain) return false;
+    if (f.origin && v.origin !== f.origin) return false;
+    if (f.equipment) {
+      const wanted = f.equipment.split(",").filter(Boolean);
+      if (!wanted.every((e) => v.equipment.includes(e))) return false;
+    }
     if (f.sellerType && v.seller?.type !== f.sellerType) return false;
     if (f.inspectedOnly && !v.inspected) return false;
     if (f.firstHandOnly && !v.firstHand) return false;
@@ -176,6 +203,13 @@ export function filtersFromParams(sp: URLSearchParams): Partial<Filters> {
     body: sp.get("body") || "",
     condition: sp.get("condition") || "",
     urgentOnly: sp.get("urgent") === "1",
+    color: sp.get("color") || "",
+    doors: num("doors"),
+    powerMin: num("powerMin"),
+    powerMax: num("powerMax"),
+    drivetrain: sp.get("drivetrain") || "",
+    origin: sp.get("origin") || "",
+    equipment: sp.get("equipment") || "",
     sellerType: sp.get("sellerType") || "",
     priceMin: num("priceMin"),
     priceMax: num("priceMax"),
@@ -206,6 +240,13 @@ export function paramsFromFilters(f: Partial<Filters>): URLSearchParams {
   set("gearbox", f.gearbox);
   set("body", f.body);
   set("condition", f.condition);
+  set("color", f.color);
+  set("doors", f.doors);
+  set("powerMin", f.powerMin);
+  set("powerMax", f.powerMax);
+  set("drivetrain", f.drivetrain);
+  set("origin", f.origin);
+  set("equipment", f.equipment);
   set("sellerType", f.sellerType);
   set("priceMin", f.priceMin);
   set("priceMax", f.priceMax);

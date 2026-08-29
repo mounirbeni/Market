@@ -5,12 +5,17 @@ import { CITIES } from "@/lib/cities";
 
 import { paramsFromFilters, type Filters } from "@/lib/search";
 import {
-  emptyFacets, PRICE_MAX as FACET_PRICE_MAX, type Facets, type FlagKey,
+  emptyFacets, POWER_MAX, PRICE_MAX as FACET_PRICE_MAX, type Facets, type FlagKey,
 } from "@/lib/facets";
 import { formatNumber } from "@/lib/format";
+import { EQUIPMENT } from "@/lib/equipment";
 import {
-  BadgeCheck, Bolt, Calendar, Car, Droplet, Fuel, Gauge, Gearbox, Grid, Leaf,
-  MapPin, Moto, Reset, ShieldCheck, Timer, TrendingDown, Key, Wrench,
+  CAR_BODIES, CONDITIONS, DOOR_OPTIONS, DRIVETRAINS, FUELS, GEARBOXES,
+  MOTO_BODIES, MOTO_BODY_SET, ORIGINS,
+} from "@/lib/vehicle-options";
+import {
+  BadgeCheck, Calendar, Car, Check, Door, Fuel, Gauge, Grid, MapPin, Moto,
+  Palette, Plus, Reset, ShieldCheck, Sparkle, Timer, TrendingDown, Key, Wrench,
 } from "@/components/icons";
 import { VehicleGlyph } from "@/components/VehicleArt";
 import {
@@ -26,43 +31,7 @@ interface Props {
   lockBrand?: string;
 }
 
-const CONDITIONS = [
-  { value: "excellent", label: "ممتازة", fr: "Excellent" },
-  { value: "tres-bon", label: "جيدة جداً", fr: "Très bon" },
-  { value: "bon", label: "جيدة", fr: "Bon" },
-  { value: "moyen", label: "متوسطة", fr: "Moyen" },
-];
-
-const CAR_BODIES = [
-  { value: "citadine", label: "مدينية", fr: "Citadine" },
-  { value: "berline", label: "صالون", fr: "Berline" },
-  { value: "suv", label: "دفع رباعي", fr: "SUV" },
-  { value: "break", label: "بريك", fr: "Break" },
-  { value: "utilitaire", label: "نفعية", fr: "Utilitaire" },
-  { value: "cabriolet", label: "مكشوفة", fr: "Cabriolet" },
-];
-
-const MOTO_BODIES = [
-  { value: "scooter", label: "سكوتر", fr: "Scooter" },
-  { value: "roadster", label: "رودستر", fr: "Roadster" },
-  { value: "trail", label: "طرق وعرة", fr: "Trail" },
-  { value: "sportive", label: "رياضية", fr: "Sportive" },
-  { value: "custom", label: "كوستوم", fr: "Custom" },
-];
-
-const MOTO_SET = new Set(MOTO_BODIES.map((b) => b.value));
-
-const FUELS = [
-  { value: "diesel", label: "ديزل", fr: "Diesel", Icon: Droplet },
-  { value: "essence", label: "بنزين", fr: "Essence", Icon: Fuel },
-  { value: "hybride", label: "هجين", fr: "Hybride", Icon: Leaf },
-  { value: "electrique", label: "كهربائي", fr: "Électrique", Icon: Bolt },
-];
-
-const GEARBOXES = [
-  { value: "manuelle", label: "يدوية", fr: "Manuelle", Icon: Gearbox },
-  { value: "automatique", label: "أوتوماتيك", fr: "Automatique", Icon: Gearbox },
-];
+const MOTO_SET = MOTO_BODY_SET;
 
 const PRICE_MAX = 600000;
 const KM_MAX = 350000;
@@ -107,12 +76,27 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
     return showAllCities ? withCounts : withCounts.slice(0, 8);
   }, [f9s, showAllCities]);
 
+  const equipmentTags = useMemo(
+    () => filters.equipment.split(",").filter(Boolean),
+    [filters.equipment],
+  );
+  const toggleEquipment = (tag: string) => {
+    const next = equipmentTags.includes(tag)
+      ? equipmentTags.filter((t) => t !== tag)
+      : [...equipmentTags, tag];
+    set({ equipment: next.join(",") });
+  };
+
   const activeTotal = [
     filters.make, filters.model, filters.city, filters.fuel, filters.gearbox, filters.body,
-    filters.condition, filters.urgentOnly,
+    filters.condition, filters.urgentOnly, filters.color, filters.drivetrain, filters.origin,
   ].filter(Boolean).length
-    + [filters.priceMin, filters.priceMax, filters.yearMin, filters.yearMax, filters.kmMax, filters.trustMin].filter((x) => x !== undefined).length
+    + [
+      filters.priceMin, filters.priceMax, filters.yearMin, filters.yearMax, filters.kmMax,
+      filters.trustMin, filters.doors, filters.powerMin, filters.powerMax,
+    ].filter((x) => x !== undefined).length
     + (filters.condition ? 1 : 0)
+    + equipmentTags.length
     + [filters.goodDealsOnly, filters.inspectedOnly, filters.verifiedOnly, filters.firstHandOnly, filters.urgentOnly].filter(Boolean).length;
 
   return (
@@ -317,6 +301,98 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
             onChange={(c) => set({ condition: c })}
             options={CONDITIONS.map((c) => ({ ...c, count: f9s.condition[c.value] ?? 0 }))}
           />
+        </FilterSection>
+
+        {/* اللون */}
+        {Object.keys(f9s.color).length > 0 && (
+        <FilterSection title="اللون" Icon={Palette} activeCount={filters.color ? 1 : 0}>
+          <ChipToggles
+            value={filters.color}
+            onChange={(c) => set({ color: c })}
+            options={Object.entries(f9s.color)
+              .sort((a, b) => b[1] - a[1])
+              .map(([value, n]) => ({ value, label: value, count: n }))}
+          />
+        </FilterSection>
+        )}
+
+        {/* عدد الأبواب — سيارات فقط */}
+        {filters.kind !== "moto" && Object.keys(f9s.doors).length > 0 && (
+        <FilterSection title="عدد الأبواب" Icon={Door} activeCount={filters.doors ? 1 : 0}>
+          <ChipToggles
+            value={filters.doors ? String(filters.doors) : ""}
+            onChange={(v) => set({ doors: v ? Number(v) : undefined })}
+            options={DOOR_OPTIONS.map((d) => ({
+              value: String(d), label: String(d), count: f9s.doors[String(d)] ?? 0,
+            }))}
+          />
+        </FilterSection>
+        )}
+
+        {/* قوة المحرك */}
+        <FilterSection
+          title="قوة المحرك"
+          Icon={Gauge}
+          activeCount={(filters.powerMin ? 1 : 0) + (filters.powerMax ? 1 : 0)}
+        >
+          <DualRange
+            min={0}
+            max={POWER_MAX}
+            step={1}
+            low={filters.powerMin}
+            high={filters.powerMax}
+            histogram={f9s.powerHist}
+            onChange={(lo, hi) => set({ powerMin: lo, powerMax: hi })}
+            format={(n) => `${n} حصان`}
+          />
+        </FilterSection>
+
+        {/* الدفع — سيارات فقط */}
+        {filters.kind !== "moto" && (
+        <FilterSection title="الدفع" Icon={Car} activeCount={filters.drivetrain ? 1 : 0}>
+          <ChipToggles
+            value={filters.drivetrain}
+            onChange={(d) => set({ drivetrain: d })}
+            options={DRIVETRAINS.map((d) => ({ ...d, count: f9s.drivetrain[d.value] ?? 0 }))}
+          />
+        </FilterSection>
+        )}
+
+        {/* مصدر السيارة */}
+        <FilterSection title="مصدر السيارة" Icon={MapPin} activeCount={filters.origin ? 1 : 0}>
+          <ChipToggles
+            value={filters.origin}
+            onChange={(o) => set({ origin: o })}
+            options={ORIGINS.map((o) => ({ ...o, count: f9s.origin[o.value] ?? 0 }))}
+          />
+        </FilterSection>
+
+        {/* المواصفات والخيارات */}
+        <FilterSection title="المواصفات والخيارات" Icon={Sparkle} activeCount={equipmentTags.length}>
+          <div className="flex flex-wrap gap-1.5">
+            {EQUIPMENT.map((eq) => {
+              const on = equipmentTags.includes(eq);
+              const n = f9s.equipment[eq] ?? 0;
+              return (
+                <button
+                  key={eq}
+                  type="button"
+                  onClick={() => toggleEquipment(eq)}
+                  aria-pressed={on}
+                  disabled={n === 0 && !on}
+                  className="chip transition disabled:opacity-30"
+                  style={{
+                    background: on ? "var(--brand)" : "var(--surface-3)",
+                    color: on ? "var(--brand-ink)" : "var(--text-muted)",
+                    borderColor: "transparent",
+                  }}
+                >
+                  {on ? <Check size={11} /> : <Plus size={11} />}{eq}
+                  <span className="num opacity-55">{n}</span>
+                </button>
+              );
+            })}
+          </div>
         </FilterSection>
 
         {/* المدينة */}
