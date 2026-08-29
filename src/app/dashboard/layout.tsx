@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { getCurrentUser } from "@/lib/auth";
 
 /**
@@ -7,6 +8,12 @@ import { getCurrentUser } from "@/lib/auth";
  */
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=%2Fdashboard");
+  if (!user) {
+    // مسار middleware.ts — بلا هادشي رابط عميق (مثلاً تعديل إعلان)
+    // كان كيرجّع المستخدم بعد الدخول لواجهة القيادة العامة، ماشي
+    // للصفحة اللي كان قاصدها
+    const path = (await headers()).get("x-pathname") ?? "/dashboard";
+    redirect(`/login?next=${encodeURIComponent(path)}`);
+  }
   return <>{children}</>;
 }

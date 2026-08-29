@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { Vehicle } from "@/lib/types";
 import { useSession } from "@/store/session";
+import { vehicleHref } from "@/lib/slug";
 import { Calendar, Check, Close, MapPin, ShieldCheck } from "@/components/icons";
 
 /** أقرب موعد ممكن: غدّا فـ11:00 — كيعمّر الحقل بقيمة معقولة */
@@ -110,7 +111,10 @@ export function AppointmentDialog({ v, onClose }: { v: Vehicle; onClose: () => v
                 <p className="text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
                   خاصك تسجّل الدخول باش تطلب موعد — هكا البائع كيعرف مع من غادي يتلاقا.
                 </p>
-                <Link href="/login?next=%2Fvehicle" className="btn btn-primary mt-4 w-full">
+                <Link
+                  href={`/login?next=${encodeURIComponent(vehicleHref(v))}`}
+                  className="btn btn-primary mt-4 w-full"
+                >
                   تسجيل الدخول
                 </Link>
               </div>
