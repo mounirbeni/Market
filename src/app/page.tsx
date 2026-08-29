@@ -3,6 +3,7 @@ import { vehicleHref } from "@/lib/slug";
 import { HeroSearch } from "@/components/HeroSearch";
 import { BrandTile } from "@/components/BrandMark";
 import { SuggestedForYou } from "@/components/SuggestedForYou";
+import { PageTransition } from "@/components/PageTransition";
 import { VehicleCard } from "@/components/VehicleCard";
 import { VehicleArt, VehicleGlyph } from "@/components/VehicleArt";
 import { TrustRing } from "@/components/TrustBadge";
@@ -186,7 +187,7 @@ export default async function HomePage() {
     .filter((b) => b.n > 0);
 
   return (
-    <>
+    <PageTransition>
       {/* ================= البطل ================= */}
       <section className="relative">
         <div className="relative min-h-[560px] overflow-hidden sm:min-h-[680px]" style={{ background: "#040c1a" }}>
@@ -258,7 +259,7 @@ export default async function HomePage() {
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/cars" className="btn btn-primary btn-lg">
+                <Link href="/cars" className="btn btn-primary btn-lg" transitionTypes={["nav-forward"]}>
                   <Car size={17} /> تصفح المركبات
                 </Link>
                 <Link
@@ -282,6 +283,7 @@ export default async function HomePage() {
               <Link
                 key={href}
                 href={href}
+                transitionTypes={["nav-forward"]}
                 className="flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-[12.5px] font-bold transition hover:-translate-y-0.5 hover:border-[var(--brand)] hover:text-[var(--brand)]"
                 style={{
                   borderColor: "var(--line)",
@@ -373,6 +375,7 @@ export default async function HomePage() {
             <Link
               key={c.key}
               href={c.href}
+              transitionTypes={["nav-forward"]}
               className="card card-hover group flex flex-col items-center gap-2.5 p-5 text-center"
             >
               <span
@@ -400,6 +403,7 @@ export default async function HomePage() {
               <Link
                 key={c.key}
                 href={`${c.kind === "moto" ? "/motorcycles" : "/cars"}?body=${c.key}`}
+                transitionTypes={["nav-forward"]}
                 className="card card-hover group flex flex-col items-center gap-2 p-5 text-center"
               >
                 <span
@@ -434,7 +438,7 @@ export default async function HomePage() {
                 مركبات ثمنها تحت المرجع المحسوب، مرتّبة حسب الفارق.
               </p>
             </div>
-            <Link href="/cars?deals=1" className="btn btn-ghost btn-sm">كل السيارات <ArrowLeft size={14} /></Link>
+            <Link href="/cars?deals=1" className="btn btn-ghost btn-sm" transitionTypes={["nav-forward"]}>كل السيارات <ArrowLeft size={14} /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {featuredCars.map((v) => <VehicleCard key={v.id} v={v} compact featured />)}
@@ -455,7 +459,7 @@ export default async function HomePage() {
                 من السكوتر ديال المدينة حتى دراجات الطرق الوعرة.
               </p>
             </div>
-            <Link href="/motorcycles" className="btn btn-ghost btn-sm">كل الدراجات <ArrowLeft size={14} /></Link>
+            <Link href="/motorcycles" className="btn btn-ghost btn-sm" transitionTypes={["nav-forward"]}>كل الدراجات <ArrowLeft size={14} /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {featuredMotos.map((v) => <VehicleCard key={v.id} v={v} compact featured />)}
@@ -476,7 +480,7 @@ export default async function HomePage() {
                 آخر السيارات والدراجات النارية اللي تزادت فالمنصة.
               </p>
             </div>
-            <Link href="/vehicles?sort=recent" className="btn btn-ghost btn-sm">كل الإعلانات <ArrowLeft size={14} /></Link>
+            <Link href="/vehicles?sort=recent" className="btn btn-ghost btn-sm" transitionTypes={["nav-forward"]}>كل الإعلانات <ArrowLeft size={14} /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {latestVehicles.map((v) => <VehicleCard key={v.id} v={v} compact />)}
@@ -542,6 +546,7 @@ export default async function HomePage() {
               <Link
                 key={b.key}
                 href={`/vehicles?${sp.toString()}`}
+                transitionTypes={["nav-forward"]}
                 className="card card-hover group flex flex-col items-center gap-2.5 p-5 text-center"
               >
                 <span
@@ -571,6 +576,7 @@ export default async function HomePage() {
             <Link
               key={c.slug}
               href={`/cars?city=${c.slug}`}
+              transitionTypes={["nav-forward"]}
               className="card card-hover flex items-center gap-2.5 p-4"
             >
               <span
@@ -737,7 +743,7 @@ export default async function HomePage() {
               ))}
             </div>
 
-            <Link href={vehicleHref(hero)} className="btn btn-primary mt-8">
+            <Link href={vehicleHref(hero)} className="btn btn-primary mt-8" transitionTypes={["nav-forward"]}>
               شوف الإعلان كاملاً <ArrowLeft size={15} />
             </Link>
           </div>
@@ -857,6 +863,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-    </>
+    </PageTransition>
   );
 }

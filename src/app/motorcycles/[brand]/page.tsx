@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { VehiclesClient } from "@/components/search/VehiclesClient";
 import { VehiclesPageSkeleton } from "@/components/VehicleGridSkeleton";
+import { PageTransition } from "@/components/PageTransition";
 import { brandFromSlug } from "@/lib/slug";
 
 /* الصفحة كتّرندر عند كل طلب.
@@ -35,14 +36,16 @@ export default async function MotoBrandPage({ params }: { params: Promise<{ bran
   if (!make) notFound();
 
   return (
-    <Suspense fallback={<VehiclesPageSkeleton />}>
-      <VehiclesClient
-        lockKind="moto"
-        lockBrand={make}
-        basePath={`/motorcycles/${brand}`}
-        heading={`دراجات ${make} في المغرب`}
-        intro={`كل إعلانات ${make} المتوفرة حالياً، مرتّبة حسب الأنسب. صفّي حسب الموديل، السنة، الثمن أو المدينة.`}
-      />
-    </Suspense>
+    <PageTransition>
+      <Suspense fallback={<VehiclesPageSkeleton />}>
+        <VehiclesClient
+          lockKind="moto"
+          lockBrand={make}
+          basePath={`/motorcycles/${brand}`}
+          heading={`دراجات ${make} في المغرب`}
+          intro={`كل إعلانات ${make} المتوفرة حالياً، مرتّبة حسب الأنسب. صفّي حسب الموديل، السنة، الثمن أو المدينة.`}
+        />
+      </Suspense>
+    </PageTransition>
   );
 }

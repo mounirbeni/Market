@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { VehiclesClient } from "@/components/search/VehiclesClient";
 import { VehiclesPageSkeleton } from "@/components/VehicleGridSkeleton";
+import { PageTransition } from "@/components/PageTransition";
 
 export const metadata: Metadata = {
   title: "سيارات ودراجات نارية مستعملة للبيع في المغرب",
@@ -11,8 +12,10 @@ export const metadata: Metadata = {
 
 export default function VehiclesPage() {
   return (
-    <Suspense fallback={<VehiclesPageSkeleton />}>
-      <VehiclesClient />
-    </Suspense>
+    <PageTransition>
+      <Suspense fallback={<VehiclesPageSkeleton />}>
+        <VehiclesClient />
+      </Suspense>
+    </PageTransition>
   );
 }

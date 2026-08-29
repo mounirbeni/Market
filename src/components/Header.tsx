@@ -89,6 +89,8 @@ export function Header() {
         // ملي التطبيق مزاد للشاشة الرئيسية وstatus bar شفّاف، هادشي
         // كيبعّد الهيدر على الـnotch/الجزيرة الديناميكية. صفر فالمتصفح العادي.
         paddingTop: "env(safe-area-inset-top)",
+        // ثابت أثناء انتقالات الصفحة الاتجاهية — مرجع بصري ماكيتحرّكش
+        viewTransitionName: "site-header",
       }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1400px] items-center gap-3 px-4">
@@ -240,6 +242,7 @@ export function MobileNav() {
         // بلا هادشي الأزرار كتّغطّى بمقبض الإيماءة ديال آيفون ملي
         // التطبيق مزاد للشاشة الرئيسية
         paddingBottom: "env(safe-area-inset-bottom)",
+        viewTransitionName: "site-mobile-nav",
       }}
       aria-label="التنقل السريع"
     >

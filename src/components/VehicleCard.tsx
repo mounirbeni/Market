@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { vehicleHref } from "@/lib/slug";
-import { useMemo } from "react";
+import { useMemo, ViewTransition } from "react";
 import type { Vehicle } from "@/lib/types";
 import { AR, formatNumber, timeAgo } from "@/lib/format";
 import { cityName } from "@/lib/cities";
@@ -135,12 +135,14 @@ export function VehicleCard({
 
   return (
     <article className="card card-hover group relative overflow-hidden">
-      <Link href={vehicleHref(v)} className="block">
+      <Link href={vehicleHref(v)} className="block" transitionTypes={["nav-forward"]}>
         <div className="relative aspect-[16/10] overflow-hidden">
-          <VehicleCover
-            v={v}
-            className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
-          />
+          <ViewTransition name={`vehicle-${v.id}`} share="morph" default="none">
+            <VehicleCover
+              v={v}
+              className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
+            />
+          </ViewTransition>
           <Badges v={v} featured={featured} />
           <MediaCount v={v} />
         </div>
@@ -189,6 +191,7 @@ export function VehicleCard({
           href={vehicleHref(v)}
           className="flex items-center gap-1.5 text-[12px] font-bold transition-all hover:gap-2.5"
           style={{ color: "var(--brand)" }}
+          transitionTypes={["nav-forward"]}
         >
           شوف التفاصيل <ArrowLeft size={14} />
         </Link>
@@ -210,12 +213,14 @@ export function VehicleRow({ v }: { v: Vehicle }) {
 
   return (
     <article className="card card-hover group relative overflow-hidden">
-      <Link href={vehicleHref(v)} className="flex flex-col sm:flex-row">
+      <Link href={vehicleHref(v)} className="flex flex-col sm:flex-row" transitionTypes={["nav-forward"]}>
         <div className="relative aspect-[16/10] w-full overflow-hidden sm:aspect-auto sm:w-[280px] sm:shrink-0">
-          <VehicleCover
-            v={v}
-            className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
-          />
+          <ViewTransition name={`vehicle-${v.id}`} share="morph" default="none">
+            <VehicleCover
+              v={v}
+              className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
+            />
+          </ViewTransition>
           <MediaCount v={v} />
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ViewTransition } from "react";
 import { VehicleArt } from "@/components/VehicleArt";
 import { SafeImg } from "@/components/SafeImg";
 import { artShape } from "@/lib/artshape";
@@ -46,35 +46,37 @@ export function Gallery({ v }: { v: Vehicle }) {
     <div className="min-w-0">
       <div className="card relative overflow-hidden">
         <div className="aspect-[16/10]">
-          {onClip ? (
-            /* preload="metadata" باش ماننزّلوش الفيديو كامل بلا داعي.
-               playsInline ضروري: بلاه iPhone كيفتح الفيديو فوق الصفحة. */
-            <video
-              src={clip!.url}
-              controls
-              playsInline
-              preload="metadata"
-              className="h-full w-full bg-black object-contain"
-            />
-          ) : shotAt(active) ? (
-            <SafeImg
-              src={shotAt(active)!.url}
-              alt={`${v.make} ${v.model} — صورة ${active + 1}`}
-              className="h-full w-full object-cover"
-              loading={active === 0 ? "eager" : "lazy"}
-              onBroken={markBroken}
-            />
-          ) : (
-            <VehicleArt
-              id={v.id}
-              kind={v.kind}
-              body={shape}
-              color={v.color}
-              variant={active}
-              className="h-full w-full"
-              label={`${v.make} ${v.model} — صورة ${active + 1}`}
-            />
-          )}
+          <ViewTransition name={`vehicle-${v.id}`} share="morph" default="none">
+            {onClip ? (
+              /* preload="metadata" باش ماننزّلوش الفيديو كامل بلا داعي.
+                 playsInline ضروري: بلاه iPhone كيفتح الفيديو فوق الصفحة. */
+              <video
+                src={clip!.url}
+                controls
+                playsInline
+                preload="metadata"
+                className="h-full w-full bg-black object-contain"
+              />
+            ) : shotAt(active) ? (
+              <SafeImg
+                src={shotAt(active)!.url}
+                alt={`${v.make} ${v.model} — صورة ${active + 1}`}
+                className="h-full w-full object-cover"
+                loading={active === 0 ? "eager" : "lazy"}
+                onBroken={markBroken}
+              />
+            ) : (
+              <VehicleArt
+                id={v.id}
+                kind={v.kind}
+                body={shape}
+                color={v.color}
+                variant={active}
+                className="h-full w-full"
+                label={`${v.make} ${v.model} — صورة ${active + 1}`}
+              />
+            )}
+          </ViewTransition>
         </div>
 
         <div className="absolute top-3 right-3 flex flex-wrap justify-end gap-1.5">

@@ -639,12 +639,83 @@
 .animate-drawer-in { animation: drawer-in 0.32s var(--ease-out-soft) both; }
 .animate-drawer-out { animation: drawer-out 0.22s var(--ease-out-soft) both; }
 
+/* ============================================================
+   انتقالات الصفحة (View Transitions) — <ViewTransition> ديال React
+   ============================================================ */
+
+/* اندماج الصورة المصغّرة فالبطاقة مع صورة الغلاف فصفحة الإعلان */
+::view-transition-group(.morph) {
+  animation-duration: 420ms;
+  animation-timing-function: var(--ease-out-soft);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: via-blur;
+  animation-duration: 420ms;
+}
+@keyframes via-blur {
+  30% { filter: blur(3px); }
+}
+
+/* الانزلاق الاتجاهي بين الصفحات: قدّام (nav-forward) ولور (nav-back) */
+@keyframes via-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes via-slide {
+  from { translate: var(--slide-offset); }
+  to { translate: 0; }
+}
+::view-transition-old(.nav-forward) {
+  --slide-offset: -48px;
+  animation: 140ms ease-in both via-fade reverse, 360ms var(--ease-out-soft) both via-slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --slide-offset: 48px;
+  animation: 200ms ease-out 140ms both via-fade, 360ms var(--ease-out-soft) both via-slide;
+}
+::view-transition-old(.nav-back) {
+  --slide-offset: 48px;
+  animation: 140ms ease-in both via-fade reverse, 360ms var(--ease-out-soft) both via-slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --slide-offset: -48px;
+  animation: 200ms ease-out 140ms both via-fade, 360ms var(--ease-out-soft) both via-slide;
+}
+
+/* الهيدر وشريط التنقل السفلي: مثبّتين، ماكيتحرّكوش مع الانزلاق */
+::view-transition-group(site-header),
+::view-transition-group(site-mobile-nav) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header),
+::view-transition-old(site-mobile-nav) {
+  display: none;
+}
+::view-transition-new(site-header),
+::view-transition-new(site-mobile-nav) {
+  animation: none;
+}
+
+/* الأحداث كتفوت للصفحة الحيّة أثناء الحركة */
+::view-transition {
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+  /* ::view-transition-* شبه-عناصر معزولة، ماكتطالهاش * العادية */
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*),
+  ::view-transition-image-pair(*) {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
   }
 }
 

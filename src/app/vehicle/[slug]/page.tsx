@@ -9,6 +9,7 @@ import { fairPriceFrom, trustOf, trustScore } from "@/lib/market";
 import { cityName } from "@/lib/cities";
 import { AR, formatDate, formatDh, formatKm, formatNumber, timeAgo } from "@/lib/format";
 import { Gallery } from "@/components/vehicle/Gallery";
+import { PageTransition } from "@/components/PageTransition";
 import { TrustPanel } from "@/components/vehicle/TrustPanel";
 import { RiskPanel } from "@/components/vehicle/RiskPanel";
 import { TcoCalculator } from "@/components/vehicle/TcoCalculator";
@@ -135,17 +136,18 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
   };
 
   return (
+    <PageTransition>
     <div className="mx-auto max-w-[1400px] px-4 py-6 pb-24 lg:pb-6">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <nav className="mb-5 flex flex-wrap items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-        <Link href="/" className="transition hover:text-[var(--brand)]">الرئيسية</Link>
+        <Link href="/" className="transition hover:text-[var(--brand)]" transitionTypes={["nav-back"]}>الرئيسية</Link>
         <ChevronLeft size={12} />
-        <Link href={section} className="transition hover:text-[var(--brand)]">
+        <Link href={section} className="transition hover:text-[var(--brand)]" transitionTypes={["nav-back"]}>
           {v.kind === "car" ? "سيارات" : "دراجات نارية"}
         </Link>
         <ChevronLeft size={12} />
-        <Link href={`${section}/${brandSlug(v.make)}`} className="transition hover:text-[var(--brand)]">
+        <Link href={`${section}/${brandSlug(v.make)}`} className="transition hover:text-[var(--brand)]" transitionTypes={["nav-back"]}>
           {v.make}
         </Link>
         <ChevronLeft size={12} />
@@ -313,5 +315,6 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
       <ViewTracker listingRef={v.id} />
       <RecentlyViewed currentId={v.id} />
     </div>
+    </PageTransition>
   );
 }
