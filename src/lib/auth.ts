@@ -28,6 +28,11 @@ export interface CurrentUser {
   city: string | null;
   email_verified: boolean;
   id_verified: boolean;
+  phone_verified: boolean;
+  avatar_url: string | null;
+  /** واش دار خطوة استكمال الملف الشخصي الإلزامية */
+  onboarded: boolean;
+  member_since: string;
 }
 
 /** المستخدم الحالي من الكوكي — null إلا ماكانش داخل */
@@ -37,7 +42,9 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!token) return null;
   try {
     return await one<CurrentUser>(
-      `SELECT u.id, u.name, u.email, u.phone, u.type, u.city, u.email_verified, u.id_verified
+      `SELECT u.id, u.name, u.email, u.phone, u.type, u.city, u.email_verified,
+              u.id_verified, u.phone_verified, u.avatar_url, u.onboarded,
+              u.member_since::text
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.token_hash = $1 AND s.expires_at > now() AND u.banned_at IS NULL`,
       [sha256(token)],

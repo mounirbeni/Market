@@ -189,6 +189,19 @@ export async function getStats(): Promise<SiteStats> {
   }
 }
 
+/** مدخلات مؤشر ثقة الحساب — نشاط، جودة الإعلانات، بلاغات */
+export async function getSellerStats(userId: string) {
+  const empty = { activeListings: 0, avgTrust: null as number | null, negativeReports: 0 };
+  if (!usingDb()) return empty;
+  try {
+    const { sellerStats } = await db();
+    return await sellerStats(userId);
+  } catch (e) {
+    console.error("[source] فشل جلب إحصائيات البائع:", e);
+    return empty;
+  }
+}
+
 /** عدد إعلانات كل وكيل */
 export async function getDealerCounts(): Promise<Record<string, number>> {
   if (!usingDb()) return {};

@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
+import { ProfileCompletionBanner } from "./ProfileCompletionBanner";
 import {
-  BadgeCheck, Calendar, Car, Chart, Heart, Message, Plus, Sliders, Users,
+  BadgeCheck, Calendar, Car, Chart, Heart, Message, Plus, ShieldCheck, Sliders, Users,
 } from "@/components/icons";
 
 const NAV = [
@@ -16,6 +17,7 @@ const NAV = [
   { href: "/dashboard/appointments", label: "المواعيد", Icon: Calendar },
   { href: "/dashboard/favorites", label: "المفضلة", Icon: Heart },
   { href: "/dashboard/dealer", label: "المعرض ديالي", Icon: Users },
+  { href: "/dashboard/trust", label: "مركز الثقة والأمان", Icon: ShieldCheck },
   { href: "/dashboard/settings", label: "الإعدادات", Icon: Sliders },
 ];
 
@@ -118,6 +120,7 @@ export function DashboardShell({ title, children }: { title: string; children: R
 
         <div className="min-w-0">
           <h1 className="mb-6 text-2xl font-extrabold tracking-tight">{title}</h1>
+          <ProfileCompletionBanner user={user} />
           {children}
         </div>
       </div>

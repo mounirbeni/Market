@@ -6,6 +6,7 @@ import type { Seller, Vehicle } from "@/lib/types";
 import { cityName } from "@/lib/cities";
 import { AR } from "@/lib/format";
 import { vehicleHref } from "@/lib/slug";
+import { userBadges } from "@/lib/userBadges";
 import { ReportDialog } from "./ReportDialog";
 import { ContactSellerButton } from "./ContactSellerButton";
 import { AppointmentDialog } from "./AppointmentDialog";
@@ -24,11 +25,25 @@ const waNumber = (phone: string) => {
 /* الرقم كان مولّداً من معرّف الإعلان — رقم مغربي حقيقي ديال شي
    واحد آخر. دابا كيجي من حساب البائع، وإلا ماكانش كنخبّيو الأزرار. */
 
-export function SellerCard({ seller, v }: { seller: Seller; v: Vehicle }) {
+export function SellerCard({ seller, v, dealerVerified = false }: { seller: Seller; v: Vehicle; dealerVerified?: boolean }) {
   const [revealed, setRevealed] = useState(false);
   const [shared, setShared] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [booking, setBooking] = useState(false);
+
+  /* ماعندناش هنا كل مدخلات مؤشر ثقة الحساب (نشاط، جودة الإعلانات…) —
+     تقدير من التقييم وعدد المبيعات كافي باش نميّزو «بائع موثوق»
+     الحقيقي من حساب موثّق جديد بلا تاريخ. */
+  const trustLevel = seller.idVerified && seller.rating >= 4.5 && seller.salesCount >= 5
+    ? "high" as const
+    : seller.idVerified ? "medium" as const : "low" as const;
+  const badges = userBadges({
+    idVerified: seller.idVerified,
+    phoneVerified: seller.phoneVerified,
+    type: seller.type,
+    dealerVerified,
+    trustLevel,
+  });
 
   const title = `${v.make} ${v.model} ${v.year}`;
   const waText = encodeURIComponent(
@@ -85,6 +100,19 @@ export function SellerCard({ seller, v }: { seller: Seller; v: Vehicle }) {
                 <Clock size={11} /> ~<span className="num">{seller.responseMinutes}</span> دقيقة
               </span>
             </div>
+            {badges.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {badges.map((b) => (
+                  <span
+                    key={b.key}
+                    className="chip"
+                    style={{ background: `color-mix(in oklab, ${b.color} 14%, transparent)`, color: b.color, borderColor: "transparent" }}
+                  >
+                    <b.Icon size={11} /> {b.label}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

@@ -267,7 +267,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
 
         {/* ---------- العمود الجانبي ---------- */}
         <aside className="min-w-0 space-y-6 lg:sticky lg:top-[84px] lg:h-fit">
-          <SellerCard seller={seller} v={v} />
+          <SellerCard seller={seller} v={v} dealerVerified={Boolean(dealer?.verified)} />
           <RiskPanel v={v} duplicates={duplicates} />
           <TrustPanel trust={trust} />
 

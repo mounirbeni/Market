@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
-import { CITIES } from "@/lib/cities";
+import { AccountBasicsForm } from "./AccountBasicsForm";
 import {
-  BadgeCheck, Bell, Check, IdCard, Info, MapPin, Phone, ShieldCheck, Users,
+  BadgeCheck, Bell, IdCard, Info, ShieldCheck, Sparkle, Users,
 } from "@/components/icons";
 
 interface VerifState {
@@ -17,78 +18,23 @@ export function DashboardSettings() {
   const { unit, setUnit, theme, toggleTheme } = useApp();
   const { user, signOut } = useSession();
 
-  const [form, setForm] = useState({
-    name: user?.name ?? "",
-    phone: user?.phone ?? "",
-    city: user?.city ?? "casablanca",
-  });
-  const [busy, setBusy] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setBusy(true);
-    try {
-      const res = await fetch("/api/me/profile", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نسجّلو.");
-      setSaved(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "ماقدرناش نسجّلو.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <div className="grid gap-5 lg:grid-cols-2">
-      <form onSubmit={save} className="card p-5">
+      <div className="card p-5">
         <h2 className="flex items-center gap-2 text-[14px] font-bold">
           <Users size={16} style={{ color: "var(--brand)" }} /> معلومات الحساب
         </h2>
-        <div className="mt-4 space-y-3">
-          <div>
-            <label className="label" htmlFor="st-name"><Users size={13} /> الاسم</label>
-            <input
-              id="st-name" className="field" required maxLength={80}
-              value={form.name}
-              onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setSaved(false); }}
-            />
-          </div>
-          <div>
-            <label className="label" htmlFor="st-phone"><Phone size={13} /> الهاتف</label>
-            <input
-              id="st-phone" className="field num" dir="ltr" inputMode="tel"
-              placeholder="0612345678"
-              value={form.phone}
-              onChange={(e) => { setForm((f) => ({ ...f, phone: e.target.value })); setSaved(false); }}
-            />
-            <p className="mt-1 text-[10.5px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
-              هادا هو الرقم اللي غادي يبان فالإعلانات ديالك. بلاه المشتري
-              ماعندو غير الدردشة.
-            </p>
-          </div>
-          <div>
-            <label className="label" htmlFor="st-city"><MapPin size={13} /> المدينة</label>
-            <select
-              id="st-city" className="field" value={form.city}
-              onChange={(e) => { setForm((f) => ({ ...f, city: e.target.value })); setSaved(false); }}
-            >
-              {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.ar}</option>)}
-            </select>
-          </div>
-          {error && <p className="text-[12px] font-bold" style={{ color: "var(--bad)" }}>{error}</p>}
-          <button className="btn btn-primary btn-sm" disabled={busy}>
-            {saved ? <><Check size={14} /> تسجّل</> : busy ? "…" : "حفظ التغييرات"}
-          </button>
+        <Link
+          href="/dashboard/trust"
+          className="mt-2 flex items-center gap-1.5 text-[11px] font-bold transition hover:gap-2.5"
+          style={{ color: "var(--brand)" }}
+        >
+          <Sparkle size={12} /> شوف مركز الثقة والأمان ديالك
+        </Link>
+        <div className="mt-4">
+          <AccountBasicsForm />
         </div>
-      </form>
+      </div>
 
       <VerificationCard verified={Boolean(user?.id_verified)} pro={user?.type === "professionnel"} />
 
@@ -224,6 +170,13 @@ function VerificationCard({ verified, pro }: { verified: boolean; pro: boolean }
         </p>
       ) : (
         <form onSubmit={submit} className="mt-4 space-y-3">
+          <ul
+            className="space-y-1 rounded-lg p-3 text-[11.5px] leading-relaxed"
+            style={{ background: "var(--brand-soft)", color: "var(--text-muted)" }}
+          >
+            <li>· توثيق الحساب اختياري تماماً — ماشي شرط باش تستعمل المنصة.</li>
+            <li>· اللي كيوثّق كيربح: مؤشر ثقة أعلى، شارة «حساب موثق»، وثقة أكبر من المشترين.</li>
+          </ul>
           {status === "rejected" && (
             <p className="rounded-lg p-3 text-[12px] leading-relaxed"
               style={{ background: "var(--bad-soft, var(--surface-3))", color: "var(--bad)" }}>

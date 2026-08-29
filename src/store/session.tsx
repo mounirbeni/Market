@@ -21,6 +21,11 @@ export interface SessionUser {
   city: string | null;
   email_verified: boolean;
   id_verified: boolean;
+  phone_verified: boolean;
+  avatar_url: string | null;
+  /** واش دار خطوة استكمال الملف الشخصي الإلزامية */
+  onboarded: boolean;
+  member_since: string;
 }
 
 interface SessionState {

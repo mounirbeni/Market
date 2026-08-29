@@ -89,6 +89,9 @@ export async function POST(req: Request) {
 
   const user = await getCurrentUser();
   if (!user) return unauthorized();
+  /* دفاع مضاعف: /sell كترجّع المستخدم الناقص قبل ما يوصل هنا،
+     ولكن الفحص الحقيقي خاصو يكون فالمسار — ماشي فالواجهة فقط. */
+  if (!user.onboarded) return fail("كمّل معلومات حسابك أولًا قبل نشر إعلان.", 403);
 
   const b = await body<CreateBody>(req);
   if (!b) return fail("الطلب ماشي صحيح.");

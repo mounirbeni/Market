@@ -410,6 +410,34 @@ export async function getSellerOf(listingRef: string): Promise<Seller | null> {
   return r ? rowToSeller(r) : null;
 }
 
+export interface SellerStats {
+  activeListings: number;
+  avgTrust: number | null;
+  negativeReports: number;
+}
+
+/** مدخلات مؤشر الثقة ديال الحساب — نشاط، جودة الإعلانات، بلاغات محسومة */
+export async function sellerStats(userId: string): Promise<SellerStats> {
+  const [listingRow, reportRow] = await Promise.all([
+    one<{ n: string; avg: string | null }>(
+      `SELECT count(*)::text AS n, round(avg(trust_score))::text AS avg
+       FROM listings WHERE seller_id = $1::uuid AND status = 'active'`,
+      [userId],
+    ),
+    one<{ n: string }>(
+      `SELECT count(*)::text AS n FROM reports r
+       JOIN listings l ON l.id = r.listing_id
+       WHERE l.seller_id = $1::uuid AND r.status = 'actioned'`,
+      [userId],
+    ),
+  ]);
+  return {
+    activeListings: Number(listingRow?.n ?? 0),
+    avgTrust: listingRow?.avg ? Number(listingRow.avg) : null,
+    negativeReports: Number(reportRow?.n ?? 0),
+  };
+}
+
 /** تسجيل مشاهدة بالمرجع القصير (c001) بدل الـuuid */
 export async function recordViewByRef(ref: string, visitorKey: string) {
   const l = await one<{ id: string }>("SELECT id FROM listings WHERE ref = $1 OR slug = $1", [ref]);

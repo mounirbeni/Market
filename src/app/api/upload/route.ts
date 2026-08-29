@@ -5,6 +5,7 @@ import { body, fail, ok, unauthorized } from "@/lib/api";
 import {
   BLOB_ACCESS,
   PHOTO_TYPES,
+  avatarPath,
   blobConfigured,
   docPath,
   mediaPath,
@@ -67,6 +68,21 @@ async function watermarkPhoto(input: Buffer) {
   throw new Error("IMAGE_TOO_LARGE");
 }
 
+const AVATAR_EDGE = 640;
+
+/** صورة الملف الشخصي / الشعار — تصغير بلا علامة مائية (ماشي صورة إعلان للبيع) */
+async function processAvatar(input: Buffer) {
+  try {
+    return await sharp(input, { limitInputPixels: 40_000_000 })
+      .rotate()
+      .resize({ width: AVATAR_EDGE, height: AVATAR_EDGE, fit: "cover" })
+      .jpeg({ quality: 86, mozjpeg: true })
+      .toBuffer();
+  } catch {
+    throw new Error("IMAGE_UNSUPPORTED");
+  }
+}
+
 /* ============================================================
    رفع الصور — الملف كيدوز من هنا
 
@@ -108,12 +124,14 @@ export async function POST(req: Request) {
 
   /* وثيقة هوية: كتمشي تحت private/ — مسار الصور العام كيرفض
      هاد البادئة، وغير المشرف كيقدر يشوفها. */
-  const isDoc = req.headers.get("x-purpose") === "doc";
-  const path = isDoc ? docPath(user.id, name) : mediaPath(user.id, "photo.jpg");
+  const purpose = req.headers.get("x-purpose");
+  const isDoc = purpose === "doc";
+  const isAvatar = purpose === "avatar";
+  const path = isDoc ? docPath(user.id, name) : isAvatar ? avatarPath(user.id, name) : mediaPath(user.id, "photo.jpg");
 
   try {
     // وثائق الهوية لا تدخل هذا المسار؛ صور الإعلانات تُخزَّن مائية فقط.
-    const storedBytes = isDoc ? bytes : await watermarkPhoto(bytes);
+    const storedBytes = isDoc ? bytes : isAvatar ? await processAvatar(bytes) : await watermarkPhoto(bytes);
     const storedType = isDoc ? type : "image/jpeg";
     const blob = await put(path, storedBytes, {
       access: BLOB_ACCESS,
