@@ -112,7 +112,7 @@ export function Header() {
               <Link
                 key={href}
                 href={href}
-                className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-[13px] font-semibold transition hover:bg-white/10"
+                className="flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-2 text-[13px] font-semibold transition hover:bg-white/10"
                 style={{ color: active ? "var(--nav-text)" : "var(--nav-muted)" }}
               >
                 <Icon size={15} style={{ opacity: 0.8 }} />

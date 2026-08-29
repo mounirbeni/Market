@@ -1,9 +1,10 @@
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { vehicleHref } from "@/lib/slug";
 import { HeroSearch } from "@/components/HeroSearch";
 import { BrandTile } from "@/components/BrandMark";
 import { SuggestedForYou } from "@/components/SuggestedForYou";
 import { PageTransition } from "@/components/PageTransition";
+import { getDictionary } from "@/lib/i18n/server";
 import { VehicleCard } from "@/components/VehicleCard";
 import { VehicleArt, VehicleGlyph } from "@/components/VehicleArt";
 import { TrustRing } from "@/components/TrustBadge";
@@ -108,6 +109,9 @@ const TRUST_POINTS = [
 ] as const;
 
 export default async function HomePage() {
+  const dict = await getDictionary();
+  const t = dict.home;
+
   const [featuredCars, featuredMotos, latestVehicles, carBrands, motoBrands, stats, dealerCounts] =
     await Promise.all([
       findAll({ kind: "car", sort: "deal" }, 4),
@@ -240,34 +244,38 @@ export default async function HomePage() {
                   color: "#9fc0ff",
                 }}
               >
-                <Sparkle size={13} /> منصة مغربية · بدون عمولة على المشتري
+                <Sparkle size={13} /> {t.heroBadge}
               </span>
 
               <h1 className="h-page mt-5 text-balance text-white">
-                شري طوموبيلك ولا موطورك
+                {t.heroTitle1}
                 <br />
-                <span style={{ color: "#5a8ef7" }}>وأنت عارف كلشي</span>
+                <span style={{ color: "#5a8ef7" }}>{t.heroTitle2}</span>
               </h1>
 
               <p
                 className="mt-5 max-w-xl text-pretty text-[15px] leading-relaxed sm:text-base"
                 style={{ color: "#b9c9e4" }}
               >
-                أول سوق مغربي كيعطيك <b className="text-white">مؤشر ثقة</b> لكل إعلان،{" "}
-                <b className="text-white">ثمناً مرجعياً</b> محسوباً من السوق، و
-                <b className="text-white">التكلفة الحقيقية</b> ديال المركبة قبل ما تدفع درهم واحد.
+                {t.heroLead.split("{trust}")[0]}
+                <b className="text-white">{t.heroLeadTrust}</b>
+                {t.heroLead.split("{trust}")[1].split("{price}")[0]}
+                <b className="text-white">{t.heroLeadPrice}</b>
+                {t.heroLead.split("{price}")[1].split("{cost}")[0]}
+                <b className="text-white">{t.heroLeadCost}</b>
+                {t.heroLead.split("{cost}")[1]}
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/cars" className="btn btn-primary btn-lg" transitionTypes={["nav-forward"]}>
-                  <Car size={17} /> تصفح المركبات
+                  <Car size={17} /> {t.browseVehicles}
                 </Link>
                 <Link
                   href="/safety"
                   className="btn btn-lg"
                   style={{ border: "1px solid rgba(255,255,255,0.28)", color: "#fff" }}
                 >
-                  كيفاش كنخدمو <ArrowLeft size={16} className="dir-flip" />
+                  {t.howWeWork} <ArrowLeft size={16} className="dir-flip" />
                 </Link>
               </div>
             </div>
@@ -302,11 +310,11 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1400px] px-4 pt-14">
           <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              { k: formatNumber(cars), l: "سيارة معروضة", Icon: Car },
-              { k: formatNumber(motos), l: "دراجة نارية", Icon: Moto },
+              { k: formatNumber(cars), l: t.statCars, Icon: Car },
+              { k: formatNumber(motos), l: t.statMotos, Icon: Moto },
               // متوسط الثقة ماعندو معنى بلا إعلانات
-              { k: avgTrust > 0 ? `${avgTrust}/100` : "—", l: "متوسط مؤشر الثقة", Icon: ShieldCheck },
-              { k: formatNumber(topCities.length || CITIES.length), l: "مدينة مغربية", Icon: MapPin },
+              { k: avgTrust > 0 ? `${avgTrust}/100` : "—", l: t.statTrust, Icon: ShieldCheck },
+              { k: formatNumber(topCities.length || CITIES.length), l: t.statCities, Icon: MapPin },
             ].map((s) => (
               <div key={s.l} className="card flex items-center gap-3 p-4">
                 <span
@@ -331,10 +339,10 @@ export default async function HomePage() {
             style={{ background: "var(--brand-soft)", border: "1px solid var(--line-soft)" }}
           >
             {[
-              { Icon: ShieldCheck, t: "مركبات موثّقة", d: "وثائق ورقم هيكل مُتحقّق منهما" },
-              { Icon: BadgeCheck, t: "بائعون موثوقون", d: "هوية موثقة وتقييمات حقيقية" },
-              { Icon: Scale, t: "ثمن شفّاف", d: "مرجع محسوب من السوق" },
-              { Icon: Wrench, t: "فحص مستقل", d: "120 نقطة قبل الشراء" },
+              { Icon: ShieldCheck, t: t.gtVerified, d: t.gtVerifiedD },
+              { Icon: BadgeCheck, t: t.gtSellers, d: t.gtSellersD },
+              { Icon: Scale, t: t.gtPrice, d: t.gtPriceD },
+              { Icon: Wrench, t: t.gtInspect, d: t.gtInspectD },
             ].map((f) => (
               <div key={f.t} className="flex items-center gap-3">
                 <span
@@ -366,9 +374,9 @@ export default async function HomePage() {
       {/* ================= قسم الفئات ================= */}
       {CATEGORY_TILES.length > 0 && (
       <section className="mx-auto max-w-[1400px] px-4 py-16">
-        <h2 className="h-section mb-2">الفئات الرئيسية</h2>
+        <h2 className="h-section mb-2">{t.catTitle}</h2>
         <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
-          وصول سريع للسيارات والدراجات النارية حسب حالتها.
+          {t.catLead}
         </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {CATEGORY_TILES.map((c) => (
@@ -394,7 +402,7 @@ export default async function HomePage() {
 
       {/* ================= التصنيفات ================= */}
       <section className="mx-auto max-w-[1400px] px-4 py-16">
-        <h2 className="h-section mb-7">تصفّح حسب النوع</h2>
+        <h2 className="h-section mb-7">{t.byBody}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {CATEGORIES.map((c) => {
             const n = stats.byBody[c.key] ?? 0;
@@ -432,13 +440,13 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <span className="eyebrow"><Sparkle size={13} /> إعلانات مميّزة</span>
-              <h2 className="h-section mt-3">سيارات مميزة</h2>
+              <span className="eyebrow"><Sparkle size={13} /> {t.featuredEyebrow}</span>
+              <h2 className="h-section mt-3">{t.featuredCars}</h2>
               <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                مركبات ثمنها تحت المرجع المحسوب، مرتّبة حسب الفارق.
+                {t.featuredCarsLead}
               </p>
             </div>
-            <Link href="/cars?deals=1" className="btn btn-ghost btn-sm" transitionTypes={["nav-forward"]}>كل السيارات <ArrowLeft size={14} className="dir-flip" /></Link>
+            <Link href="/cars?deals=1" className="btn btn-ghost btn-sm" transitionTypes={["nav-forward"]}>{t.allCars} <ArrowLeft size={14} className="dir-flip" /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {featuredCars.map((v) => <VehicleCard key={v.id} v={v} compact featured />)}
@@ -453,13 +461,13 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <span className="eyebrow"><Sparkle size={13} /> إعلانات مميّزة</span>
-              <h2 className="h-section mt-3">دراجات مميزة</h2>
+              <span className="eyebrow"><Sparkle size={13} /> {t.featuredEyebrow}</span>
+              <h2 className="h-section mt-3">{t.featuredMotos}</h2>
               <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                من السكوتر ديال المدينة حتى دراجات الطرق الوعرة.
+                {t.featuredMotosLead}
               </p>
             </div>
-            <Link href="/motorcycles" className="btn btn-ghost btn-sm" transitionTypes={["nav-forward"]}>كل الدراجات <ArrowLeft size={14} className="dir-flip" /></Link>
+            <Link href="/motorcycles" className="btn btn-ghost btn-sm" transitionTypes={["nav-forward"]}>{t.allMotos} <ArrowLeft size={14} className="dir-flip" /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {featuredMotos.map((v) => <VehicleCard key={v.id} v={v} compact featured />)}
@@ -474,13 +482,13 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <span className="eyebrow"><Clock size={13} /> جديد</span>
-              <h2 className="h-section mt-3">أحدث الإعلانات</h2>
+              <span className="eyebrow"><Clock size={13} /> {t.newEyebrow}</span>
+              <h2 className="h-section mt-3">{t.latest}</h2>
               <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                آخر السيارات والدراجات النارية اللي تزادت فالمنصة.
+                {t.latestLead}
               </p>
             </div>
-            <Link href="/vehicles?sort=recent" className="btn btn-ghost btn-sm" transitionTypes={["nav-forward"]}>كل الإعلانات <ArrowLeft size={14} className="dir-flip" /></Link>
+            <Link href="/vehicles?sort=recent" className="btn btn-ghost btn-sm" transitionTypes={["nav-forward"]}>{t.allListings} <ArrowLeft size={14} className="dir-flip" /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {latestVehicles.map((v) => <VehicleCard key={v.id} v={v} compact />)}
@@ -494,9 +502,9 @@ export default async function HomePage() {
       {/* ================= الماركات ================= */}
       <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
         <div className="mx-auto max-w-[1400px] px-4 py-16">
-          <h2 className="h-section mb-2">أشهر الماركات</h2>
+          <h2 className="h-section mb-2">{t.brandsTitle}</h2>
           <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
-            كل ماركة عندها صفحتها بكل الإعلانات المتوفرة.
+            {t.brandsLead}
           </p>
 
           <h3 className="mb-3 flex items-center gap-2 text-[12px] font-bold" style={{ color: "var(--text-dim)" }}>
@@ -533,9 +541,9 @@ export default async function HomePage() {
       {/* ================= حسب السعر ================= */}
       {priceBrackets.length > 0 && (
       <section className="mx-auto max-w-[1400px] px-4 py-16">
-        <h2 className="h-section mb-2">تصفّح حسب الثمن</h2>
+        <h2 className="h-section mb-2">{t.priceTitle}</h2>
         <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
-          اختار الميزانية ديالك، ونعرضو ليك غير المركبات اللي فمتناولك.
+          {t.priceLead}
         </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {priceBrackets.map((b) => {
@@ -567,7 +575,7 @@ export default async function HomePage() {
       {/* ================= المدن ================= */}
       {topCities.length > 0 && (
       <section className="mx-auto max-w-[1400px] px-4 py-16">
-        <h2 className="h-section mb-2">المركبات حسب المدينة</h2>
+        <h2 className="h-section mb-2">{t.cityTitle}</h2>
         <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
           الإعلانات موزّعة على <span className="num">{topCities.length}</span> مدينة مغربية.
         </p>
@@ -598,8 +606,8 @@ export default async function HomePage() {
       {/* ================= قسم الثقة ================= */}
       <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
         <div className="mx-auto max-w-[1400px] px-4 py-16">
-          <span className="eyebrow"><ShieldCheck size={13} /> الثقة والأمان</span>
-          <h2 className="h-section mt-3 mb-7">كيفاش كنحافظو على ثقتك</h2>
+          <span className="eyebrow"><ShieldCheck size={13} /> {t.trustEyebrow}</span>
+          <h2 className="h-section mt-3 mb-7">{t.trustTitle}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {TRUST_POINTS.map((t) => (
               <Link key={t.title} href={t.href} className="card card-hover group flex flex-col gap-3 p-5">
@@ -628,13 +636,13 @@ export default async function HomePage() {
       <section className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <span className="eyebrow"><Users size={13} /> بائعون محترفون</span>
-              <h2 className="h-section mt-3">وكلاء ومعارض موثّقة</h2>
+              <span className="eyebrow"><Users size={13} /> {t.dealersEyebrow}</span>
+              <h2 className="h-section mt-3">{t.dealersTitle}</h2>
               <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                معارض بهوية تجارية موثقة ومخزون محيّن.
+                {t.dealersLead}
               </p>
             </div>
-            <Link href="/dealers" className="btn btn-ghost btn-sm">كل الوكلاء <ArrowLeft size={14} className="dir-flip" /></Link>
+            <Link href="/dealers" className="btn btn-ghost btn-sm">{t.allDealers} <ArrowLeft size={14} className="dir-flip" /></Link>
           </header>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {topDealers.map(({ d, count }) => (
@@ -851,14 +859,13 @@ export default async function HomePage() {
             >
               <Wallet size={26} />
             </span>
-            <h2 className="h-section mt-6">بغيتي تبيع؟ خلّي الأرقام تتكلّم</h2>
+            <h2 className="h-section mt-6">{t.sellCta}</h2>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              نشر الإعلان مجاني. كنعطيوك ثمناً مقترحاً مبنياً على السوق، وكنبيّنو ليك مباشرة
-              كيفاش تزيد نقطة الثقة ديالك باش تبيع بسرعة وبثمن مزيان.
+              {t.sellCtaLead}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Link href="/sell" className="btn btn-primary btn-lg">انشر إعلانك مجاناً</Link>
-              <Link href="/valuation" className="btn btn-ghost btn-lg">قيّم مركبتك أولاً</Link>
+              <Link href="/sell" className="btn btn-primary btn-lg">{t.sellFree}</Link>
+              <Link href="/valuation" className="btn btn-ghost btn-lg">{t.valuateFirst}</Link>
             </div>
           </div>
         </div>
