@@ -146,7 +146,7 @@ export function VideoUploader({
     <div>
       <label className="label">
         <Play size={13} /> فيديو قصير
-        <span className="num mr-auto text-[10px]" style={{ color: "var(--good)" }}>
+        <span className="num me-auto text-[10px]" style={{ color: "var(--good)" }}>
           +4 نقط
         </span>
       </label>
@@ -168,7 +168,7 @@ export function VideoUploader({
             onClick={remove}
             aria-label="حيّد الفيديو"
             title="حيّد الفيديو"
-            className="absolute left-1 top-1 grid h-7 w-7 place-items-center rounded-md shadow-md"
+            className="absolute end-1 top-1 grid h-7 w-7 place-items-center rounded-md shadow-md"
             style={{ background: "var(--bad)", color: "#fff" }}
           >
             <Close size={13} />
@@ -221,7 +221,7 @@ export function VideoUploader({
             <button
               type="button"
               onClick={() => lastFile.current && void send(lastFile.current)}
-              className="mr-2 underline"
+              className="me-2 underline"
             >
               عاود
             </button>

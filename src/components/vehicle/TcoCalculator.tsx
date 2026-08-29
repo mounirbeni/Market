@@ -104,7 +104,7 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
           <div>
             <label className="label" htmlFor={`km-${v.id}`}>
               <Gauge size={13} /> الكيلومترات في السنة
-              <span className="num mr-auto" style={{ color: "var(--brand)" }}>{formatNumber(kmPerYear)}</span>
+              <span className="num me-auto" style={{ color: "var(--brand)" }}>{formatNumber(kmPerYear)}</span>
             </label>
             <input
               id={`km-${v.id}`}
@@ -119,7 +119,7 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
           <div>
             <label className="label" htmlFor={`yr-${v.id}`}>
               <Clock size={13} /> مدة الاحتفاظ
-              <span className="num mr-auto" style={{ color: "var(--brand)" }}>{years} سنوات</span>
+              <span className="num me-auto" style={{ color: "var(--brand)" }}>{years} سنوات</span>
             </label>
             <input
               id={`yr-${v.id}`}
@@ -209,7 +209,7 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
                     )}
                   </span>
                   <span className="num shrink-0 text-[12px] font-bold">{formatNumber(l.perYear)}</span>
-                  <span className="num w-8 shrink-0 text-left text-[10px]" style={{ color: "var(--text-dim)" }}>
+                  <span className="num w-8 shrink-0 text-end text-[10px]" style={{ color: "var(--text-dim)" }}>
                     {pct}٪
                   </span>
                 </li>

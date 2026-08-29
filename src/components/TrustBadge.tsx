@@ -57,7 +57,7 @@ export function TrustDot({ trust }: { trust: TrustResult }) {
   const color = trustColor(trust.score);
   return (
     <div
-      className="flex shrink-0 items-center gap-1.5 rounded-lg py-1 pl-2 pr-1.5"
+      className="flex shrink-0 items-center gap-1.5 rounded-lg py-1 ps-2 pe-1.5"
       style={{
         background: `color-mix(in oklab, ${color} 12%, transparent)`,
         border: `1px solid color-mix(in oklab, ${color} 28%, transparent)`,

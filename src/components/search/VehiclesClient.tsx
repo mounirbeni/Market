@@ -195,7 +195,7 @@ export function VehiclesClient({
 
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
         <aside className="hidden lg:block">
-          <div className="sticky top-[84px] max-h-[calc(100vh-104px)] overflow-y-auto pl-1">
+          <div className="sticky top-[84px] max-h-[calc(100vh-104px)] overflow-y-auto ps-1">
             <FiltersPanel filters={filters} set={set} reset={reset} count={total} lockKind={lockKind} lockBrand={lockBrand} />
           </div>
         </aside>
@@ -256,13 +256,13 @@ export function VehiclesClient({
               <div className="relative">
                 <ArrowUpDown
                   size={14}
-                  className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2"
+                  className="pointer-events-none absolute start-2.5 top-1/2 -translate-y-1/2"
                   style={{ color: "var(--text-dim)" }}
                 />
                 <select
                   value={filters.sort}
                   onChange={(e) => set({ sort: e.target.value as SortKey })}
-                  className="field !w-auto !py-2 !pr-8 text-[12px] font-semibold"
+                  className="field !w-auto !py-2 !pe-8 text-[12px] font-semibold"
                   aria-label="الترتيب"
                 >
                   {(Object.keys(SORT_LABELS) as SortKey[]).map((k) => (

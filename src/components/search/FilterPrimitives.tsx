@@ -26,7 +26,7 @@ export function FilterSection({
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex w-full items-center gap-2 py-3.5 text-right"
+        className="flex w-full items-center gap-2 py-3.5 text-start"
       >
         <Icon size={15} style={{ color: activeCount ? "var(--brand)" : "var(--text-dim)" }} />
         <span className="flex-1 text-[12.5px] font-bold" style={{ color: "var(--text)" }}>
@@ -299,7 +299,7 @@ export function SwitchRow({
     <button
       onClick={() => onChange(!checked)}
       aria-pressed={checked}
-      className="flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-right transition"
+      className="flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-start transition"
       style={{
         borderColor: checked ? "var(--brand)" : "var(--line-soft)",
         background: checked ? "var(--brand-soft)" : "var(--surface-3)",

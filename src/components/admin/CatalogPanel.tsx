@@ -93,7 +93,7 @@ export function CatalogPanel({ rows, total }: { rows: Row[]; total: number }) {
       {error && <p className="mb-3 text-[12px] font-bold" style={{ color: "var(--bad)" }}>{error}</p>}
 
       <div className="card overflow-x-auto p-0">
-        <table className="w-full text-right text-[12px]">
+        <table className="w-full text-start text-[12px]">
           <thead>
             <tr style={{ color: "var(--text-dim)" }}>
               <th className="p-3 font-bold">النوع</th>
@@ -115,7 +115,7 @@ export function CatalogPanel({ rows, total }: { rows: Row[]; total: number }) {
                   <td className="p-3"><bdi dir="ltr" className="font-bold">{r.make}</bdi></td>
                   <td className="p-3"><bdi dir="ltr">{r.model}</bdi></td>
                   <td className="num p-3">{used ? r.listings : "—"}</td>
-                  <td className="p-3 text-left">
+                  <td className="p-3 text-end">
                     <button
                       className="btn btn-ghost btn-sm"
                       disabled={busy !== null || used}

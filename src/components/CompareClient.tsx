@@ -150,7 +150,7 @@ export function CompareClient() {
       </div>
 
       <div className="min-w-0 overflow-x-auto">
-        <table className="w-full min-w-[680px] border-separate border-spacing-0 text-right">
+        <table className="w-full min-w-[680px] border-separate border-spacing-0 text-start">
           <thead>
             <tr>
               <th className="w-40 p-2 align-bottom" />
@@ -159,7 +159,7 @@ export function CompareClient() {
                   <div className="card relative overflow-hidden" style={{ borderColor: i === champion && items.length > 1 ? "var(--brand)" : undefined }}>
                     {i === champion && items.length > 1 && (
                       <span
-                        className="tag absolute top-2 right-2 z-10"
+                        className="tag absolute top-2 start-2 z-10"
                         style={{ background: "var(--brand)", color: "var(--brand-ink)" }}
                       >
                         <Award size={11} /> الأفضل إجمالاً
@@ -170,7 +170,7 @@ export function CompareClient() {
                       <button
                         onClick={() => toggleCompare(v.id)}
                         aria-label={`إزالة ${v.make} ${v.model}`}
-                        className="absolute top-2 left-2 grid h-7 w-7 place-items-center rounded-lg backdrop-blur-md"
+                        className="absolute top-2 end-2 grid h-7 w-7 place-items-center rounded-lg backdrop-blur-md"
                         style={{ background: "rgba(10,30,61,0.6)", color: "#fff" }}
                       >
                         <Close size={13} />

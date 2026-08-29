@@ -108,7 +108,7 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
             </p>
           )}
           <button type="submit" disabled={busy} className="btn btn-primary w-full disabled:opacity-50">
-            {busy ? "كنصيفطو…" : <>صيفط الرمز <ArrowLeft size={15} /></>}
+            {busy ? "كنصيفطو…" : <>صيفط الرمز <ArrowLeft size={15} className="dir-flip" /></>}
           </button>
         </form>
       ) : (
@@ -141,7 +141,7 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "register" }) {
           </button>
           <button type="button" onClick={() => { setStep("email"); setCode(""); setErr(""); }}
             className="btn btn-ghost btn-sm w-full">
-            <ArrowRight size={14} /> بدّل الإيميل
+            <ArrowRight size={14} className="dir-flip" /> بدّل الإيميل
           </button>
         </form>
       )}

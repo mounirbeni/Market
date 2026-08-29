@@ -25,9 +25,9 @@ export function HistoryTimeline({ events }: { events: HistoryEvent[] }) {
         </div>
       </header>
 
-      <ol className="relative pr-7">
+      <ol className="relative pe-7">
         <span
-          className="absolute bottom-3 right-[13px] top-3 w-px"
+          className="absolute bottom-3 start-[13px] top-3 w-px"
           style={{ background: "var(--line)" }}
           aria-hidden="true"
         />
@@ -36,7 +36,7 @@ export function HistoryTimeline({ events }: { events: HistoryEvent[] }) {
           return (
             <li key={i} className="relative pb-5 last:pb-0">
               <span
-                className="absolute -right-7 top-0 grid h-[27px] w-[27px] place-items-center rounded-full border"
+                className="absolute -start-7 top-0 grid h-[27px] w-[27px] place-items-center rounded-full border"
                 style={{
                   background: "var(--surface-1)",
                   borderColor: `color-mix(in oklab, ${color} 45%, transparent)`,

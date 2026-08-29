@@ -139,7 +139,7 @@ export function DashboardAppointments() {
                 )}
                 <button
                   onClick={() => setStatus(a.id, "cancelled")}
-                  className="btn btn-ghost btn-sm mr-auto"
+                  className="btn btn-ghost btn-sm me-auto"
                   style={{ color: "var(--bad)", borderColor: "var(--line)" }}
                 >
                   <Close size={13} /> رفض

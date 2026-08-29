@@ -1,68 +1,77 @@
-import Link from "next/link";
+"use client";
+
+import { Link } from "./Link";
 import { TOP_CITIES } from "@/lib/cities";
 import { brandsOf } from "@/lib/slug";
 import { Logo } from "./Logo";
+import { useDict } from "@/lib/i18n/client";
 import {
   Coins, Message, Navigation, ShieldCheck,
 } from "./icons";
 
-const COLUMNS: { title: string; links: { href: string; label: string }[] }[] = [
+type Dict = ReturnType<typeof useDict>;
+
+const columns = (t: Dict["footer"]) => [
   {
-    title: "المركبات",
+    title: t.col.vehicles,
     links: [
-      { href: "/cars", label: "سيارات" },
-      { href: "/motorcycles", label: "دراجات نارية" },
-      { href: "/cars?deals=1", label: "أحسن الصفقات" },
-      { href: "/cars?inspected=1", label: "مركبات مفحوصة" },
-      { href: "/cars?fuel=electrique", label: "مركبات كهربائية" },
-      { href: "/cars?priceMin=250000", label: "مركبات راقية" },
+      { href: "/cars", label: t.link.cars },
+      { href: "/motorcycles", label: t.link.motorcycles },
+      { href: "/cars?deals=1", label: t.link.bestDeals },
+      { href: "/cars?inspected=1", label: t.link.inspected },
+      { href: "/cars?fuel=electrique", label: t.link.electric },
+      { href: "/cars?priceMin=250000", label: t.link.premium },
     ],
   },
   {
-    title: "للمشترين",
+    title: t.col.buyers,
     links: [
-      { href: "/search", label: "البحث المتقدم" },
-      { href: "/assistant", label: "مساعد الاختيار" },
-      { href: "/compare", label: "المقارنة" },
-      { href: "/favorites", label: "المفضلة والتنبيهات" },
-      { href: "/cost", label: "حاسبة التكلفة الحقيقية" },
-      { href: "/guides/chira-tomobil-mostaamla", label: "دليل الشراء" },
+      { href: "/search", label: t.link.advancedSearch },
+      { href: "/assistant", label: t.link.assistant },
+      { href: "/compare", label: t.link.compare },
+      { href: "/favorites", label: t.link.favorites },
+      { href: "/cost", label: t.link.costCalculator },
+      { href: "/guides/chira-tomobil-mostaamla", label: t.link.buyingGuide },
     ],
   },
   {
-    title: "للبائعين",
+    title: t.col.sellers,
     links: [
-      { href: "/sell", label: "بيع مركبتك" },
-      { href: "/promote", label: "روّج إعلانك" },
-      { href: "/valuation", label: "قيّم مركبتك" },
-      { href: "/dealers", label: "الوكلاء والمعارض" },
-      { href: "/dashboard", label: "لوحة البائع" },
-      { href: "/inspection", label: "اطلب فحصاً مستقلاً" },
-      { href: "/register", label: "إنشاء حساب" },
+      { href: "/sell", label: t.link.sell },
+      { href: "/promote", label: t.link.promote },
+      { href: "/valuation", label: t.link.valuation },
+      { href: "/dealers", label: t.link.dealers },
+      { href: "/dashboard", label: t.link.dashboard },
+      { href: "/inspection", label: t.link.inspection },
+      { href: "/register", label: t.link.register },
     ],
   },
   {
-    title: "المنصة",
+    title: t.col.platform,
     links: [
-      { href: "/about", label: "من نحن" },
-      { href: "/contact", label: "اتصل بنا" },
-      { href: "/guides", label: "النصائح والأدلة" },
-      { href: "/help", label: "مركز المساعدة" },
-      { href: "/safety", label: "البيع الآمن" },
+      { href: "/about", label: t.link.about },
+      { href: "/contact", label: t.link.contact },
+      { href: "/guides", label: t.link.guides },
+      { href: "/help", label: t.link.help },
+      { href: "/safety", label: t.link.safety },
     ],
   },
   {
-    title: "قانوني",
+    title: t.col.legal,
     links: [
-      { href: "/terms", label: "شروط الاستعمال" },
-      { href: "/privacy", label: "سياسة الخصوصية" },
-      { href: "/privacy#cookies", label: "ملفات تعريف الارتباط" },
-      { href: "/help#rules", label: "قواعد النشر" },
+      { href: "/terms", label: t.link.terms },
+      { href: "/privacy", label: t.link.privacy },
+      { href: "/privacy#cookies", label: t.link.cookies },
+      { href: "/help#rules", label: t.link.rules },
     ],
   },
 ];
 
 export function Footer() {
+  const d = useDict();
+  const t = d.footer;
+  const tc = d.common;
+  const COLUMNS = columns(t);
   const carBrands = brandsOf("car").slice(0, 12);
   const motoBrands = brandsOf("moto").slice(0, 9);
 
@@ -76,13 +85,12 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Logo size={40} />
             <p className="mt-4 max-w-sm text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              سوق مغربي للسيارات والدراجات النارية، مبني على الشفافية: مؤشر ثقة لكل إعلان،
-              ثمن مرجعي محسوب، وتكلفة استعمال حقيقية قبل ما تشري.
+{t.tagline}
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
-              <span className="chip chip-plain"><ShieldCheck size={12} /> صُنع في المغرب</span>
-              <span className="chip chip-plain"><Coins size={12} /> بدون عمولة على المشتري</span>
-              <span className="chip chip-plain"><Message size={12} /> دعم بالدارجة</span>
+              <span className="chip chip-plain"><ShieldCheck size={12} /> {t.madeInMorocco}</span>
+              <span className="chip chip-plain"><Coins size={12} /> {t.noBuyerFee}</span>
+              <span className="chip chip-plain"><Message size={12} /> {t.darijaSupport}</span>
             </div>
           </div>
 
@@ -111,7 +119,7 @@ export function Footer() {
         <div className="grid gap-8 lg:grid-cols-3">
           <div>
             <h4 className="mb-3 text-[11px] font-bold" style={{ color: "var(--text-dim)" }}>
-              ماركات السيارات
+              {t.carBrands}
             </h4>
             <div className="flex flex-wrap gap-1.5">
               {carBrands.map((b) => (
@@ -128,7 +136,7 @@ export function Footer() {
 
           <div>
             <h4 className="mb-3 text-[11px] font-bold" style={{ color: "var(--text-dim)" }}>
-              ماركات الدراجات
+              {t.motoBrands}
             </h4>
             <div className="flex flex-wrap gap-1.5">
               {motoBrands.map((b) => (
@@ -145,7 +153,7 @@ export function Footer() {
 
           <div>
             <h4 className="mb-3 text-[11px] font-bold" style={{ color: "var(--text-dim)" }}>
-              المدن
+              {t.cities}
             </h4>
             <div className="flex flex-wrap gap-1.5">
               {TOP_CITIES.map((c) => (
@@ -166,15 +174,14 @@ export function Footer() {
           style={{ borderColor: "var(--line-soft)", color: "var(--text-dim)" }}
         >
           <p>
-            © <span className="num">2026</span> طريق TRIQ — سوق المركبات المستعملة
-            فالمغرب. الأثمنة المرجعية محسوبة من الإعلانات المنشورة، وكتبقى تقديرية.
+            © <span className="num">2026</span> {t.copyright}
           </p>
           <div className="flex items-center gap-4">
             <span>
-              <span className="num">1</span> مليون = <span className="num">10 000</span> د.م
+              <span className="num">1</span> {t.millionNote} <span className="num">10 000</span> {tc.currency}
             </span>
             <span className="flex items-center gap-2">
-              <Navigation size={13} /> المغرب
+              <Navigation size={13} /> {t.country}
             </span>
           </div>
         </div>

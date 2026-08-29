@@ -36,11 +36,11 @@ export function Toolbar({
       >
         <Search
           size={15}
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+          className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2"
           style={{ color: "var(--text-dim)" }}
         />
         <input
-          className="field pr-9"
+          className="field pe-9"
           placeholder={placeholder}
           value={q}
           onChange={(e) => setQ(e.target.value)}

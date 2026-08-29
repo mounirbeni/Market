@@ -43,7 +43,7 @@ export function RiskPanel({ v, duplicates = 0 }: { v: Vehicle; duplicates?: numb
     >
       <h3 className="flex items-center gap-2 text-[13px] font-extrabold" style={{ color: st.color }}>
         <st.Icon size={17} /> {st.title}
-        <span className="chip chip-plain mr-auto">
+        <span className="chip chip-plain me-auto">
           <span className="num">{flags.length}</span>
         </span>
       </h3>

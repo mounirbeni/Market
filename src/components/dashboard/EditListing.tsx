@@ -161,7 +161,7 @@ export function EditListing({ listingRef }: { listingRef: string }) {
           </p>
         </div>
         <Link href={vehicleHref(v)} className="btn btn-ghost btn-sm">
-          شوف الإعلان <ChevronLeft size={14} />
+          شوف الإعلان <ChevronLeft size={14} className="dir-flip" />
         </Link>
       </div>
 
@@ -256,14 +256,14 @@ export function EditListing({ listingRef }: { listingRef: string }) {
           </div>
           <div>
             <label className="label" htmlFor="ed-owners">
-              عدد الملاّك <span className="num mr-auto" style={{ color: "var(--brand)" }}>{form.owners}</span>
+              عدد الملاّك <span className="num me-auto" style={{ color: "var(--brand)" }}>{form.owners}</span>
             </label>
             <input id="ed-owners" type="range" min={1} max={5} value={form.owners}
               onChange={(e) => set({ owners: Number(e.target.value) })} className="w-full" />
           </div>
           <div>
             <label className="label" htmlFor="ed-power">
-              القوة الجبائية <span className="num mr-auto" style={{ color: "var(--brand)" }}>{form.fiscalPower} حصان</span>
+              القوة الجبائية <span className="num me-auto" style={{ color: "var(--brand)" }}>{form.fiscalPower} حصان</span>
             </label>
             <input id="ed-power" type="range" min={1} max={v.kind === "moto" ? 6 : 30} value={form.fiscalPower}
               onChange={(e) => set({ fiscalPower: Number(e.target.value) })} className="w-full" />

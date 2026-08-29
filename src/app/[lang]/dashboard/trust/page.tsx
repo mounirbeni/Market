@@ -1,0 +1,159 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
+import { getDealerOfSeller, getSellerStats } from "@/lib/source";
+import { userTrustScore } from "@/lib/userTrust";
+import { userBadges } from "@/lib/userBadges";
+import { DashboardShell } from "@/components/dashboard/Shell";
+import { TrustRing } from "@/components/TrustBadge";
+import {
+  ArrowLeft, BadgeCheck, Check, Close, IdCard, Mail, Phone, ShieldCheck,
+} from "@/components/icons";
+
+export const metadata: Metadata = {
+  title: "مركز الثقة والأمان",
+  robots: { index: false, follow: false },
+};
+
+export default async function TrustCenterPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login?next=/dashboard/trust");
+
+  const [stats, dealer] = await Promise.all([
+    getSellerStats(user.id),
+    getDealerOfSeller(user.id),
+  ]);
+
+  const result = userTrustScore({
+    onboarded: user.onboarded,
+    hasAvatar: Boolean(user.avatar_url),
+    phoneVerified: user.phone_verified,
+    emailVerified: user.email_verified,
+    idVerified: user.id_verified,
+    memberSince: new Date(user.member_since),
+    activeListings: stats.activeListings,
+    avgListingTrust: stats.avgTrust,
+    negativeReports: stats.negativeReports,
+  });
+
+  const badges = userBadges({
+    idVerified: user.id_verified,
+    phoneVerified: user.phone_verified,
+    type: user.type,
+    dealerVerified: Boolean(dealer?.verified),
+    trustLevel: result.level,
+  });
+
+  return (
+    <DashboardShell title="مركز الثقة والأمان">
+      <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
+        {/* الملخص */}
+        <div className="card flex flex-col items-center p-6 text-center lg:sticky lg:top-[84px] lg:h-fit">
+          <TrustRing score={result.score} grade={result.levelLabel} size={120} stroke={10} />
+          <p className="mt-4 text-[13px] font-bold">مؤشر الثقة الحالي</p>
+          <p className="mt-1 text-[11.5px]" style={{ color: "var(--text-dim)" }}>
+            <span className="num font-bold" style={{ color: "var(--brand)" }}>{result.score}%</span> · مستوى {result.levelLabel}
+          </p>
+
+          {badges.length > 0 && (
+            <div className="mt-4 flex flex-wrap justify-center gap-1.5">
+              {badges.map((b) => (
+                <span
+                  key={b.key}
+                  className="chip"
+                  style={{ background: `color-mix(in oklab, ${b.color} 14%, transparent)`, color: b.color, borderColor: "transparent" }}
+                >
+                  <b.Icon size={12} /> {b.label}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {!user.onboarded && (
+            <Link href="/dashboard/complete-profile?next=/dashboard/trust" className="btn btn-primary btn-sm mt-5 w-full">
+              أكمل ملفك الشخصي <ArrowLeft size={14} className="dir-flip" />
+            </Link>
+          )}
+        </div>
+
+        <div className="space-y-5">
+          {/* حالة التحقق السريعة */}
+          <section className="card p-5">
+            <h2 className="mb-4 text-[14px] font-bold">حالة الحساب</h2>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {[
+                { Icon: Mail, label: "البريد الإلكتروني", done: user.email_verified, hint: "مؤكد دائماً بالدخول" },
+                { Icon: Phone, label: "رقم الهاتف", done: user.phone_verified, hint: user.phone ? "غير مؤكد بعد" : "ماكاينش رقم" },
+                { Icon: IdCard, label: "توثيق الحساب", done: user.id_verified, hint: user.id_verified ? "موثّق" : "اختياري" },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="flex items-center gap-2.5 rounded-xl border p-3"
+                  style={{ borderColor: s.done ? "var(--good)" : "var(--line-soft)", background: s.done ? "var(--good-soft)" : "var(--surface-3)" }}
+                >
+                  <s.Icon size={17} style={{ color: s.done ? "var(--good)" : "var(--text-dim)" }} />
+                  <div className="min-w-0">
+                    <p className="truncate text-[11.5px] font-bold">{s.label}</p>
+                    <p className="truncate text-[10px]" style={{ color: "var(--text-dim)" }}>{s.hint}</p>
+                  </div>
+                  {s.done ? (
+                    <Check size={15} className="me-auto shrink-0" style={{ color: "var(--good)" }} />
+                  ) : (
+                    <Close size={15} className="me-auto shrink-0" style={{ color: "var(--text-dim)" }} />
+                  )}
+                </div>
+              ))}
+            </div>
+            <Link href="/dashboard/settings" className="mt-4 inline-flex items-center gap-1.5 text-[11.5px] font-bold" style={{ color: "var(--brand)" }}>
+              عدّل معلومات حسابك <ArrowLeft size={12} className="dir-flip" />
+            </Link>
+          </section>
+
+          {/* التفصيل */}
+          <section className="card p-5">
+            <h2 className="mb-1 text-[14px] font-bold">لرفع مستوى ثقة حسابك يمكنك:</h2>
+            <p className="mb-4 text-[11.5px]" style={{ color: "var(--text-muted)" }}>
+              كل عامل مبني على معطى حقيقي فحسابك — التوثيق واحد من بزاف، ماشي الوحيد.
+            </p>
+            <div className="space-y-2.5">
+              {result.parts.map((p) => (
+                <div key={p.key} className="flex items-center gap-3 rounded-xl p-3" style={{ background: "var(--surface-3)" }}>
+                  <span
+                    className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
+                    style={{ background: p.done ? "var(--good-soft)" : "var(--surface-1)", color: p.done ? "var(--good)" : "var(--text-dim)" }}
+                  >
+                    {p.done ? <Check size={15} /> : <Close size={15} />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[12.5px] font-bold">{p.label}</span>
+                      <span className="num text-[11px]" style={{ color: "var(--text-dim)" }}>{p.score}/{p.max}</span>
+                    </div>
+                    {p.action && (
+                      <p className="mt-0.5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>{p.action}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section
+            className="card flex items-start gap-3 p-5"
+            style={{ background: "var(--brand-soft)", borderColor: "transparent" }}
+          >
+            <ShieldCheck size={20} className="mt-0.5 shrink-0" style={{ color: "var(--brand)" }} />
+            <div>
+              <h3 className="text-[13px] font-bold">خصوصيتك محفوظة</h3>
+              <p className="mt-1 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                المستخدمون الآخرون كيشوفو غير: شارة التوثيق ومستوى الثقة. الوثائق
+                والمعلومات الحساسة ديالك عمرها ما كتبان — غير فريق المراجعة اللي كيشوفها.
+              </p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </DashboardShell>
+  );
+}

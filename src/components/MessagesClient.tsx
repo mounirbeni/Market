@@ -212,16 +212,16 @@ export function MessagesClient() {
       <aside className={`card h-fit overflow-hidden ${active ? "hidden lg:block" : ""}`}>
         <div className="border-b p-3" style={{ borderColor: "var(--line-soft)" }}>
           <div className="relative">
-            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-dim)" }} />
+            <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-dim)" }} />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="قلّب فالمحادثات"
-              className="field w-full pr-9 text-[12.5px]" aria-label="بحث فالمحادثات" />
+              className="field w-full pe-9 text-[12.5px]" aria-label="بحث فالمحادثات" />
           </div>
         </div>
         <ul className="max-h-[60vh] overflow-y-auto">
           {shown.map((t) => (
             <li key={t.id}>
               <button onClick={() => setActiveId(t.id)}
-                className="flex w-full items-start gap-2.5 border-b p-3 text-right transition-colors"
+                className="flex w-full items-start gap-2.5 border-b p-3 text-start transition-colors"
                 style={{
                   borderColor: "var(--line-soft)",
                   background: t.id === activeId ? "var(--brand-soft)" : "transparent",
@@ -256,7 +256,7 @@ export function MessagesClient() {
         <section className="card flex min-h-[62vh] flex-col overflow-hidden">
           <header className="flex items-center gap-3 border-b p-3.5" style={{ borderColor: "var(--line-soft)" }}>
             <button onClick={() => setActiveId("")} className="btn btn-icon btn-sm lg:hidden" aria-label="رجع">
-              <ArrowRight size={16} />
+              <ArrowRight size={16} className="dir-flip" />
             </button>
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-[13.5px] font-bold">{active.other_name}</h2>

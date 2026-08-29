@@ -325,7 +325,7 @@ export function AdvancedSearch() {
               const on = Boolean(f[key]);
               return (
                 <button key={key} onClick={() => set({ [key]: !on } as Partial<Filters>)} aria-pressed={on}
-                  className="flex items-center gap-2.5 rounded-lg border p-3 text-right transition"
+                  className="flex items-center gap-2.5 rounded-lg border p-3 text-start transition"
                   style={{
                     borderColor: on ? "var(--brand)" : "var(--line)",
                     background: on ? "var(--brand-soft)" : "var(--surface-1)",

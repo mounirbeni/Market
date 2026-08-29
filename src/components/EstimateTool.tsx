@@ -121,7 +121,7 @@ export function EstimateTool() {
           <div>
             <label className="label" htmlFor="es-year">
               <Calendar size={13} /> سنة الصنع
-              <span className="num mr-auto" style={{ color: "var(--brand)" }}>{year}</span>
+              <span className="num me-auto" style={{ color: "var(--brand)" }}>{year}</span>
             </label>
             <input
               id="es-year"
@@ -137,7 +137,7 @@ export function EstimateTool() {
           <div>
             <label className="label" htmlFor="es-km">
               <Gauge size={13} /> الكيلومتراج
-              <span className="num mr-auto" style={{ color: "var(--brand)" }}>{formatNumber(km)} كم</span>
+              <span className="num me-auto" style={{ color: "var(--brand)" }}>{formatNumber(km)} كم</span>
             </label>
             <input
               id="es-km"
@@ -185,7 +185,7 @@ export function EstimateTool() {
                   key={k}
                   onClick={() => setCondition(k)}
                   aria-pressed={condition === k}
-                  className="rounded-lg border p-2.5 text-right transition"
+                  className="rounded-lg border p-2.5 text-start transition"
                   style={{
                     borderColor: condition === k ? "var(--brand)" : "var(--line-soft)",
                     background: condition === k ? "color-mix(in oklab, var(--brand) 10%, transparent)" : "transparent",
@@ -243,7 +243,7 @@ export function EstimateTool() {
                 href={`/vehicles?kind=${kind}&make=${make}&model=${encodeURIComponent(model)}`}
                 className="btn btn-ghost btn-sm"
               >
-                شوف الإعلانات المشابهة <ArrowLeft size={14} />
+                شوف الإعلانات المشابهة <ArrowLeft size={14} className="dir-flip" />
               </Link>
             </div>
           </div>
@@ -290,7 +290,7 @@ export function EstimateTool() {
                 >
                   <span className="truncate">
                     {c.make} {c.model} <span className="num opacity-60">{c.year}</span>
-                    <span className="num mr-2 opacity-60">{formatNumber(c.km)} كم</span>
+                    <span className="num me-2 opacity-60">{formatNumber(c.km)} كم</span>
                   </span>
                   <span className="num shrink-0 font-bold">{formatNumber(c.price)} د.م</span>
                 </Link>

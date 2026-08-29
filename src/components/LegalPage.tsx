@@ -23,7 +23,7 @@ export function LegalPage({
     <div className="mx-auto max-w-[860px] px-4 py-10">
       <nav className="mb-6 flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
         <Link href="/" className="transition hover:text-[var(--brand)]">الرئيسية</Link>
-        <ChevronLeft size={12} />
+        <ChevronLeft size={12} className="dir-flip" />
         <span style={{ color: "var(--text-muted)" }}>{title}</span>
       </nav>
 

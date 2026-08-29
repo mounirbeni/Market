@@ -120,7 +120,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
         >
           <Search
             size={big ? 20 : 18}
-            className="mr-3 shrink-0"
+            className="me-3 shrink-0"
             style={{ color: active ? "var(--brand)" : "var(--text-dim)" }}
           />
           <input
@@ -192,7 +192,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
               <button
                 type="button"
                 onClick={() => { setPickedMake(null); setValue(""); inputRef.current?.focus(); }}
-                className="mr-auto text-[11px] underline"
+                className="me-auto text-[11px] underline"
                 style={{ color: "var(--text-dim)" }}
               >
                 بدّل الماركة
@@ -212,7 +212,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
                 type="button"
                 onMouseEnter={() => setCursor(i)}
                 onClick={() => choose(s)}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right transition-colors"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-start transition-colors"
                 style={{ background: on ? "var(--surface-3)" : "transparent" }}
               >
                 {s.kind === "make" ? (
@@ -241,7 +241,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
                   {KIND_LABEL[s.kind]}
                 </span>
                 {s.kind === "make" && !pickedMake && (
-                  <ArrowLeft size={13} className="shrink-0" style={{ color: "var(--text-dim)" }} />
+                  <ArrowLeft size={13} className="shrink-0 dir-flip" style={{ color: "var(--text-dim)" }} />
                 )}
               </button>
             );
@@ -256,7 +256,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
             >
               <Search size={14} />
               بحث حر على «<bdi dir="ltr">{value}</bdi>»
-              <span className="num mr-auto">{count}</span>
+              <span className="num me-auto">{count}</span>
             </button>
           )}
         </div>

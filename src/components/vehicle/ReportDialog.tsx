@@ -112,7 +112,7 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
                 placeholder="مثلاً: نفس الصور كاينة فإعلان آخر بثمن مختلف…"
                 className="field mt-1.5 w-full resize-none"
               />
-              <p className="mt-1 text-left text-[10.5px]" style={{ color: "var(--text-dim)" }}>
+              <p className="mt-1 text-end text-[10.5px]" style={{ color: "var(--text-dim)" }}>
                 <span className="num">{note.length}</span>/<span className="num">500</span>
               </p>
 

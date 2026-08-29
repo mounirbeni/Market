@@ -1,11 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "./Link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
 import { useUnreadNotifications } from "@/lib/useUnreadNotifications";
+import { useDict } from "@/lib/i18n/client";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo } from "./Logo";
 import { UnitToggle } from "./Price";
 import {
@@ -13,22 +15,24 @@ import {
   Search, ShieldCheck, Sun, Users, Wallet,
 } from "./icons";
 
-const NAV = [
-  { href: "/cars", label: "سيارات", Icon: Car },
-  { href: "/motorcycles", label: "دراجات نارية", Icon: Moto },
-  { href: "/search", label: "البحث المتقدم", Icon: Search },
-  { href: "/dealers", label: "الوكلاء", Icon: Users },
-  { href: "/valuation", label: "قيّم مركبتك", Icon: Wallet },
-  { href: "/guides", label: "نصائح", Icon: FileText },
+type Dict = ReturnType<typeof useDict>;
+
+const navItems = (t: Dict["nav"]) => [
+  { href: "/cars", label: t.cars, Icon: Car },
+  { href: "/motorcycles", label: t.motorcycles, Icon: Moto },
+  { href: "/search", label: t.advancedSearch, Icon: Search },
+  { href: "/dealers", label: t.dealers, Icon: Users },
+  { href: "/valuation", label: t.valuation, Icon: Wallet },
+  { href: "/guides", label: t.guides, Icon: FileText },
 ];
 
-const MORE = [
-  { href: "/assistant", label: "مساعد الاختيار" },
-  { href: "/promote", label: "روّج إعلانك" },
-  { href: "/cost", label: "حاسبة التكلفة" },
-  { href: "/inspection", label: "الفحص المستقل" },
-  { href: "/safety", label: "البيع الآمن" },
-  { href: "/compare", label: "المقارنة" },
+const moreItems = (t: Dict["nav"]) => [
+  { href: "/assistant", label: t.assistant },
+  { href: "/promote", label: t.promote },
+  { href: "/cost", label: t.cost },
+  { href: "/inspection", label: t.inspection },
+  { href: "/safety", label: t.safety },
+  { href: "/compare", label: t.compare },
 ];
 
 function NavIconButton({
@@ -50,7 +54,7 @@ function NavIconButton({
   const badge =
     count && count > 0 ? (
       <span
-        className="num absolute -top-1.5 -left-1.5 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9.5px] font-bold"
+        className="num absolute -top-1.5 -end-1.5 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9.5px] font-bold"
         style={{ background: "var(--brand)", color: "#fff" }}
       >
         {count}
@@ -64,6 +68,9 @@ function NavIconButton({
 }
 
 export function Header() {
+  const t = useDict().nav;
+  const NAV = navItems(t);
+  const MORE = moreItems(t);
   const { favorites, compare, theme, toggleTheme } = useApp();
   const { user } = useSession();
   const [open, setOpen] = useState(false);
@@ -94,11 +101,11 @@ export function Header() {
       }}
     >
       <div className="mx-auto flex h-[68px] max-w-[1400px] items-center gap-3 px-4">
-        <Link href="/" aria-label="الصفحة الرئيسية" className="shrink-0">
+        <Link href="/" aria-label={t.home} className="shrink-0">
           <Logo />
         </Link>
 
-        <nav className="mr-4 hidden items-center gap-0.5 xl:flex">
+        <nav className="ms-4 hidden items-center gap-0.5 xl:flex">
           {NAV.map(({ href, label, Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
             return (
@@ -115,10 +122,11 @@ export function Header() {
           })}
         </nav>
 
-        <div className="mr-auto flex items-center gap-2">
+        <div className="ms-auto flex items-center gap-2">
           <div className="hidden lg:block"><UnitToggle compact onNav /></div>
+          <div className="hidden md:block"><LanguageSwitcher onNav /></div>
 
-          <NavIconButton onClick={toggleTheme} label="تبديل الوضع الليلي">
+          <NavIconButton onClick={toggleTheme} label={t.themeToggle}>
             {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
           </NavIconButton>
 
@@ -126,18 +134,18 @@ export function Header() {
               وفالحاسوب كان كيبان حتى للزائر اللي ماعندوش إشعارات.
               دابا: كيبان ملي يكون شي واحد داخل، وفكل المقاسات. */}
           {user && (
-            <NavIconButton href="/notifications" label="الإشعارات" count={unread} active={unread > 0}>
+            <NavIconButton href="/notifications" label={t.notifications} count={unread} active={unread > 0}>
               <Bell size={17} filled={unread > 0} />
             </NavIconButton>
           )}
 
-          <NavIconButton href="/favorites" label="المفضلة" count={favorites.length} active={favorites.length > 0}>
+          <NavIconButton href="/favorites" label={t.favorites} count={favorites.length} active={favorites.length > 0}>
             <Heart size={17} filled={favorites.length > 0} />
           </NavIconButton>
 
           {compare.length > 0 && (
             <div className="hidden sm:block">
-              <NavIconButton href="/compare" label="المقارنة" count={compare.length} active>
+              <NavIconButton href="/compare" label={t.compare} count={compare.length} active>
                 <Scale size={17} />
               </NavIconButton>
             </div>
@@ -149,16 +157,16 @@ export function Header() {
             style={{ borderColor: "var(--nav-line)", color: "var(--nav-text)" }}
           >
             <Users size={15} />
-            {user ? user.name.split(" ")[0] : "تسجيل الدخول"}
+            {user ? user.name.split(" ")[0] : t.login}
           </Link>
 
           <Link href="/sell" className="btn btn-primary btn-sm hidden md:inline-flex">
-            <Plus size={15} /> بيع مركبتك
+            <Plus size={15} /> {t.sell}
           </Link>
 
           <button
             onClick={() => setOpen((o) => !o)}
-            aria-label="القائمة"
+            aria-label={t.menu}
             aria-expanded={open}
             className="grid h-9 w-9 place-items-center rounded-lg border xl:hidden"
             style={{ borderColor: "var(--nav-line)", color: "var(--nav-text)" }}
@@ -200,16 +208,19 @@ export function Header() {
               ))}
             </div>
             <div className="mt-3 flex items-center justify-between gap-3">
-              <UnitToggle onNav />
+              <div className="flex items-center gap-2">
+                <UnitToggle onNav />
+                <LanguageSwitcher onNav />
+              </div>
               <div className="flex gap-2">
                 <Link
                   href={user ? "/dashboard" : "/login"}
                   className="btn btn-sm"
                   style={{ border: "1px solid var(--nav-line)", color: "var(--nav-text)" }}
                 >
-                  <Users size={14} /> {user ? "حسابي" : "دخول"}
+                  <Users size={14} /> {user ? t.account : t.loginShort}
                 </Link>
-                <Link href="/sell" className="btn btn-primary btn-sm"><Plus size={14} /> بيع</Link>
+                <Link href="/sell" className="btn btn-primary btn-sm"><Plus size={14} /> {t.sellShort}</Link>
               </div>
             </div>
           </div>
@@ -221,16 +232,17 @@ export function Header() {
 
 /** شريط تنقّل سفلي للهاتف */
 export function MobileNav() {
+  const t = useDict().nav;
   const pathname = usePathname();
   const { favorites } = useApp();
   const { user } = useSession();
 
   const items = [
-    { href: "/", label: "الرئيسية", Icon: ShieldCheck },
-    { href: "/search", label: "بحث", Icon: Search },
-    { href: "/sell", label: "بيع", Icon: Plus, primary: true },
-    { href: "/favorites", label: "المفضلة", Icon: Heart, count: favorites.length },
-    { href: user ? "/dashboard" : "/login", label: "حسابي", Icon: Users },
+    { href: "/", label: t.home, Icon: ShieldCheck },
+    { href: "/search", label: t.searchShort, Icon: Search },
+    { href: "/sell", label: t.sellShort, Icon: Plus, primary: true },
+    { href: "/favorites", label: t.favorites, Icon: Heart, count: favorites.length },
+    { href: user ? "/dashboard" : "/login", label: t.account, Icon: Users },
   ];
 
   return (
@@ -244,7 +256,7 @@ export function MobileNav() {
         paddingBottom: "env(safe-area-inset-bottom)",
         viewTransitionName: "site-mobile-nav",
       }}
-      aria-label="التنقل السريع"
+      aria-label={t.quickNav}
     >
       <div className="mx-auto grid max-w-md grid-cols-5">
         {items.map(({ href, label, Icon, primary, count }) => {
@@ -273,7 +285,7 @@ export function MobileNav() {
               <span className="text-[9.5px] font-bold">{label}</span>
               {count ? (
                 <span
-                  className="num absolute right-1/2 top-1 translate-x-4 rounded-full px-1 text-[8.5px] font-bold"
+                  className="num absolute end-1/2 top-1 translate-x-4 rounded-full px-1 text-[8.5px] font-bold"
                   style={{ background: "var(--bad)", color: "#fff" }}
                 >
                   {count}

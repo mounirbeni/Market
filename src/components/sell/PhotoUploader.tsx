@@ -298,7 +298,7 @@ export function PhotoUploader({
     <div>
       <label className="label">
         <Camera size={13} /> صور المركبة
-        <span className="num mr-auto" style={{ color: "var(--brand)" }}>
+        <span className="num me-auto" style={{ color: "var(--brand)" }}>
           {photos.length}/{MAX_PHOTOS}
         </span>
       </label>
@@ -317,7 +317,7 @@ export function PhotoUploader({
             <img src={p.url} alt="" className="h-full w-full object-cover" />
             {i === 0 && (
               <span
-                className="tag absolute bottom-1 right-1"
+                className="tag absolute bottom-1 start-1"
                 style={{ background: "var(--brand)", color: "#fff" }}
               >
                 <Star size={10} /> الغلاف

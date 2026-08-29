@@ -123,7 +123,7 @@ export function ReportsPanel({
                       className="mt-2 block truncate text-[14px] font-bold"
                     >
                       {r.listing_title}
-                      <span className="num mr-2 opacity-55">{r.listing_ref}</span>
+                      <span className="num me-2 opacity-55">{r.listing_ref}</span>
                     </Link>
                     <p className="mt-0.5 text-[11.5px]" style={{ color: "var(--text-dim)" }}>
                       {r.seller_name}

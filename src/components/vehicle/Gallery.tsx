@@ -116,7 +116,7 @@ export function Gallery({ v }: { v: Vehicle }) {
                   />
                 )}
                 <span
-                  className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100"
+                  className="absolute bottom-3 end-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100"
                   style={{ background: "rgba(10,30,61,0.72)", color: "#fff" }}
                 >
                   <Maximize size={12} /> كبّر
@@ -126,7 +126,7 @@ export function Gallery({ v }: { v: Vehicle }) {
           </ViewTransition>
         </div>
 
-        <div className="absolute top-3 right-3 flex flex-wrap justify-end gap-1.5">
+        <div className="absolute top-3 start-3 flex flex-wrap justify-end gap-1.5">
           {v.inspected && (
             <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
               <BadgeCheck size={12} /> مفحوصة من طريق
@@ -144,7 +144,7 @@ export function Gallery({ v }: { v: Vehicle }) {
           )}
         </div>
 
-        <div className="absolute top-3 left-3 flex gap-1.5">
+        <div className="absolute top-3 end-3 flex gap-1.5">
           <button
             onClick={() => toggleFavorite(v.id)}
             aria-pressed={fav}
@@ -178,24 +178,24 @@ export function Gallery({ v }: { v: Vehicle }) {
             <button
               onClick={() => go(1)}
               aria-label="الصورة السابقة"
-              className="absolute top-1/2 right-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
+              className="absolute top-1/2 start-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
               style={{ background: "var(--surface-1)", borderColor: "var(--line)", color: "var(--text)" }}
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={18} className="dir-flip" />
             </button>
             <button
               onClick={() => go(-1)}
               aria-label="الصورة التالية"
-              className="absolute top-1/2 left-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
+              className="absolute top-1/2 end-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
               style={{ background: "var(--surface-1)", borderColor: "var(--line)", color: "var(--text)" }}
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={18} className="dir-flip" />
             </button>
           </>
         )}
 
         <span
-          className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] backdrop-blur-md"
+          className="absolute bottom-3 start-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] backdrop-blur-md"
           style={{ background: "rgba(10,30,61,0.72)", color: "#fff" }}
         >
           {onClip ? <Video size={12} /> : <Camera size={12} />}
@@ -262,18 +262,18 @@ export function Gallery({ v }: { v: Vehicle }) {
                 <button
                   onClick={() => goPhoto(1)}
                   aria-label="الصورة السابقة"
-                  className="absolute top-1/2 right-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
+                  className="absolute top-1/2 start-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
                   style={{ background: "rgba(255,255,255,0.92)", borderColor: "transparent", color: "var(--text)" }}
                 >
-                  <ChevronRight size={18} />
+                  <ChevronRight size={18} className="dir-flip" />
                 </button>
                 <button
                   onClick={() => goPhoto(-1)}
                   aria-label="الصورة التالية"
-                  className="absolute top-1/2 left-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
+                  className="absolute top-1/2 end-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
                   style={{ background: "rgba(255,255,255,0.92)", borderColor: "transparent", color: "var(--text)" }}
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={18} className="dir-flip" />
                 </button>
               </>
             )}
@@ -281,14 +281,14 @@ export function Gallery({ v }: { v: Vehicle }) {
             <button
               onClick={toggleFullscreen}
               aria-label={fullscreen ? "خروج من ملء الشاشة" : "ملء الشاشة"}
-              className="absolute top-3 left-3 grid h-9 w-9 place-items-center rounded-lg border backdrop-blur-md transition"
+              className="absolute top-3 end-3 grid h-9 w-9 place-items-center rounded-lg border backdrop-blur-md transition"
               style={{ background: "rgba(10,30,61,0.55)", borderColor: "transparent", color: "#fff" }}
             >
               {fullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
             </button>
 
             <span
-              className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] backdrop-blur-md"
+              className="absolute bottom-3 start-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] backdrop-blur-md"
               style={{ background: "rgba(10,30,61,0.72)", color: "#fff" }}
             >
               <Camera size={12} />

@@ -98,7 +98,7 @@ export function Modal({
           onClick={(e) => e.stopPropagation()}
           className={
             isDrawer
-              ? `absolute inset-y-0 right-0 flex w-[90%] ${maxWidth} flex-col ${closing ? "animate-drawer-out" : "animate-drawer-in"}`
+              ? `absolute inset-y-0 start-0 flex w-[90%] ${maxWidth} flex-col ${closing ? "animate-drawer-out" : "animate-drawer-in"}`
               : `card-raised max-h-[88vh] w-full ${maxWidth} overflow-y-auto rounded-b-none sm:rounded-b-2xl ${closing ? "animate-sheet-out" : "animate-sheet-in"}`
           }
           style={isDrawer ? { background: "var(--bg)" } : undefined}

@@ -101,7 +101,7 @@ export function PromoteClient() {
             </p>
           </div>
           <Link href={vehicleHref(listing)} className="btn btn-ghost btn-sm shrink-0">
-            شوف الإعلان <ArrowLeft size={13} />
+            شوف الإعلان <ArrowLeft size={13} className="dir-flip" />
           </Link>
         </div>
       )}
@@ -117,7 +117,7 @@ export function PromoteClient() {
               key={tier}
               onClick={() => setPicked(tier)}
               aria-pressed={on}
-              className="card card-hover relative p-6 text-right transition-all"
+              className="card card-hover relative p-6 text-start transition-all"
               style={{
                 borderColor: on ? p.color : "var(--line)",
                 boxShadow: on ? `0 0 0 2px color-mix(in oklab, ${p.color} 35%, transparent)` : undefined,
@@ -125,7 +125,7 @@ export function PromoteClient() {
             >
               {tier === "urgent" && (
                 <span
-                  className="absolute -top-2.5 left-5 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold"
+                  className="absolute -top-2.5 end-5 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold"
                   style={{ background: p.color, color: "#fff" }}
                 >
                   الأكثر طلباً

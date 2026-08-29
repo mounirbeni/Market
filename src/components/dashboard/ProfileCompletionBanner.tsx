@@ -48,7 +48,7 @@ export function ProfileCompletionBanner({ user }: { user: SessionUser }) {
         href={`/dashboard/complete-profile?next=${encodeURIComponent(pathname || "/dashboard")}`}
         className="btn btn-primary btn-sm shrink-0"
       >
-        كمّل دابا <ArrowLeft size={14} />
+        كمّل دابا <ArrowLeft size={14} className="dir-flip" />
       </Link>
     </div>
   );

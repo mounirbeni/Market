@@ -82,7 +82,7 @@ function CardActions({ v }: { v: Vehicle }) {
 function Badges({ v, featured = false }: { v: Vehicle; featured?: boolean }) {
   const promo = promoOf(v);
   return (
-    <div className="absolute top-3 right-3 z-10 flex flex-wrap justify-end gap-1.5">
+    <div className="absolute top-3 start-3 z-10 flex flex-wrap justify-end gap-1.5">
       {promo ? (
         <span className="tag" style={{ background: promo.color, color: "#fff" }}>
           {promo.tier === "urgent" ? <Timer size={11} /> : promo.tier === "top" ? <TrendingUp size={11} /> : <Sparkle size={11} />}
@@ -104,7 +104,7 @@ function Badges({ v, featured = false }: { v: Vehicle; featured?: boolean }) {
 
 function MediaCount({ v }: { v: Vehicle }) {
   return (
-    <div className="absolute bottom-3 right-3 z-10 flex gap-1.5">
+    <div className="absolute bottom-3 start-3 z-10 flex gap-1.5">
       <span className="tag backdrop-blur-md" style={{ background: "rgba(10,30,61,0.65)", color: "#fff" }}>
         <Camera size={11} /> <span className="num">{v.photos}</span>
       </span>
@@ -193,7 +193,7 @@ export function VehicleCard({
           style={{ color: "var(--brand)" }}
           transitionTypes={["nav-forward"]}
         >
-          شوف التفاصيل <ArrowLeft size={14} />
+          شوف التفاصيل <ArrowLeft size={14} className="dir-flip" />
         </Link>
         <CardActions v={v} />
       </div>

@@ -33,7 +33,7 @@ export function CompareBar() {
               <button
                 onClick={() => toggleCompare(v!.id)}
                 aria-label={`إزالة ${v!.make} من المقارنة`}
-                className="absolute -top-1.5 -left-1.5 grid h-4 w-4 place-items-center rounded-full"
+                className="absolute -top-1.5 -end-1.5 grid h-4 w-4 place-items-center rounded-full"
                 style={{ background: "var(--bad)", color: "#fff" }}
               >
                 <Close size={10} />

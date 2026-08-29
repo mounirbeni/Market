@@ -214,7 +214,7 @@ export function DashboardListings() {
 
                 {/* الحذف نهائي وماكاينش تراجع — خاصو تأكيد */}
                 {confirming === v.id ? (
-                  <span className="mr-auto flex items-center gap-1.5">
+                  <span className="me-auto flex items-center gap-1.5">
                     <span className="text-[11px] font-bold" style={{ color: "var(--bad)" }}>
                       تمسحو نهائياً؟
                     </span>
@@ -235,7 +235,7 @@ export function DashboardListings() {
                 ) : (
                   <button
                     type="button"
-                    className="btn btn-ghost btn-sm mr-auto"
+                    className="btn btn-ghost btn-sm me-auto"
                     style={{ color: "var(--bad)", borderColor: "var(--line)" }}
                     onClick={() => { setError(null); setConfirming(v.id); }}
                   >

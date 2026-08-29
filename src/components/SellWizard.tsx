@@ -349,7 +349,7 @@ export function SellWizard() {
             <li key={s} className="flex-1">
               <button
                 onClick={() => setStep(i)}
-                className="w-full text-right"
+                className="w-full text-start"
                 aria-current={step === i}
               >
                 <div
@@ -423,7 +423,7 @@ export function SellWizard() {
                 <div>
                   <label className="label" htmlFor="sw-year">
                     <Calendar size={13} /> السنة
-                    <span className="num mr-auto" style={{ color: "var(--brand)" }}>{d.year}</span>
+                    <span className="num me-auto" style={{ color: "var(--brand)" }}>{d.year}</span>
                   </label>
                   <input id="sw-year" type="range" min={2000} max={2026} value={d.year}
                     onChange={(e) => set({ year: Number(e.target.value) })} className="w-full " />
@@ -431,7 +431,7 @@ export function SellWizard() {
                 <div>
                   <label className="label" htmlFor="sw-km">
                     <Gauge size={13} /> الكيلومتراج
-                    <span className="num mr-auto" style={{ color: "var(--brand)" }}>{formatNumber(d.km)}</span>
+                    <span className="num me-auto" style={{ color: "var(--brand)" }}>{formatNumber(d.km)}</span>
                   </label>
                   <input id="sw-km" type="range" min={0} max={d.kind === "moto" ? 120000 : 350000}
                     step={d.kind === "moto" ? 1000 : 5000} value={d.km}
@@ -521,7 +521,7 @@ export function SellWizard() {
                 <div>
                   <label className="label" htmlFor="sw-power">
                     <Horsepower size={13} /> القوة الجبائية
-                    <span className="num mr-auto" style={{ color: "var(--brand)" }}>{d.fiscalPower} حصان</span>
+                    <span className="num me-auto" style={{ color: "var(--brand)" }}>{d.fiscalPower} حصان</span>
                   </label>
                   <input
                     id="sw-power" type="range" min={1} max={d.kind === "moto" ? 6 : 30} value={d.fiscalPower}
@@ -580,7 +580,7 @@ export function SellWizard() {
               <div>
                 <label className="label" htmlFor="sw-owners">
                   عدد الملاّك
-                  <span className="num mr-auto" style={{ color: "var(--brand)" }}>{d.owners}</span>
+                  <span className="num me-auto" style={{ color: "var(--brand)" }}>{d.owners}</span>
                 </label>
                 <input id="sw-owners" type="range" min={1} max={5} value={d.owners}
                   onChange={(e) => set({ owners: Number(e.target.value) })} className="w-full " />
@@ -745,7 +745,7 @@ export function SellWizard() {
                   )}
                   {d.photos > 0 && (
                     <span
-                      className="absolute bottom-2 right-2 rounded-md px-2 py-0.5 text-[10px]"
+                      className="absolute bottom-2 start-2 rounded-md px-2 py-0.5 text-[10px]"
                       style={{ background: "rgba(10,30,61,0.72)", color: "#fff" }}
                     >
                       <span className="num">{d.photos}</span> صور{video ? " · فيديو" : ""}
@@ -841,7 +841,7 @@ export function SellWizard() {
           {/* التنقل */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4" style={{ borderColor: "var(--line-soft)" }}>
             <button onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}
-              className="btn btn-ghost btn-sm"><ArrowRight size={14} /> السابق</button>
+              className="btn btn-ghost btn-sm"><ArrowRight size={14} className="dir-flip" /> السابق</button>
 
             <div className="flex items-center gap-2">
               <button onClick={saveDraft} className="btn btn-solid btn-sm" aria-live="polite">
@@ -851,7 +851,7 @@ export function SellWizard() {
               </button>
               {step < STEPS.length - 1 && (
                 <button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} className="btn btn-primary btn-sm">
-                  التالي <ArrowLeft size={14} />
+                  التالي <ArrowLeft size={14} className="dir-flip" />
                 </button>
               )}
             </div>

@@ -272,7 +272,7 @@ export function AssistantClient() {
                   >
                     <u.Icon size={17} />
                   </span>
-                  <span className="min-w-0 text-right">
+                  <span className="min-w-0 text-start">
                     <span className="block text-[13px] font-bold">{u.label}</span>
                     <span className="block text-[11px]" style={{ color: "var(--text-dim)" }}>{u.hint}</span>
                   </span>
@@ -331,13 +331,13 @@ export function AssistantClient() {
             disabled={step === 0}
             className="btn btn-ghost btn-sm"
           >
-            <ArrowRight size={14} /> رجع
+            <ArrowRight size={14} className="dir-flip" /> رجع
           </button>
           <button onClick={() => setStep((s) => s + 1)} className="btn btn-primary">
             {step === STEP_TITLES.length - 1 ? (
               <><Coins size={16} /> شوف الاقتراحات</>
             ) : (
-              <>التالي <ArrowLeft size={15} /></>
+              <>التالي <ArrowLeft size={15} className="dir-flip" /></>
             )}
           </button>
         </div>

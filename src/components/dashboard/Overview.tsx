@@ -95,7 +95,7 @@ export function DashboardOverview() {
           >
             <h2 className="text-[14px] font-bold">إعلاناتك</h2>
             <Link href="/dashboard/listings" className="flex items-center gap-1 text-[12px] font-bold" style={{ color: "var(--brand)" }}>
-              الكل <ArrowLeft size={13} />
+              الكل <ArrowLeft size={13} className="dir-flip" />
             </Link>
           </header>
           <ul className="divide-y" style={{ borderColor: "var(--line-soft)" }}>

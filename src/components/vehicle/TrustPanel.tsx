@@ -56,7 +56,7 @@ export function TrustPanel({ trust }: { trust: TrustResult }) {
               <div className="meter mt-1.5" style={{ height: 5 }}>
                 <i style={{ width: `${pct}%`, background: color }} />
               </div>
-              <p className="mt-1 pr-5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>{p.detail}</p>
+              <p className="mt-1 pe-5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>{p.detail}</p>
             </div>
           );
         })}
