@@ -5,6 +5,8 @@ import { VehiclesClient } from "@/components/search/VehiclesClient";
 import { VehiclesPageSkeleton } from "@/components/VehicleGridSkeleton";
 import { PageTransition } from "@/components/PageTransition";
 import { brandFromSlug } from "@/lib/slug";
+import { dictionaryOf, getDictionary } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 
 /* الصفحة كتّرندر عند كل طلب.
 
@@ -19,21 +21,24 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
-}: { params: Promise<{ brand: string }> }): Promise<Metadata> {
-  const { brand } = await params;
+}: { params: Promise<{ lang: string; brand: string }> }): Promise<Metadata> {
+  const { lang, brand } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
   const make = brandFromSlug(brand, "car");
-  if (!make) return { title: "ماركة غير موجودة" };
+  if (!make) return { title: t.pages.brand.unknown };
   return {
-    title: `سيارات ${make} مستعملة في المغرب`,
-    description: `كل إعلانات ${make} المتوفرة في المغرب مع مؤشر ثقة وثمن مرجعي محسوب لكل مركبة.`,
-    alternates: { canonical: `/cars/${brand}` },
+    title: t.pages.brand.carsMetaTitle.replace("{make}", make),
+    description: t.pages.brand.carsMetaDesc.replace("{make}", make),
+    alternates: { canonical: localePath(`/cars/${brand}`, locale) },
   };
 }
 
-export default async function CarBrandPage({ params }: { params: Promise<{ brand: string }> }) {
+export default async function CarBrandPage({ params }: { params: Promise<{ lang: string; brand: string }> }) {
   const { brand } = await params;
   const make = brandFromSlug(brand, "car");
   if (!make) notFound();
+  const t = await getDictionary();
 
   return (
     <PageTransition>
@@ -42,8 +47,8 @@ export default async function CarBrandPage({ params }: { params: Promise<{ brand
           lockKind="car"
           lockBrand={make}
           basePath={`/cars/${brand}`}
-          heading={`سيارات ${make} في المغرب`}
-          intro={`كل إعلانات ${make} المتوفرة حالياً، مرتّبة حسب الأنسب. صفّي حسب الموديل، السنة، الثمن أو المدينة.`}
+          heading={t.pages.brand.carsHeading.replace("{make}", make)}
+          intro={t.pages.brand.intro.replace("{make}", make)}
         />
       </Suspense>
     </PageTransition>

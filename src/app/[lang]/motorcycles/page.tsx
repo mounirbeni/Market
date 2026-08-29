@@ -3,23 +3,32 @@ import type { Metadata } from "next";
 import { VehiclesClient } from "@/components/search/VehiclesClient";
 import { VehiclesPageSkeleton } from "@/components/VehicleGridSkeleton";
 import { PageTransition } from "@/components/PageTransition";
+import { dictionaryOf, getDictionary } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "دراجات نارية مستعملة للبيع في المغرب",
-  description:
-    "دراجات نارية وسكوتر للبيع في المغرب: رياضية، رودستر، طرق وعرة وكوستوم — مع مؤشر ثقة وثمن مرجعي لكل إعلان.",
-  alternates: { canonical: "/motorcycles" },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  return {
+    title: t.pages.motos.metaTitle,
+    description: t.pages.motos.metaDesc,
+    alternates: { canonical: localePath("/motorcycles", locale) },
+  };
+}
 
-export default function MotorcyclesPage() {
+export default async function MotorcyclesPage() {
+  const t = await getDictionary();
   return (
     <PageTransition>
       <Suspense fallback={<VehiclesPageSkeleton />}>
         <VehiclesClient
           lockKind="moto"
           basePath="/motorcycles"
-          heading="دراجات نارية للبيع في المغرب"
-          intro="من السكوتر ديال المدينة حتى دراجات الطرق الوعرة — كل إعلان بمؤشر ثقة وثمن مرجعي محسوب."
+          heading={t.pages.motos.heading}
+          intro={t.pages.motos.intro}
         />
       </Suspense>
     </PageTransition>

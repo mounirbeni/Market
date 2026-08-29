@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "./Link";
 import { vehicleHref } from "@/lib/slug";
 import { useMemo, ViewTransition } from "react";
 import type { Vehicle } from "@/lib/types";
-import { AR, formatNumber, timeAgo } from "@/lib/format";
-import { cityName } from "@/lib/cities";
+import { formatNumber } from "@/lib/format";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { cityLabel, fmtTimeAgo, kmUnit, specs } from "@/lib/i18n/labels";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { promoOf } from "@/lib/promo";
 import { useApp } from "@/store/app";
@@ -20,13 +21,16 @@ import {
 } from "./icons";
 
 function SpecRow({ v }: { v: Vehicle }) {
+  const t = useDict();
+  const locale = useLocale();
+  const L = specs(locale);
   const FuelIcon = FUEL_ICONS[v.fuel];
   const GearIcon = v.gearbox === "automatique" ? AutoGear : Transmission;
   const items = [
     { Icon: Calendar, text: String(v.year) },
-    { Icon: Odometer, text: `${formatNumber(v.km)} كم` },
-    { Icon: FuelIcon, text: AR.fuel[v.fuel] },
-    { Icon: GearIcon, text: v.gearbox === "automatique" ? "أوتوماتيك" : "يدوية" },
+    { Icon: Odometer, text: `${formatNumber(v.km)} ${kmUnit(locale)}` },
+    { Icon: FuelIcon, text: L.fuel[v.fuel] },
+    { Icon: GearIcon, text: v.gearbox === "automatique" ? t.card.automatic : t.card.manual },
   ];
   return (
     <div className="grid grid-cols-2 gap-x-3 gap-y-2">
@@ -42,6 +46,7 @@ function SpecRow({ v }: { v: Vehicle }) {
 
 /** أزرار المفضلة والمقارنة داخل تذييل البطاقة */
 function CardActions({ v }: { v: Vehicle }) {
+  const t = useDict();
   const { isFavorite, toggleFavorite, inCompare, toggleCompare } = useApp();
   const fav = isFavorite(v.id);
   const cmp = inCompare(v.id);
@@ -51,7 +56,7 @@ function CardActions({ v }: { v: Vehicle }) {
     <div className="flex shrink-0 gap-1.5">
       <button
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleCompare(v.id); }}
-        aria-label={cmp ? "إزالة من المقارنة" : "أضف إلى المقارنة"}
+        aria-label={cmp ? t.card.removeCompare : t.card.addCompare}
         aria-pressed={cmp}
         className={base}
         style={{
@@ -64,7 +69,7 @@ function CardActions({ v }: { v: Vehicle }) {
       </button>
       <button
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(v.id); }}
-        aria-label={fav ? "إزالة من المفضلة" : "أضف إلى المفضلة"}
+        aria-label={fav ? t.card.removeFavorite : t.card.addFavorite}
         aria-pressed={fav}
         className={base}
         style={{
@@ -80,6 +85,7 @@ function CardActions({ v }: { v: Vehicle }) {
 }
 
 function Badges({ v, featured = false }: { v: Vehicle; featured?: boolean }) {
+  const t = useDict();
   const promo = promoOf(v);
   return (
     <div className="absolute top-3 start-3 z-10 flex flex-wrap justify-end gap-1.5">
@@ -90,12 +96,12 @@ function Badges({ v, featured = false }: { v: Vehicle; featured?: boolean }) {
         </span>
       ) : featured && (
         <span className="tag" style={{ background: "var(--warn)", color: "#fff" }}>
-          <Sparkle size={11} /> إعلان مميّز
+          <Sparkle size={11} /> {t.card.featured}
         </span>
       )}
       {v.inspected && (
         <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
-          <BadgeCheck size={11} /> مفحوصة
+          <BadgeCheck size={11} /> {t.card.inspected}
         </span>
       )}
     </div>
@@ -130,6 +136,8 @@ export function VehicleCard({
   /** كتبيّن شارة «إعلان مميّز» — للاستعمال فأقسام مختارة يدوياً كالصفحة الرئيسية */
   featured?: boolean;
 }) {
+  const t = useDict();
+  const locale = useLocale();
   const trust = useMemo(() => trustOf(v), [v]);
   const fp = useMemo(() => fairPriceOf(v), [v]);
 
@@ -174,9 +182,9 @@ export function VehicleCard({
               className="flex shrink-0 flex-col items-end gap-1 text-[11px]"
               style={{ color: "var(--text-dim)" }}
             >
-              <span className="flex items-center gap-1"><MapPin size={12} /> {cityName(v.city)}</span>
+              <span className="flex items-center gap-1"><MapPin size={12} /> {cityLabel(v.city, locale)}</span>
               {!compact && (
-                <span className="flex items-center gap-1"><Clock size={12} /> {timeAgo(v.publishedAt)}</span>
+                <span className="flex items-center gap-1"><Clock size={12} /> {fmtTimeAgo(v.publishedAt, locale)}</span>
               )}
             </div>
           </div>
@@ -193,7 +201,7 @@ export function VehicleCard({
           style={{ color: "var(--brand)" }}
           transitionTypes={["nav-forward"]}
         >
-          شوف التفاصيل <ArrowLeft size={14} className="dir-flip" />
+          {t.card.seeDetails} <ArrowLeft size={14} className="dir-flip" />
         </Link>
         <CardActions v={v} />
       </div>
@@ -205,6 +213,9 @@ export function VehicleCard({
    بطاقة أفقية (عرض القائمة)
    ============================================================ */
 export function VehicleRow({ v }: { v: Vehicle }) {
+  const t = useDict();
+  const locale = useLocale();
+  const L = specs(locale);
   const rowPromo = promoOf(v);
   const trust = useMemo(() => trustOf(v), [v]);
   const fp = useMemo(() => fairPriceOf(v), [v]);
@@ -237,7 +248,7 @@ export function VehicleRow({ v }: { v: Vehicle }) {
                       <Sparkle size={11} /> {rowPromo.label}
                     </span>
                   )}
-                  {v.inspected && <span className="tag tag-good"><BadgeCheck size={11} /> مفحوصة</span>}
+                  {v.inspected && <span className="tag tag-good"><BadgeCheck size={11} /> {t.card.inspected}</span>}
                 </div>
                 <p className="mt-0.5 truncate text-xs" style={{ color: "var(--text-dim)" }}>
                   {v.version}
@@ -248,10 +259,10 @@ export function VehicleRow({ v }: { v: Vehicle }) {
 
             <div className="mt-3 flex flex-wrap gap-1.5">
               <span className="chip chip-plain"><Calendar size={12} /><span className="num">{v.year}</span></span>
-              <span className="chip chip-plain"><Odometer size={12} /><span className="num">{formatNumber(v.km)}</span> كم</span>
-              <span className="chip chip-plain"><FuelIcon size={12} />{AR.fuel[v.fuel]}</span>
-              <span className="chip chip-plain"><GearIcon size={12} />{AR.gearbox[v.gearbox]}</span>
-              <span className="chip chip-plain"><MapPin size={12} />{cityName(v.city)}</span>
+              <span className="chip chip-plain"><Odometer size={12} /><span className="num">{formatNumber(v.km)}</span> {kmUnit(locale)}</span>
+              <span className="chip chip-plain"><FuelIcon size={12} />{L.fuel[v.fuel]}</span>
+              <span className="chip chip-plain"><GearIcon size={12} />{L.gearbox[v.gearbox]}</span>
+              <span className="chip chip-plain"><MapPin size={12} />{cityLabel(v.city, locale)}</span>
             </div>
 
             <p className="mt-3 line-clamp-2 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -269,7 +280,7 @@ export function VehicleRow({ v }: { v: Vehicle }) {
             </div>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                <Clock size={12} /> {timeAgo(v.publishedAt)}
+                <Clock size={12} /> {fmtTimeAgo(v.publishedAt, locale)}
               </span>
               <CardActions v={v} />
             </div>

@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Link } from "./Link";
 import { SmartSearch } from "./SmartSearch";
 import { formatNumber } from "@/lib/format";
+import { useDict, useHref, useLocale } from "@/lib/i18n/client";
+import { cityLabel, dhUnit } from "@/lib/i18n/labels";
 import { Car, MapPin, Moto, Plus, Search, Sparkle } from "./icons";
 
 type Kind = "car" | "moto";
@@ -43,6 +45,9 @@ export function HeroSearch({
   cities: CityRow[];
 }) {
   const router = useRouter();
+  const t = useDict();
+  const locale = useLocale();
+  const href = useHref();
   const [kind, setKind] = useState<Kind>("car");
   const [make, setMake] = useState("");
   const [city, setCity] = useState("");
@@ -52,7 +57,14 @@ export function HeroSearch({
     () => [...(kind === "car" ? carBrands : motoBrands)].sort((a, b) => a.make.localeCompare(b.make)),
     [kind, carBrands, motoBrands],
   );
-  const cityOptions = useMemo(() => [...cities].sort((a, b) => a.ar.localeCompare(b.ar, "ar")), [cities]);
+  /* الترتيب كيتبدّل مع اللغة: الفرنسية كترتّب بأسماء فرنسية */
+  const cityOptions = useMemo(
+    () =>
+      cities
+        .map((c) => ({ slug: c.slug, name: cityLabel(c.slug, locale) }))
+        .sort((a, b) => a.name.localeCompare(b.name, locale)),
+    [cities, locale],
+  );
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -61,7 +73,7 @@ export function HeroSearch({
     if (make) sp.set("make", make);
     if (city) sp.set("city", city);
     if (priceMax) sp.set("priceMax", priceMax);
-    router.push(`/vehicles?${sp.toString()}`);
+    router.push(href(`/vehicles?${sp.toString()}`));
   }
 
   return (
@@ -69,7 +81,7 @@ export function HeroSearch({
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* نوع المركبة */}
         <div className="flex gap-1.5 rounded-xl p-1" style={{ background: "var(--surface-3)" }}>
-          {([["car", "سيارات", Car], ["moto", "دراجات نارية", Moto]] as const).map(([k, label, Icon]) => (
+          {([["car", t.hero.cars, Car], ["moto", t.hero.motos, Moto]] as const).map(([k, label, Icon]) => (
             <button
               key={k}
               type="button"
@@ -88,7 +100,7 @@ export function HeroSearch({
 
         {/* بيع مركبتك — واضح وسريع، جنب البحث ماشي مدفون تحت */}
         <Link href="/sell" className="btn btn-primary btn-sm">
-          <Plus size={15} /> بيع مركبتك الآن
+          <Plus size={15} /> {t.hero.sellNow}
         </Link>
       </div>
 
@@ -100,16 +112,16 @@ export function HeroSearch({
       {/* دقّق البحث: ماركة، مدينة، ثمن */}
       <form onSubmit={submit} className="mt-4 border-t pt-4" style={{ borderColor: "var(--line-soft)" }}>
         <div className="flex items-center gap-1.5 text-[11px] font-bold" style={{ color: "var(--text-dim)" }}>
-          <Sparkle size={12} /> ولا دقّق البحث مباشرة
+          <Sparkle size={12} /> {t.hero.refine}
         </div>
         <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
           <select
             className="field"
             value={make}
             onChange={(e) => setMake(e.target.value)}
-            aria-label="الماركة"
+            aria-label={t.hero.brand}
           >
-            <option value="">أي ماركة</option>
+            <option value="">{t.hero.anyBrand}</option>
             {brands.map((b) => (
               <option key={b.make} value={b.make}>
                 {b.make} ({formatNumber(b.count)})
@@ -121,11 +133,11 @@ export function HeroSearch({
             className="field"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            aria-label="المدينة"
+            aria-label={t.hero.city}
           >
-            <option value="">كل المدن</option>
+            <option value="">{t.hero.allCities}</option>
             {cityOptions.map((c) => (
-              <option key={c.slug} value={c.slug}>{c.ar}</option>
+              <option key={c.slug} value={c.slug}>{c.name}</option>
             ))}
           </select>
 
@@ -133,16 +145,16 @@ export function HeroSearch({
             className="field"
             value={priceMax}
             onChange={(e) => setPriceMax(e.target.value)}
-            aria-label="الثمن الأقصى"
+            aria-label={t.hero.maxPrice}
           >
-            <option value="">أي ثمن</option>
+            <option value="">{t.hero.anyPrice}</option>
             {PRICES.map((p) => (
-              <option key={p} value={p}>حتى {formatNumber(p)} د.م</option>
+              <option key={p} value={p}>{t.hero.upTo} {formatNumber(p)} {dhUnit(locale)}</option>
             ))}
           </select>
 
           <button type="submit" className="btn btn-primary">
-            <Search size={16} /> بحث
+            <Search size={16} /> {t.hero.search}
           </button>
         </div>
       </form>
@@ -150,7 +162,7 @@ export function HeroSearch({
       {/* المدن اللي ماعندهاش عدّاد ماكيبانوش هنا — كنقترحو غير حاجة موجودة */}
       {cityOptions.length === 0 && (
         <p className="mt-3 flex items-center gap-1.5 text-[11px]" style={{ color: "var(--text-dim)" }}>
-          <MapPin size={12} /> بحث بالمدينة غادي يبان ملي تكون إعلانات كافية
+          <MapPin size={12} /> {t.hero.cityHint}
         </p>
       )}
     </div>

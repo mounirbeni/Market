@@ -1,5 +1,8 @@
+"use client";
+
 import { trustColor, type TrustResult } from "@/lib/market";
 import { ShieldCheck } from "./icons";
+import { useDict } from "@/lib/i18n/client";
 
 /** حلقة مؤشر الثقة */
 export function TrustRing({
@@ -15,6 +18,7 @@ export function TrustRing({
   stroke?: number;
   showLabel?: boolean;
 }) {
+  const t = useDict();
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const color = trustColor(score);
@@ -22,7 +26,7 @@ export function TrustRing({
     <div
       className="relative shrink-0"
       style={{ width: size, height: size }}
-      title={`مؤشر الثقة: ${score} من 100`}
+      title={`${t.trust.score}: ${score} ${t.trust.outOf}`}
     >
       <svg width={size} height={size} className="-rotate-90 block">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--surface-3)" strokeWidth={stroke} />
@@ -54,6 +58,7 @@ export function TrustRing({
 
 /** مؤشر مصغّر للبطاقات */
 export function TrustDot({ trust }: { trust: TrustResult }) {
+  const t = useDict();
   const color = trustColor(trust.score);
   return (
     <div
@@ -62,7 +67,7 @@ export function TrustDot({ trust }: { trust: TrustResult }) {
         background: `color-mix(in oklab, ${color} 12%, transparent)`,
         border: `1px solid color-mix(in oklab, ${color} 28%, transparent)`,
       }}
-      title={`مؤشر الثقة ${trust.score} من 100 · تصنيف ${trust.grade}`}
+      title={`${t.trust.score} ${trust.score} ${t.trust.outOf} · ${t.trust.grade} ${trust.grade}`}
     >
       <ShieldCheck size={13} style={{ color }} />
       <span className="num text-[13px] font-extrabold leading-none" style={{ color }}>
@@ -74,6 +79,7 @@ export function TrustDot({ trust }: { trust: TrustResult }) {
 
 /** شارة كاملة بالنص */
 export function TrustPill({ trust }: { trust: TrustResult }) {
+  const t = useDict();
   const color = trustColor(trust.score);
   return (
     <span
@@ -85,7 +91,7 @@ export function TrustPill({ trust }: { trust: TrustResult }) {
       }}
     >
       <ShieldCheck size={12} />
-      ثقة <span className="num">{trust.score}</span>
+      {t.trust.short} <span className="num">{trust.score}</span>
       <span className="opacity-60">· {trust.grade}</span>
     </span>
   );

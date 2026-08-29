@@ -6,6 +6,8 @@ import {
   DEFAULT_FILTERS, filtersFromParams, paramsFromFilters,
   SORT_LABELS, type Filters, type SortKey,
 } from "@/lib/search";
+import { useDict, useHref, useLocale } from "@/lib/i18n/client";
+import { cityLabel, colorLabel, dhUnit, equipmentLabel, kmUnit, specs } from "@/lib/i18n/labels";
 import type { Vehicle } from "@/lib/types";
 import { VehicleCard, VehicleRow } from "@/components/VehicleCard";
 import { Mixed } from "@/components/Mixed";
@@ -15,8 +17,8 @@ import { FiltersPanel } from "./FiltersPanel";
 import { SmartSearch } from "@/components/SmartSearch";
 import { BrandMark } from "@/components/BrandMark";
 import { useApp } from "@/store/app";
-import { cityName } from "@/lib/cities";
-import { AR, formatNumber } from "@/lib/format";
+import { DRIVETRAINS, ORIGINS } from "@/lib/vehicle-options";
+import { formatNumber } from "@/lib/format";
 import {
   ArrowUpDown, Bell, Check, Close, Filter, Grid, Rows, Search as SearchIcon, Sliders,
 } from "@/components/icons";
@@ -44,6 +46,10 @@ export function VehiclesClient({
 }: VehiclesClientProps = {}) {
   const sp = useSearchParams();
   const router = useRouter();
+  const t = useDict();
+  const locale = useLocale();
+  const href = useHref();
+  const L = specs(locale);
   const { saveSearch } = useApp();
   const [mobileFilters, setMobileFilters] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -115,10 +121,10 @@ export function VehiclesClient({
       if (lockKind) params.delete("kind");
       if (lockBrand) params.delete("make");
       const qs = params.toString();
-      router.replace(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
+      router.replace(href(qs ? `${basePath}?${qs}` : basePath), { scroll: false });
       setSaved(false);
     },
-    [router, basePath, lockKind, lockBrand],
+    [router, href, basePath, lockKind, lockBrand],
   );
 
   const set = useCallback((patch: Partial<Filters>) => push({ ...filters, ...patch }), [filters, push]);
@@ -129,60 +135,64 @@ export function VehiclesClient({
 
   const activeChips = useMemo(() => {
     const out: { label: string; clear: Partial<Filters> }[] = [];
+    const dh = dhUnit(locale);
+    const km = kmUnit(locale);
     if (filters.kind !== "all" && !lockKind)
-      out.push({ label: filters.kind === "car" ? "سيارات" : "دراجات", clear: { kind: "all" } });
+      out.push({ label: filters.kind === "car" ? t.search.cars : t.search.motos, clear: { kind: "all" } });
     if (filters.make && !lockBrand) out.push({ label: filters.make, clear: { make: "", model: "" } });
     if (filters.model) out.push({ label: filters.model, clear: { model: "" } });
-    if (filters.city) out.push({ label: cityName(filters.city), clear: { city: "" } });
-    if (filters.fuel) out.push({ label: AR.fuel[filters.fuel as keyof typeof AR.fuel], clear: { fuel: "" } });
-    if (filters.gearbox) out.push({ label: AR.gearbox[filters.gearbox as keyof typeof AR.gearbox], clear: { gearbox: "" } });
-    if (filters.body) out.push({ label: AR.body[filters.body as keyof typeof AR.body], clear: { body: "" } });
-    if (filters.priceMax) out.push({ label: `حتى ${formatNumber(filters.priceMax)} د.م`, clear: { priceMax: undefined } });
-    if (filters.priceMin) out.push({ label: `من ${formatNumber(filters.priceMin)} د.م`, clear: { priceMin: undefined } });
-    if (filters.yearMin) out.push({ label: `من ${filters.yearMin}`, clear: { yearMin: undefined } });
-    if (filters.yearMax) out.push({ label: `إلى ${filters.yearMax}`, clear: { yearMax: undefined } });
-    if (filters.kmMax) out.push({ label: `أقل من ${formatNumber(filters.kmMax)} كم`, clear: { kmMax: undefined } });
-    if (filters.trustMin) out.push({ label: `ثقة ${filters.trustMin}+`, clear: { trustMin: undefined } });
-    if (filters.color) out.push({ label: filters.color, clear: { color: "" } });
-    if (filters.doors) out.push({ label: `${filters.doors} أبواب`, clear: { doors: undefined } });
-    if (filters.powerMax) out.push({ label: `حتى ${filters.powerMax} حصان`, clear: { powerMax: undefined } });
-    if (filters.powerMin) out.push({ label: `من ${filters.powerMin} حصان`, clear: { powerMin: undefined } });
+    if (filters.city) out.push({ label: cityLabel(filters.city, locale), clear: { city: "" } });
+    if (filters.fuel) out.push({ label: L.fuel[filters.fuel as keyof typeof L.fuel], clear: { fuel: "" } });
+    if (filters.gearbox) out.push({ label: L.gearbox[filters.gearbox as keyof typeof L.gearbox], clear: { gearbox: "" } });
+    if (filters.body) out.push({ label: L.body[filters.body as keyof typeof L.body], clear: { body: "" } });
+    if (filters.priceMax) out.push({ label: `${t.search.chipUpTo} ${formatNumber(filters.priceMax)} ${dh}`, clear: { priceMax: undefined } });
+    if (filters.priceMin) out.push({ label: `${t.search.chipFrom} ${formatNumber(filters.priceMin)} ${dh}`, clear: { priceMin: undefined } });
+    if (filters.yearMin) out.push({ label: `${t.search.chipFrom} ${filters.yearMin}`, clear: { yearMin: undefined } });
+    if (filters.yearMax) out.push({ label: `${t.search.chipTo} ${filters.yearMax}`, clear: { yearMax: undefined } });
+    if (filters.kmMax) out.push({ label: `${t.search.chipUnder} ${formatNumber(filters.kmMax)} ${km}`, clear: { kmMax: undefined } });
+    if (filters.trustMin) out.push({ label: `${t.search.chipTrust} ${filters.trustMin}+`, clear: { trustMin: undefined } });
+    if (filters.color) out.push({ label: colorLabel(filters.color, locale), clear: { color: "" } });
+    if (filters.doors) out.push({ label: `${filters.doors} ${t.search.chipDoors}`, clear: { doors: undefined } });
+    if (filters.powerMax) out.push({ label: `${t.search.chipUpTo} ${filters.powerMax} ${t.search.chipHp}`, clear: { powerMax: undefined } });
+    if (filters.powerMin) out.push({ label: `${t.search.chipFrom} ${filters.powerMin} ${t.search.chipHp}`, clear: { powerMin: undefined } });
     if (filters.drivetrain) {
+      const d = DRIVETRAINS.find((x) => x.value === filters.drivetrain);
       out.push({
-        label: { fwd: "دفع أمامي", rwd: "دفع خلفي", awd: "دفع كلي" }[filters.drivetrain] ?? filters.drivetrain,
+        label: d ? (locale === "fr" ? d.fr : d.label) : filters.drivetrain,
         clear: { drivetrain: "" },
       });
     }
     if (filters.origin) {
+      const o = ORIGINS.find((x) => x.value === filters.origin);
       out.push({
-        label: { maghribia: "مغربية الأصل", mostawrada: "مستوردة" }[filters.origin] ?? filters.origin,
+        label: o ? (locale === "fr" ? o.fr : o.label) : filters.origin,
         clear: { origin: "" },
       });
     }
     filters.equipment.split(",").filter(Boolean).forEach((tag) => {
       out.push({
-        label: tag,
-        clear: { equipment: filters.equipment.split(",").filter((t) => t !== tag).join(",") },
+        label: equipmentLabel(tag, locale),
+        clear: { equipment: filters.equipment.split(",").filter((x) => x !== tag).join(",") },
       });
     });
-    if (filters.goodDealsOnly) out.push({ label: "صفقات فقط", clear: { goodDealsOnly: false } });
-    if (filters.inspectedOnly) out.push({ label: "مفحوصة", clear: { inspectedOnly: false } });
-    if (filters.verifiedOnly) out.push({ label: "وثائق موثقة", clear: { verifiedOnly: false } });
-    if (filters.firstHandOnly) out.push({ label: "يد أولى", clear: { firstHandOnly: false } });
+    if (filters.goodDealsOnly) out.push({ label: t.search.chipDeals, clear: { goodDealsOnly: false } });
+    if (filters.inspectedOnly) out.push({ label: t.search.chipInspected, clear: { inspectedOnly: false } });
+    if (filters.verifiedOnly) out.push({ label: t.search.chipVerified, clear: { verifiedOnly: false } });
+    if (filters.firstHandOnly) out.push({ label: t.search.chipFirstHand, clear: { firstHandOnly: false } });
     if (filters.q) out.push({ label: `"${filters.q}"`, clear: { q: "" } });
     return out;
-  }, [filters, lockKind, lockBrand]);
+  }, [filters, lockKind, lockBrand, t, L, locale]);
 
   const title = useMemo(() => {
     if (heading) return heading;
     const parts: string[] = [];
-    parts.push(filters.kind === "moto" ? "دراجات نارية" : filters.kind === "car" ? "سيارات" : "مركبات");
+    parts.push(filters.kind === "moto" ? t.search.motos : filters.kind === "car" ? t.search.cars : t.search.vehicles);
     if (filters.make) parts.push(filters.make);
     if (filters.model) parts.push(filters.model);
-    parts.push("مستعملة");
-    if (filters.city) parts.push(`في ${cityName(filters.city)}`);
+    parts.push(t.search.used);
+    if (filters.city) parts.push(`${t.search.inCity} ${cityLabel(filters.city, locale)}`);
     return parts.join(" ");
-  }, [filters, heading]);
+  }, [filters, heading, t, locale]);
 
   const doSave = () => {
     saveSearch({ label: title, query: paramsFromFilters(filters).toString(), alert: true });
@@ -213,15 +223,15 @@ export function VehiclesClient({
                 </p>
               )}
               <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
-                <span className="num font-bold" style={{ color: "var(--brand)" }}>{total}</span> نتيجة
-                {total > 0 && <> · مرتّبة حسب {SORT_LABELS[filters.sort]}</>}
+                <span className="num font-bold" style={{ color: "var(--brand)" }}>{total}</span> {t.search.results}
+                {total > 0 && <> · {t.search.sortedBy} {t.sort[filters.sort]}</>}
               </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <button onClick={() => setMobileFilters(true)} className="btn btn-solid btn-sm lg:hidden">
-                <Filter size={14} /> تصفية
+                <Filter size={14} /> {t.search.filter}
                 {activeChips.length > 0 && (
                   <span
                     className="num rounded-full px-1.5 text-[9.5px]"
@@ -236,7 +246,7 @@ export function VehiclesClient({
                 className="hidden items-center rounded-lg border p-0.5 sm:flex"
                 style={{ borderColor: "var(--line)", background: "var(--surface-3)" }}
               >
-                {([["grid", Grid, "شبكة"], ["list", Rows, "قائمة"]] as const).map(([k, Icon, lbl]) => (
+                {([["grid", Grid, t.search.grid], ["list", Rows, t.search.list]] as const).map(([k, Icon, lbl]) => (
                   <button
                     key={k}
                     onClick={() => setView(k)}
@@ -263,16 +273,16 @@ export function VehiclesClient({
                   value={filters.sort}
                   onChange={(e) => set({ sort: e.target.value as SortKey })}
                   className="field !w-auto !py-2 !pe-8 text-[12px] font-semibold"
-                  aria-label="الترتيب"
+                  aria-label={t.search.sort}
                 >
                   {(Object.keys(SORT_LABELS) as SortKey[]).map((k) => (
-                    <option key={k} value={k}>{SORT_LABELS[k]}</option>
+                    <option key={k} value={k}>{t.sort[k]}</option>
                   ))}
                 </select>
               </div>
 
               <button onClick={doSave} className="btn btn-solid btn-sm" disabled={saved}>
-                {saved ? <><Check size={14} /> تم الحفظ</> : <><Bell size={14} /> احفظ البحث</>}
+                {saved ? <><Check size={14} /> {t.search.saved}</> : <><Bell size={14} /> {t.search.saveSearch}</>}
               </button>
             </div>
           </div>
@@ -291,7 +301,7 @@ export function VehiclesClient({
                 </button>
               ))}
               <button onClick={reset} className="text-[11px] font-semibold underline" style={{ color: "var(--text-dim)" }}>
-                مسح الكل
+                {t.search.clearAll}
               </button>
             </div>
           )}
@@ -307,15 +317,14 @@ export function VehiclesClient({
               >
                 <SearchIcon size={26} />
               </span>
-              <h2 className="mt-4 text-lg font-bold">ما لقينا حتى نتيجة</h2>
+              <h2 className="mt-4 text-lg font-bold">{t.search.emptyTitle}</h2>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                جرّب توسّع المجال ديال الثمن، ولا تحيّد شي فلتر، ولا سجّل هاد البحث باش
-                نعيطو ليك ملي تدخل شي مركبة مطابقة.
+                {t.search.emptyLead}
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-2">
-                <button onClick={reset} className="btn btn-solid btn-sm">إعادة الضبط</button>
+                <button onClick={reset} className="btn btn-solid btn-sm">{t.search.resetFilters}</button>
                 <button onClick={doSave} className="btn btn-primary btn-sm">
-                  {saved ? <><Check size={14} /> تم تفعيل التنبيه</> : <><Bell size={14} /> نبّهني</>}
+                  {saved ? <><Check size={14} /> {t.search.alertOn}</> : <><Bell size={14} /> {t.search.notifyMe}</>}
                 </button>
               </div>
             </div>
@@ -335,7 +344,7 @@ export function VehiclesClient({
               {results.length < total && (
                 <div className="mt-8 text-center">
                   <button onClick={loadMore} disabled={loadingMore} className="btn btn-solid">
-                    {loadingMore ? "كنجيبو…" : <>شوف المزيد <span className="num opacity-60">({total - results.length})</span></>}
+                    {loadingMore ? t.search.loadingMore : <>{t.search.seeMore} <span className="num opacity-60">({total - results.length})</span></>}
                   </button>
                 </div>
               )}
@@ -346,7 +355,7 @@ export function VehiclesClient({
 
       {/* فلاتر الموبايل */}
       {mobileFilters && (
-        <Modal onClose={() => setMobileFilters(false)} ariaLabel="تصفية النتائج" variant="drawer" maxWidth="max-w-sm">
+        <Modal onClose={() => setMobileFilters(false)} ariaLabel={t.search.filterResults} variant="drawer" maxWidth="max-w-sm">
           <MobileFiltersBody
             filters={filters} set={set} reset={reset} count={results.length}
             lockKind={lockKind} lockBrand={lockBrand}
@@ -367,6 +376,7 @@ function MobileFiltersBody({
   lockKind?: "car" | "moto";
   lockBrand?: string;
 }) {
+  const t = useDict();
   const close = useModalClose();
   return (
     <>
@@ -374,8 +384,8 @@ function MobileFiltersBody({
         className="flex items-center justify-between border-b px-4 py-3"
         style={{ borderColor: "var(--line-soft)" }}
       >
-        <h2 className="text-sm font-bold">تصفية النتائج</h2>
-        <button onClick={close} aria-label="إغلاق" className="grid h-8 w-8 place-items-center rounded-lg border" style={{ borderColor: "var(--line)" }}>
+        <h2 className="text-sm font-bold">{t.search.filterResults}</h2>
+        <button onClick={close} aria-label={t.common.close} className="grid h-8 w-8 place-items-center rounded-lg border" style={{ borderColor: "var(--line)" }}>
           <Close size={16} />
         </button>
       </div>
@@ -384,7 +394,7 @@ function MobileFiltersBody({
       </div>
       <div className="border-t p-3" style={{ borderColor: "var(--line-soft)" }}>
         <button onClick={close} className="btn btn-primary w-full">
-          عرض <span className="num">{count}</span> نتيجة
+          {t.search.show} <span className="num">{count}</span> {t.search.results}
         </button>
       </div>
     </>

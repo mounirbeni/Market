@@ -1,7 +1,9 @@
 "use client";
 
-import { formatPrice } from "@/lib/format";
 import { useApp } from "@/store/app";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { DIR } from "@/lib/i18n/config";
+import { fmtPrice } from "@/lib/i18n/labels";
 
 export function Price({
   value,
@@ -16,14 +18,15 @@ export function Price({
   tone?: "brand" | "inherit";
 }) {
   const { unit } = useApp();
+  const locale = useLocale();
   const abs = Math.abs(value);
   const prefix = sign ? (value > 0 ? "+" : value < 0 ? "−" : "") : "";
-  const parts = formatPrice(abs, unit).split(" ");
+  const parts = fmtPrice(abs, unit, locale).split(" ");
   const suffix = parts.pop();
   return (
     <span
       className={className}
-      style={{ direction: "rtl", color: tone === "brand" ? "var(--brand)" : undefined }}
+      style={{ direction: DIR[locale], color: tone === "brand" ? "var(--brand)" : undefined }}
     >
       <span className="num">{prefix}{parts.join(" ")}</span>
       <span className="ms-1.5 text-[0.7em] font-semibold opacity-60">{suffix}</span>
@@ -33,6 +36,7 @@ export function Price({
 
 export function UnitToggle({ compact = false, onNav = false }: { compact?: boolean; onNav?: boolean }) {
   const { unit, setUnit } = useApp();
+  const t = useDict();
   return (
     <div
       className="inline-flex items-center rounded-lg border p-0.5 text-[11px]"
@@ -41,7 +45,7 @@ export function UnitToggle({ compact = false, onNav = false }: { compact?: boole
         background: onNav ? "rgba(255,255,255,0.08)" : "var(--surface-3)",
       }}
       role="group"
-      aria-label="وحدة عرض الثمن"
+      aria-label={t.price.unitLabel}
     >
       {(["dh", "million"] as const).map((u) => (
         <button
@@ -54,7 +58,7 @@ export function UnitToggle({ compact = false, onNav = false }: { compact?: boole
             color: unit === u ? "#fff" : onNav ? "var(--nav-muted)" : "var(--text-dim)",
           }}
         >
-          {u === "dh" ? "درهم" : compact ? "مليون" : "بالمليون"}
+          {u === "dh" ? t.price.dh : compact ? t.price.million : t.price.millionLong}
         </button>
       ))}
     </div>

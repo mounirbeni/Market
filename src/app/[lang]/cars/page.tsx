@@ -3,23 +3,32 @@ import type { Metadata } from "next";
 import { VehiclesClient } from "@/components/search/VehiclesClient";
 import { VehiclesPageSkeleton } from "@/components/VehicleGridSkeleton";
 import { PageTransition } from "@/components/PageTransition";
+import { dictionaryOf, getDictionary } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "سيارات مستعملة للبيع في المغرب",
-  description:
-    "تصفح السيارات المستعملة والجديدة في المغرب مع مؤشر ثقة وثمن مرجعي لكل إعلان. صفّي حسب الماركة، المدينة، الثمن، الكيلومتراج ونوع الوقود.",
-  alternates: { canonical: "/cars" },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  return {
+    title: t.pages.cars.metaTitle,
+    description: t.pages.cars.metaDesc,
+    alternates: { canonical: localePath("/cars", locale) },
+  };
+}
 
-export default function CarsPage() {
+export default async function CarsPage() {
+  const t = await getDictionary();
   return (
     <PageTransition>
       <Suspense fallback={<VehiclesPageSkeleton />}>
         <VehiclesClient
           lockKind="car"
           basePath="/cars"
-          heading="سيارات للبيع في المغرب"
-          intro="كل إعلان معاه مؤشر ثقة محسوب وثمن مرجعي من السوق، باش تعرف واش الصفقة معقولة قبل ما تتصل بالبائع."
+          heading={t.pages.cars.heading}
+          intro={t.pages.cars.intro}
         />
       </Suspense>
     </PageTransition>

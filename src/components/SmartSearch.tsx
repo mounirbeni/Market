@@ -4,9 +4,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parseDarija } from "@/lib/darija";
 import {
-  hasArabic, KIND_LABEL, latinHint, modelsOfMake, suggest, topMakes,
+  hasArabic, latinHint, modelsOfMake, suggest, topMakes,
   type Suggestion,
 } from "@/lib/suggest";
+import { useDict, useHref } from "@/lib/i18n/client";
 import { paramsFromFilters, type Filters } from "@/lib/search";
 import { useListings } from "@/hooks/useListings";
 import { BrandMark } from "./BrandMark";
@@ -39,6 +40,8 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
   /** الماركة المختارة — ملي تتختار كتبان الموديلات ديالها */
   const [pickedMake, setPickedMake] = useState<string | null>(null);
   const router = useRouter();
+  const t = useDict();
+  const href = useHref();
   const boxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = "smart-search-list";
@@ -71,12 +74,12 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
 
   function goFilters(f: Partial<Filters>) {
     setOpen(false);
-    router.push(`/search?${paramsFromFilters(f).toString()}`);
+    router.push(href(`/search?${paramsFromFilters(f).toString()}`));
   }
 
   function goText(query = value) {
     setOpen(false);
-    router.push(`/search?${paramsFromFilters(toFilters(parseDarija(query))).toString()}`);
+    router.push(href(`/search?${paramsFromFilters(toFilters(parseDarija(query))).toString()}`));
   }
 
   function choose(s: Suggestion) {
@@ -134,7 +137,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
             onFocus={() => setOpen(true)}
             onKeyDown={onKey}
             placeholder="Dacia Logan, Mercedes AMG, Golf TDI…"
-            aria-label="البحث بالحروف اللاتينية"
+            aria-label={t.smart.ariaInput}
             aria-autocomplete="list"
             aria-expanded={open}
             aria-controls={listId}
@@ -150,7 +153,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
             <button
               type="button"
               onClick={() => { setValue(""); setPickedMake(null); inputRef.current?.focus(); }}
-              aria-label="مسح البحث"
+              aria-label={t.smart.clear}
               className="grid h-7 w-7 shrink-0 place-items-center rounded-lg transition"
               style={{ color: "var(--text-dim)" }}
             >
@@ -158,7 +161,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
             </button>
           )}
           <button type="submit" className={`btn btn-primary shrink-0 ${big ? "" : "btn-sm"}`}>
-            بحث
+            {t.smart.search}
           </button>
         </div>
       </form>
@@ -177,8 +180,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
             >
               <Info size={14} className="mt-px shrink-0" style={{ color: "var(--warn)" }} />
               <span>
-                أسماء المركبات كتُكتب <b>بالحروف اللاتينية</b> كيف ما هي فالبطاقة الرمادية.
-                هاذي المطابقة:
+                {t.smart.latinNoteA} <b>{t.smart.latinNoteB}</b> {t.smart.latinNoteC}
               </span>
             </p>
           )}
@@ -188,14 +190,14 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
               <span className="chip" style={{ background: "var(--brand-soft)", color: "var(--brand)", borderColor: "transparent" }}>
                 <bdi dir="ltr">{pickedMake}</bdi>
               </span>
-              <span className="text-[11.5px]" style={{ color: "var(--text-dim)" }}>اختار الموديل</span>
+              <span className="text-[11.5px]" style={{ color: "var(--text-dim)" }}>{t.smart.pickModel}</span>
               <button
                 type="button"
                 onClick={() => { setPickedMake(null); setValue(""); inputRef.current?.focus(); }}
                 className="me-auto text-[11px] underline"
                 style={{ color: "var(--text-dim)" }}
               >
-                بدّل الماركة
+                {t.smart.changeBrand}
               </button>
             </div>
           )}
@@ -238,7 +240,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
                 {/* الاقتراحات كتجي من كتالوج المركبات، ماشي من عدد
                     النتائج — فماكاين علاش نوريو رقم ماكيعنيش والو */}
                 <span className="chip chip-plain shrink-0 text-[10px]">
-                  {KIND_LABEL[s.kind]}
+                  {t.smart.kind[s.kind]}
                 </span>
                 {s.kind === "make" && !pickedMake && (
                   <ArrowLeft size={13} className="shrink-0 dir-flip" style={{ color: "var(--text-dim)" }} />
@@ -255,7 +257,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
               style={{ color: "var(--brand)", background: "var(--brand-soft)" }}
             >
               <Search size={14} />
-              بحث حر على «<bdi dir="ltr">{value}</bdi>»
+              {t.smart.freeSearch} «<bdi dir="ltr">{value}</bdi>»
               <span className="num me-auto">{count}</span>
             </button>
           )}
@@ -268,7 +270,7 @@ export function SmartSearch({ big = false }: { big?: boolean }) {
           className="flex items-center gap-1 text-[11px] font-bold"
           style={{ color: "var(--brand)" }}
         >
-          <Info size={12} /> بالحروف اللاتينية:
+          <Info size={12} /> {t.smart.latinTip}
         </span>
         {EXAMPLES.slice(0, big ? 5 : 3).map((ex) => (
           <button
