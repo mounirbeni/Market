@@ -23,6 +23,9 @@ export function vehicleHref(v: Vehicle): string {
 
 export const brandSlug = (make: string) => slugify(make);
 
+/** رابط صفحة البائع العامة — للأفراد اللي ماعندهمش معرض */
+export const sellerHref = (sellerId: string) => `/seller/${sellerId}`;
+
 /**
  * الماركة من الرابط.
  *

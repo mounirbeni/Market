@@ -7,9 +7,9 @@ import { useEstimate } from "@/hooks/useEstimate";
 import { useCatalog } from "@/lib/useCatalog";
 import { PhotoUploader, type UploadedPhoto } from "@/components/sell/PhotoUploader";
 import { VideoUploader, type UploadedVideo } from "@/components/sell/VideoUploader";
-import { CITIES } from "@/lib/cities";
+import { CITIES, cityName } from "@/lib/cities";
 import { EQUIPMENT } from "@/lib/equipment";
-import { formatNumber } from "@/lib/format";
+import { AR, formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
 import { VehicleGlyph } from "@/components/VehicleArt";
 import {
@@ -22,7 +22,7 @@ import {
 } from "@/components/icons";
 import type { Body, Condition, Drivetrain, Origin, Seller, Vehicle } from "@/lib/types";
 
-const STEPS = ["المركبة", "الحالة والوثائق", "الصور والوصف", "الثمن", "المعاينة"];
+const STEPS = ["المركبة", "الحالة والوثائق", "الصور والوصف", "الثمن", "المعاينة والنشر"];
 
 interface Draft {
   kind: "car" | "moto";
@@ -53,6 +53,7 @@ interface Draft {
   equipment: string[];
   inspected: boolean;
   price: number;
+  negotiable: boolean;
   sellerName: string;
   sellerType: "particulier" | "professionnel";
   idVerified: boolean;
@@ -88,6 +89,7 @@ const initialDraft: Draft = {
   equipment: ["مكيف الهواء", "نظام ABS"],
   inspected: false,
   price: 120000,
+  negotiable: true,
   sellerName: "",
   sellerType: "particulier",
   idVerified: false,
@@ -136,7 +138,7 @@ function draftToVehicle(d: Draft): Vehicle {
     saves: 0,
     priceDrops: [],
     priceHistory: [],
-    negotiable: true,
+    negotiable: d.negotiable,
     exchangeAccepted: false,
   };
 }
@@ -275,6 +277,7 @@ export function SellWizard() {
           inspected: d.inspected, serviceBook: d.serviceBook,
           vinChecked: d.vinChecked, description: d.description,
           equipment: d.equipment, photos: d.photos, hasVideo: d.hasVideo,
+          negotiable: d.negotiable,
           media: video ? [...uploaded, video] : uploaded,
         }),
       });
@@ -705,12 +708,87 @@ export function SellWizard() {
                   <>الثمن قريب من السوق مع فارق <span className="num">{Math.round(Math.abs(priceDelta) * 100)}٪</span>.</>
                 )}
               </div>
+
+              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5" style={{ background: "var(--surface-3)" }}>
+                <input
+                  type="checkbox"
+                  checked={d.negotiable}
+                  onChange={(e) => set({ negotiable: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <span className="flex-1 text-xs">الثمن قابل للتفاوض</span>
+              </label>
             </div>
           )}
 
           {/* ---------- 5 ---------- */}
           {step === 4 && (
             <div className="space-y-4">
+              <h2 className="text-base font-extrabold">معاينة الإعلان</h2>
+              <p className="text-xs" style={{ color: "var(--text-dim)" }}>
+                هكذا غادي يبان الإعلان ديالك للمشترين — تأكد من كلشي قبل النشر.
+              </p>
+
+              <div className="overflow-hidden rounded-xl border" style={{ borderColor: "var(--line)" }}>
+                <div className="relative aspect-[16/10]" style={{ background: "var(--surface-3)" }}>
+                  {uploaded[0] ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={uploaded[0].thumbUrl ?? uploaded[0].url}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="grid h-full place-items-center text-xs" style={{ color: "var(--text-dim)" }}>
+                      بلا صور بعد
+                    </div>
+                  )}
+                  {d.photos > 0 && (
+                    <span
+                      className="absolute bottom-2 right-2 rounded-md px-2 py-0.5 text-[10px]"
+                      style={{ background: "rgba(10,30,61,0.72)", color: "#fff" }}
+                    >
+                      <span className="num">{d.photos}</span> صور{video ? " · فيديو" : ""}
+                    </span>
+                  )}
+                </div>
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">{d.make} {d.model} {d.version}</p>
+                      <p className="mt-0.5 flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
+                        <MapPin size={11} /> {cityName(d.city)} · <span className="num">{d.year}</span>
+                      </p>
+                    </div>
+                    <TrustRing score={trust.score} grade={trust.grade} size={44} stroke={4} />
+                  </div>
+                  <p className="num mt-2 text-xl font-black" style={{ color: "var(--brand)" }}>
+                    {formatNumber(d.price)} د.م
+                  </p>
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    <span className="chip chip-plain"><span className="num">{formatNumber(d.km)}</span> كم</span>
+                    <span className="chip chip-plain">{AR.fuel[d.fuel as keyof typeof AR.fuel] ?? d.fuel}</span>
+                    <span className="chip chip-plain">{AR.gearbox[d.gearbox as keyof typeof AR.gearbox] ?? d.gearbox}</span>
+                    {d.negotiable && <span className="chip chip-plain">قابل للتفاوض</span>}
+                  </div>
+                  {d.description && (
+                    <p className="mt-3 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                      {d.description.slice(0, 160)}{d.description.length > 160 ? "…" : ""}
+                    </p>
+                  )}
+                  {d.equipment.length > 0 && (
+                    <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      {d.equipment.slice(0, 6).map((e) => (
+                        <span key={e} className="chip chip-plain">{e}</span>
+                      ))}
+                      {d.equipment.length > 6 && (
+                        <span className="chip chip-plain">+<span className="num">{d.equipment.length - 6}</span></span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <h2 className="text-base font-extrabold">معلوماتك</h2>
               <div>
                 <label className="label" htmlFor="sw-name">الاسم أو اسم المحل</label>
@@ -743,19 +821,6 @@ export function SellWizard() {
                     <span className="num text-[10px] font-bold" style={{ color: "var(--good)" }}>{gain}</span>
                   </label>
                 ))}
-              </div>
-
-              <div className="rounded-xl p-4" style={{ background: "var(--surface-3)" }}>
-                <h3 className="text-xs font-extrabold">ملخص الإعلان</h3>
-                <p className="mt-2 text-sm font-bold">
-                  {d.make} {d.model} {d.version} <span className="num">{d.year}</span>
-                </p>
-                <p className="num mt-1 text-lg font-black" style={{ color: "var(--brand)" }}>
-                  {formatNumber(d.price)} د.م
-                </p>
-                <p className="num mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                  {formatNumber(d.km)} كم · {d.photos} صور · مؤشر ثقة {trust.score}/100
-                </p>
               </div>
 
               <button

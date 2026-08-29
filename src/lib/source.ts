@@ -191,7 +191,7 @@ export async function getStats(): Promise<SiteStats> {
 
 /** مدخلات مؤشر ثقة الحساب — نشاط، جودة الإعلانات، بلاغات */
 export async function getSellerStats(userId: string) {
-  const empty = { activeListings: 0, avgTrust: null as number | null, negativeReports: 0 };
+  const empty = { activeListings: 0, avgTrust: null as number | null, negativeReports: 0, soldListings: 0 };
   if (!usingDb()) return empty;
   try {
     const { sellerStats } = await db();
@@ -221,6 +221,32 @@ export async function getDealerListings(slug: string): Promise<Vehicle[]> {
     const rows = await listingsOfDealer(slug);
     return rows.map((r) => rowToVehicle(r));
   } catch {
+    return [];
+  }
+}
+
+/** بائع واحد بمعرّفو — لصفحة الملف العام (/seller/[id]) */
+export async function getSellerById(userId: string): Promise<Seller | null> {
+  if (!usingDb()) return null;
+  try {
+    const { sellerById, rowToSeller } = await db();
+    const row = await sellerById(userId);
+    return row ? rowToSeller(row) : null;
+  } catch (e) {
+    console.error("[source] فشل جلب البائع:", e);
+    return null;
+  }
+}
+
+/** إعلانات بائع معيّن — لصفحة الملف العام */
+export async function getSellerListings(userId: string): Promise<Vehicle[]> {
+  if (!usingDb()) return [];
+  try {
+    const { activeListingsOfSeller, rowToVehicle } = await db();
+    const rows = await activeListingsOfSeller(userId);
+    return rows.map((r) => rowToVehicle(r));
+  } catch (e) {
+    console.error("[source] فشل جلب إعلانات البائع:", e);
     return [];
   }
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Seller, Vehicle } from "@/lib/types";
 import { cityName } from "@/lib/cities";
 import { AR } from "@/lib/format";
-import { vehicleHref } from "@/lib/slug";
+import { sellerHref, vehicleHref } from "@/lib/slug";
 import { userBadges } from "@/lib/userBadges";
 import { ReportDialog } from "./ReportDialog";
 import { ContactSellerButton } from "./ContactSellerButton";
@@ -115,15 +115,13 @@ export function SellerCard({
                 </span>
               )}
             </div>
-            {dealerSlug && (
-              <Link
-                href={`/dealer/${dealerSlug}`}
-                className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold transition hover:gap-1.5"
-                style={{ color: "var(--brand)" }}
-              >
-                شوف صفحة المعرض <BadgeCheck size={11} />
-              </Link>
-            )}
+            <Link
+              href={dealerSlug ? `/dealer/${dealerSlug}` : sellerHref(seller.id)}
+              className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold transition hover:gap-1.5"
+              style={{ color: "var(--brand)" }}
+            >
+              {dealerSlug ? "شوف صفحة المعرض" : "شوف كل إعلانات البائع"} <BadgeCheck size={11} />
+            </Link>
             {badges.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {badges.map((b) => (

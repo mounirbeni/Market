@@ -470,11 +470,12 @@ export interface SellerStats {
   activeListings: number;
   avgTrust: number | null;
   negativeReports: number;
+  soldListings: number;
 }
 
 /** مدخلات مؤشر الثقة ديال الحساب — نشاط، جودة الإعلانات، بلاغات محسومة */
 export async function sellerStats(userId: string): Promise<SellerStats> {
-  const [listingRow, reportRow] = await Promise.all([
+  const [listingRow, reportRow, soldRow] = await Promise.all([
     one<{ n: string; avg: string | null }>(
       `SELECT count(*)::text AS n, round(avg(trust_score))::text AS avg
        FROM listings WHERE seller_id = $1::uuid AND status = 'active'`,
@@ -486,12 +487,39 @@ export async function sellerStats(userId: string): Promise<SellerStats> {
        WHERE l.seller_id = $1::uuid AND r.status = 'actioned'`,
       [userId],
     ),
+    one<{ n: string }>(
+      `SELECT count(*)::text AS n FROM listings
+       WHERE seller_id = $1::uuid AND status = 'sold'`,
+      [userId],
+    ),
   ]);
   return {
     activeListings: Number(listingRow?.n ?? 0),
     avgTrust: listingRow?.avg ? Number(listingRow.avg) : null,
     negativeReports: Number(reportRow?.n ?? 0),
+    soldListings: Number(soldRow?.n ?? 0),
   };
+}
+
+/** بائع واحد بمعرّفو مباشرة — لصفحة الملف العام */
+export async function sellerById(userId: string): Promise<SellerRow | null> {
+  return one<SellerRow>(
+    `SELECT u.id::text AS ref, u.name, u.type, u.city, u.member_since,
+            u.id_verified, u.phone_verified, u.rating, u.sales_count,
+            u.response_minutes, u.phone
+     FROM users u WHERE u.id = $1::uuid`,
+    [userId],
+  );
+}
+
+/** إعلانات بائع معيّن — لصفحة الملف العام (النشيطة فقط، ماشي كيفما لوحة التحكّم) */
+export async function activeListingsOfSeller(userId: string) {
+  return sql<ListingRow>(
+    `SELECT ${SELECT_COLS} ${FROM}
+     WHERE l.status = 'active' AND l.seller_id = $1::uuid
+     ORDER BY l.published_at DESC`,
+    [userId],
+  );
 }
 
 /** تسجيل مشاهدة بالمرجع القصير (c001) بدل الـuuid */
