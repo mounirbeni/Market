@@ -131,9 +131,11 @@ function draftToVehicle(d: Draft): Vehicle {
       : [],
     sellerId: "s03",
     publishedAt: "2026-08-24T10:00:00Z",
+    updatedAt: "2026-08-24T10:00:00Z",
     views: 0,
     saves: 0,
     priceDrops: [],
+    priceHistory: [],
     negotiable: true,
     exchangeAccepted: false,
   };

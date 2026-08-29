@@ -11,7 +11,7 @@ import { ReportDialog } from "./ReportDialog";
 import { ContactSellerButton } from "./ContactSellerButton";
 import { AppointmentDialog } from "./AppointmentDialog";
 import {
-  BadgeCheck, Calendar, Check, Clock, Flag, MapPin, Phone, Share,
+  BadgeCheck, Calendar, Car, Check, Clock, Flag, MapPin, Phone, Share,
   ShieldAlert, Star, Whatsapp, Wrench,
 } from "@/components/icons";
 
@@ -25,7 +25,17 @@ const waNumber = (phone: string) => {
 /* الرقم كان مولّداً من معرّف الإعلان — رقم مغربي حقيقي ديال شي
    واحد آخر. دابا كيجي من حساب البائع، وإلا ماكانش كنخبّيو الأزرار. */
 
-export function SellerCard({ seller, v, dealerVerified = false }: { seller: Seller; v: Vehicle; dealerVerified?: boolean }) {
+export function SellerCard({
+  seller, v, dealerVerified = false, dealerSlug, activeListings,
+}: {
+  seller: Seller;
+  v: Vehicle;
+  dealerVerified?: boolean;
+  /** slug صفحة المعرض — إلا كان البائع معرضاً موثقاً */
+  dealerSlug?: string;
+  /** عدد إعلانات هاد البائع النشيطة الأخرى */
+  activeListings?: number;
+}) {
   const [revealed, setRevealed] = useState(false);
   const [shared, setShared] = useState(false);
   const [reporting, setReporting] = useState(false);
@@ -99,7 +109,21 @@ export function SellerCard({ seller, v, dealerVerified = false }: { seller: Sell
               <span className="chip chip-plain">
                 <Clock size={11} /> ~<span className="num">{seller.responseMinutes}</span> دقيقة
               </span>
+              {activeListings != null && activeListings > 1 && (
+                <span className="chip chip-plain">
+                  <Car size={11} /> <span className="num">{activeListings}</span> إعلانات نشيطة
+                </span>
+              )}
             </div>
+            {dealerSlug && (
+              <Link
+                href={`/dealer/${dealerSlug}`}
+                className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold transition hover:gap-1.5"
+                style={{ color: "var(--brand)" }}
+              >
+                شوف صفحة المعرض <BadgeCheck size={11} />
+              </Link>
+            )}
             {badges.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {badges.map((b) => (

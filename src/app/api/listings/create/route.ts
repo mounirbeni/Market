@@ -180,9 +180,11 @@ export async function POST(req: Request) {
     history: [],
     sellerId: user.id,
     publishedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     views: 0,
     saves: 0,
     priceDrops: [],
+    priceHistory: [],
     negotiable: b.negotiable !== false,
     exchangeAccepted: Boolean(b.exchangeAccepted),
   };

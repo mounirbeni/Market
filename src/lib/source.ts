@@ -85,7 +85,7 @@ export async function getVehicle(
     }));
     const seller = await getSellerOf(key);
     if (!seller) return null;
-    return { vehicle: rowToVehicle(found.listing, history, media), seller };
+    return { vehicle: rowToVehicle(found.listing, history, media, found.prices), seller };
   } catch (e) {
     console.error("[source] فشل جلب المركبة:", e);
     return null;
@@ -334,6 +334,22 @@ export async function comparablesFor(
     return rows.map((r) => rowToVehicle(r));
   } catch (e) {
     console.error("[source] فشل جلب المشابهات:", e);
+    return [];
+  }
+}
+
+/** قسم "مركبات مشابهة" فصفحة الإعلان — نفس الماركة/الهيكل/المدينة/قرب الثمن والسنة */
+export async function getSimilarVehicles(v: Vehicle, limit = 4): Promise<Vehicle[]> {
+  if (!usingDb()) return [];
+  try {
+    const { findSimilarListings, rowToVehicle } = await db();
+    const rows = await findSimilarListings(
+      { ref: v.id, kind: v.kind, make: v.make, body: v.body, city: v.city, price: v.price, year: v.year },
+      limit,
+    );
+    return rows.map((r) => rowToVehicle(r));
+  } catch (e) {
+    console.error("[source] فشل جلب المركبات المشابهة:", e);
     return [];
   }
 }

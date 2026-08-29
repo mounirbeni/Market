@@ -50,6 +50,7 @@ export interface ListingRow {
   views: number;
   saves: number;
   published_at: string;
+  updated_at: string;
   seller_name: string;
   seller_type: "particulier" | "professionnel";
   dealer_slug: string | null;
@@ -99,7 +100,7 @@ const SELECT_COLS = `
   l.drivetrain, l.origin,
   l.first_hand, l.papers_ok, l.vin_checked, l.inspected, l.photo_count,
   l.has_video, l.trust_score, l.fair_price_mad, l.fair_price_delta, l.promo,
-  l.views, l.saves, l.published_at, l.owners, l.fiscal_power, l.consumption,
+  l.views, l.saves, l.published_at, l.updated_at, l.owners, l.fiscal_power, l.consumption,
   l.displacement, l.doors, l.technical_control, l.service_book, l.description,
   l.equipment, l.negotiable, l.exchange_accepted,
   l.seller_id::text AS seller_ref,
@@ -236,7 +237,7 @@ export async function getListingBySlug(slug: string) {
          WHERE listing_id = $1 ORDER BY event_date`, [listing.id]),
     sql(`SELECT kind, url, thumb_url, width, height FROM listing_media
          WHERE listing_id = $1 ORDER BY position`, [listing.id]),
-    sql(`SELECT price_mad, changed_at FROM price_history
+    sql<PriceHistoryRow>(`SELECT price_mad, changed_at FROM price_history
          WHERE listing_id = $1 ORDER BY changed_at`, [listing.id]),
   ]);
 
@@ -288,11 +289,26 @@ function isOwnListingMedia(url: string, sellerRef: string) {
   return Boolean(pathname && pathname.startsWith(`listings/${sellerRef}/`));
 }
 
+export interface PriceHistoryRow {
+  price_mad: number;
+  changed_at: string;
+}
+
 export function rowToVehicle(
   r: ListingRow,
   history: HistoryEvent[] = [],
   media: MediaItem[] = [],
+  prices: PriceHistoryRow[] = [],
 ): Vehicle {
+  /* price_history عندها غير نقط التغيير (الثمن الجديد فكل مرة
+     تبدّل) — بلا الثمن الأصلي وقت النشر. كنحسبو التخفيضات غير من
+     نقطتين متتاليتين حقيقيتين، بلا ما نخمّنو الثمن الأصلي. */
+  const priceHistory = prices.map((p) => ({ price: p.price_mad, date: p.changed_at }));
+  const priceDrops = priceHistory
+    .slice(1)
+    .map((p, i) => priceHistory[i].price - p.price)
+    .filter((d) => d > 0);
+
   // حتى الصور القديمة أو المدخلة يدوياً ماخاصهاش تدوز إلا كانت من مسارنا.
   const safeMedia = media
     .filter((m) => isOwnListingMedia(m.url, r.seller_ref))
@@ -341,9 +357,11 @@ export function rowToVehicle(
     history,
     sellerId: r.seller_ref,
     publishedAt: r.published_at,
+    updatedAt: r.updated_at,
     views: r.views,
     saves: r.saves,
-    priceDrops: [],
+    priceDrops,
+    priceHistory,
     negotiable: r.negotiable,
     exchangeAccepted: r.exchange_accepted,
     promo: r.promo ?? undefined,
@@ -395,6 +413,44 @@ export function rowToSeller(r: SellerRow): Seller {
     responseMinutes: r.response_minutes ?? 60,
     phone: r.phone,
   };
+}
+
+/* ============================================================
+   مركبات مشابهة — قسم "مركبات مشابهة" فصفحة الإعلان.
+
+   منطق مختلف عن comparablesFor() (المستعملة لحساب الثمن المرجعي —
+   ماشي فمكانها). هنا كل معيار كيزيد نقط: نفس الماركة، نفس نوع
+   الهيكل، نفس المدينة، قرب الثمن، وقرب السنة — بلا ما نفرضو أي
+   واحد منهم إجباري (SUV غالي فطنجة يقدر يبان قريب من SUV آخر فأي
+   مدينة إلا الباقي متطابق).
+   ============================================================ */
+const SIMILARITY_SQL = `
+  (CASE WHEN l.make = $2 THEN 40 ELSE 0 END)
+  + (CASE WHEN l.body = $3::body_type THEN 25 ELSE 0 END)
+  + (CASE WHEN l.city = $4 THEN 20 ELSE 0 END)
+  + 40 * GREATEST(0, 1 - LEAST(1, ABS(l.price_mad - $5::int)::numeric / NULLIF($5::numeric, 0) / 0.35))
+  + 15 * GREATEST(0, 1 - LEAST(1, ABS(l.year - $6::int)::numeric / 6))
+`;
+
+export interface SimilarInput {
+  ref: string;
+  kind: "car" | "moto";
+  make: string;
+  body: string;
+  city: string;
+  price: number;
+  year: number;
+}
+
+export async function findSimilarListings(v: SimilarInput, limit = 8): Promise<ListingRow[]> {
+  return sql<ListingRow>(
+    `SELECT ${SELECT_COLS}, (${SIMILARITY_SQL}) AS similarity
+     ${FROM}
+     WHERE l.status = 'active' AND l.kind = $1::vehicle_kind AND l.ref <> $7
+     ORDER BY similarity DESC, l.trust_score DESC NULLS LAST, l.ref ASC
+     LIMIT $8`,
+    [v.kind, v.make, v.body, v.city, v.price, v.year, v.ref, limit],
+  );
 }
 
 /** بائع إعلان معيّن */

@@ -3,9 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { brandSlug, vehicleHref } from "@/lib/slug";
 import {
-  estimateFor, findAll, getDealerOfSeller, getDuplicateCount, getVehicle,
+  estimateFor, getDealerOfSeller, getDuplicateCount, getSellerStats, getSimilarVehicles, getVehicle,
 } from "@/lib/source";
 import { fairPriceFrom, trustOf, trustScore } from "@/lib/market";
+import { vehicleHighlights } from "@/lib/highlights";
 import { cityName } from "@/lib/cities";
 import { AR, formatDate, formatDh, formatKm, formatNumber, timeAgo } from "@/lib/format";
 import { Gallery } from "@/components/vehicle/Gallery";
@@ -24,7 +25,7 @@ import { Price } from "@/components/Price";
 import { Mixed } from "@/components/Mixed";
 import { TrustRing } from "@/components/TrustBadge";
 import {
-  AutoGear, BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Door,
+  AutoGear, BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Clock, Door,
   Driveshaft, EQUIPMENT_ICONS, Eye, Flag, FUEL_ICONS, Heart, Horsepower, MapPin,
   Odometer, OilCan, Palette, Piston, Road, Scale, Seat, Sparkle,
   Transmission, TrendingDown, Users,
@@ -81,10 +82,10 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
   // إشارة التكرار كتحتاج الإعلانات الأخرى ديال نفس البائع
   const duplicates = await getDuplicateCount(v);
   const trust = trustScore(v, seller, fp);
-  // المشابهة كتّحسب من نفس المصدر
-  const similar = (await findAll(
-    { kind: v.kind, make: v.make, sort: "pertinence" }, 8,
-  )).filter((s) => s.id !== v.id).slice(0, 4);
+  // المشابهة: نفس الماركة/الهيكل/المدينة وقرب الثمن والسنة
+  const similar = await getSimilarVehicles(v, 4);
+  const sellerStats = await getSellerStats(v.sellerId);
+  const highlights = vehicleHighlights(v, fp);
   const FuelIcon = FUEL_ICONS[v.fuel];
   const GearIcon = v.gearbox === "automatique" ? AutoGear : Transmission;
 
@@ -198,11 +199,44 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
                 <span className="flex items-center gap-1"><Eye size={12} /><span className="num">{formatNumber(v.views)}</span></span>
                 <span className="flex items-center gap-1"><Heart size={12} /><span className="num">{v.saves}</span></span>
                 <span>نُشر {timeAgo(v.publishedAt)}</span>
+                {new Date(v.updatedAt).getTime() - new Date(v.publishedAt).getTime() > 3600_000 && (
+                  <span>· آخر تحديث {timeAgo(v.updatedAt)}</span>
+                )}
               </div>
             </div>
           </header>
 
           <FairPriceMeter fp={fp} />
+
+          {highlights.length > 0 && (
+            <section className="card p-5" style={{ background: "var(--brand-soft)", borderColor: "transparent" }}>
+              <header className="mb-4 flex items-start gap-2.5">
+                <Sparkle size={18} style={{ color: "var(--brand)" }} className="mt-0.5 shrink-0" />
+                <div>
+                  <h2 className="text-[15px] font-bold">ليش قد تهمّك هاد المركبة؟</h2>
+                  <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                    أهم النقط المستخرجة من مواصفات الإعلان.
+                  </p>
+                </div>
+              </header>
+              <div className="grid gap-2.5 sm:grid-cols-2">
+                {highlights.map((h) => (
+                  <div key={h.key} className="flex items-start gap-2.5 rounded-xl p-3" style={{ background: "var(--surface-1)" }}>
+                    <span
+                      className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
+                      style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+                    >
+                      <h.Icon size={15} />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[12.5px] font-bold">{h.label}</p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>{h.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* المواصفات */}
           <section className="card p-5">
@@ -263,13 +297,60 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
             </p>
           </section>
 
+          {/* التاريخ والسعر */}
+          <section className="card p-5">
+            <header className="mb-4 flex items-start gap-2.5">
+              <Clock size={18} style={{ color: "var(--brand)" }} className="mt-0.5 shrink-0" />
+              <div>
+                <h2 className="text-[15px] font-bold">التاريخ والسعر</h2>
+                <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
+                  تاريخ النشر، آخر تحديث، وأي تغيير حقيقي فالثمن.
+                </p>
+              </div>
+            </header>
+            <dl className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl p-3" style={{ background: "var(--surface-3)" }}>
+                <dt className="text-[10px]" style={{ color: "var(--text-dim)" }}>تاريخ النشر</dt>
+                <dd className="mt-0.5 text-[12.5px] font-bold">{formatDate(v.publishedAt)}</dd>
+              </div>
+              <div className="rounded-xl p-3" style={{ background: "var(--surface-3)" }}>
+                <dt className="text-[10px]" style={{ color: "var(--text-dim)" }}>آخر تحديث</dt>
+                <dd className="mt-0.5 text-[12.5px] font-bold">{formatDate(v.updatedAt)}</dd>
+              </div>
+            </dl>
+
+            {v.priceHistory.length > 0 && (
+              <>
+                <h3 className="mt-5 mb-2.5 text-[12.5px] font-bold">تغيّر الثمن</h3>
+                <ul className="space-y-1.5">
+                  {[...v.priceHistory].reverse().map((p) => (
+                    <li
+                      key={p.date}
+                      className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-[12px]"
+                      style={{ background: "var(--surface-3)" }}
+                    >
+                      <span style={{ color: "var(--text-dim)" }}>{formatDate(p.date)}</span>
+                      <span className="num font-bold">{formatNumber(p.price)} د.م</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
+
           <HistoryTimeline events={v.history} />
           <TcoCalculator v={v} />
         </div>
 
         {/* ---------- العمود الجانبي ---------- */}
         <aside className="min-w-0 space-y-6 lg:sticky lg:top-[84px] lg:h-fit">
-          <SellerCard seller={seller} v={v} dealerVerified={Boolean(dealer?.verified)} />
+          <SellerCard
+            seller={seller}
+            v={v}
+            dealerVerified={Boolean(dealer?.verified)}
+            dealerSlug={dealer?.slug}
+            activeListings={sellerStats.activeListings}
+          />
           <RiskPanel v={v} duplicates={duplicates} />
           <TrustPanel trust={trust} />
 

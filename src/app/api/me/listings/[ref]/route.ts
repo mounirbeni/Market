@@ -145,9 +145,11 @@ export async function PATCH(
     history: [],
     sellerId: user.id,
     publishedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     views: 0,
     saves: 0,
     priceDrops: [],
+    priceHistory: [],
     negotiable: e.negotiable !== false,
     exchangeAccepted: Boolean(e.exchangeAccepted),
   };

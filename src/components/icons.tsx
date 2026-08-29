@@ -48,6 +48,16 @@ export const Close = (p: P) => (
 export const Menu = (p: P) => (
   <svg {...base(p)}><path d="M4 6h16M4 12h16M4 18h16" /></svg>
 );
+export const Maximize = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M9 4H5a1 1 0 0 0-1 1v4M15 4h4a1 1 0 0 1 1 1v4M9 20H5a1 1 0 0 1-1-1v-4M15 20h4a1 1 0 0 0 1-1v-4" />
+  </svg>
+);
+export const Minimize = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M9 9H5V5M15 9h4V5M9 15H5v4M15 15h4v4" />
+  </svg>
+);
 export const ChevronDown = (p: P) => (
   <svg {...base(p)}><path d="m6 9 6 6 6-6" /></svg>
 );

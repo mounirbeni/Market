@@ -106,10 +106,14 @@ export interface Vehicle {
   history: HistoryEvent[];
   sellerId: string;
   publishedAt: string;
+  /** آخر مرة تعدّل فيها الإعلان (ثمن، مواصفات...) */
+  updatedAt: string;
   views: number;
   saves: number;
-  /** تخفيضات سابقة على السعر (درهم) */
+  /** تخفيضات سابقة على السعر (درهم) — محسوبة من priceHistory */
   priceDrops: number[];
+  /** كل نقطة تغيير حقيقية فالثمن، مرتّبة من الأقدم للأحدث */
+  priceHistory: { price: number; date: string }[];
   negotiable: boolean;
   exchangeAccepted: boolean;
   /** درجة الترويج المدفوعة — شوف lib/promo.ts */
