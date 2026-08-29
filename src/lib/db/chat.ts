@@ -122,20 +122,48 @@ export async function sendMessage(threadId: string, userId: string, body: string
   await sql("UPDATE threads SET last_at = now() WHERE id = $1", [threadId]);
 
   // إشعار للطرف الآخر
-  const t = await one<{ other: string; slug: string; name: string }>(
+  const t = await one<{
+    other: string; slug: string; name: string;
+    other_email: string; title: string;
+  }>(
     `SELECT CASE WHEN t.buyer_id = $2 THEN t.seller_id ELSE t.buyer_id END AS other,
-            l.slug, u.name
+            l.slug, u.name,
+            o.email AS other_email,
+            l.make || ' ' || l.model || ' ' || l.year::text AS title
      FROM threads t JOIN listings l ON l.id = t.listing_id
      JOIN users u ON u.id = $2
+     JOIN users o ON o.id = CASE WHEN t.buyer_id = $2 THEN t.seller_id ELSE t.buyer_id END
      WHERE t.id = $1`,
     [threadId, userId],
   );
   if (t) {
+    /* الإيميل كيتصيفط غير ملي ماعندوش رسائل ماقراهاش من قبل.
+       بلا هاد الشرط، محادثة ديال 20 رسالة كتصيفط 20 إيميل —
+       وهادشي كيخلّي المستخدم يعلّمنا كـspam. ملي يقرا، العدّاد
+       كيتصفّى وكيرجع يتنبّه للرسالة الجاية. */
+    const unread = await one<{ n: string }>(
+      `SELECT count(*)::text AS n FROM notifications
+       WHERE user_id = $1 AND type = 'message' AND read_at IS NULL`,
+      [t.other],
+    );
+
     await sql(
       `INSERT INTO notifications (user_id, type, title, body, href)
        VALUES ($1,'message',$2,$3,$4)`,
       [t.other, `رسالة جديدة من ${t.name}`, text.slice(0, 120), "/messages"],
     );
+
+    if (Number(unread?.n ?? 0) === 0 && t.other_email) {
+      const { newMessageMail, sendQuiet } = await import("@/lib/mail");
+      await sendQuiet(
+        newMessageMail({
+          to: t.other_email,
+          fromName: t.name,
+          listingTitle: t.title,
+          preview: text.slice(0, 300),
+        }),
+      );
+    }
   }
   return msg!;
 }

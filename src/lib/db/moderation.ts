@@ -542,5 +542,31 @@ export async function reviewVerification(
     v.user_id,
     approve,
   ]);
+
+  /* المستخدم صيفط وثيقة هوية وكان كيسنّى — قبل هادشي، القرار كان
+     كيوقع فالصمت: لا إشعار داخلي لا إيميل، وهو ماكيعرفش علاش
+     الشارة بانت ولا لا. */
+  await sql(
+    `INSERT INTO notifications (user_id, type, title, body, href)
+     VALUES ($1::uuid, 'system', $2, $3, '/dashboard/trust')`,
+    [
+      v.user_id,
+      approve ? "تّوثق حسابك" : "طلب التوثيق محتاج تصحيح",
+      approve
+        ? "شارة «حساب موثق» كتبان دابا فكل إعلاناتك."
+        : note?.trim() || "تقدّر تعاود تصيفط وثيقة أوضح.",
+    ],
+  );
+
+  const u = await one<{ email: string }>(
+    "SELECT email FROM users WHERE id = $1::uuid",
+    [v.user_id],
+  );
+  if (u?.email) {
+    const { verificationResultMail, sendQuiet } = await import("@/lib/mail");
+    await sendQuiet(
+      verificationResultMail({ to: u.email, approved: approve, note: note ?? null }),
+    );
+  }
   return v;
 }

@@ -1,4 +1,5 @@
 import "server-only";
+import { formatDh, formatNumber } from "./format";
 
 /* ============================================================
    إرسال الإيميل
@@ -149,6 +150,23 @@ async function sendSmtp(mail: Mail): Promise<SendResult> {
   }
 }
 
+/**
+ * إرسال «هادئ» لإشعارات الأحداث.
+ *
+ * الفرق على send(): هادي عمرها ماترمي ولا تخلّي العملية الأصلية
+ * تطيح. رسالة ماوصلاتش ماخاصهاش تمنع المحادثة ولا الموعد من
+ * التسجيل — الإشعار الداخلي هو المصدر الأساسي، والإيميل زيادة.
+ */
+export async function sendQuiet(mail: Mail): Promise<void> {
+  if (!mailConfigured()) return;
+  try {
+    const r = await send(mail);
+    if (!r.ok) console.error(`[mail] إشعار ماتصيفطش لـ${mail.to}: ${r.error}`);
+  } catch (e) {
+    console.error("[mail] إشعار طاح:", e);
+  }
+}
+
 export async function send(mail: Mail): Promise<SendResult> {
   if (!mailConfigured()) return { ok: false, error: "مزوّد الإيميل ماشي مضبوط." };
   switch (mailProvider()) {
@@ -192,6 +210,61 @@ const C = {
 
 const FONT =
   "'IBM Plex Sans Arabic','Segoe UI',Tahoma,system-ui,-apple-system,sans-serif";
+
+/** تهريب النص ديال المستخدم — أي نص كيدخل فـHTML كيدوز من هنا */
+const esc = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/**
+ * سطر واحد لعنوان الرسالة (subject).
+ *
+ * العنوان هو رأس (header) ديال الإيميل. مزوّدينا كيمرّرو JSON
+ * فكيهرّبو وحدهم، ولكن أي نص ديال المستخدم كيدخل فرأس خاصو يبقى
+ * سطراً واحداً — حماية زائدة بلا تكلفة.
+ */
+const oneLine = (s: string, max = 90) =>
+  s.replace(/[\r\n\t]+/g, " ").trim().slice(0, max);
+
+/**
+ * جذر الموقع للروابط المطلقة.
+ *
+ * الإيميل ماكيقدرش يستعمل روابط نسبية — خاصو النطاق كامل. نفس
+ * القيمة ديال sitemap.ts وrobots.ts، مع إمكانية تبديلها فالبيئة
+ * (مفيد للتجريب على نطاق مؤقت ديال Vercel).
+ */
+const siteUrl = () =>
+  (process.env.NEXT_PUBLIC_SITE_URL || "https://triq.ma").replace(/\/+$/, "");
+
+/** رابط مطلق من مسار داخلي: "/messages" → "https://triq.ma/messages" */
+const abs = (path: string) => `${siteUrl()}${path.startsWith("/") ? path : `/${path}`}`;
+
+/**
+ * زر CTA — جدول ماشي <a> مصفّف.
+ *
+ * Outlook لسطح المكتب كيتجاهل padding على <a>، فالزر كيولّي نص
+ * عادي. الجدول بـbgcolor هو الطريقة الوحيدة اللي كتخدم فكل مكان.
+ */
+function ctaButton(label: string, href: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px auto 0">
+    <tr><td bgcolor="${C.brand}" style="border-radius:10px">
+      <a href="${href}" style="display:inline-block;padding:11px 26px;font-family:${FONT};font-size:13px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px">${label}</a>
+    </td></tr>
+  </table>`;
+}
+
+/** سطر معلومة: «التسمية: القيمة» بمحاذاة يمين */
+const infoRow = (label: string, value: string) =>
+  `<tr><td style="padding:3px 0"><b style="color:${C.text}">${label}:</b> ${esc(value)}</td></tr>`;
+
+/**
+ * ثمن بالدرهم معزول اتجاهياً.
+ *
+ * «95 000» فيها فراغ بين رقمين. فسياق RTL، خوارزمية bidi كتعتبر
+ * داك الفراغ محايداً بين عددين فكتقلب الترتيب: «000 95» — ثمن
+ * غالط بالكامل. نفس العزل اللي كتدير .num فـglobals.css.
+ */
+const dh = (n: number) =>
+  `<span dir="ltr" style="unicode-bidi:isolate">${formatNumber(n)}</span> د.م`;
 
 /** نجمة زليجية ثمانية بلون العلامة الواحد — نفس مسار Logo.tsx بلا تدرّج */
 function logoMarkSvg(size = 34): string {
@@ -297,8 +370,6 @@ export function contactNotifyMail(opts: {
   message: string;
   replyTo?: string;
 }): Mail {
-  const esc = (s: string) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return {
     to: opts.to,
     subject: `[طريق] ${opts.topic} — ${opts.name}`,
@@ -308,11 +379,186 @@ export function contactNotifyMail(opts: {
       heading: "رسالة تواصل جديدة",
       bodyHtml: `
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;font-size:12.5px;color:${C.muted};text-align:right">
-          <tr><td style="padding:3px 0"><b style="color:${C.text}">الموضوع:</b> ${esc(opts.topic)}</td></tr>
-          <tr><td style="padding:3px 0"><b style="color:${C.text}">الاسم:</b> ${esc(opts.name)}</td></tr>
-          <tr><td style="padding:3px 0"><b style="color:${C.text}">التواصل:</b> ${esc(opts.contact)}</td></tr>
+          ${infoRow("الموضوع", opts.topic)}
+          ${infoRow("الاسم", opts.name)}
+          ${infoRow("التواصل", opts.contact)}
         </table>
         <div style="margin-top:12px;background:${C.bg};border:1px solid ${C.line};border-radius:10px;padding:14px;font-size:12.5px;line-height:1.8;color:${C.text};text-align:right;white-space:pre-wrap">${esc(opts.message)}</div>`,
+    }),
+  };
+}
+
+/* ============================================================
+   إشعارات الأحداث
+
+   هاد الرسائل كتتصيفط مع الإشعار الداخلي — ماشي بدلو. المستخدم
+   اللي ماشي فالموقع دابا خاصو يعرف أنّ شي حد كيسناه، وإلا الإعلان
+   كيموت بلا جواب.
+
+   كل وحدة فيهم عندها رابط مطلق: الإيميل ماكيعرفش النطاق ديالنا.
+   ============================================================ */
+
+/** رسالة جديدة فمحادثة إعلان */
+export function newMessageMail(opts: {
+  to: string;
+  /** اسم اللي صيفط */
+  fromName: string;
+  /** «Dacia Logan 2018» — باش يعرف على أي إعلان */
+  listingTitle: string;
+  /** أول سطور الرسالة */
+  preview: string;
+}): Mail {
+  const url = abs("/messages");
+  return {
+    to: opts.to,
+    subject: oneLine(`رسالة جديدة من ${opts.fromName} — ${opts.listingTitle}`),
+    text:
+      `${opts.fromName} صيفط ليك رسالة على «${opts.listingTitle}»:\n\n` +
+      `${opts.preview}\n\nجاوب من هنا: ${url}\n`,
+    html: emailShell({
+      heading: "عندك رسالة جديدة",
+      bodyHtml: `
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;font-size:12.5px;color:${C.muted};text-align:right">
+          ${infoRow("من", opts.fromName)}
+          ${infoRow("على الإعلان", opts.listingTitle)}
+        </table>
+        <div style="margin-top:12px;background:${C.bg};border:1px solid ${C.line};border-radius:10px;padding:14px;font-size:12.5px;line-height:1.8;color:${C.text};text-align:right;white-space:pre-wrap">${esc(opts.preview)}</div>
+        ${ctaButton("جاوب على الرسالة", url)}
+        <div style="margin-top:14px;font-size:11px;color:${C.dim};text-align:right">
+          غادي نصيفطو ليك إيميل واحد غير ملي تكون عندك رسائل ماقريتيهاش —
+          ماشي فكل رسالة.
+        </div>`,
+    }),
+  };
+}
+
+/** الثمن هبط على إعلان فالمفضّلة (مع تفعيل مراقبة الثمن) */
+export function priceDropMail(opts: {
+  to: string;
+  listingTitle: string;
+  oldPrice: number;
+  newPrice: number;
+  /** slug ديال الإعلان */
+  slug: string;
+}): Mail {
+  const url = abs(`/vehicle/${opts.slug}`);
+  const saved = opts.oldPrice - opts.newPrice;
+  return {
+    to: opts.to,
+    subject: oneLine(`الثمن هبط: ${opts.listingTitle} — ${formatDh(opts.newPrice)}`),
+    text:
+      `إعلان كتراقب هبط ثمنو.\n\n` +
+      `${opts.listingTitle}\n` +
+      `من ${formatDh(opts.oldPrice)} إلى ${formatDh(opts.newPrice)} ` +
+      `(أقل بـ${formatDh(saved)})\n\n${url}\n`,
+    html: emailShell({
+      heading: "الثمن هبط على إعلان كتراقب",
+      bodyHtml: `
+        <div style="margin-top:14px;font-size:13.5px;font-weight:700;color:${C.text};text-align:right">${esc(opts.listingTitle)}</div>
+        <div style="margin-top:12px;background:${C.brandSoft};border:1px solid ${C.brandLine};border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:12px;color:${C.muted};text-decoration:line-through">${dh(opts.oldPrice)}</div>
+          <div style="margin-top:4px;font-size:24px;font-weight:800;color:${C.brand}">${dh(opts.newPrice)}</div>
+          <div style="margin-top:6px;font-size:12px;font-weight:700;color:${C.text}">أقل بـ${dh(saved)}</div>
+        </div>
+        ${ctaButton("شوف الإعلان", url)}
+        <div style="margin-top:14px;font-size:11px;color:${C.dim};text-align:right">
+          كتوصلك هاد الرسالة حيت فعّلتي مراقبة الثمن على هاد الإعلان فالمفضّلة.
+        </div>`,
+    }),
+  };
+}
+
+/** طلب موعد معاينة من مشتري */
+export function appointmentRequestMail(opts: {
+  to: string;
+  listingTitle: string;
+  /** التاريخ والوقت مكتوبين بالعربية */
+  when: string;
+  place?: string | null;
+}): Mail {
+  const url = abs("/dashboard/appointments");
+  return {
+    to: opts.to,
+    subject: oneLine(`طلب موعد معاينة — ${opts.listingTitle}`),
+    text:
+      `شي حد بغى يشوف «${opts.listingTitle}».\n\n` +
+      `الوقت المقترح: ${opts.when}\n` +
+      (opts.place ? `البلاصة: ${opts.place}\n` : "") +
+      `\nأكّد ولا اقترح وقت آخر: ${url}\n`,
+    html: emailShell({
+      heading: "طلب موعد معاينة",
+      bodyHtml: `
+        <div style="margin-top:14px;font-size:12.5px;line-height:1.8;color:${C.muted};text-align:right">
+          شي حد بغى يشوف المركبة ديالك.
+        </div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;font-size:12.5px;color:${C.muted};text-align:right">
+          ${infoRow("الإعلان", opts.listingTitle)}
+          ${infoRow("الوقت المقترح", opts.when)}
+          ${opts.place ? infoRow("البلاصة", opts.place) : ""}
+        </table>
+        ${ctaButton("أكّد الموعد", url)}
+        <div style="margin-top:14px;background:${C.badSoft};border-radius:10px;padding:12px 14px;font-size:11.5px;line-height:1.8;color:${C.bad};text-align:right;font-weight:700">
+          تلاقاو فبلاصة عامة ونهاراً. ماتقبلش عربون قبل المعاينة.
+        </div>`,
+    }),
+  };
+}
+
+/** نتيجة مراجعة توثيق الهوية — مقبول ولا مرفوض */
+export function verificationResultMail(opts: {
+  to: string;
+  approved: boolean;
+  /** سبب الرفض — كيبان غير ملي يكون الرفض */
+  note?: string | null;
+}): Mail {
+  const url = abs("/dashboard/trust");
+
+  if (opts.approved) {
+    return {
+      to: opts.to,
+      subject: "تّوثق حسابك فطريق",
+      text:
+        `تّوثق حسابك فطريق.\n\n` +
+        `شارة «حساب موثق» كتبان دابا فكل إعلاناتك، ومؤشر الثقة ديالك تزاد.\n\n${url}\n`,
+      html: emailShell({
+        heading: "تّوثق حسابك",
+        bodyHtml: `
+          <div style="margin-top:14px;font-size:12.5px;line-height:1.8;color:${C.muted};text-align:right">
+            راجعنا الوثيقة ديالك وتّقبلات. من دابا:
+          </div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:10px;font-size:12.5px;line-height:1.9;color:${C.muted};text-align:right">
+            <tr><td>· شارة <b style="color:${C.text}">«حساب موثق»</b> كتبان فكل إعلاناتك.</td></tr>
+            <tr><td>· مؤشر الثقة ديال حسابك تزاد.</td></tr>
+            <tr><td>· المشترين كيثقو أكثر فالإعلانات الموثّقة.</td></tr>
+          </table>
+          ${ctaButton("شوف مركز الثقة", url)}`,
+      }),
+    };
+  }
+
+  return {
+    to: opts.to,
+    subject: "طلب التوثيق ديالك محتاج تصحيح",
+    text:
+      `ماقدرناش نقبلو طلب التوثيق ديالك.\n` +
+      (opts.note ? `السبب: ${opts.note}\n` : "") +
+      `\nتقدّر تعاود تصيفط وثيقة أوضح من هنا: ${url}\n`,
+    html: emailShell({
+      heading: "طلب التوثيق محتاج تصحيح",
+      bodyHtml: `
+        <div style="margin-top:14px;font-size:12.5px;line-height:1.8;color:${C.muted};text-align:right">
+          راجعنا الوثيقة ديالك وماقدرناش نقبلوها هاد المرة.
+        </div>
+        ${
+          opts.note
+            ? `<div style="margin-top:12px;background:${C.badSoft};border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.8;color:${C.bad};text-align:right"><b>السبب:</b> ${esc(opts.note)}</div>`
+            : ""
+        }
+        <div style="margin-top:12px;font-size:12.5px;line-height:1.8;color:${C.muted};text-align:right">
+          التوثيق اختياري — حسابك مازال خدّام عادي. إلا بغيتي تعاود، صوّر
+          الوثيقة بضو مزيان وبلا ما يتقطع شي طرف.
+        </div>
+        ${ctaButton("عاود صيفط الوثيقة", url)}`,
     }),
   };
 }

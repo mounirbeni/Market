@@ -181,6 +181,34 @@ export async function updateListingPrice(sellerId: string, ref: string, price: n
        WHERE f.listing_id = $1 AND f.price_watch`,
       [l.id],
     );
+
+    /* هبوط الثمن حدث نادر (البائع هو اللي كيبدّلو) — فكل واحد
+       كيراقب كيستاهل إيميل، بلا خوف من الإزعاج. */
+    const watchers = await sql<{ email: string; slug: string; title: string }>(
+      `SELECT u.email, l.slug,
+              l.make || ' ' || l.model || ' ' || l.year::text AS title
+       FROM favorites f
+       JOIN listings l ON l.id = f.listing_id
+       JOIN users u ON u.id = f.user_id
+       WHERE f.listing_id = $1 AND f.price_watch AND u.email IS NOT NULL`,
+      [l.id],
+    );
+    if (watchers.length) {
+      const { priceDropMail, sendQuiet } = await import("@/lib/mail");
+      await Promise.all(
+        watchers.map((w) =>
+          sendQuiet(
+            priceDropMail({
+              to: w.email,
+              listingTitle: w.title,
+              oldPrice: l.price_mad,
+              newPrice: price,
+              slug: w.slug,
+            }),
+          ),
+        ),
+      );
+    }
   }
   return { changed: true };
 }
@@ -433,6 +461,30 @@ export async function requestAppointment(
      VALUES ($1, 'appointment', 'طلب موعد جديد', 'شي حد بغى يشوف مركبتك.', '/dashboard/appointments')`,
     [l.seller_id],
   );
+
+  /* الموعد كيضيع إلا البائع مادخلش للموقع — علاش الإيميل هنا
+     مهم أكثر من باقي الإشعارات. */
+  const seller = await one<{ email: string; title: string }>(
+    `SELECT u.email, l.make || ' ' || l.model || ' ' || l.year::text AS title
+     FROM users u, listings l
+     WHERE u.id = $1::uuid AND l.id = $2`,
+    [l.seller_id, l.id],
+  );
+  if (seller?.email) {
+    const { appointmentRequestMail, sendQuiet } = await import("@/lib/mail");
+    await sendQuiet(
+      appointmentRequestMail({
+        to: seller.email,
+        listingTitle: seller.title,
+        when: scheduledAt.toLocaleString("ar-MA", {
+          dateStyle: "full",
+          timeStyle: "short",
+          timeZone: "Africa/Casablanca",
+        }),
+        place: place.trim().slice(0, 200) || null,
+      }),
+    );
+  }
   return r!.id;
 }
 
