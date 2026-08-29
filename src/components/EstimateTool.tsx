@@ -301,7 +301,7 @@ export function EstimateTool() {
 
         <p className="flex gap-2 text-[11px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
           <Info size={13} className="mt-px shrink-0" />
-          التقدير إرشادي ومبني على الإعلانات المتوفرة داخل المنصة ({formatNumber(fleet)} مركبة).
+          التقدير إرشادي ومبني على الإعلانات المتوفرة داخل المنصة (<span className="num">{formatNumber(fleet)}</span> مركبة).
           الثمن النهائي كيتأثر بحالة المحرك، تاريخ الصيانة، الوثائق والتفاوض.
         </p>
       </div>

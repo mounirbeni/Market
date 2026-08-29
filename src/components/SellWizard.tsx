@@ -313,7 +313,7 @@ export function SellWizard() {
           </span>
           <h2 className="h-section mt-5">تنشر إعلانك!</h2>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            {d.make} {d.model} {d.year} بثمن {formatNumber(d.price)} د.م، بمؤشر ثقة{" "}
+            {d.make} {d.model} {d.year} بثمن <span className="num">{formatNumber(d.price)}</span> د.م، بمؤشر ثقة{" "}
             <b className="num">{trust.score}/100</b>. الإعلانات اللي نقطتها فوق{" "}
             <span className="num">75</span> كتباع بسرعة أكبر بـ<span className="num">3</span> مرات.
           </p>

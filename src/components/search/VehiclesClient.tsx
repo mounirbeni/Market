@@ -8,6 +8,7 @@ import {
 } from "@/lib/search";
 import type { Vehicle } from "@/lib/types";
 import { VehicleCard, VehicleRow } from "@/components/VehicleCard";
+import { Mixed } from "@/components/Mixed";
 import { VehicleGridSkeleton } from "@/components/VehicleGridSkeleton";
 import { Modal, useModalClose } from "@/components/Modal";
 import { FiltersPanel } from "./FiltersPanel";
@@ -286,7 +287,7 @@ export function VehiclesClient({
                   onClick={() => set(c.clear)}
                   className="chip transition hover:border-[var(--bad)] hover:text-[var(--bad)]"
                 >
-                  {c.label} <Close size={11} className="opacity-60" />
+                  <Mixed text={c.label} /> <Close size={11} className="opacity-60" />
                 </button>
               ))}
               <button onClick={reset} className="text-[11px] font-semibold underline" style={{ color: "var(--text-dim)" }}>

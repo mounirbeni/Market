@@ -361,7 +361,7 @@ export function AdvancedSearch() {
                 <b className="num">{formatNumber(f.priceMin ?? 0)} — {f.priceMax ? formatNumber(f.priceMax) : "∞"}</b>
               </li>
             )}
-            {f.kmMax && <li className="flex justify-between"><span>الكيلومتراج</span><b className="num">حتى {formatNumber(f.kmMax)}</b></li>}
+            {f.kmMax && <li className="flex justify-between"><span>الكيلومتراج</span><b>حتى <span className="num">{formatNumber(f.kmMax)}</span></b></li>}
             {f.color && <li className="flex justify-between"><span>اللون</span><b>{f.color}</b></li>}
             {f.doors && <li className="flex justify-between"><span>الأبواب</span><b className="num">{f.doors}</b></li>}
             {f.drivetrain && (

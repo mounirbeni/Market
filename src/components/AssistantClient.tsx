@@ -8,6 +8,7 @@ import { computeTco } from "@/lib/tco";
 import { CITIES } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { VehicleCard } from "@/components/VehicleCard";
+import { Mixed } from "@/components/Mixed";
 import type { Vehicle } from "@/lib/types";
 import {
   ArrowLeft, ArrowRight, Car, Check, Coins, Fuel, MapPin, Moto, Reset,
@@ -168,7 +169,7 @@ export function AssistantClient() {
                 <ul className="flex flex-wrap gap-1.5 px-1">
                   {reasons(v, a).map((r) => (
                     <li key={r} className="chip chip-plain text-[10.5px]">
-                      <Check size={10} style={{ color: "var(--good)" }} /> {r}
+                      <Check size={10} style={{ color: "var(--good)" }} /> <Mixed text={r} />
                     </li>
                   ))}
                 </ul>

@@ -230,7 +230,9 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
                     </span>
                     <div className="min-w-0">
                       <p className="text-[12.5px] font-bold">{h.label}</p>
-                      <p className="mt-0.5 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>{h.detail}</p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                        <Mixed text={h.detail} />
+                      </p>
                     </div>
                   </div>
                 ))}

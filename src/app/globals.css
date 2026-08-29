@@ -526,6 +526,10 @@
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     direction: ltr;
+    /* بلا العزل، «95 000» كيتقلب لـ«000 95» فسياق RTL: الفراغ
+       بين رقمين محايد فخوارزمية bidi. كان خدّام بالصدفة حيت
+       العناصر ديال .stat فيها flex — عزل صريح خير من صدفة. */
+    unicode-bidi: isolate;
   }
   .stat-label {
     font-size: 0.68rem;
