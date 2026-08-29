@@ -167,12 +167,17 @@ export interface SiteStats {
   byCity: Record<string, number>;
   makes: string[];
   avgTrust: number;
+  /** عدد الإعلانات فكل شريحة ثمن — u50, 50-100, 100-200, o200 */
+  byPrice: Record<string, number>;
+  /** عدد الإعلانات حسب النوع والحالة — مفتاح "car:excellent" مثلاً */
+  byKindCondition: Record<string, number>;
 }
 
 /** إحصائيات الصفحة الرئيسية */
 export async function getStats(): Promise<SiteStats> {
   const empty: SiteStats = {
     cars: 0, motos: 0, byBody: {}, byCity: {}, makes: [], avgTrust: 0,
+    byPrice: {}, byKindCondition: {},
   };
   if (!usingDb()) return empty;
   try {

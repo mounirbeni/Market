@@ -15,8 +15,9 @@ import { GUIDES } from "@/lib/data/guides";
 import { brandSlug, brandsOf } from "@/lib/slug";
 import { findAll, getBrands, getDealerCounts, getDealers, getStats } from "@/lib/source";
 import {
-  ArrowLeft, BadgeCheck, Calculator, Car, Clock, FileText, GUIDE_ICONS, MapPin, Moto,
-  Scale, Search, ShieldCheck, Sparkle, Star, TrendingDown, Users, Wallet, Wrench,
+  ArrowLeft, BadgeCheck, Calculator, Car, Clock, Coins, FileText, GUIDE_ICONS, Lock,
+  MapPin, Message, Moto, Phone, Scale, Search, ShieldCheck, Sparkle, Star, TrendingDown,
+  Users, Wallet, Wrench,
 } from "@/components/icons";
 
 const PILLARS = [
@@ -68,11 +69,49 @@ const CATEGORIES = [
   { key: "custom", label: "كوستوم", kind: "moto" },
 ] as const;
 
+/* شرائح الثمن فقسم «حسب السعر» — الحدود مطابقة لـPRICE_BRACKETS فـlib/db/listings.ts */
+const PRICE_BRACKETS: {
+  key: string; label: string; priceMin?: number; priceMax?: number;
+}[] = [
+  { key: "u50", label: "أقل من 50,000 درهم", priceMax: 49999 },
+  { key: "50-100", label: "من 50,000 إلى 100,000 درهم", priceMin: 50000, priceMax: 99999 },
+  { key: "100-200", label: "من 100,000 إلى 200,000 درهم", priceMin: 100000, priceMax: 199999 },
+  { key: "o200", label: "أكثر من 200,000 درهم", priceMin: 200000 },
+];
+
+const TRUST_POINTS = [
+  {
+    Icon: ShieldCheck,
+    title: "إعلانات موثوقة",
+    text: "كل إعلان كيتفحّص: وثائق، رقم الهيكل، وصور حقيقية ديال المركبة — بلا نسخ ولصق.",
+    href: "/cars?verified=1",
+  },
+  {
+    Icon: Phone,
+    title: "تواصل مباشر مع البائع",
+    text: "بلا وسطاء ولا عمولة: كتهضر مباشرة مع البائع بالهاتف ولا واتساب.",
+    href: "/safety",
+  },
+  {
+    Icon: MapPin,
+    title: "مركبات من كل مدن المغرب",
+    text: "إعلانات حقيقية موزّعة على عشرات المدن — من طنجة حتى العيون.",
+    href: "/cars",
+  },
+  {
+    Icon: Lock,
+    title: "حماية وخصوصية المستخدم",
+    text: "رقم الهاتف ديالك ماكيبانش حتى توافق، والبيانات ديالك محمية وماكتتباعش.",
+    href: "/privacy",
+  },
+] as const;
+
 export default async function HomePage() {
-  const [featuredCars, featuredMotos, carBrands, motoBrands, stats, dealerCounts] =
+  const [featuredCars, featuredMotos, latestVehicles, carBrands, motoBrands, stats, dealerCounts] =
     await Promise.all([
       findAll({ kind: "car", sort: "deal" }, 4),
       findAll({ kind: "moto", sort: "deal" }, 4),
+      findAll({ sort: "recent" }, 8),
       getBrands("car"),
       getBrands("moto"),
       getStats(),
@@ -117,6 +156,34 @@ export default async function HomePage() {
     .map((c) => ({ ...c, n: stats.byCity[c.slug] ?? 0 }))
     .filter((c) => c.n > 0)
     .sort((a, b) => b.n - a.n);
+
+  /* قسم الفئات: نوع المركبة × حالتها. المنصة سوق مركبات مستعملة فقط —
+     ماكاينش "جديدة" فالبيانات ولا فهوية الموقع، فبدلها كنعرضو الحالة
+     («ممتازة»/«جيدة») اللي هي فعلاً موجودة فقاعدة البيانات. */
+  const CATEGORY_TILES = [
+    { key: "cars", label: "السيارات", href: "/cars", n: stats.cars, Icon: Car },
+    { key: "motos", label: "الدراجات النارية", href: "/motorcycles", n: stats.motos, Icon: Moto },
+    {
+      key: "cars-excellent", label: "سيارات بحالة ممتازة", href: "/cars?condition=excellent",
+      n: stats.byKindCondition["car:excellent"] ?? 0, Icon: Star,
+    },
+    {
+      key: "cars-bon", label: "سيارات بحالة جيدة", href: "/cars?condition=bon",
+      n: stats.byKindCondition["car:bon"] ?? 0, Icon: BadgeCheck,
+    },
+    {
+      key: "motos-excellent", label: "دراجات بحالة ممتازة", href: "/motorcycles?condition=excellent",
+      n: stats.byKindCondition["moto:excellent"] ?? 0, Icon: Star,
+    },
+    {
+      key: "motos-bon", label: "دراجات بحالة جيدة", href: "/motorcycles?condition=bon",
+      n: stats.byKindCondition["moto:bon"] ?? 0, Icon: BadgeCheck,
+    },
+  ].filter((t) => t.n > 0);
+
+  const priceBrackets = PRICE_BRACKETS
+    .map((b) => ({ ...b, n: stats.byPrice[b.key] ?? 0 }))
+    .filter((b) => b.n > 0);
 
   return (
     <>
@@ -294,6 +361,34 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ================= قسم الفئات ================= */}
+      {CATEGORY_TILES.length > 0 && (
+      <section className="mx-auto max-w-[1400px] px-4 py-16">
+        <h2 className="h-section mb-2">الفئات الرئيسية</h2>
+        <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
+          وصول سريع للسيارات والدراجات النارية حسب حالتها.
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {CATEGORY_TILES.map((c) => (
+            <Link
+              key={c.key}
+              href={c.href}
+              className="card card-hover group flex flex-col items-center gap-2.5 p-5 text-center"
+            >
+              <span
+                className="grid h-12 w-12 place-items-center rounded-xl transition-colors"
+                style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+              >
+                <c.Icon size={22} />
+              </span>
+              <span className="text-[12.5px] font-bold">{c.label}</span>
+              <span className="num text-[10.5px]" style={{ color: "var(--text-dim)" }}>{c.n} إعلان</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+      )}
+
       {/* ================= التصنيفات ================= */}
       <section className="mx-auto max-w-[1400px] px-4 py-16">
         <h2 className="h-section mb-7">تصفّح حسب النوع</h2>
@@ -333,7 +428,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <span className="eyebrow"><Car size={13} /> سيارات</span>
+              <span className="eyebrow"><Sparkle size={13} /> إعلانات مميّزة</span>
               <h2 className="h-section mt-3">سيارات مميزة</h2>
               <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
                 مركبات ثمنها تحت المرجع المحسوب، مرتّبة حسب الفارق.
@@ -342,7 +437,7 @@ export default async function HomePage() {
             <Link href="/cars?deals=1" className="btn btn-ghost btn-sm">كل السيارات <ArrowLeft size={14} /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {featuredCars.map((v) => <VehicleCard key={v.id} v={v} compact />)}
+            {featuredCars.map((v) => <VehicleCard key={v.id} v={v} compact featured />)}
           </div>
         </div>
       </section>
@@ -354,7 +449,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <span className="eyebrow"><Moto size={13} /> دراجات نارية</span>
+              <span className="eyebrow"><Sparkle size={13} /> إعلانات مميّزة</span>
               <h2 className="h-section mt-3">دراجات مميزة</h2>
               <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
                 من السكوتر ديال المدينة حتى دراجات الطرق الوعرة.
@@ -363,7 +458,28 @@ export default async function HomePage() {
             <Link href="/motorcycles" className="btn btn-ghost btn-sm">كل الدراجات <ArrowLeft size={14} /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {featuredMotos.map((v) => <VehicleCard key={v.id} v={v} compact />)}
+            {featuredMotos.map((v) => <VehicleCard key={v.id} v={v} compact featured />)}
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ================= أحدث الإعلانات ================= */}
+      {latestVehicles.length > 0 && (
+      <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
+        <div className="mx-auto max-w-[1400px] px-4 py-16">
+          <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <span className="eyebrow"><Clock size={13} /> جديد</span>
+              <h2 className="h-section mt-3">أحدث الإعلانات</h2>
+              <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+                آخر السيارات والدراجات النارية اللي تزادت فالمنصة.
+              </p>
+            </div>
+            <Link href="/vehicles?sort=recent" className="btn btn-ghost btn-sm">كل الإعلانات <ArrowLeft size={14} /></Link>
+          </header>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {latestVehicles.map((v) => <VehicleCard key={v.id} v={v} compact />)}
           </div>
         </div>
       </section>
@@ -410,6 +526,39 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ================= حسب السعر ================= */}
+      {priceBrackets.length > 0 && (
+      <section className="mx-auto max-w-[1400px] px-4 py-16">
+        <h2 className="h-section mb-2">تصفّح حسب الثمن</h2>
+        <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
+          اختار الميزانية ديالك، ونعرضو ليك غير المركبات اللي فمتناولك.
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {priceBrackets.map((b) => {
+            const sp = new URLSearchParams();
+            if (b.priceMin) sp.set("priceMin", String(b.priceMin));
+            if (b.priceMax) sp.set("priceMax", String(b.priceMax));
+            return (
+              <Link
+                key={b.key}
+                href={`/vehicles?${sp.toString()}`}
+                className="card card-hover group flex flex-col items-center gap-2.5 p-5 text-center"
+              >
+                <span
+                  className="grid h-12 w-12 place-items-center rounded-xl transition-colors"
+                  style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+                >
+                  <Coins size={22} />
+                </span>
+                <span className="text-[12.5px] font-bold leading-snug">{b.label}</span>
+                <span className="num text-[10.5px]" style={{ color: "var(--text-dim)" }}>{b.n} إعلان</span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+      )}
+
       {/* ================= المدن ================= */}
       {topCities.length > 0 && (
       <section className="mx-auto max-w-[1400px] px-4 py-16">
@@ -440,10 +589,37 @@ export default async function HomePage() {
       </section>
       )}
 
-      {/* ================= الوكلاء ================= */}
-      {topDealers.length > 0 && (
+      {/* ================= قسم الثقة ================= */}
       <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
         <div className="mx-auto max-w-[1400px] px-4 py-16">
+          <span className="eyebrow"><ShieldCheck size={13} /> الثقة والأمان</span>
+          <h2 className="h-section mt-3 mb-7">كيفاش كنحافظو على ثقتك</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {TRUST_POINTS.map((t) => (
+              <Link key={t.title} href={t.href} className="card card-hover group flex flex-col gap-3 p-5">
+                <span
+                  className="grid h-11 w-11 place-items-center rounded-xl"
+                  style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+                >
+                  <t.Icon size={20} />
+                </span>
+                <div>
+                  <h3 className="text-[13.5px] font-bold transition-colors group-hover:text-[var(--brand)]">
+                    {t.title}
+                  </h3>
+                  <p className="mt-1.5 text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                    {t.text}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= الوكلاء ================= */}
+      {topDealers.length > 0 && (
+      <section className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
               <span className="eyebrow"><Users size={13} /> بائعون محترفون</span>
@@ -485,7 +661,6 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
-        </div>
       </section>
       )}
 

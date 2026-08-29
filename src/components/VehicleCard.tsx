@@ -79,14 +79,18 @@ function CardActions({ v }: { v: Vehicle }) {
   );
 }
 
-function Badges({ v }: { v: Vehicle }) {
+function Badges({ v, featured = false }: { v: Vehicle; featured?: boolean }) {
   const promo = promoOf(v);
   return (
     <div className="absolute top-3 right-3 z-10 flex flex-wrap justify-end gap-1.5">
-      {promo && (
+      {promo ? (
         <span className="tag" style={{ background: promo.color, color: "#fff" }}>
           {promo.tier === "urgent" ? <Timer size={11} /> : promo.tier === "top" ? <TrendingUp size={11} /> : <Sparkle size={11} />}
           {promo.label}
+        </span>
+      ) : featured && (
+        <span className="tag" style={{ background: "var(--warn)", color: "#fff" }}>
+          <Sparkle size={11} /> إعلان مميّز
         </span>
       )}
       {v.inspected && (
@@ -116,7 +120,16 @@ function MediaCount({ v }: { v: Vehicle }) {
 /* ============================================================
    بطاقة شبكية
    ============================================================ */
-export function VehicleCard({ v, compact = false }: { v: Vehicle; compact?: boolean }) {
+export function VehicleCard({
+  v,
+  compact = false,
+  featured = false,
+}: {
+  v: Vehicle;
+  compact?: boolean;
+  /** كتبيّن شارة «إعلان مميّز» — للاستعمال فأقسام مختارة يدوياً كالصفحة الرئيسية */
+  featured?: boolean;
+}) {
   const trust = useMemo(() => trustOf(v), [v]);
   const fp = useMemo(() => fairPriceOf(v), [v]);
 
@@ -128,7 +141,7 @@ export function VehicleCard({ v, compact = false }: { v: Vehicle; compact?: bool
             v={v}
             className="h-full w-full transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
           />
-          <Badges v={v} />
+          <Badges v={v} featured={featured} />
           <MediaCount v={v} />
         </div>
 

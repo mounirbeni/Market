@@ -401,9 +401,17 @@ export async function recordViewByRef(ref: string, visitorKey: string) {
   if (l) await recordView(l.id, visitorKey);
 }
 
+/** حدود شرائح الثمن فقسم «حسب السعر» بالصفحة الرئيسية */
+const PRICE_BRACKETS = [
+  { key: "u50", sql: "price_mad < 50000" },
+  { key: "50-100", sql: "price_mad >= 50000 AND price_mad < 100000" },
+  { key: "100-200", sql: "price_mad >= 100000 AND price_mad < 200000" },
+  { key: "o200", sql: "price_mad >= 200000" },
+] as const;
+
 /** إحصائيات مجمّعة فاستعلام واحد — للصفحة الرئيسية */
 export async function aggregates() {
-  const [kinds, bodies, cities, makes, trust] = await Promise.all([
+  const [kinds, bodies, cities, makes, trust, priceRows, kindCondition] = await Promise.all([
     sql<{ kind: string; n: string }>(
       "SELECT kind, count(*)::text n FROM listings WHERE status='active' GROUP BY kind"),
     sql<{ body: string; n: string }>(
@@ -414,9 +422,23 @@ export async function aggregates() {
       "SELECT DISTINCT make FROM listings WHERE status='active' ORDER BY make"),
     one<{ avg: string | null }>(
       "SELECT round(avg(trust_score))::text avg FROM listings WHERE status='active'"),
+    sql<Record<string, string>>(
+      `SELECT ${PRICE_BRACKETS.map((b) => `count(*) FILTER (WHERE ${b.sql})::text AS "${b.key}"`).join(", ")}
+       FROM listings WHERE status='active'`,
+    ),
+    sql<{ kind: string; condition: string; n: string }>(
+      "SELECT kind, condition, count(*)::text n FROM listings WHERE status='active' GROUP BY kind, condition"),
   ]);
   const toMap = (rows: { n: string }[], key: string) =>
     Object.fromEntries(rows.map((r) => [(r as never)[key], Number(r.n)])) as Record<string, number>;
+
+  const priceRow = priceRows[0];
+  const byPrice = Object.fromEntries(
+    PRICE_BRACKETS.map((b) => [b.key, Number(priceRow?.[b.key] ?? 0)]),
+  ) as Record<string, number>;
+
+  const byKindCondition: Record<string, number> = {};
+  for (const r of kindCondition) byKindCondition[`${r.kind}:${r.condition}`] = Number(r.n);
 
   return {
     cars: Number(kinds.find((k) => k.kind === "car")?.n ?? 0),
@@ -425,6 +447,8 @@ export async function aggregates() {
     byCity: toMap(cities, "city"),
     makes: makes.map((m) => m.make),
     avgTrust: Number(trust?.avg ?? 0),
+    byPrice,
+    byKindCondition,
   };
 }
 
