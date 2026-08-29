@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { vehicleHref } from "@/lib/slug";
-import { SmartSearch } from "@/components/SmartSearch";
+import { HeroSearch } from "@/components/HeroSearch";
 import { BrandTile } from "@/components/BrandMark";
 import { SuggestedForYou } from "@/components/SuggestedForYou";
 import { VehicleCard } from "@/components/VehicleCard";
@@ -206,11 +206,9 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* بطاقة البحث المتراكبة */}
+        {/* بطاقة البحث المتراكبة — العنصر الأساسي فالصفحة */}
         <div className="relative z-10 mx-auto -mt-28 max-w-[1400px] px-4 sm:-mt-32">
-          <div className="card-raised p-4 sm:p-5">
-            <SmartSearch big />
-          </div>
+          <HeroSearch carBrands={carBrands} motoBrands={motoBrands} cities={topCities} />
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             {QUICK.map(({ href, label, Icon }) => (
