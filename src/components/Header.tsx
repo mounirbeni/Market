@@ -209,8 +209,8 @@ export function Header() {
             </div>
             <div className="mt-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <UnitToggle onNav />
-                <LanguageSwitcher onNav />
+                <UnitToggle onNav align="start" />
+                <LanguageSwitcher onNav align="start" />
               </div>
               <div className="flex gap-2">
                 <Link

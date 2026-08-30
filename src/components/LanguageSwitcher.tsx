@@ -22,7 +22,19 @@ import { Check, ChevronDown } from "./icons";
    زايد فالهيدر، خصوصاً ملي تكون النصوص بالفرنسية أطول.
    ============================================================ */
 
-export function LanguageSwitcher({ onNav = false }: { onNav?: boolean }) {
+export function LanguageSwitcher({
+  onNav = false,
+  align = "end",
+}: {
+  onNav?: boolean;
+  /**
+   * جهة القائمة المنسدلة نسبة للزر — خاصها تكون فالجهة اللي فيها
+   * حيّز. «end» (الافتراضي) ملي الزر قريب من حافة الشاشة البعيدة
+   * (بحال الهيدر)، «start» ملي الزر قريب من حافة الشاشة القريبة
+   * (بحال قائمة الهاتف) — بلاها القائمة كتخرج بره الشاشة.
+   */
+  align?: "start" | "end";
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const active = useLocale();
@@ -76,7 +88,7 @@ export function LanguageSwitcher({ onNav = false }: { onNav?: boolean }) {
       {open && (
         <ul
           role="listbox"
-          className="absolute end-0 top-[calc(100%+4px)] z-20 min-w-[130px] overflow-hidden rounded-lg border py-1 shadow-lg"
+          className={`absolute ${align === "start" ? "start-0" : "end-0"} top-[calc(100%+4px)] z-20 min-w-[130px] overflow-hidden rounded-lg border py-1 shadow-lg`}
           style={{ borderColor: "var(--line)", background: "var(--surface-1)" }}
         >
           {LOCALES.map((l) => {

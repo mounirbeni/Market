@@ -37,7 +37,21 @@ export function Price({
 }
 
 /** قائمة منسدلة ماشي زوج أزرار — باش ماكتاخدش حيّز زايد فالهيدر */
-export function UnitToggle({ compact = false, onNav = false }: { compact?: boolean; onNav?: boolean }) {
+export function UnitToggle({
+  compact = false,
+  onNav = false,
+  align = "end",
+}: {
+  compact?: boolean;
+  onNav?: boolean;
+  /**
+   * جهة القائمة المنسدلة نسبة للزر — خاصها تكون فالجهة اللي فيها
+   * حيّز. «end» (الافتراضي) ملي الزر قريب من حافة الشاشة البعيدة
+   * (بحال الهيدر)، «start» ملي الزر قريب من حافة الشاشة القريبة
+   * (بحال قائمة الهاتف) — بلاها القائمة كتخرج بره الشاشة.
+   */
+  align?: "start" | "end";
+}) {
   const { unit, setUnit } = useApp();
   const t = useDict();
   const [open, setOpen] = useState(false);
@@ -85,7 +99,7 @@ export function UnitToggle({ compact = false, onNav = false }: { compact?: boole
       {open && (
         <ul
           role="listbox"
-          className="absolute end-0 top-[calc(100%+4px)] z-20 min-w-[130px] overflow-hidden rounded-lg border py-1 shadow-lg"
+          className={`absolute ${align === "start" ? "start-0" : "end-0"} top-[calc(100%+4px)] z-20 min-w-[130px] overflow-hidden rounded-lg border py-1 shadow-lg`}
           style={{ borderColor: "var(--line)", background: "var(--surface-1)" }}
         >
           {(["dh", "million"] as const).map((u) => {
