@@ -1296,5 +1296,171 @@
         "note": "Avec diagnostic avancé"
       }
     ]
+  },
+  "sellPage": {
+    "metaTitle": "Vendez votre voiture ou moto au Maroc",
+    "metaDesc": "Publiez votre annonce gratuitement et voyez votre indice de confiance se construire sous vos yeux, avec un prix suggéré basé sur le marché marocain.",
+    "eyebrow": "Publication gratuite · Sans commission",
+    "title": "Vendez en confiance, à un prix juste",
+    "lead": "Sur les autres sites, vous remplissez un formulaire et vous attendez. Ici, vous voyez en direct l'indice de confiance de votre annonce augmenter à chaque information ajoutée — et le prix suggéré est basé sur des annonces réelles."
+  },
+  "sellWizard": {
+    "steps": [
+      "Véhicule",
+      "État et documents",
+      "Photos et description",
+      "Prix",
+      "Aperçu et publication"
+    ],
+    "s1Title": "Que vendez-vous ?",
+    "car": "Voiture",
+    "moto": "Moto",
+    "brand": "Marque",
+    "model": "Modèle",
+    "version": "Version / Motorisation",
+    "versionPlaceholder": "Ex : 1.5 dCi Ambiance",
+    "year": "Année",
+    "km": "Kilométrage",
+    "fuel": "Carburant",
+    "gearbox": "Boîte",
+    "city": "Ville",
+    "bodyType": "Type de carrosserie",
+    "color": "Couleur",
+    "doors": "Nombre de portes",
+    "fiscalPower": "Puissance fiscale",
+    "hp": "CV",
+    "drivetrainOptional": "Transmission (optionnel)",
+    "unknown": "Non précisé",
+    "originOptional": "Origine du véhicule (optionnel)",
+    "s2Title": "État et documents",
+    "condition": "État général",
+    "conditions": {
+      "excellent": "Excellent",
+      "tres-bon": "Très bon",
+      "bon": "Bon",
+      "moyen": "Moyen"
+    },
+    "owners": "Nombre de propriétaires",
+    "checks": [
+      [
+        "La carte grise est à mon nom et les documents sont complets",
+        "+8 pts"
+      ],
+      [
+        "J'accepte la vérification du numéro de châssis (VIN)",
+        "+6 pts"
+      ],
+      [
+        "La visite technique est valide",
+        "+6 pts"
+      ],
+      [
+        "J'ai le carnet d'entretien avec factures",
+        "+7 pts"
+      ],
+      [
+        "Le véhicule a eu un accident déclaré",
+        "Transparence"
+      ],
+      [
+        "Je souhaite l'inspection indépendante TRIQ (250 DH)",
+        "+10 pts"
+      ]
+    ],
+    "s3Title": "Photos et description",
+    "description": "Description",
+    "chars": "caractères",
+    "descPlaceholder": "Parlez-nous du véhicule : entretien, pièces changées, y a-t-il quelque chose à réparer…",
+    "equipment": "Équipements",
+    "s4Title": "Prix",
+    "marketSuggestion": "Prix suggéré par le marché",
+    "range": "Fourchette :",
+    "yourPrice": "Votre prix (dirhams)",
+    "priceAriaLabel": "Curseur de prix",
+    "feedbackFair": "Votre prix est dans la fourchette du marché. Les annonces au juste prix se vendent",
+    "feedbackFairEnd": "% plus vite.",
+    "feedbackHighA": "Votre prix est supérieur de",
+    "feedbackHighB": "% à la référence. L'annonce risque de rester longtemps sans contact. Essayez de vous rapprocher de",
+    "feedbackLowA": "Votre prix est bien inférieur au marché. Vous vendrez vite, mais vous pourriez perdre",
+    "feedbackCloseA": "Le prix est proche du marché, avec un écart de",
+    "feedbackCloseB": "%.",
+    "negotiable": "Prix négociable",
+    "s5Title": "Aperçu de l'annonce",
+    "previewNote": "Voici comment votre annonce apparaîtra aux acheteurs — vérifiez tout avant de publier.",
+    "noPhotosYet": "Pas encore de photos",
+    "photosWord": "photos",
+    "andVideo": " · vidéo",
+    "negotiableChip": "Négociable",
+    "yourInfoTitle": "Vos informations",
+    "nameLabel": "Nom ou nom du garage",
+    "namePlaceholder": "Ex : Mounir B.",
+    "particulier": "Particulier",
+    "professionnel": "Professionnel",
+    "phoneVerifiedCheck": [
+      "Confirmer le numéro par SMS",
+      "+4"
+    ],
+    "idVerifiedCheck": [
+      "Vérifier l'identité avec la carte nationale",
+      "+8"
+    ],
+    "publish": "Publier l'annonce gratuitement",
+    "publishing": "Publication…",
+    "loginRequired": "Vous devez vous connecter pour publier une annonce.",
+    "genericError": "Impossible de publier l'annonce. Réessayez.",
+    "networkError": "Connexion interrompue. Réessayez.",
+    "prev": "Précédent",
+    "next": "Suivant",
+    "draftSaved": "Enregistré",
+    "saveDraft": "Enregistrer comme brouillon",
+    "hasDraftNote": "Vous avez un brouillon enregistré.",
+    "restore": "Restaurer",
+    "discard": "Supprimer",
+    "publishedTitle": "Annonce publiée !",
+    "publishedLeadB": "au prix de",
+    "publishedLeadC": "avec un indice de confiance",
+    "publishedLeadD": "Les annonces avec une note supérieure à",
+    "publishedLeadE": "se vendent",
+    "publishedLeadF": "fois plus vite.",
+    "newListing": "Nouvelle annonce",
+    "seeYourListing": "Voir votre annonce",
+    "myListings": "Mes annonces",
+    "trustTitle": "Indice de confiance de votre annonce",
+    "trustLead": "Plus vous augmentez cet indice, plus votre annonce est visible et reçoit des contacts sérieux.",
+    "tipsTitle": "Comment augmenter le score",
+    "tips": [
+      [
+        "Vérifiez votre identité avec la carte nationale",
+        8
+      ],
+      [
+        "Ajoutez le numéro de châssis (VIN) pour vérification",
+        6
+      ],
+      [
+        "Ajoutez plus de 12 photos du véhicule",
+        7
+      ],
+      [
+        "Ajoutez une courte vidéo du moteur et de la carrosserie",
+        4
+      ],
+      [
+        "Joignez le carnet d'entretien",
+        7
+      ],
+      [
+        "Demandez l'inspection indépendante TRIQ",
+        10
+      ],
+      [
+        "Rédigez une description détaillée (plus de 220 caractères)",
+        3
+      ],
+      [
+        "Documentez au moins 8 équipements",
+        4
+      ]
+    ]
   }
 }

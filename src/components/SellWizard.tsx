@@ -1,17 +1,19 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useEffect, useMemo, useState } from "react";
 import { trustScore } from "@/lib/market";
 import { useEstimate } from "@/hooks/useEstimate";
 import { useCatalog } from "@/lib/useCatalog";
 import { PhotoUploader, type UploadedPhoto } from "@/components/sell/PhotoUploader";
 import { VideoUploader, type UploadedVideo } from "@/components/sell/VideoUploader";
-import { CITIES, cityName } from "@/lib/cities";
+import { CITIES } from "@/lib/cities";
 import { EQUIPMENT } from "@/lib/equipment";
-import { AR, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
 import { VehicleGlyph } from "@/components/VehicleArt";
+import { useDict, useHref, useLocale } from "@/lib/i18n/client";
+import { cityLabel, dhUnit, equipmentLabel, localizeOptions, specs } from "@/lib/i18n/labels";
 import {
   CAR_BODIES, COMMON_COLORS, DOOR_OPTIONS, DRIVETRAINS, MOTO_BODIES, ORIGINS,
 } from "@/lib/vehicle-options";
@@ -21,8 +23,6 @@ import {
   MapPin, Moto, Palette, Sparkle, Plus, TrendingDown, Wrench,
 } from "@/components/icons";
 import type { Body, Condition, Drivetrain, Origin, Seller, Vehicle } from "@/lib/types";
-
-const STEPS = ["المركبة", "الحالة والوثائق", "الصور والوصف", "الثمن", "المعاينة والنشر"];
 
 interface Draft {
   kind: "car" | "moto";
@@ -161,6 +161,13 @@ function draftSeller(d: Draft): Seller {
 const DRAFT_KEY = "triq:draft";
 
 export function SellWizard() {
+  const t = useDict();
+  const locale = useLocale();
+  const href = useHref();
+  const L = specs(locale);
+  const dh = dhUnit(locale);
+  const pct = t.fairPrice.percent;
+  const STEPS = t.sellWizard.steps;
   const [step, setStep] = useState(0);
   const [d, setD] = useState<Draft>(initialDraft);
   const [published, setPublished] = useState(false);
@@ -244,18 +251,13 @@ export function SellWizard() {
 
   /** اقتراحات لرفع النقطة */
   const tips = useMemo(() => {
-    const t: { text: string; gain: number; done: boolean }[] = [
-      { text: "وثّق هويتك بالبطاقة الوطنية", gain: 8, done: d.idVerified },
-      { text: "زد رقم الهيكل (VIN) باش نتحققو منه", gain: 6, done: d.vinChecked },
-      { text: "زيد على 12 صورة للمركبة", gain: 7, done: d.photos >= 12 },
-      { text: "زيد فيديو قصير للمحرك والهيكل", gain: 4, done: d.hasVideo },
-      { text: "أرفق دفتر الصيانة", gain: 7, done: d.serviceBook },
-      { text: "اطلب فحص طريق المستقل", gain: 10, done: d.inspected },
-      { text: "اكتب وصفاً مفصلاً (أكثر من 220 حرف)", gain: 3, done: d.description.length > 220 },
-      { text: "وثّق 8 تجهيزات على الأقل", gain: 4, done: d.equipment.length >= 8 },
+    const done = [
+      d.idVerified, d.vinChecked, d.photos >= 12, d.hasVideo,
+      d.serviceBook, d.inspected, d.description.length > 220, d.equipment.length >= 8,
     ];
-    return t.sort((a, b) => Number(a.done) - Number(b.done) || b.gain - a.gain);
-  }, [d]);
+    const list = (t.sellWizard.tips as [string, number][]).map(([text, gain], i) => ({ text, gain, done: done[i] }));
+    return list.sort((a, b) => Number(a.done) - Number(b.done) || b.gain - a.gain);
+  }, [d, t]);
 
   /** كيبعت الإعلان للخادم وكيسجّلو فقاعدة البيانات */
   async function publish() {
@@ -285,16 +287,16 @@ export function SellWizard() {
       if (!json?.ok) {
         setPublishError(
           res.status === 401
-            ? "خاصك تسجّل الدخول باش تنشر إعلان."
-            : json?.error ?? "ماقدرناش ننشرو الإعلان. عاود المحاولة.",
+            ? t.sellWizard.loginRequired
+            : json?.error ?? t.sellWizard.genericError,
         );
         return;
       }
-      setPublishedHref(`/vehicle/${json.data.slug}`);
+      setPublishedHref(href(`/vehicle/${json.data.slug}`));
       dropDraft();
       setPublished(true);
     } catch {
-      setPublishError("الشبكة قاطعة. عاود المحاولة.");
+      setPublishError(t.sellWizard.networkError);
     } finally {
       setPublishing(false);
     }
@@ -311,11 +313,11 @@ export function SellWizard() {
           >
             <BadgeCheck size={32} />
           </span>
-          <h2 className="h-section mt-5">تنشر إعلانك!</h2>
+          <h2 className="h-section mt-5">{t.sellWizard.publishedTitle}</h2>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            {d.make} {d.model} {d.year} بثمن <span className="num">{formatNumber(d.price)}</span> د.م، بمؤشر ثقة{" "}
-            <b className="num">{trust.score}/100</b>. الإعلانات اللي نقطتها فوق{" "}
-            <span className="num">75</span> كتباع بسرعة أكبر بـ<span className="num">3</span> مرات.
+            {d.make} {d.model} {d.year} {t.sellWizard.publishedLeadB} <span className="num">{formatNumber(d.price)}</span> {locale === "fr" ? "DH" : "د.م"}, {t.sellWizard.publishedLeadC}{" "}
+            <b className="num">{trust.score}/100</b>. {t.sellWizard.publishedLeadD}{" "}
+            <span className="num">75</span> {t.sellWizard.publishedLeadE}<span className="num">3</span> {t.sellWizard.publishedLeadF}
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <button
@@ -328,12 +330,12 @@ export function SellWizard() {
               }}
               className="btn btn-ghost"
             >
-              إعلان جديد
+              {t.sellWizard.newListing}
             </button>
             {publishedHref && (
-              <Link href={publishedHref} className="btn btn-primary">شوف الإعلان ديالك</Link>
+              <Link href={publishedHref} className="btn btn-primary">{t.sellWizard.seeYourListing}</Link>
             )}
-            <Link href="/dashboard/listings" className="btn btn-ghost">إعلاناتي</Link>
+            <Link href="/dashboard/listings" className="btn btn-ghost">{t.sellWizard.myListings}</Link>
           </div>
         </div>
       </div>
@@ -371,9 +373,9 @@ export function SellWizard() {
           {/* ---------- 1 ---------- */}
           {step === 0 && (
             <div className="space-y-4">
-              <h2 className="text-base font-extrabold">شنو غادي تبيع؟</h2>
+              <h2 className="text-base font-extrabold">{t.sellWizard.s1Title}</h2>
               <div className="grid grid-cols-2 gap-1.5">
-                {([["car", "سيارة", Car], ["moto", "دراجة نارية", Moto]] as const).map(([k, l, I]) => (
+                {([["car", t.sellWizard.car, Car], ["moto", t.sellWizard.moto, Moto]] as const).map(([k, l, I]) => (
                   <button
                     key={k}
                     onClick={() => {
@@ -399,14 +401,14 @@ export function SellWizard() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="label" htmlFor="sw-make">الماركة</label>
+                  <label className="label" htmlFor="sw-make">{t.sellWizard.brand}</label>
                   <select id="sw-make" className="field" value={d.make}
                     onChange={(e) => set({ make: e.target.value, model: modelsFor(e.target.value)[0] ?? "" })}>
                     {makes.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="label" htmlFor="sw-model">الموديل</label>
+                  <label className="label" htmlFor="sw-model">{t.sellWizard.model}</label>
                   <select id="sw-model" className="field" value={d.model} onChange={(e) => set({ model: e.target.value })}>
                     {models.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
@@ -414,15 +416,15 @@ export function SellWizard() {
               </div>
 
               <div>
-                <label className="label" htmlFor="sw-version">النسخة / المحرك</label>
+                <label className="label" htmlFor="sw-version">{t.sellWizard.version}</label>
                 <input id="sw-version" className="field" value={d.version}
-                  onChange={(e) => set({ version: e.target.value })} placeholder="مثلاً: 1.5 dCi Ambiance" />
+                  onChange={(e) => set({ version: e.target.value })} placeholder={t.sellWizard.versionPlaceholder} />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="label" htmlFor="sw-year">
-                    <Calendar size={13} /> السنة
+                    <Calendar size={13} /> {t.sellWizard.year}
                     <span className="num me-auto" style={{ color: "var(--brand)" }}>{d.year}</span>
                   </label>
                   <input id="sw-year" type="range" min={2000} max={2026} value={d.year}
@@ -430,7 +432,7 @@ export function SellWizard() {
                 </div>
                 <div>
                   <label className="label" htmlFor="sw-km">
-                    <Gauge size={13} /> الكيلومتراج
+                    <Gauge size={13} /> {t.sellWizard.km}
                     <span className="num me-auto" style={{ color: "var(--brand)" }}>{formatNumber(d.km)}</span>
                   </label>
                   <input id="sw-km" type="range" min={0} max={d.kind === "moto" ? 120000 : 350000}
@@ -441,33 +443,33 @@ export function SellWizard() {
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <div>
-                  <label className="label" htmlFor="sw-fuel">الوقود</label>
+                  <label className="label" htmlFor="sw-fuel">{t.sellWizard.fuel}</label>
                   <select id="sw-fuel" className="field" value={d.fuel} onChange={(e) => set({ fuel: e.target.value })}>
-                    <option value="diesel">ديزل</option>
-                    <option value="essence">بنزين</option>
-                    <option value="hybride">هجين</option>
-                    <option value="electrique">كهربائي</option>
+                    <option value="diesel">{L.fuel.diesel}</option>
+                    <option value="essence">{L.fuel.essence}</option>
+                    <option value="hybride">{L.fuel.hybride}</option>
+                    <option value="electrique">{L.fuel.electrique}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="label" htmlFor="sw-gb">الناقل</label>
+                  <label className="label" htmlFor="sw-gb">{t.sellWizard.gearbox}</label>
                   <select id="sw-gb" className="field" value={d.gearbox} onChange={(e) => set({ gearbox: e.target.value })}>
-                    <option value="manuelle">يدوية</option>
-                    <option value="automatique">أوتوماتيك</option>
+                    <option value="manuelle">{L.gearbox.manuelle}</option>
+                    <option value="automatique">{L.gearbox.automatique}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="label" htmlFor="sw-city"><MapPin size={13} /> المدينة</label>
+                  <label className="label" htmlFor="sw-city"><MapPin size={13} /> {t.sellWizard.city}</label>
                   <select id="sw-city" className="field" value={d.city} onChange={(e) => set({ city: e.target.value })}>
-                    {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.ar}</option>)}
+                    {CITIES.map((c) => <option key={c.slug} value={c.slug}>{cityLabel(c.slug, locale)}</option>)}
                   </select>
                 </div>
               </div>
 
               <div>
-                <span className="label"><Car size={13} /> نوع الهيكل</span>
+                <span className="label"><Car size={13} /> {t.sellWizard.bodyType}</span>
                 <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
-                  {(d.kind === "moto" ? MOTO_BODIES : CAR_BODIES).map((b) => (
+                  {localizeOptions((d.kind === "moto" ? MOTO_BODIES : CAR_BODIES) as readonly { value: string; label: string; fr: string }[], locale).map((b) => (
                     <button
                       key={b.value}
                       type="button"
@@ -489,7 +491,7 @@ export function SellWizard() {
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <div>
-                  <label className="label" htmlFor="sw-color"><Palette size={13} /> اللون</label>
+                  <label className="label" htmlFor="sw-color"><Palette size={13} /> {t.sellWizard.color}</label>
                   <input
                     id="sw-color" className="field" list="sw-colors" maxLength={40}
                     value={d.color} onChange={(e) => set({ color: e.target.value })}
@@ -500,7 +502,7 @@ export function SellWizard() {
                 </div>
                 {d.kind === "car" && (
                   <div>
-                    <span className="label"><Door size={13} /> عدد الأبواب</span>
+                    <span className="label"><Door size={13} /> {t.sellWizard.doors}</span>
                     <div className="grid grid-cols-4 gap-1.5">
                       {DOOR_OPTIONS.map((n) => (
                         <button
@@ -520,8 +522,8 @@ export function SellWizard() {
                 )}
                 <div>
                   <label className="label" htmlFor="sw-power">
-                    <Horsepower size={13} /> القوة الجبائية
-                    <span className="num me-auto" style={{ color: "var(--brand)" }}>{d.fiscalPower} حصان</span>
+                    <Horsepower size={13} /> {t.sellWizard.fiscalPower}
+                    <span className="num me-auto" style={{ color: "var(--brand)" }}>{d.fiscalPower} {t.sellWizard.hp}</span>
                   </label>
                   <input
                     id="sw-power" type="range" min={1} max={d.kind === "moto" ? 6 : 30} value={d.fiscalPower}
@@ -533,24 +535,24 @@ export function SellWizard() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {d.kind === "car" && (
                   <div>
-                    <label className="label" htmlFor="sw-drivetrain">الدفع (اختياري)</label>
+                    <label className="label" htmlFor="sw-drivetrain">{t.sellWizard.drivetrainOptional}</label>
                     <select
                       id="sw-drivetrain" className="field" value={d.drivetrain}
                       onChange={(e) => set({ drivetrain: e.target.value as Drivetrain | "" })}
                     >
-                      <option value="">ماشي معروف</option>
-                      {DRIVETRAINS.map((dr) => <option key={dr.value} value={dr.value}>{dr.label}</option>)}
+                      <option value="">{t.sellWizard.unknown}</option>
+                      {localizeOptions(DRIVETRAINS, locale).map((dr) => <option key={dr.value} value={dr.value}>{dr.label}</option>)}
                     </select>
                   </div>
                 )}
                 <div>
-                  <label className="label" htmlFor="sw-origin">مصدر السيارة (اختياري)</label>
+                  <label className="label" htmlFor="sw-origin">{t.sellWizard.originOptional}</label>
                   <select
                     id="sw-origin" className="field" value={d.origin}
                     onChange={(e) => set({ origin: e.target.value as Origin | "" })}
                   >
-                    <option value="">ماشي معروف</option>
-                    {ORIGINS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    <option value="">{t.sellWizard.unknown}</option>
+                    {localizeOptions(ORIGINS, locale).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </div>
               </div>
@@ -560,9 +562,9 @@ export function SellWizard() {
           {/* ---------- 2 ---------- */}
           {step === 1 && (
             <div className="space-y-4">
-              <h2 className="text-base font-extrabold">الحالة والوثائق</h2>
+              <h2 className="text-base font-extrabold">{t.sellWizard.s2Title}</h2>
               <div>
-                <span className="label">الحالة العامة</span>
+                <span className="label">{t.sellWizard.condition}</span>
                 <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
                   {(["excellent", "tres-bon", "bon", "moyen"] as Condition[]).map((c) => (
                     <button key={c} onClick={() => set({ condition: c })} aria-pressed={d.condition === c}
@@ -571,7 +573,7 @@ export function SellWizard() {
                         background: d.condition === c ? "var(--brand)" : "var(--surface-3)",
                         color: d.condition === c ? "var(--brand-ink)" : "var(--text-muted)",
                       }}>
-                      {{ excellent: "ممتازة", "tres-bon": "جيدة جداً", bon: "جيدة", moyen: "متوسطة" }[c]}
+                      {t.sellWizard.conditions[c]}
                     </button>
                   ))}
                 </div>
@@ -579,7 +581,7 @@ export function SellWizard() {
 
               <div>
                 <label className="label" htmlFor="sw-owners">
-                  عدد الملاّك
+                  {t.sellWizard.owners}
                   <span className="num me-auto" style={{ color: "var(--brand)" }}>{d.owners}</span>
                 </label>
                 <input id="sw-owners" type="range" min={1} max={5} value={d.owners}
@@ -588,13 +590,11 @@ export function SellWizard() {
 
               <div className="space-y-2">
                 {([
-                  ["papersOk", "البطاقة الرمادية فسميتي والوثائق كاملة", "+8 نقط"],
-                  ["vinChecked", "موافق على التحقق من رقم الهيكل (VIN)", "+6 نقط"],
-                  ["technicalControlValid", "الفحص التقني صالح", "+6 نقط"],
-                  ["serviceBook", "عندي دفتر الصيانة بالفواتير", "+7 نقط"],
-                  ["accident", "المركبة دازت من شي حادث مصرّح به", "شفافية"],
-                  ["inspected", "بغيت فحص طريق المستقل (250 د.م)", "+10 نقط"],
-                ] as const).map(([key, label, gain]) => (
+                  ["papersOk", 0], ["vinChecked", 1], ["technicalControlValid", 2],
+                  ["serviceBook", 3], ["accident", 4], ["inspected", 5],
+                ] as const).map(([key, i]) => {
+                  const [label, gain] = t.sellWizard.checks[i];
+                  return (
                   <label key={key} className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2.5"
                     style={{ background: "var(--surface-3)" }}>
                     <input type="checkbox" checked={Boolean(d[key])}
@@ -603,7 +603,8 @@ export function SellWizard() {
                     <span className="flex-1 text-xs">{label}</span>
                     <span className="num text-[10px] font-bold" style={{ color: "var(--good)" }}>{gain}</span>
                   </label>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -611,7 +612,7 @@ export function SellWizard() {
           {/* ---------- 3 ---------- */}
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="text-base font-extrabold">الصور والوصف</h2>
+              <h2 className="text-base font-extrabold">{t.sellWizard.s3Title}</h2>
               <PhotoUploader
                 photos={uploaded}
                 onChange={(next) => {
@@ -632,15 +633,15 @@ export function SellWizard() {
 
               <div>
                 <label className="label" htmlFor="sw-desc">
-                  الوصف <span className="num opacity-60">({d.description.length} حرف)</span>
+                  {t.sellWizard.description} <span className="num opacity-60">({d.description.length} {t.sellWizard.chars})</span>
                 </label>
                 <textarea id="sw-desc" className="field min-h-32" value={d.description}
                   onChange={(e) => set({ description: e.target.value })}
-                  placeholder="عاود لينا على المركبة: الصيانة، شنو تبدل، واش كاين شي حاجة خاصها إصلاح…" />
+                  placeholder={t.sellWizard.descPlaceholder} />
               </div>
 
               <div>
-                <span className="label">التجهيزات ({d.equipment.length})</span>
+                <span className="label">{t.sellWizard.equipment} ({d.equipment.length})</span>
                 <div className="flex flex-wrap gap-1.5">
                   {EQUIPMENT.map((e) => {
                     const on = d.equipment.includes(e);
@@ -653,7 +654,7 @@ export function SellWizard() {
                           color: on ? "var(--brand-ink)" : "var(--text-muted)",
                           borderColor: "transparent",
                         }}>
-                        {on ? <Check size={11} /> : <Plus size={11} />}{e}
+                        {on ? <Check size={11} /> : <Plus size={11} />}{equipmentLabel(e, locale)}
                       </button>
                     );
                   })}
@@ -665,24 +666,24 @@ export function SellWizard() {
           {/* ---------- 4 ---------- */}
           {step === 3 && (
             <div className="space-y-4">
-              <h2 className="text-base font-extrabold">الثمن</h2>
+              <h2 className="text-base font-extrabold">{t.sellWizard.s4Title}</h2>
               <div className="rounded-xl p-4" style={{ background: "var(--surface-3)" }}>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>الثمن المقترح من السوق</p>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{t.sellWizard.marketSuggestion}</p>
                 <p className="num mt-1 text-2xl font-black" style={{ color: "var(--brand)" }}>
-                  {formatNumber(estimate.mid)} د.م
+                  {formatNumber(estimate.mid)} {dh}
                 </p>
                 <p className="num mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                  المجال: {formatNumber(estimate.low)} — {formatNumber(estimate.high)} د.م
+                  {t.sellWizard.range} {formatNumber(estimate.low)} — {formatNumber(estimate.high)} {dh}
                 </p>
               </div>
 
               <div>
-                <label className="label" htmlFor="sw-price"><Coins size={13} /> الثمن ديالك (درهم)</label>
+                <label className="label" htmlFor="sw-price"><Coins size={13} /> {t.sellWizard.yourPrice}</label>
                 <input id="sw-price" type="number" step="1000" className="field num text-lg font-bold"
                   value={d.price} onChange={(e) => set({ price: Number(e.target.value) || 0 })} />
                 <input type="range" min={Math.round(estimate.low * 0.6)} max={Math.round(estimate.high * 1.5)}
                   step={1000} value={d.price} onChange={(e) => set({ price: Number(e.target.value) })}
-                  className="mt-3 w-full " aria-label="مؤشر الثمن" />
+                  className="mt-3 w-full " aria-label={t.sellWizard.priceAriaLabel} />
               </div>
 
               <div className="rounded-lg p-3 text-xs leading-relaxed"
@@ -696,16 +697,15 @@ export function SellWizard() {
                   } 14%, transparent)`,
                 }}>
                 {Math.abs(priceDelta) < 0.05 ? (
-                  <><Check size={13} className="inline" /> ثمنك فالمجال ديال السوق. الإعلانات المسعّرة بشكل عادل كتباع أسرع بـ<span className="num">40٪</span>.</>
+                  <><Check size={13} className="inline" /> {t.sellWizard.feedbackFair}<span className="num">40{pct}</span>{t.sellWizard.feedbackFairEnd}</>
                 ) : priceDelta > 0.14 ? (
-                  <><AlertTriangle size={13} className="inline" /> ثمنك أعلى بـ<span className="num">{Math.round(priceDelta * 100)}٪</span> من المرجع.
-                    كيمكن يبقى الإعلان مدة طويلة بلا اتصالات. جرّب تقرّبو من{" "}
-                    <b className="num">{formatNumber(estimate.high)} د.م</b>.</>
+                  <><AlertTriangle size={13} className="inline" /> {t.sellWizard.feedbackHighA}<span className="num">{Math.round(priceDelta * 100)}{pct}</span> {t.sellWizard.feedbackHighB}{" "}
+                    <b className="num">{formatNumber(estimate.high)} {dh}</b>.</>
                 ) : priceDelta < -0.14 ? (
-                  <><Info size={13} className="inline" /> ثمنك أقل بكثير من السوق. غادي تبيع بسرعة، ولكن ممكن تخسر{" "}
-                    <b className="num">{formatNumber(estimate.mid - d.price)} د.م</b>.</>
+                  <><Info size={13} className="inline" /> {t.sellWizard.feedbackLowA}{" "}
+                    <b className="num">{formatNumber(estimate.mid - d.price)} {dh}</b>.</>
                 ) : (
-                  <>الثمن قريب من السوق مع فارق <span className="num">{Math.round(Math.abs(priceDelta) * 100)}٪</span>.</>
+                  <>{t.sellWizard.feedbackCloseA} <span className="num">{Math.round(Math.abs(priceDelta) * 100)}{pct}</span>{t.sellWizard.feedbackCloseB}</>
                 )}
               </div>
 
@@ -716,7 +716,7 @@ export function SellWizard() {
                   onChange={(e) => set({ negotiable: e.target.checked })}
                   className="h-4 w-4"
                 />
-                <span className="flex-1 text-xs">الثمن قابل للتفاوض</span>
+                <span className="flex-1 text-xs">{t.sellWizard.negotiable}</span>
               </label>
             </div>
           )}
@@ -724,9 +724,9 @@ export function SellWizard() {
           {/* ---------- 5 ---------- */}
           {step === 4 && (
             <div className="space-y-4">
-              <h2 className="text-base font-extrabold">معاينة الإعلان</h2>
+              <h2 className="text-base font-extrabold">{t.sellWizard.s5Title}</h2>
               <p className="text-xs" style={{ color: "var(--text-dim)" }}>
-                هكذا غادي يبان الإعلان ديالك للمشترين — تأكد من كلشي قبل النشر.
+                {t.sellWizard.previewNote}
               </p>
 
               <div className="overflow-hidden rounded-xl border" style={{ borderColor: "var(--line)" }}>
@@ -740,7 +740,7 @@ export function SellWizard() {
                     />
                   ) : (
                     <div className="grid h-full place-items-center text-xs" style={{ color: "var(--text-dim)" }}>
-                      بلا صور بعد
+                      {t.sellWizard.noPhotosYet}
                     </div>
                   )}
                   {d.photos > 0 && (
@@ -748,7 +748,7 @@ export function SellWizard() {
                       className="absolute bottom-2 start-2 rounded-md px-2 py-0.5 text-[10px]"
                       style={{ background: "rgba(10,30,61,0.72)", color: "#fff" }}
                     >
-                      <span className="num">{d.photos}</span> صور{video ? " · فيديو" : ""}
+                      <span className="num">{d.photos}</span> {t.sellWizard.photosWord}{video ? t.sellWizard.andVideo : ""}
                     </span>
                   )}
                 </div>
@@ -757,19 +757,19 @@ export function SellWizard() {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold">{d.make} {d.model} {d.version}</p>
                       <p className="mt-0.5 flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                        <MapPin size={11} /> {cityName(d.city)} · <span className="num">{d.year}</span>
+                        <MapPin size={11} /> {cityLabel(d.city, locale)} · <span className="num">{d.year}</span>
                       </p>
                     </div>
                     <TrustRing score={trust.score} grade={trust.grade} size={44} stroke={4} />
                   </div>
                   <p className="num mt-2 text-xl font-black" style={{ color: "var(--brand)" }}>
-                    {formatNumber(d.price)} د.م
+                    {formatNumber(d.price)} {dh}
                   </p>
                   <div className="mt-2.5 flex flex-wrap gap-1.5">
-                    <span className="chip chip-plain"><span className="num">{formatNumber(d.km)}</span> كم</span>
-                    <span className="chip chip-plain">{AR.fuel[d.fuel as keyof typeof AR.fuel] ?? d.fuel}</span>
-                    <span className="chip chip-plain">{AR.gearbox[d.gearbox as keyof typeof AR.gearbox] ?? d.gearbox}</span>
-                    {d.negotiable && <span className="chip chip-plain">قابل للتفاوض</span>}
+                    <span className="chip chip-plain"><span className="num">{formatNumber(d.km)}</span> {locale === "fr" ? "km" : "كم"}</span>
+                    <span className="chip chip-plain">{L.fuel[d.fuel as keyof typeof L.fuel] ?? d.fuel}</span>
+                    <span className="chip chip-plain">{L.gearbox[d.gearbox as keyof typeof L.gearbox] ?? d.gearbox}</span>
+                    {d.negotiable && <span className="chip chip-plain">{t.sellWizard.negotiableChip}</span>}
                   </div>
                   {d.description && (
                     <p className="mt-3 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
@@ -779,7 +779,7 @@ export function SellWizard() {
                   {d.equipment.length > 0 && (
                     <div className="mt-2.5 flex flex-wrap gap-1.5">
                       {d.equipment.slice(0, 6).map((e) => (
-                        <span key={e} className="chip chip-plain">{e}</span>
+                        <span key={e} className="chip chip-plain">{equipmentLabel(e, locale)}</span>
                       ))}
                       {d.equipment.length > 6 && (
                         <span className="chip chip-plain">+<span className="num">{d.equipment.length - 6}</span></span>
@@ -789,14 +789,14 @@ export function SellWizard() {
                 </div>
               </div>
 
-              <h2 className="text-base font-extrabold">معلوماتك</h2>
+              <h2 className="text-base font-extrabold">{t.sellWizard.yourInfoTitle}</h2>
               <div>
-                <label className="label" htmlFor="sw-name">الاسم أو اسم المحل</label>
+                <label className="label" htmlFor="sw-name">{t.sellWizard.nameLabel}</label>
                 <input id="sw-name" className="field" value={d.sellerName}
-                  onChange={(e) => set({ sellerName: e.target.value })} placeholder="مثلاً: منير ب." />
+                  onChange={(e) => set({ sellerName: e.target.value })} placeholder={t.sellWizard.namePlaceholder} />
               </div>
               <div className="grid grid-cols-2 gap-1.5">
-                {([["particulier", "خاص"], ["professionnel", "محترف"]] as const).map(([k, l]) => (
+                {([["particulier", t.sellWizard.particulier], ["professionnel", t.sellWizard.professionnel]] as const).map(([k, l]) => (
                   <button key={k} onClick={() => set({ sellerType: k })} aria-pressed={d.sellerType === k}
                     className="rounded-lg py-2 text-xs font-bold transition"
                     style={{
@@ -809,8 +809,8 @@ export function SellWizard() {
               </div>
               <div className="space-y-2">
                 {([
-                  ["phoneVerified", "تأكيد رقم الهاتف عبر SMS", "+4"],
-                  ["idVerified", "توثيق الهوية بالبطاقة الوطنية", "+8"],
+                  ["phoneVerified", t.sellWizard.phoneVerifiedCheck[0], t.sellWizard.phoneVerifiedCheck[1]],
+                  ["idVerified", t.sellWizard.idVerifiedCheck[0], t.sellWizard.idVerifiedCheck[1]],
                 ] as const).map(([key, label, gain]) => (
                   <label key={key} className="flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5"
                     style={{ background: "var(--surface-3)" }}>
@@ -828,7 +828,7 @@ export function SellWizard() {
                 disabled={publishing}
                 className="btn btn-primary w-full"
               >
-                <Sparkle size={16} /> {publishing ? "كننشرو…" : "انشر الإعلان مجاناً"}
+                <Sparkle size={16} /> {publishing ? t.sellWizard.publishing : t.sellWizard.publish}
               </button>
               {publishError && (
                 <p className="mt-3 text-center text-[12px] font-semibold" style={{ color: "var(--bad)" }}>
@@ -841,17 +841,17 @@ export function SellWizard() {
           {/* التنقل */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t pt-4" style={{ borderColor: "var(--line-soft)" }}>
             <button onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}
-              className="btn btn-ghost btn-sm"><ArrowRight size={14} className="dir-flip" /> السابق</button>
+              className="btn btn-ghost btn-sm"><ArrowRight size={14} className="dir-flip" /> {t.sellWizard.prev}</button>
 
             <div className="flex items-center gap-2">
               <button onClick={saveDraft} className="btn btn-solid btn-sm" aria-live="polite">
                 {draftState === "saved"
-                  ? <><Check size={13} style={{ color: "var(--good)" }} /> تحفظات</>
-                  : <><Bookmark size={13} /> احفظ كمسودة</>}
+                  ? <><Check size={13} style={{ color: "var(--good)" }} /> {t.sellWizard.draftSaved}</>
+                  : <><Bookmark size={13} /> {t.sellWizard.saveDraft}</>}
               </button>
               {step < STEPS.length - 1 && (
                 <button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} className="btn btn-primary btn-sm">
-                  التالي <ArrowLeft size={14} className="dir-flip" />
+                  {t.sellWizard.next} <ArrowLeft size={14} className="dir-flip" />
                 </button>
               )}
             </div>
@@ -863,10 +863,10 @@ export function SellWizard() {
               style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
             >
               <Bookmark size={14} className="shrink-0" style={{ color: "var(--brand)" }} />
-              <span className="min-w-0 flex-1">عندك مسودة محفوظة من قبل.</span>
-              <button onClick={restoreDraft} className="btn btn-ghost btn-sm">استرجعها</button>
+              <span className="min-w-0 flex-1">{t.sellWizard.hasDraftNote}</span>
+              <button onClick={restoreDraft} className="btn btn-ghost btn-sm">{t.sellWizard.restore}</button>
               <button onClick={dropDraft} className="btn btn-ghost btn-sm" style={{ color: "var(--bad)" }}>
-                حيّدها
+                {t.sellWizard.discard}
               </button>
             </div>
           )}
@@ -877,18 +877,18 @@ export function SellWizard() {
       <aside className="space-y-4 lg:sticky lg:top-20 lg:h-fit">
         <div className="card p-5 text-center">
           <p className="text-xs font-bold" style={{ color: "var(--text-muted)" }}>
-            مؤشر الثقة ديال إعلانك
+            {t.sellWizard.trustTitle}
           </p>
           <div className="mt-3 flex justify-center">
             <TrustRing score={trust.score} grade={trust.grade} size={96} stroke={7} />
           </div>
           <p className="mt-3 text-[11px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
-            كل ما رفعتي هاد النقطة، كل ما بان إعلانك أكثر وجاتك اتصالات جدية بزاف.
+            {t.sellWizard.trustLead}
           </p>
         </div>
 
         <div className="card p-5">
-          <h3 className="text-xs font-extrabold">كيفاش ترفع النقطة</h3>
+          <h3 className="text-xs font-extrabold">{t.sellWizard.tipsTitle}</h3>
           <ul className="mt-3 space-y-2">
             {tips.map((t) => (
               <li key={t.text} className="flex items-start gap-2 text-[11px]">
