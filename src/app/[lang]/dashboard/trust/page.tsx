@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getDealerOfSeller, getSellerStats } from "@/lib/source";
 import { userTrustScore } from "@/lib/userTrust";
 import { userBadges } from "@/lib/userBadges";
+import { getDictionary } from "@/lib/i18n/server";
 import { DashboardShell } from "@/components/dashboard/Shell";
 import { TrustRing } from "@/components/TrustBadge";
 import {
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default async function TrustCenterPage() {
+  const t = await getDictionary();
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/dashboard/trust");
 
@@ -64,7 +66,7 @@ export default async function TrustCenterPage() {
                   className="chip"
                   style={{ background: `color-mix(in oklab, ${b.color} 14%, transparent)`, color: b.color, borderColor: "transparent" }}
                 >
-                  <b.Icon size={12} /> {b.label}
+                  <b.Icon size={12} /> {t.badge[b.key as keyof typeof t.badge]}
                 </span>
               ))}
             </div>

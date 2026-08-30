@@ -739,7 +739,9 @@ export default async function HomePage() {
               {heroTrust.parts.slice(0, 4).map((part) => (
                 <div key={part.key}>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold">{part.label}</span>
+                    <span className="font-bold">
+                      {dict.trustPanel.part[part.key as keyof typeof dict.trustPanel.part]}
+                    </span>
                     <span className="num" style={{ color: "var(--text-dim)" }}>
                       {part.score}/{part.max}
                     </span>

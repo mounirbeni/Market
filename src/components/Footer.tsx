@@ -4,7 +4,8 @@ import { Link } from "./Link";
 import { TOP_CITIES } from "@/lib/cities";
 import { brandsOf } from "@/lib/slug";
 import { Logo } from "./Logo";
-import { useDict } from "@/lib/i18n/client";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { cityLabel } from "@/lib/i18n/labels";
 import {
   Coins, Message, Navigation, ShieldCheck,
 } from "./icons";
@@ -69,6 +70,7 @@ const columns = (t: Dict["footer"]) => [
 
 export function Footer() {
   const d = useDict();
+  const locale = useLocale();
   const t = d.footer;
   const tc = d.common;
   const COLUMNS = columns(t);
@@ -162,7 +164,7 @@ export function Footer() {
                   href={`/cars?city=${c.slug}`}
                   className="chip chip-plain transition hover:border-[var(--brand)] hover:text-[var(--brand)]"
                 >
-                  {c.ar}
+                  {cityLabel(c.slug, locale)}
                 </Link>
               ))}
             </div>

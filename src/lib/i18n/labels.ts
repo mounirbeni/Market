@@ -178,3 +178,24 @@ export const colorLabel = (value: string, locale: Locale) =>
 /** تجهيز كما كيتعرض — القيمة المخزّنة كتبقى هي هي */
 export const equipmentLabel = (value: string, locale: Locale) =>
   locale === "fr" ? EQUIPMENT_FR[value] ?? value : value;
+
+/**
+ * كيعوّض `{key}` داخل نص القاموس.
+ *
+ * أي مفتاح ماكاينش فـ`vars` كيتخلّى كما هو — أحسن من نص ناقص
+ * بلا ما نعرفو علاش.
+ */
+export const fill = (template: string, vars: Record<string, string>) =>
+  template.replace(/\{(\w+)\}/g, (m, k) => vars[k] ?? m);
+
+/**
+ * اسم البائع الافتراضي: "مستعمل طريق" هو placeholder فقاعدة البيانات
+ * لحساب مازال ماكمّلش الملف الشخصي (`src/lib/auth.ts`). القيمة
+ * المخزّنة تبقى عربية — هي sentinel كتقارَن بيه أماكن أخرى — هنا
+ * كنبدّلو غير العرض حسب لغة الزائر.
+ */
+export const DEFAULT_SELLER_NAME = "مستعمل طريق";
+export const sellerDisplayName = (name: string, locale: Locale) =>
+  name === DEFAULT_SELLER_NAME
+    ? (locale === "fr" ? "Utilisateur TRIQ" : DEFAULT_SELLER_NAME)
+    : name;

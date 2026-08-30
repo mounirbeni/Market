@@ -7,6 +7,7 @@ import { Modal } from "@/components/Modal";
 import { artShape } from "@/lib/artshape";
 import type { Vehicle } from "@/lib/types";
 import { useApp } from "@/store/app";
+import { useDict } from "@/lib/i18n/client";
 import {
   BadgeCheck, Camera, ChevronLeft, ChevronRight, Heart, Key, Maximize, Minimize, Scale, Video,
 } from "@/components/icons";
@@ -16,6 +17,7 @@ export function Gallery({ v }: { v: Vehicle }) {
   const [lightbox, setLightbox] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const lightboxRef = useRef<HTMLDivElement>(null);
+  const t = useDict();
   const { isFavorite, toggleFavorite, inCompare, toggleCompare } = useApp();
   const fav = isFavorite(v.id);
   const cmp = inCompare(v.id);
@@ -93,13 +95,13 @@ export function Gallery({ v }: { v: Vehicle }) {
               <button
                 type="button"
                 onClick={() => setLightbox(true)}
-                aria-label="كبّر الصورة"
+                aria-label={t.gallery.zoom}
                 className="group relative block h-full w-full cursor-zoom-in"
               >
                 {shotAt(active) ? (
                   <SafeImg
                     src={shotAt(active)!.url}
-                    alt={`${v.make} ${v.model} — صورة ${active + 1}`}
+                    alt={`${v.make} ${v.model} — ${t.gallery.photoAlt} ${active + 1}`}
                     className="h-full w-full object-cover"
                     loading={active === 0 ? "eager" : "lazy"}
                     onBroken={markBroken}
@@ -112,14 +114,14 @@ export function Gallery({ v }: { v: Vehicle }) {
                     color={v.color}
                     variant={active}
                     className="h-full w-full"
-                    label={`${v.make} ${v.model} — صورة ${active + 1}`}
+                    label={`${v.make} ${v.model} — ${t.gallery.photoAlt} ${active + 1}`}
                   />
                 )}
                 <span
                   className="absolute bottom-3 end-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100"
                   style={{ background: "rgba(10,30,61,0.72)", color: "#fff" }}
                 >
-                  <Maximize size={12} /> كبّر
+                  <Maximize size={12} /> {t.gallery.enlarge}
                 </span>
               </button>
             )}
@@ -129,17 +131,17 @@ export function Gallery({ v }: { v: Vehicle }) {
         <div className="absolute top-3 start-3 flex flex-wrap justify-end gap-1.5">
           {v.inspected && (
             <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
-              <BadgeCheck size={12} /> مفحوصة من طريق
+              <BadgeCheck size={12} /> {t.gallery.inspected}
             </span>
           )}
           {v.firstHand && (
             <span className="tag" style={{ background: "var(--brand)", color: "#fff" }}>
-              <Key size={12} /> يد أولى
+              <Key size={12} /> {t.gallery.firstHand}
             </span>
           )}
           {v.hasVideo && (
             <span className="tag" style={{ background: "rgba(10,30,61,0.75)", color: "#fff" }}>
-              <Video size={12} /> فيديو
+              <Video size={12} /> {t.gallery.video}
             </span>
           )}
         </div>
@@ -148,7 +150,7 @@ export function Gallery({ v }: { v: Vehicle }) {
           <button
             onClick={() => toggleFavorite(v.id)}
             aria-pressed={fav}
-            aria-label="المفضلة"
+            aria-label={t.gallery.favorite}
             className="grid h-9 w-9 place-items-center rounded-lg border backdrop-blur-md transition"
             style={{
               background: fav ? "var(--bad)" : "var(--surface-1)",
@@ -161,7 +163,7 @@ export function Gallery({ v }: { v: Vehicle }) {
           <button
             onClick={() => toggleCompare(v.id)}
             aria-pressed={cmp}
-            aria-label="المقارنة"
+            aria-label={t.gallery.compare}
             className="grid h-9 w-9 place-items-center rounded-lg border backdrop-blur-md transition"
             style={{
               background: cmp ? "var(--data)" : "var(--surface-1)",
@@ -177,7 +179,7 @@ export function Gallery({ v }: { v: Vehicle }) {
           <>
             <button
               onClick={() => go(1)}
-              aria-label="الصورة السابقة"
+              aria-label={t.gallery.prev}
               className="absolute top-1/2 start-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
               style={{ background: "var(--surface-1)", borderColor: "var(--line)", color: "var(--text)" }}
             >
@@ -185,7 +187,7 @@ export function Gallery({ v }: { v: Vehicle }) {
             </button>
             <button
               onClick={() => go(-1)}
-              aria-label="الصورة التالية"
+              aria-label={t.gallery.next}
               className="absolute top-1/2 end-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
               style={{ background: "var(--surface-1)", borderColor: "var(--line)", color: "var(--text)" }}
             >
@@ -208,7 +210,7 @@ export function Gallery({ v }: { v: Vehicle }) {
           <button
             key={i}
             onClick={() => setActive(i)}
-            aria-label={clip && i === shots ? "الفيديو" : `صورة ${i + 1}`}
+            aria-label={clip && i === shots ? t.gallery.videoLabel : `${t.gallery.photoAlt} ${i + 1}`}
             aria-current={active === i}
             className="h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition"
             style={{ borderColor: active === i ? "var(--brand)" : "transparent", opacity: active === i ? 1 : 0.6 }}
@@ -234,14 +236,14 @@ export function Gallery({ v }: { v: Vehicle }) {
       {lightbox && (
         <Modal
           onClose={() => setLightbox(false)}
-          ariaLabel={`تكبير — ${v.make} ${v.model}`}
+          ariaLabel={`${t.gallery.lightboxLabel} ${v.make} ${v.model}`}
           maxWidth="max-w-6xl"
         >
           <div ref={lightboxRef} className="relative grid place-items-center bg-black" style={{ minHeight: "60vh" }}>
             {shotAt(active) ? (
               <SafeImg
                 src={shotAt(active)!.url}
-                alt={`${v.make} ${v.model} — صورة ${active + 1}`}
+                alt={`${v.make} ${v.model} — ${t.gallery.photoAlt} ${active + 1}`}
                 className="max-h-[85vh] w-full object-contain"
                 onBroken={markBroken}
               />
@@ -253,7 +255,7 @@ export function Gallery({ v }: { v: Vehicle }) {
                 color={v.color}
                 variant={active}
                 className="max-h-[85vh] w-full"
-                label={`${v.make} ${v.model} — صورة ${active + 1}`}
+                label={`${v.make} ${v.model} — ${t.gallery.photoAlt} ${active + 1}`}
               />
             )}
 
@@ -261,7 +263,7 @@ export function Gallery({ v }: { v: Vehicle }) {
               <>
                 <button
                   onClick={() => goPhoto(1)}
-                  aria-label="الصورة السابقة"
+                  aria-label={t.gallery.prev}
                   className="absolute top-1/2 start-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
                   style={{ background: "rgba(255,255,255,0.92)", borderColor: "transparent", color: "var(--text)" }}
                 >
@@ -269,7 +271,7 @@ export function Gallery({ v }: { v: Vehicle }) {
                 </button>
                 <button
                   onClick={() => goPhoto(-1)}
-                  aria-label="الصورة التالية"
+                  aria-label={t.gallery.next}
                   className="absolute top-1/2 end-3 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border shadow-md transition hover:scale-105"
                   style={{ background: "rgba(255,255,255,0.92)", borderColor: "transparent", color: "var(--text)" }}
                 >
@@ -280,7 +282,7 @@ export function Gallery({ v }: { v: Vehicle }) {
 
             <button
               onClick={toggleFullscreen}
-              aria-label={fullscreen ? "خروج من ملء الشاشة" : "ملء الشاشة"}
+              aria-label={fullscreen ? t.gallery.exitFullscreen : t.gallery.fullscreen}
               className="absolute top-3 end-3 grid h-9 w-9 place-items-center rounded-lg border backdrop-blur-md transition"
               style={{ background: "rgba(10,30,61,0.55)", borderColor: "transparent", color: "#fff" }}
             >

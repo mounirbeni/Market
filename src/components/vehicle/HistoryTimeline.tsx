@@ -1,5 +1,9 @@
+"use client";
+
 import type { HistoryEvent } from "@/lib/types";
-import { formatMonthYear, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { fmtMonthYear, kmUnit } from "@/lib/i18n/labels";
 import { BadgeCheck, ClipboardCheck, Crash, Flag, Gauge, Odometer, OilCan, Users } from "@/components/icons";
 import type { IconProps } from "@/components/icons";
 
@@ -13,14 +17,16 @@ const STYLE: Record<HistoryEvent["type"], { color: string; Icon: (p: IconProps) 
 };
 
 export function HistoryTimeline({ events }: { events: HistoryEvent[] }) {
+  const t = useDict();
+  const locale = useLocale();
   return (
     <section className="card p-5">
       <header className="mb-5 flex items-start gap-2.5">
         <BadgeCheck size={18} style={{ color: "var(--brand)" }} className="mt-0.5 shrink-0" />
         <div>
-          <h2 className="text-[15px] font-bold">سجل المركبة</h2>
+          <h2 className="text-[15px] font-bold">{t.timeline.title}</h2>
           <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
-            كل ما صرّح به البائع أو تم التحقق منه: الملاّك، الصيانات، الفحوصات والحوادث.
+            {t.timeline.lead}
           </p>
         </div>
       </header>
@@ -49,11 +55,11 @@ export function HistoryTimeline({ events }: { events: HistoryEvent[] }) {
               <div className="flex flex-wrap items-baseline gap-x-2 pt-1">
                 <span className="text-[12.5px] font-bold">{e.label}</span>
                 <span className="text-[11px]" style={{ color: "var(--text-dim)" }}>
-                  {formatMonthYear(e.date)}
+                  {fmtMonthYear(e.date, locale)}
                 </span>
                 {e.km !== undefined && (
                   <span className="tag tag-mute">
-                    <Gauge size={10} /> <span className="num">{formatNumber(e.km)}</span> كم
+                    <Gauge size={10} /> <span className="num">{formatNumber(e.km)}</span> {kmUnit(locale)}
                   </span>
                 )}
               </div>

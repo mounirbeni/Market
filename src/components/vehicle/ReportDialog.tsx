@@ -3,20 +3,14 @@
 import { useState } from "react";
 import type { Vehicle } from "@/lib/types";
 import { Modal, ModalCloseButton, useModalClose } from "@/components/Modal";
+import { useDict } from "@/lib/i18n/client";
+import { fill } from "@/lib/i18n/labels";
 import { AlertTriangle, Check, Flag, ShieldCheck } from "@/components/icons";
 
-const REASONS = [
-  { value: "fake", label: "إعلان كذاب", hint: "المركبة ماكايناش أصلاً" },
-  { value: "sold", label: "تباعت ومازال منشور", hint: "البائع ماحيّدش الإعلان" },
-  { value: "price", label: "ثمن مشبوه", hint: "رخيص بزاف على السوق — علامة نصب" },
-  { value: "photos", label: "صور مسروقة", hint: "الصور مأخوذة من إعلان آخر" },
-  { value: "papers", label: "مشكل فالوثائق", hint: "كارط كريز ماشي فسمية البائع" },
-  { value: "deposit", label: "كيطلب عربوناً قبل المعاينة", hint: "أشهر طريقة نصب" },
-  { value: "duplicate", label: "إعلان مكرر", hint: "نفس المركبة منشورة بزاف ديال المرات" },
-  { value: "other", label: "سبب آخر", hint: "" },
-];
+const REASON_KEYS = ["fake", "sold", "price", "photos", "papers", "deposit", "duplicate", "other"] as const;
 
 export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }) {
+  const t = useDict();
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
@@ -35,19 +29,19 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
       });
       const json = await res.json();
       if (!json?.ok) {
-        setError(json?.error ?? "ماقدرناش نسجّلو التبليغ. عاود المحاولة.");
+        setError(json?.error ?? t.report.genericError);
         return;
       }
       setSent(true);
     } catch {
-      setError("الشبكة قاطعة. عاود المحاولة.");
+      setError(t.report.networkError);
     } finally {
       setSending(false);
     }
   }
 
   return (
-    <Modal onClose={onClose} ariaLabel="التبليغ عن إعلان" maxWidth="max-w-lg">
+    <Modal onClose={onClose} ariaLabel={t.report.ariaLabel} maxWidth="max-w-lg">
         {sent ? (
           <ReportSentBody />
         ) : (
@@ -58,35 +52,37 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
             >
               <h2 className="flex items-center gap-2 text-base font-extrabold">
                 <Flag size={18} style={{ color: "var(--bad)" }} />
-                بلّغ على الإعلان
+                {t.report.title}
               </h2>
-              <ModalCloseButton label="سدّ" className="btn btn-icon btn-sm" />
+              <ModalCloseButton label={t.report.close} className="btn btn-icon btn-sm" />
             </header>
 
             <div className="p-5">
               <p className="text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                كتبلّغ على: <b>{v.make} {v.model} <span className="num">{v.year}</span></b>.
-                التبليغ سرّي — البائع ماكيعرفش شكون بلّغ.
+                {t.report.reportingOn} <b>{v.make} {v.model} <span className="num">{v.year}</span></b>.{" "}
+                {t.report.confidential}
               </p>
 
               <fieldset className="mt-5">
-                <legend className="label mb-2.5">علاش كتبلّغ؟</legend>
+                <legend className="label mb-2.5">{t.report.whyLegend}</legend>
                 <div className="grid gap-1.5">
-                  {REASONS.map((r) => (
+                  {REASON_KEYS.map((k) => {
+                    const r = t.report.reasons[k];
+                    return (
                     <label
-                      key={r.value}
+                      key={k}
                       className="flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 transition-colors"
                       style={{
-                        borderColor: reason === r.value ? "var(--bad)" : "var(--line)",
-                        background: reason === r.value ? "var(--bad-soft)" : "transparent",
+                        borderColor: reason === k ? "var(--bad)" : "var(--line)",
+                        background: reason === k ? "var(--bad-soft)" : "transparent",
                       }}
                     >
                       <input
                         type="radio"
                         name="report-reason"
-                        value={r.value}
-                        checked={reason === r.value}
-                        onChange={() => setReason(r.value)}
+                        value={k}
+                        checked={reason === k}
+                        onChange={() => setReason(k)}
                         className="mt-0.5 shrink-0 accent-[var(--bad)]"
                       />
                       <span className="min-w-0">
@@ -96,12 +92,13 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
                         )}
                       </span>
                     </label>
-                  ))}
+                    );
+                  })}
                 </div>
               </fieldset>
 
               <label className="label mt-5 block" htmlFor="report-note">
-                تفاصيل إضافية <span style={{ color: "var(--text-dim)" }}>(اختياري)</span>
+                {t.report.detailsLabel} <span style={{ color: "var(--text-dim)" }}>{t.report.optional}</span>
               </label>
               <textarea
                 id="report-note"
@@ -109,7 +106,7 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 maxLength={500}
-                placeholder="مثلاً: نفس الصور كاينة فإعلان آخر بثمن مختلف…"
+                placeholder={t.report.detailsPlaceholder}
                 className="field mt-1.5 w-full resize-none"
               />
               <p className="mt-1 text-end text-[10.5px]" style={{ color: "var(--text-dim)" }}>
@@ -122,7 +119,7 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
               >
                 <AlertTriangle size={15} className="mt-px shrink-0" style={{ color: "var(--warn)" }} />
                 <span>
-                  التبليغ الكاذب المتكرر كيأدي لتوقيف الحساب. بلّغ غير إلا كنتي متأكد.
+                  {t.report.abuseWarning}
                 </span>
               </div>
 
@@ -139,7 +136,7 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
                   className="btn btn-primary flex-1"
                   style={reason ? { background: "var(--bad)" } : undefined}
                 >
-                  <Check size={16} /> {sending ? "كنصيفطو…" : "صيفط التبليغ"}
+                  <Check size={16} /> {sending ? t.report.sending : t.report.send}
                 </button>
                 <CancelButton />
               </div>
@@ -151,6 +148,7 @@ export function ReportDialog({ v, onClose }: { v: Vehicle; onClose: () => void }
 }
 
 function ReportSentBody() {
+  const t = useDict();
   const close = useModalClose();
   return (
     <div className="p-8 text-center">
@@ -160,18 +158,17 @@ function ReportSentBody() {
       >
         <ShieldCheck size={26} />
       </span>
-      <h2 className="mt-5 text-lg font-extrabold">تسجّل التبليغ ديالك</h2>
+      <h2 className="mt-5 text-lg font-extrabold">{t.report.sentTitle}</h2>
       <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-        فريق المراجعة غادي يشوف الإعلان داخل <span className="num">24</span> ساعة.
-        إلا تأكد المشكل غادي يتحيّد الإعلان ويتنبّه البائع.
-        شكراً — بهاد الطريقة كنحافظو على نظافة السوق.
+        {fill(t.report.sentLead, { h: "24" })}
       </p>
-      <button onClick={close} className="btn btn-primary mt-6">سالينا</button>
+      <button onClick={close} className="btn btn-primary mt-6">{t.report.done}</button>
     </div>
   );
 }
 
 function CancelButton() {
   const close = useModalClose();
-  return <button onClick={close} className="btn btn-ghost">إلغاء</button>;
+  const t = useDict();
+  return <button onClick={close} className="btn btn-ghost">{t.report.cancel}</button>;
 }

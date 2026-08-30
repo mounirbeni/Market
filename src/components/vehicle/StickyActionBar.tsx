@@ -5,6 +5,8 @@ import type { Vehicle } from "@/lib/types";
 import { useApp } from "@/store/app";
 import { Price } from "@/components/Price";
 import { trustColor, trustOf } from "@/lib/market";
+import { useDict } from "@/lib/i18n/client";
+import { fill } from "@/lib/i18n/labels";
 import { Heart, Phone, ShieldCheck, Whatsapp } from "@/components/icons";
 
 /* الرقم كان مولّداً من معرّف الإعلان — رقم مغربي حقيقي ديال شي
@@ -15,6 +17,7 @@ const waNumber = (phone: string) => {
 };
 
 export function StickyActionBar({ v }: { v: Vehicle }) {
+  const t = useDict();
   const phone = v.seller?.phone ?? null;
   const { isFavorite, toggleFavorite, compare, ready } = useApp();
   const [revealed, setRevealed] = useState(false);
@@ -53,13 +56,13 @@ export function StickyActionBar({ v }: { v: Vehicle }) {
             className="mt-0.5 flex items-center gap-1 text-[10.5px]"
             style={{ color: trustColor(trust.score) }}
           >
-            <ShieldCheck size={11} /> ثقة <span className="num">{trust.score}</span>/100
+            <ShieldCheck size={11} /> {t.sticky.trust} <span className="num">{trust.score}</span>/100
           </span>
         </div>
 
         <button
           onClick={() => toggleFavorite(v.id)}
-          aria-label="المفضلة"
+          aria-label={t.sticky.favorite}
           aria-pressed={fav}
           className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border transition"
           style={{
@@ -74,11 +77,11 @@ export function StickyActionBar({ v }: { v: Vehicle }) {
         {phone && (
           <a
             href={`https://wa.me/${waNumber(phone)}?text=${encodeURIComponent(
-              `سلام، شفت الإعلان ديال ${v.make} ${v.model} ${v.year} فطريق. واش مازال متوفر؟`,
+              fill(t.sticky.whatsappText, { title: `${v.make} ${v.model} ${v.year}` }),
             )}`}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="واتساب"
+            aria-label={t.sticky.whatsapp}
             className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
             style={{ background: "#25D366", color: "#062d16" }}
           >
@@ -94,7 +97,7 @@ export function StickyActionBar({ v }: { v: Vehicle }) {
             </a>
           ) : (
             <button onClick={() => setRevealed(true)} className="btn btn-primary shrink-0">
-              <Phone size={15} /> اتصل
+              <Phone size={15} /> {t.sticky.call}
             </button>
           ))}
       </div>

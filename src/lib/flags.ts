@@ -5,8 +5,10 @@ export type FlagLevel = "warn" | "danger";
 
 export interface Flag {
   level: FlagLevel;
-  label: string;
-  detail: string;
+  /** مفتاح فالقاموس تحت `risk.flag` — النص كيتبنى فالعرض */
+  key: string;
+  /** قيم كتّعوّض داخل النص: {pct}، {km}، {years}… */
+  vars?: Record<string, string>;
 }
 
 /**
@@ -24,15 +26,11 @@ export function suspicionFlags(v: Vehicle, duplicates = 0): Flag[] {
   if (!fp.weak && fp.delta < -0.34) {
     flags.push({
       level: "danger",
-      label: "ثمن أقل بكثير من السوق",
-      detail: `الثمن أقل بـ${Math.round(Math.abs(fp.delta) * 100)}٪ من المرجع المحسوب. هادي أشهر علامة ديال النصب — ماتصيفطش عربوناً أبداً.`,
+      key: "farBelow",
+      vars: { pct: String(Math.round(Math.abs(fp.delta) * 100)) },
     });
   } else if (!fp.weak && fp.delta < -0.22 && !v.inspected) {
-    flags.push({
-      level: "warn",
-      label: "ثمن منخفض بلا فحص",
-      detail: "الثمن تحت السوق والمركبة ماتفحصاتش. اطلب فحصاً مستقلاً قبل أي التزام.",
-    });
+    flags.push({ level: "warn", key: "lowNoInspection" });
   }
 
   // 2. كيلومتراج ماشي منطقي مع السنة
@@ -41,46 +39,30 @@ export function suspicionFlags(v: Vehicle, duplicates = 0): Flag[] {
   if (kmPerYear < 4000 && age >= 5) {
     flags.push({
       level: "warn",
-      label: "كيلومتراج منخفض بشكل غير عادي",
-      detail: `~${Math.round(kmPerYear).toLocaleString("en")} كم/سنة على ${age} سنوات. تحقق من العدّاد عبر الحاسوب (OBD) ومن دفتر الصيانة.`,
+      key: "lowKm",
+      vars: { km: Math.round(kmPerYear).toLocaleString("en"), years: String(age) },
     });
   }
 
   // 3. وثائق ناقصة
   if (!v.papersOk) {
-    flags.push({
-      level: "danger",
-      label: "الوثائق ماشي فسمية البائع",
-      detail: "البطاقة الرمادية ماشي باسم اللي كيبيع. ماتخلّصش قبل ما تشوف عقد بيع موثّق من المالك الأصلي.",
-    });
+    flags.push({ level: "danger", key: "papers" });
   }
 
   // 4. إعلان بلا صور كافية
   if (v.photos <= 3) {
-    flags.push({
-      level: "warn",
-      label: "صور قليلة",
-      detail: `${v.photos} صور فقط. اطلب صوراً للمحرك، أرضية الصندوق، والعدّاد قبل ما تتنقّل.`,
-    });
+    flags.push({ level: "warn", key: "fewPhotos", vars: { n: String(v.photos) } });
   }
 
   // 5. إعلانات مكررة عند نفس البائع
   const dups = duplicates;
   if (dups > 1) {
-    flags.push({
-      level: "warn",
-      label: "إعلانات مكررة",
-      detail: `نفس البائع عندو ${dups} إعلانات لنفس الموديل والسنة. تأكد من المركبة اللي غادي تشوف بالضبط.`,
-    });
+    flags.push({ level: "warn", key: "duplicates", vars: { n: String(dups) } });
   }
 
   // 6. فحص تقني منتهي
   if (v.technicalControl && Date.parse(v.technicalControl) < Date.now()) {
-    flags.push({
-      level: "warn",
-      label: "الفحص التقني منتهي",
-      detail: "خاصك تجدّدو قبل تحويل الملكية، وكيمكن يخبّي أعطاباً.",
-    });
+    flags.push({ level: "warn", key: "tcExpired" });
   }
 
   return flags;

@@ -115,9 +115,12 @@ export interface TcoOptions {
 
 export interface TcoLine {
   key: string;
-  label: string;
+  /** متغيّر التسمية — مثلاً fuel كيتبدّل بين "fuel"/"fuelElectric" */
+  labelKey: string;
   perYear: number;
-  hint?: string;
+  /** مفتاح تلميح تحت `tco.hint` + قيم كتّعوّض */
+  hintKey?: string;
+  hintVars?: Record<string, string>;
 }
 
 export interface TcoResult {
@@ -135,32 +138,34 @@ export function computeTco(v: Vehicle, opts: TcoOptions): TcoResult {
   const lines: TcoLine[] = [
     {
       key: "fuel",
-      label: v.fuel === "electrique" ? "الشحن الكهربائي" : "المحروقات",
+      labelKey: v.fuel === "electrique" ? "fuelElectric" : "fuel",
       perYear: fuelCost(v, kmPerYear, opts.fuelPrices),
-      hint: `${v.consumption} ${v.fuel === "electrique" ? "ك.و.س" : "ل"}/100كم`,
+      hintKey: v.fuel === "electrique" ? "consumptionElec" : "consumption",
+      hintVars: { n: String(v.consumption) },
     },
     {
       key: "insurance",
-      label: coverage === "tous-risques" ? "التأمين (جميع الأخطار)" : "التأمين (ضد الغير)",
+      labelKey: coverage === "tous-risques" ? "insuranceAllRisk" : "insuranceTiers",
       perYear: insurance(v, coverage),
     },
     {
       key: "vignette",
-      label: "الضريبة السنوية (الفينيات)",
+      labelKey: "vignette",
       perYear: vignette(v),
-      hint: v.kind === "car" ? `${v.fiscalPower} حصان جبائي` : `${v.displacement ?? "-"} سم³`,
+      hintKey: v.kind === "car" ? "fiscalPower" : "displacement",
+      hintVars: v.kind === "car" ? { n: String(v.fiscalPower) } : { n: String(v.displacement ?? "-") },
     },
-    { key: "maintenance", label: "الصيانة وقطع الغيار", perYear: maintenance(v, kmPerYear) },
-    { key: "tyres", label: "الإطارات", perYear: tyres(v, kmPerYear) },
-    { key: "control", label: "الفحص التقني", perYear: technicalControlCost(v) },
+    { key: "maintenance", labelKey: "maintenance", perYear: maintenance(v, kmPerYear) },
+    { key: "tyres", labelKey: "tyres", perYear: tyres(v, kmPerYear) },
+    { key: "control", labelKey: "control", perYear: technicalControlCost(v) },
   ];
 
   if (opts.includeDepreciation) {
     lines.push({
       key: "depreciation",
-      label: "خسارة القيمة",
+      labelKey: "depreciation",
       perYear: depreciation(v, years),
-      hint: "الفرق بين ثمن الشراء وثمن البيع المتوقع",
+      hintKey: "depreciation",
     });
   }
 

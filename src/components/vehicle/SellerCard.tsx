@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import type { Seller, Vehicle } from "@/lib/types";
-import { cityName } from "@/lib/cities";
-import { AR } from "@/lib/format";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { cityLabel, fill, sellerDisplayName, specs } from "@/lib/i18n/labels";
 import { sellerHref, vehicleHref } from "@/lib/slug";
 import { userBadges } from "@/lib/userBadges";
 import { ReportDialog } from "./ReportDialog";
@@ -36,6 +36,8 @@ export function SellerCard({
   /** عدد إعلانات هاد البائع النشيطة الأخرى */
   activeListings?: number;
 }) {
+  const t = useDict();
+  const locale = useLocale();
   const [revealed, setRevealed] = useState(false);
   const [shared, setShared] = useState(false);
   const [reporting, setReporting] = useState(false);
@@ -56,9 +58,7 @@ export function SellerCard({
   });
 
   const title = `${v.make} ${v.model} ${v.year}`;
-  const waText = encodeURIComponent(
-    `سلام، شفت الإعلان ديال ${title} فطريق وبغيت نستفسر. واش مازال متوفر؟`,
-  );
+  const waText = encodeURIComponent(fill(t.sellerCard.whatsappText, { title }));
 
   async function share() {
     const url = typeof window === "undefined" ? "" : window.location.origin + vehicleHref(v);
@@ -84,19 +84,19 @@ export function SellerCard({
             style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
             aria-hidden="true"
           >
-            {seller.name.trim().slice(0, 1)}
+            {sellerDisplayName(seller.name, locale).trim().slice(0, 1)}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <h3 className="truncate text-sm font-bold">{seller.name}</h3>
+              <h3 className="truncate text-sm font-bold">{sellerDisplayName(seller.name, locale)}</h3>
               {seller.idVerified && (
-                <BadgeCheck size={15} style={{ color: "var(--good)" }} aria-label="هوية موثقة" />
+                <BadgeCheck size={15} style={{ color: "var(--good)" }} aria-label={t.sellerCard.idVerified} />
               )}
             </div>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-              <span>{AR.seller[seller.type]}</span>
-              <span className="flex items-center gap-1"><MapPin size={11} /> {cityName(seller.city)}</span>
-              <span>عضو منذ <span className="num">{seller.since}</span></span>
+              <span>{specs(locale).seller[seller.type]}</span>
+              <span className="flex items-center gap-1"><MapPin size={11} /> {cityLabel(seller.city, locale)}</span>
+              <span>{t.sellerCard.memberSince} <span className="num">{seller.since}</span></span>
             </p>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
               <span className="chip chip-plain">
@@ -104,14 +104,14 @@ export function SellerCard({
                 <span className="num">{seller.rating.toFixed(1)}</span>
               </span>
               <span className="chip chip-plain">
-                <span className="num">{seller.salesCount}</span> عملية بيع
+                <span className="num">{seller.salesCount}</span> {t.sellerCard.sales}
               </span>
               <span className="chip chip-plain">
-                <Clock size={11} /> ~<span className="num">{seller.responseMinutes}</span> دقيقة
+                <Clock size={11} /> ~<span className="num">{seller.responseMinutes}</span> {t.sellerCard.minutes}
               </span>
               {activeListings != null && activeListings > 1 && (
                 <span className="chip chip-plain">
-                  <Car size={11} /> <span className="num">{activeListings}</span> إعلانات نشيطة
+                  <Car size={11} /> <span className="num">{activeListings}</span> {t.sellerCard.activeListings}
                 </span>
               )}
             </div>
@@ -120,7 +120,7 @@ export function SellerCard({
               className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold transition hover:gap-1.5"
               style={{ color: "var(--brand)" }}
             >
-              {dealerSlug ? "شوف صفحة المعرض" : "شوف كل إعلانات البائع"} <BadgeCheck size={11} />
+              {dealerSlug ? t.sellerCard.dealerPage : t.sellerCard.allListings} <BadgeCheck size={11} />
             </Link>
             {badges.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -130,7 +130,7 @@ export function SellerCard({
                     className="chip"
                     style={{ background: `color-mix(in oklab, ${b.color} 14%, transparent)`, color: b.color, borderColor: "transparent" }}
                   >
-                    <b.Icon size={11} /> {b.label}
+                    <b.Icon size={11} /> {t.badge[b.key as keyof typeof t.badge]}
                   </span>
                 ))}
               </div>
@@ -147,7 +147,7 @@ export function SellerCard({
               </a>
             ) : (
               <button onClick={() => setRevealed(true)} className="btn btn-primary w-full" aria-live="polite">
-                <Phone size={16} /> أظهر رقم الهاتف
+                <Phone size={16} /> {t.sellerCard.revealPhone}
               </button>
             )
           ) : null}
@@ -159,22 +159,22 @@ export function SellerCard({
               className="btn w-full font-bold"
               style={{ background: "#25D366", color: "#062d16" }}
             >
-              <Whatsapp size={17} /> راسلو على واتساب
+              <Whatsapp size={17} /> {t.sellerCard.whatsapp}
             </a>
           )}
           <div className="grid grid-cols-2 gap-2">
-            <ContactSellerButton listingRef={v.id} label="رسالة داخلية" />
+            <ContactSellerButton listingRef={v.id} label={t.sellerCard.internalMessage} />
             <button onClick={() => setBooking(true)} className="btn btn-solid btn-sm">
-              <Calendar size={14} /> اطلب موعد
+              <Calendar size={14} /> {t.sellerCard.bookVisit}
             </button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button onClick={share} className="btn btn-solid btn-sm" aria-live="polite">
               {shared ? <Check size={14} style={{ color: "var(--good)" }} /> : <Share size={14} />}
-              {shared ? "تنسخ الرابط" : "شارك"}
+              {shared ? t.sellerCard.copied : t.sellerCard.share}
             </button>
             <Link href="/inspection" className="btn btn-solid btn-sm">
-              <Wrench size={14} /> اطلب فحصاً
+              <Wrench size={14} /> {t.sellerCard.requestInspection}
             </Link>
           </div>
           <button
@@ -182,7 +182,7 @@ export function SellerCard({
             className="mt-1 flex items-center justify-center gap-1.5 text-[11.5px] font-bold transition-colors hover:underline"
             style={{ color: "var(--text-dim)" }}
           >
-            <Flag size={12} /> بلّغ على هاد الإعلان
+            <Flag size={12} /> {t.sellerCard.report}
           </button>
         </div>
       </div>
@@ -196,10 +196,8 @@ export function SellerCard({
       >
         <ShieldAlert size={16} className="mt-px shrink-0" style={{ color: "var(--bad)" }} />
         <span>
-          <b style={{ color: "var(--bad)" }}>ماتخلّصش قبل ما تشوف:</b> حتى بائع جدي ماغاديش
-          يطلب منك عربوناً قبل المعاينة. تلاقاو فبلاصة عامة ونهاراً، وتأكد من البطاقة
-          الرمادية ورقم الهيكل.{" "}
-          <Link href="/safety" className="font-bold underline">دليل البيع الآمن</Link>
+          <b style={{ color: "var(--bad)" }}>{t.sellerCard.warnBold}</b> {t.sellerCard.warnText}{" "}
+          <Link href="/safety" className="font-bold underline">{t.sellerCard.safetyGuide}</Link>
         </span>
       </div>
     </section>

@@ -5,6 +5,8 @@ import type { Vehicle } from "@/lib/types";
 import { computeTco, FUEL_PRICES } from "@/lib/tco";
 import { formatNumber } from "@/lib/format";
 import { Price } from "@/components/Price";
+import { useDict } from "@/lib/i18n/client";
+import { fill } from "@/lib/i18n/labels";
 import {
   Calculator, Clock, Coins, Diagnostic, Droplet, Fuel, Gauge, Info, OilCan,
   Shield, Tire, TrendingDown,
@@ -56,6 +58,7 @@ function Donut({ lines, total }: { lines: { key: string; perYear: number }[]; to
 }
 
 export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: boolean }) {
+  const t = useDict();
   const [kmPerYear, setKmPerYear] = useState(v.kind === "moto" ? 8000 : 15000);
   const [years, setYears] = useState(3);
   const [coverage, setCoverage] = useState<"tiers" | "tous-risques">("tiers");
@@ -84,16 +87,16 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
         <div className="flex items-start gap-2.5">
           <Calculator size={18} style={{ color: "var(--brand)" }} className="mt-0.5 shrink-0" />
           <div>
-            <h2 className="text-[15px] font-bold">التكلفة الحقيقية ديال الاستعمال</h2>
+            <h2 className="text-[15px] font-bold">{t.tco.title}</h2>
             <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
-              الفينيات، التأمين، المحروقات، الصيانة، الإطارات والفحص التقني.
+              {t.tco.lead}
             </p>
           </div>
         </div>
         <div className="flex flex-col items-start sm:items-end">
           <Price value={tco.perMonth} className="text-2xl font-extrabold tracking-tight" />
           <span className="mt-0.5 flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-            <Clock size={12} /> في الشهر · <span className="num">{tco.perKm.toFixed(2)}</span> د.م/كم
+            <Clock size={12} /> {t.tco.perMonth} · <span className="num">{tco.perKm.toFixed(2)}</span> {t.tco.perKm}
           </span>
         </div>
       </header>
@@ -103,7 +106,7 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor={`km-${v.id}`}>
-              <Gauge size={13} /> الكيلومترات في السنة
+              <Gauge size={13} /> {t.tco.kmPerYear}
               <span className="num me-auto" style={{ color: "var(--brand)" }}>{formatNumber(kmPerYear)}</span>
             </label>
             <input
@@ -118,8 +121,8 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
           </div>
           <div>
             <label className="label" htmlFor={`yr-${v.id}`}>
-              <Clock size={13} /> مدة الاحتفاظ
-              <span className="num me-auto" style={{ color: "var(--brand)" }}>{years} سنوات</span>
+              <Clock size={13} /> {t.tco.duration}
+              <span className="num me-auto" style={{ color: "var(--brand)" }}>{years} {t.tco.years}</span>
             </label>
             <input
               id={`yr-${v.id}`}
@@ -134,7 +137,7 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
         </div>
 
         <div className="mt-4 flex flex-wrap gap-1.5">
-          {([["tiers", "تأمين ضد الغير"], ["tous-risques", "جميع الأخطار"]] as const).map(([k, l]) => (
+          {([["tiers", t.tco.insuranceTiers], ["tous-risques", t.tco.insuranceAllRisk]] as const).map(([k, l]) => (
             <button
               key={k}
               onClick={() => setCoverage(k)}
@@ -159,19 +162,19 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
               borderColor: withDep ? "var(--data)" : "var(--line-soft)",
             }}
           >
-            <TrendingDown size={12} /> احتساب خسارة القيمة
+            <TrendingDown size={12} /> {t.tco.depreciation}
           </button>
         </div>
 
         {!compact && (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="label" htmlFor={`pd-${v.id}`}><Droplet size={13} /> ثمن الگازوال (د.م/ل)</label>
+              <label className="label" htmlFor={`pd-${v.id}`}><Droplet size={13} /> {t.tco.dieselPrice}</label>
               <input id={`pd-${v.id}`} type="number" step="0.1" className="field num"
                 value={dieselPrice} onChange={(e) => setDieselPrice(Number(e.target.value) || 0)} />
             </div>
             <div>
-              <label className="label" htmlFor={`pe-${v.id}`}><Fuel size={13} /> ثمن البنزين (د.م/ل)</label>
+              <label className="label" htmlFor={`pe-${v.id}`}><Fuel size={13} /> {t.tco.petrolPrice}</label>
               <input id={`pe-${v.id}`} type="number" step="0.1" className="field num"
                 value={essencePrice} onChange={(e) => setEssencePrice(Number(e.target.value) || 0)} />
             </div>
@@ -186,7 +189,7 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
               <span className="num text-lg font-extrabold" style={{ color: "var(--text)" }}>
                 {formatNumber(tco.perYear)}
               </span>
-              <span className="text-[10px]" style={{ color: "var(--text-dim)" }}>د.م / سنة</span>
+              <span className="text-[10px]" style={{ color: "var(--text-dim)" }}>{t.tco.perYearUnit}</span>
             </div>
           </div>
 
@@ -203,14 +206,18 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
                     {meta && <meta.Icon size={14} />}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[12px] font-bold">{l.label}</span>
-                    {l.hint && (
-                      <span className="block truncate text-[10px]" style={{ color: "var(--text-dim)" }}>{l.hint}</span>
+                    <span className="block truncate text-[12px] font-bold">
+                      {t.tco.line[l.labelKey as keyof typeof t.tco.line]}
+                    </span>
+                    {l.hintKey && (
+                      <span className="block truncate text-[10px]" style={{ color: "var(--text-dim)" }}>
+                        {fill(t.tco.hint[l.hintKey as keyof typeof t.tco.hint], l.hintVars ?? {})}
+                      </span>
                     )}
                   </span>
                   <span className="num shrink-0 text-[12px] font-bold">{formatNumber(l.perYear)}</span>
                   <span className="num w-8 shrink-0 text-end text-[10px]" style={{ color: "var(--text-dim)" }}>
-                    {pct}٪
+                    {pct}{t.fairPrice.percent}
                   </span>
                 </li>
               );
@@ -224,9 +231,9 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
           style={{ borderColor: "var(--line-soft)" }}
         >
           {[
-            { label: "في السنة", value: formatNumber(tco.perYear), color: "var(--brand)" },
-            { label: `المجموع على ${years} سنوات`, value: formatNumber(tco.total), color: "var(--text)" },
-            { label: "قيمة إعادة البيع", value: formatNumber(tco.resaleValue), color: "var(--good)" },
+            { label: t.tco.perYear, value: formatNumber(tco.perYear), color: "var(--brand)" },
+            { label: fill(t.tco.totalOver, { years: String(years) }), value: formatNumber(tco.total), color: "var(--text)" },
+            { label: t.tco.resaleValue, value: formatNumber(tco.resaleValue), color: "var(--good)" },
           ].map((s) => (
             <div key={s.label} className="stat text-center">
               <span className="stat-value text-[15px]" style={{ color: s.color }}>{s.value}</span>
@@ -237,8 +244,7 @@ export function TcoCalculator({ v, compact = false }: { v: Vehicle; compact?: bo
 
         <p className="mt-4 flex gap-2 text-[10.5px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
           <Info size={13} className="mt-px shrink-0" />
-          تقديرات إرشادية مبنية على معدلات السوق المغربي (أثمنة المحروقات، تعريفة الضريبة
-          الخصوصية السنوية، متوسط أقساط التأمين). النتائج تختلف حسب شركة التأمين والاستعمال الفعلي.
+          {t.tco.disclaimer}
         </p>
       </div>
     </section>

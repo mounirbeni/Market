@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import type { Vehicle } from "@/lib/types";
 import { useSession } from "@/store/session";
 import { vehicleHref } from "@/lib/slug";
+import { useDict } from "@/lib/i18n/client";
 import { Modal, ModalCloseButton, useModalClose } from "@/components/Modal";
 import { Calendar, Check, MapPin, ShieldCheck } from "@/components/icons";
 
@@ -18,6 +19,7 @@ function defaultSlot() {
 }
 
 export function AppointmentDialog({ v, onClose }: { v: Vehicle; onClose: () => void }) {
+  const t = useDict();
   const { user } = useSession();
   const [at, setAt] = useState(defaultSlot);
   const [place, setPlace] = useState("");
@@ -36,19 +38,19 @@ export function AppointmentDialog({ v, onClose }: { v: Vehicle; onClose: () => v
       });
       const json = await res.json();
       if (!json?.ok) {
-        setError(json?.error ?? "ماقدرناش نسجّلو الطلب. عاود المحاولة.");
+        setError(json?.error ?? t.appointment.genericError);
         return;
       }
       setSent(true);
     } catch {
-      setError("الشبكة قاطعة. عاود المحاولة.");
+      setError(t.appointment.networkError);
     } finally {
       setSending(false);
     }
   }
 
   return (
-    <Modal onClose={onClose} ariaLabel="طلب موعد معاينة" maxWidth="max-w-md">
+    <Modal onClose={onClose} ariaLabel={t.appointment.ariaLabel} maxWidth="max-w-md">
       <AppointmentDialogBody
         v={v} user={user} at={at} setAt={setAt} place={place} setPlace={setPlace}
         sending={sending} sent={sent} error={error} send={send}
@@ -71,6 +73,7 @@ function AppointmentDialogBody({
   error: string;
   send: () => void;
 }) {
+  const t = useDict();
   const close = useModalClose();
 
   if (sent) {
@@ -82,12 +85,12 @@ function AppointmentDialogBody({
         >
           <ShieldCheck size={26} />
         </span>
-        <h2 className="mt-5 text-lg font-extrabold">تصيفط الطلب</h2>
+        <h2 className="mt-5 text-lg font-extrabold">{t.appointment.sentTitle}</h2>
         <p className="mt-2 text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          البائع غادي يشوف الطلب ويأكّدو ولا يقترح وقت آخر. غادي تلقا الجواب
-          فـ<Link href="/dashboard/appointments" className="underline">المواعيد ديالك</Link>.
+          {t.appointment.sentLeadA}
+          <Link href="/dashboard/appointments" className="underline">{t.appointment.sentLeadLink}</Link>.
         </p>
-        <button onClick={close} className="btn btn-primary mt-6">سالينا</button>
+        <button onClick={close} className="btn btn-primary mt-6">{t.appointment.done}</button>
       </div>
     );
   }
@@ -97,7 +100,7 @@ function AppointmentDialogBody({
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 text-[15px] font-extrabold">
-            <Calendar size={17} style={{ color: "var(--brand)" }} /> اطلب موعد معاينة
+            <Calendar size={17} style={{ color: "var(--brand)" }} /> {t.appointment.title}
           </h2>
           <p className="mt-1 text-[12px]" style={{ color: "var(--text-muted)" }}>
             {v.make} {v.model} <span className="num">{v.year}</span>
@@ -109,19 +112,19 @@ function AppointmentDialogBody({
       {!user ? (
         <div className="mt-5 text-center">
           <p className="text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            خاصك تسجّل الدخول باش تطلب موعد — هكا البائع كيعرف مع من غادي يتلاقا.
+            {t.appointment.loginNeeded}
           </p>
           <Link
             href={`/login?next=${encodeURIComponent(vehicleHref(v))}`}
             className="btn btn-primary mt-4 w-full"
           >
-            تسجيل الدخول
+            {t.appointment.login}
           </Link>
         </div>
       ) : (
         <>
           <label className="label mt-5" htmlFor="appt-at">
-            <Calendar size={13} /> النهار والوقت
+            <Calendar size={13} /> {t.appointment.dateLabel}
           </label>
           <input
             id="appt-at"
@@ -132,12 +135,12 @@ function AppointmentDialogBody({
           />
 
           <label className="label mt-4" htmlFor="appt-place">
-            <MapPin size={13} /> البلاصة (اختياري)
+            <MapPin size={13} /> {t.appointment.placeLabel}
           </label>
           <input
             id="appt-place"
             className="field"
-            placeholder="مثلاً: الدار البيضاء — محطة الشحن"
+            placeholder={t.appointment.placePlaceholder}
             value={place}
             onChange={(e) => setPlace(e.target.value)}
             maxLength={200}
@@ -147,8 +150,7 @@ function AppointmentDialogBody({
             className="mt-4 rounded-xl p-3 text-[11.5px] leading-relaxed"
             style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
           >
-            تلاقاو ديما فبلاصة عامة ونهاراً. متخلّصش حتى درهم قبل ما تشوف المركبة
-            والوثائق بعينيك.
+            {t.appointment.safetyNote}
           </p>
 
           {error && (
@@ -159,9 +161,9 @@ function AppointmentDialogBody({
 
           <div className="mt-5 flex gap-2">
             <button onClick={send} disabled={sending || !at} className="btn btn-primary flex-1">
-              <Check size={16} /> {sending ? "كنصيفطو…" : "صيفط الطلب"}
+              <Check size={16} /> {sending ? t.appointment.sending : t.appointment.send}
             </button>
-            <button onClick={close} className="btn btn-ghost">إلغاء</button>
+            <button onClick={close} className="btn btn-ghost">{t.appointment.cancel}</button>
           </div>
         </>
       )}

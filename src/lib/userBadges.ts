@@ -18,8 +18,8 @@ export interface UserBadgeInput {
 }
 
 export interface UserBadge {
+  /** مفتاح فالقاموس تحت `badge` — التسمية كتجي من لغة الزائر */
   key: string;
-  label: string;
   Icon: typeof BadgeCheck;
   color: string;
 }
@@ -28,18 +28,18 @@ export function userBadges(input: UserBadgeInput): UserBadge[] {
   const badges: UserBadge[] = [];
 
   if (input.idVerified) {
-    badges.push({ key: "verified", label: "حساب موثق", Icon: ShieldCheck, color: "var(--good)" });
+    badges.push({ key: "verified", Icon: ShieldCheck, color: "var(--good)" });
   }
   if (input.idVerified && input.trustLevel === "high") {
-    badges.push({ key: "trusted", label: "بائع موثوق", Icon: Star, color: "var(--warn)" });
+    badges.push({ key: "trusted", Icon: Star, color: "var(--warn)" });
   }
   if (input.dealerVerified) {
-    badges.push({ key: "company", label: "شركة موثقة", Icon: Award, color: "var(--brand)" });
+    badges.push({ key: "company", Icon: Award, color: "var(--brand)" });
   } else if (input.type === "professionnel") {
-    badges.push({ key: "pro", label: "بائع محترف", Icon: BadgeCheck, color: "var(--data)" });
+    badges.push({ key: "pro", Icon: BadgeCheck, color: "var(--data)" });
   }
   if (input.phoneVerified) {
-    badges.push({ key: "phone", label: "رقم هاتف مؤكد", Icon: Phone, color: "var(--good)" });
+    badges.push({ key: "phone", Icon: Phone, color: "var(--good)" });
   }
 
   return badges;

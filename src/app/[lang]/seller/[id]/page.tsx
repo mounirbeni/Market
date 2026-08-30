@@ -4,6 +4,8 @@ import { getDealerOfSeller, getSellerById, getSellerListings, getSellerStats } f
 import { cityName } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { userBadges } from "@/lib/userBadges";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { sellerDisplayName } from "@/lib/i18n/labels";
 import { VehicleCard } from "@/components/VehicleCard";
 import {
   BadgeCheck, Car, Clock, MapPin, ShieldCheck, Star, Users,
@@ -28,9 +30,12 @@ export async function generateMetadata({
 }
 
 export default async function SellerPage({ params }: { params: Promise<{ id: string }> }) {
+  const t = await getDictionary();
+  const locale = await getLocale();
   const { id } = await params;
   const seller = await getSellerById(id);
   if (!seller) notFound();
+  const displayName = sellerDisplayName(seller.name, locale);
 
   /* البائع المحترف اللي عندو معرض موثّق: الصفحة المرجعية ديالو هي
      صفحة المعرض (فيها تاغلاين، عنوان، ساعات العمل...) — بلا
@@ -72,11 +77,11 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
             className="grid h-20 w-20 shrink-0 place-items-center rounded-3xl border-4 text-3xl font-extrabold"
             style={{ background: "var(--surface-1)", borderColor: "var(--bg)", color: "var(--brand)" }}
           >
-            {seller.name.trim().slice(0, 1)}
+            {displayName.trim().slice(0, 1)}
           </span>
           <div className="min-w-0 flex-1 pb-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="h-section">{seller.name}</h1>
+              <h1 className="h-section">{displayName}</h1>
               {seller.idVerified && (
                 <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
                   <BadgeCheck size={11} /> حساب موثّق
@@ -94,7 +99,7 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
                     className="chip"
                     style={{ background: `color-mix(in oklab, ${b.color} 14%, transparent)`, color: b.color, borderColor: "transparent" }}
                   >
-                    <b.Icon size={11} /> {b.label}
+                    <b.Icon size={11} /> {t.badge[b.key as keyof typeof t.badge]}
                   </span>
                 ))}
               </div>
@@ -128,7 +133,7 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
         {/* الإعلانات */}
         <section className="mt-10 pb-16">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-            <h2 className="h-section">إعلانات {seller.name}</h2>
+            <h2 className="h-section">إعلانات {displayName}</h2>
             {listings.length > 0 && (
               <p className="text-xs" style={{ color: "var(--text-dim)" }}>
                 <span className="num">{cars}</span> سيارة · <span className="num">{motos}</span> دراجة

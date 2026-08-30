@@ -360,5 +360,356 @@
     "outOf": "sur 100",
     "grade": "note",
     "short": "Confiance"
+  },
+  "highlights": {
+    "title": "Pourquoi ce véhicule peut vous intéresser",
+    "lead": "Les points clés tirés des caractéristiques de l'annonce.",
+    "price": {
+      "label": "Prix sous le marché",
+      "detail": "{pct} % moins cher que le prix de référence de véhicules comparables."
+    },
+    "first-hand": {
+      "label": "Première main",
+      "detail": "Aucun propriétaire précédent."
+    },
+    "low-km": {
+      "label": "Faible kilométrage pour son âge",
+      "detail": "~{km} km par an — sous la moyenne."
+    },
+    "inspected": {
+      "label": "Inspectée par TRIQ",
+      "detail": "Inspection indépendante de plus de 100 points avant publication."
+    },
+    "service-book": {
+      "label": "Carnet d'entretien disponible",
+      "detail": "Un historique d'entretien qui atteste du suivi du véhicule."
+    },
+    "papers": {
+      "label": "Documents conformes",
+      "detail": "Carte grise et numéro de châssis vérifiés."
+    },
+    "technical-control": {
+      "label": "Visite technique à jour",
+      "detail": "Valable jusqu'à {date}."
+    },
+    "equipment": {
+      "label": "Équipement complet",
+      "detail": "{n} équipements supplémentaires."
+    },
+    "seller": {
+      "label": "Vendeur vérifié",
+      "detail": "Identité vérifiée par l'équipe TRIQ."
+    },
+    "negotiable": {
+      "label": "Prix négociable",
+      "detail": "Le vendeur est ouvert à la discussion."
+    }
+  },
+  "vehicle": {
+    "notFound": "Annonce introuvable",
+    "metaIn": "à",
+    "metaDesc": "{kind} {make} {model} de {year}, {km}, {fuel}, {gearbox}. Indice de confiance {trust}/100 et prix de référence calculé.",
+    "home": "Accueil",
+    "cars": "Voitures",
+    "motos": "Motos",
+    "negotiable": "Négociable",
+    "exchange": "Échange accepté",
+    "dropped": "Baisse de",
+    "publishedAgo": "Publiée",
+    "updatedAgo": "Mise à jour",
+    "specsTitle": "Caractéristiques",
+    "specsLead": "Toutes les données techniques telles que déclarées par le vendeur.",
+    "equipment": "Équipements",
+    "descTitle": "Description du vendeur",
+    "spec": {
+      "year": "Année",
+      "km": "Kilométrage",
+      "fuel": "Carburant",
+      "gearbox": "Boîte de vitesses",
+      "fiscal": "Puissance fiscale",
+      "hp": "CV",
+      "doors": "Nombre de portes",
+      "seats": "Nombre de places",
+      "drivetrain": "Transmission",
+      "displacement": "Cylindrée",
+      "cc": "cm³",
+      "consumption": "Consommation",
+      "consumptionUnit": "L/100 km",
+      "color": "Couleur",
+      "origin": "Origine",
+      "condition": "État général",
+      "owners": "Nombre de propriétaires",
+      "technicalControl": "Visite technique",
+      "city": "Ville"
+    },
+    "historyTitle": "Historique et prix",
+    "historyLead": "Date de publication, dernière mise à jour et toute variation réelle du prix.",
+    "publishedOn": "Date de publication",
+    "updatedOn": "Dernière mise à jour",
+    "priceChanges": "Évolution du prix",
+    "comparablesTitle": "Annonces utilisées dans le calcul",
+    "comparablesLead": "Le prix de référence est calculé à partir de ces véhicules comparables, après ajustement.",
+    "similarTitle": "Véhicules similaires"
+  },
+  "badge": {
+    "verified": "Compte vérifié",
+    "trusted": "Vendeur de confiance",
+    "company": "Société vérifiée",
+    "pro": "Vendeur professionnel",
+    "phone": "Téléphone confirmé"
+  },
+  "trustPanel": {
+    "title": "Indice de confiance",
+    "lead": "Une note indépendante sur {n} points, calculée à partir des données de l'annonce, du vendeur et de l'historique du véhicule. Ce n'est pas une évaluation du véhicule, mais de son niveau de transparence et de vérification.",
+    "strengths": "Points forts",
+    "attention": "Points à vérifier",
+    "part": {
+      "seller": "Fiabilité du vendeur",
+      "docs": "Documents légaux",
+      "history": "Historique du véhicule",
+      "transparency": "Transparence de l'annonce",
+      "coherence": "Cohérence des données",
+      "inspection": "Inspection TRIQ indépendante"
+    },
+    "d": {
+      "idVerified": "Identité vérifiée",
+      "noVerify": "Non vérifié",
+      "rating": "note {r}",
+      "since": "depuis {y}",
+      "papersOk": "Carte grise conforme",
+      "papersMissing": "Documents incomplets",
+      "vinChecked": "Numéro de châssis vérifié",
+      "owner1": "Un seul propriétaire",
+      "ownerN": "{n} propriétaires",
+      "serviceBook": "Carnet d'entretien complet",
+      "noServiceBook": "Sans carnet d'entretien",
+      "accident": "Accident déclaré",
+      "photos": "{n} photos",
+      "video": "Vidéo disponible",
+      "equipment": "{n} équipements documentés",
+      "kmPerYear": "{km} km/an",
+      "inspected": "120 points de contrôle · rapport disponible",
+      "notInspected": "Aucune inspection demandée"
+    },
+    "flag": {
+      "idNotVerified": "L'identité du vendeur n'est pas encore vérifiée",
+      "phoneNotVerified": "Le numéro de téléphone n'est pas confirmé",
+      "papersBad": "Les documents ne sont pas au nom du vendeur ou sont incomplets",
+      "tcExpiring": "La visite technique arrive à expiration",
+      "accidentDeclared": "Accident déclaré dans l'historique du véhicule",
+      "manyOwners": "{n} propriétaires précédents",
+      "fewPhotos": "Trop peu de photos",
+      "lowKmUnusual": "Kilométrage inhabituellement bas ({km} km/an) — il est conseillé de vérifier le compteur",
+      "highKmYear": "Kilométrage annuel élevé par rapport à la moyenne",
+      "priceFarBelow": "Prix très inférieur au marché — vérifiez la raison de l'écart avant tout acompte"
+    },
+    "strength": {
+      "verifiedHighRating": "Vendeur vérifié très bien noté",
+      "vinChecked": "Numéro de châssis (VIN) vérifié",
+      "firstHandServiceBook": "Première main avec carnet d'entretien complet",
+      "realVideo": "Vidéo réelle du véhicule",
+      "inspected120": "A passé une inspection indépendante de 120 points"
+    }
+  },
+  "risk": {
+    "cleanTitle": "Aucun signal d'alerte détecté",
+    "cleanLead": "Prix, kilométrage, documents et photos sont cohérents. Cela ne remplace pas une visite — mais l'annonce est exempte des signaux d'arnaque connus.",
+    "dangerTitle": "Attention — signaux d'alerte",
+    "warnTitle": "Points à vérifier",
+    "flag": {
+      "farBelow": {
+        "label": "Prix très inférieur au marché",
+        "detail": "Le prix est {pct} % sous la référence calculée. C'est le signal d'arnaque le plus courant — n'envoyez jamais d'acompte."
+      },
+      "lowNoInspection": {
+        "label": "Prix bas sans inspection",
+        "detail": "Le prix est sous le marché et le véhicule n'a pas été inspecté. Demandez une inspection indépendante avant tout engagement."
+      },
+      "lowKm": {
+        "label": "Kilométrage inhabituellement bas",
+        "detail": "~{km} km/an sur {years} ans. Vérifiez le compteur par valise (OBD) et consultez le carnet d'entretien."
+      },
+      "papers": {
+        "label": "Documents pas au nom du vendeur",
+        "detail": "La carte grise n'est pas au nom du vendeur. Ne payez rien avant d'avoir vu un acte de vente légalisé du propriétaire d'origine."
+      },
+      "fewPhotos": {
+        "label": "Peu de photos",
+        "detail": "Seulement {n} photos. Demandez des photos du moteur, du plancher de coffre et du compteur avant de vous déplacer."
+      },
+      "duplicates": {
+        "label": "Annonces en double",
+        "detail": "Le même vendeur a {n} annonces pour le même modèle et la même année. Assurez-vous de quel véhicule il s'agit exactement."
+      },
+      "tcExpired": {
+        "label": "Visite technique expirée",
+        "detail": "Elle doit être renouvelée avant le transfert de propriété, et peut masquer des défauts."
+      }
+    }
+  },
+  "sellerCard": {
+    "idVerified": "Identité vérifiée",
+    "memberSince": "Membre depuis",
+    "sales": "ventes",
+    "minutes": "min",
+    "activeListings": "annonces actives",
+    "dealerPage": "Voir la page du concessionnaire",
+    "allListings": "Voir toutes les annonces du vendeur",
+    "revealPhone": "Afficher le numéro",
+    "whatsapp": "Écrire sur WhatsApp",
+    "whatsappText": "Bonjour, j'ai vu votre annonce {title} sur TRIQ et je souhaite plus d'informations. Est-elle toujours disponible ?",
+    "internalMessage": "Message interne",
+    "bookVisit": "Demander un rendez-vous",
+    "share": "Partager",
+    "copied": "Lien copié",
+    "requestInspection": "Demander une inspection",
+    "report": "Signaler cette annonce",
+    "warnBold": "Ne payez jamais avant d'avoir vu le véhicule :",
+    "warnText": "Aucun vendeur sérieux ne vous demandera d'acompte avant la visite. Rencontrez-vous dans un lieu public en journée, et vérifiez la carte grise et le numéro de châssis.",
+    "safetyGuide": "Guide de la vente en sécurité"
+  },
+  "sticky": {
+    "trust": "Confiance",
+    "favorite": "Favoris",
+    "whatsapp": "WhatsApp",
+    "call": "Appeler",
+    "whatsappText": "Bonjour, j'ai vu votre annonce {title} sur TRIQ. Est-elle toujours disponible ?"
+  },
+  "contact": {
+    "label": "Contacter le vendeur",
+    "opening": "Ouverture…"
+  },
+  "timeline": {
+    "title": "Historique du véhicule",
+    "lead": "Tout ce que le vendeur a déclaré ou qui a été vérifié : propriétaires, entretiens, visites techniques et accidents."
+  },
+  "recent": {
+    "heading": "Vus récemment"
+  },
+  "appointment": {
+    "ariaLabel": "Demande de rendez-vous",
+    "genericError": "Impossible d'enregistrer la demande. Réessayez.",
+    "networkError": "Connexion interrompue. Réessayez.",
+    "sentTitle": "Demande envoyée",
+    "sentLeadA": "Le vendeur va examiner la demande et la confirmer ou proposer un autre horaire. Vous recevrez la réponse dans ",
+    "sentLeadLink": "vos rendez-vous",
+    "done": "Terminé",
+    "title": "Demander un rendez-vous",
+    "loginNeeded": "Vous devez vous connecter pour demander un rendez-vous — ainsi le vendeur sait avec qui il échange.",
+    "login": "Se connecter",
+    "dateLabel": "Date et heure",
+    "placeLabel": "Lieu (optionnel)",
+    "placePlaceholder": "Ex : Casablanca — station de tram",
+    "safetyNote": "Rencontrez-vous toujours dans un lieu public en journée. Ne payez rien avant d'avoir vu le véhicule et les documents de vos propres yeux.",
+    "sending": "Envoi…",
+    "send": "Envoyer la demande",
+    "cancel": "Annuler"
+  },
+  "report": {
+    "ariaLabel": "Signaler une annonce",
+    "genericError": "Impossible d'enregistrer le signalement. Réessayez.",
+    "networkError": "Connexion interrompue. Réessayez.",
+    "title": "Signaler l'annonce",
+    "close": "Fermer",
+    "reportingOn": "Vous signalez :",
+    "confidential": "Le signalement est confidentiel — le vendeur ne sait pas qui a signalé.",
+    "whyLegend": "Pourquoi signalez-vous ?",
+    "reasons": {
+      "fake": {
+        "label": "Fausse annonce",
+        "hint": "Le véhicule n'existe pas"
+      },
+      "sold": {
+        "label": "Vendu mais toujours en ligne",
+        "hint": "Le vendeur n'a pas retiré l'annonce"
+      },
+      "price": {
+        "label": "Prix suspect",
+        "hint": "Beaucoup trop bas — signe d'arnaque"
+      },
+      "photos": {
+        "label": "Photos volées",
+        "hint": "Photos reprises d'une autre annonce"
+      },
+      "papers": {
+        "label": "Problème de documents",
+        "hint": "Carte grise pas au nom du vendeur"
+      },
+      "deposit": {
+        "label": "Demande un acompte avant la visite",
+        "hint": "L'arnaque la plus courante"
+      },
+      "duplicate": {
+        "label": "Annonce en double",
+        "hint": "Le même véhicule publié plusieurs fois"
+      },
+      "other": {
+        "label": "Autre raison",
+        "hint": ""
+      }
+    },
+    "detailsLabel": "Détails supplémentaires",
+    "optional": "(optionnel)",
+    "detailsPlaceholder": "Ex : mêmes photos que sur une autre annonce à un prix différent…",
+    "abuseWarning": "Les signalements abusifs répétés entraînent la suspension du compte. Signalez uniquement si vous êtes sûr.",
+    "sending": "Envoi…",
+    "send": "Envoyer le signalement",
+    "cancel": "Annuler",
+    "sentTitle": "Signalement enregistré",
+    "sentLead": "L'équipe de modération examinera l'annonce sous {h} heures. Si le problème est confirmé, l'annonce sera retirée et le vendeur averti. Merci — c'est ainsi qu'on garde le marché sain.",
+    "done": "Terminé"
+  },
+  "gallery": {
+    "zoom": "Agrandir la photo",
+    "photoAlt": "photo",
+    "enlarge": "Agrandir",
+    "inspected": "Inspectée par TRIQ",
+    "firstHand": "Première main",
+    "video": "Vidéo",
+    "favorite": "Favoris",
+    "compare": "Comparateur",
+    "prev": "Photo précédente",
+    "next": "Photo suivante",
+    "videoLabel": "Vidéo",
+    "lightboxLabel": "Zoom —",
+    "exitFullscreen": "Quitter le plein écran",
+    "fullscreen": "Plein écran"
+  },
+  "tco": {
+    "title": "Coût réel d'utilisation",
+    "lead": "Vignette, assurance, carburant, entretien, pneus et visite technique.",
+    "perMonth": "par mois",
+    "perKm": "DH/km",
+    "kmPerYear": "Kilomètres par an",
+    "duration": "Durée de possession",
+    "years": "ans",
+    "insuranceTiers": "Assurance au tiers",
+    "insuranceAllRisk": "Tous risques",
+    "depreciation": "Calcul de la dépréciation",
+    "dieselPrice": "Prix du diesel (DH/L)",
+    "petrolPrice": "Prix de l'essence (DH/L)",
+    "perYearUnit": "DH / an",
+    "perYear": "Par an",
+    "totalOver": "Total sur {years} ans",
+    "resaleValue": "Valeur de revente",
+    "disclaimer": "Estimations indicatives basées sur les tarifs du marché marocain (prix des carburants, barème de la vignette, primes d'assurance moyennes). Les résultats varient selon l'assureur et l'usage réel.",
+    "line": {
+      "fuel": "Carburant",
+      "fuelElectric": "Recharge électrique",
+      "insuranceTiers": "Assurance (au tiers)",
+      "insuranceAllRisk": "Assurance (tous risques)",
+      "vignette": "Vignette annuelle",
+      "maintenance": "Entretien et pièces",
+      "tyres": "Pneus",
+      "control": "Visite technique",
+      "depreciation": "Dépréciation"
+    },
+    "hint": {
+      "consumption": "{n} L/100km",
+      "consumptionElec": "{n} kWh/100km",
+      "fiscalPower": "{n} CV fiscaux",
+      "displacement": "{n} cm³",
+      "depreciation": "Écart entre le prix d'achat et le prix de revente estimé"
+    }
   }
 }

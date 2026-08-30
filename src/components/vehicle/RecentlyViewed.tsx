@@ -5,6 +5,7 @@ import { useApp } from "@/store/app";
 import { useVehiclesByIds } from "@/lib/useVehicles";
 import { VehicleCard } from "@/components/VehicleCard";
 import { Clock } from "@/components/icons";
+import { useDict } from "@/lib/i18n/client";
 
 interface Props {
   /** المركبة الحالية: كتسجّل فالتاريخ وكتّحيّد من اللائحة */
@@ -18,7 +19,8 @@ interface Props {
  * كتسجّل المركبة اللي كيتصفّح فيها المستخدم فـ localStorage
  * وكتعرض آخر المركبات اللي شافها.
  */
-export function RecentlyViewed({ currentId, heading = "شفتي مؤخراً", limit = 4 }: Props) {
+export function RecentlyViewed({ currentId, heading, limit = 4 }: Props) {
+  const t = useDict();
   const { recent, pushRecent, ready } = useApp();
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export function RecentlyViewed({ currentId, heading = "شفتي مؤخراً", l
     <section className="mt-16">
       <h2 className="h-section mb-6 flex items-center gap-2">
         <Clock size={20} style={{ color: "var(--brand)" }} />
-        {heading}
+        {heading ?? t.recent.heading}
       </h2>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((r) => (

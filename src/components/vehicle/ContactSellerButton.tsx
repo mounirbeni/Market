@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertTriangle, Message } from "@/components/icons";
+import { useDict, useHref } from "@/lib/i18n/client";
 
 /**
  * «راسل البائع» — كيفتح محادثة حقيقية على الإعلان.
@@ -11,8 +12,10 @@ import { AlertTriangle, Message } from "@/components/icons";
 export function ContactSellerButton({
   listingRef,
   className = "btn btn-solid btn-sm",
-  label = "راسل البائع",
+  label,
 }: { listingRef: string; className?: string; label?: string }) {
+  const t = useDict();
+  const href = useHref();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const router = useRouter();
@@ -28,11 +31,11 @@ export function ContactSellerButton({
       });
       const j = await r.json();
       if (r.status === 401) {
-        router.push(`/login?next=${encodeURIComponent(`/messages?listing=${listingRef}`)}`);
+        router.push(href(`/login?next=${encodeURIComponent(`/messages?listing=${listingRef}`)}`));
         return;
       }
       if (!j.ok) throw new Error(j.error);
-      router.push("/messages");
+      router.push(href("/messages"));
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -43,7 +46,7 @@ export function ContactSellerButton({
   return (
     <>
       <button onClick={open} disabled={busy} className={`${className} disabled:opacity-50`}>
-        <Message size={14} /> {busy ? "كنفتحو…" : label}
+        <Message size={14} /> {busy ? t.contact.opening : label ?? t.contact.label}
       </button>
       {err && (
         <p className="col-span-2 flex items-center gap-1.5 text-[11px]" style={{ color: "var(--bad)" }}>

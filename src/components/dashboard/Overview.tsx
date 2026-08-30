@@ -9,6 +9,7 @@ import { vehicleHref } from "@/lib/slug";
 import { artShape } from "@/lib/artshape";
 import { VehicleArt } from "@/components/VehicleArt";
 import { useApp } from "@/store/app";
+import { useDict } from "@/lib/i18n/client";
 import { useMyListings } from "@/lib/useMyListings";
 import {
   ArrowLeft, BadgeCheck, Calendar, Car, Eye, Heart, Message, ShieldCheck,
@@ -16,6 +17,7 @@ import {
 } from "@/components/icons";
 
 export function DashboardOverview() {
+  const t = useDict();
   const { favorites } = useApp();
   /* عدد الرسائل غير المقروءة كيجي من الجلسة — الخادم هو اللي كيحسبو */
   const { unread } = useSession();
@@ -143,7 +145,9 @@ export function DashboardOverview() {
                   .map((p) => (
                     <li key={p.key} className="text-[11px]">
                       <div className="flex justify-between">
-                        <span style={{ color: "var(--text-muted)" }}>{p.label}</span>
+                        <span style={{ color: "var(--text-muted)" }}>
+                          {t.trustPanel.part[p.key as keyof typeof t.trustPanel.part]}
+                        </span>
                         <span className="num" style={{ color: "var(--bad)" }}>{p.score}/{p.max}</span>
                       </div>
                       <div className="meter mt-1" style={{ height: 4 }}>

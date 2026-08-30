@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { notFound } from "next/navigation";
 import { brandSlug, vehicleHref } from "@/lib/slug";
 import {
@@ -7,8 +7,13 @@ import {
 } from "@/lib/source";
 import { fairPriceFrom, trustOf, trustScore } from "@/lib/market";
 import { vehicleHighlights } from "@/lib/highlights";
-import { cityName } from "@/lib/cities";
-import { AR, formatDate, formatDh, formatKm, formatNumber, timeAgo } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
+import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
+import {
+  cityLabel, colorLabel, dhUnit, equipmentLabel, fill, fmtDate, fmtDh, fmtKm,
+  fmtMonthYear, fmtTimeAgo, kmUnit, specs as specLabels,
+} from "@/lib/i18n/labels";
 import { Gallery } from "@/components/vehicle/Gallery";
 import { PageTransition } from "@/components/PageTransition";
 import { TrustPanel } from "@/components/vehicle/TrustPanel";
@@ -45,25 +50,39 @@ import { DRIVETRAINS, ORIGINS } from "@/lib/vehicle-options";
    يعني: كل إعلان جديد كان كيعطي 500. */
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
+  const { lang, slug } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
   const found = await getVehicle(slug);
-  if (!found) return { title: "إعلان غير موجود" };
+  if (!found) return { title: t.vehicle.notFound };
   const v = found.vehicle;
-  const title = `${v.make} ${v.model} ${v.version} ${v.year} — ${formatDh(v.price)} في ${cityName(v.city)}`;
+  const L = specLabels(locale);
+  const title = `${v.make} ${v.model} ${v.version} ${v.year} — ${fmtDh(v.price, locale)} ${t.vehicle.metaIn} ${cityLabel(v.city, locale)}`;
   return {
     title,
-    description: `${AR.kind[v.kind]} ${v.make} ${v.model} موديل ${v.year}، ${formatKm(v.km)}، ${AR.fuel[v.fuel]}، ${AR.gearbox[v.gearbox]}. مؤشر ثقة ${trustOf(v).score}/100 وثمن مرجعي محسوب.`,
+    description: fill(t.vehicle.metaDesc, {
+      kind: L.kind[v.kind], make: v.make, model: v.model, year: String(v.year),
+      km: fmtKm(v.km, locale), fuel: L.fuel[v.fuel], gearbox: L.gearbox[v.gearbox],
+      trust: String(trustOf(v).score),
+    }),
     openGraph: { title, type: "article" },
-    alternates: { canonical: `/vehicle/${slug}` },
+    alternates: { canonical: localePath(`/vehicle/${slug}`, locale) },
   };
 }
 
-export default async function VehiclePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function VehiclePage({
+  params,
+}: { params: Promise<{ lang: string; slug: string }> }) {
   const { slug } = await params;
   const found = await getVehicle(slug);
   if (!found) notFound();
   const { vehicle: v, seller } = found;
+  const t = await getDictionary();
+  const locale = await getLocale();
+  const L = specLabels(locale);
 
   const dealer = await getDealerOfSeller(v.sellerId);
   const section = v.kind === "car" ? "/cars" : "/motorcycles";
@@ -89,31 +108,35 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
   const FuelIcon = FUEL_ICONS[v.fuel];
   const GearIcon = v.gearbox === "automatique" ? AutoGear : Transmission;
 
+  const sp = t.vehicle.spec;
+  const optLabel = (o: { label: string; fr: string } | undefined) =>
+    o ? (locale === "fr" ? o.fr : o.label) : "-";
+
   const specs = [
-    { Icon: Calendar, label: "سنة الصنع", value: String(v.year) },
-    { Icon: Odometer, label: "الكيلومتراج", value: `${formatNumber(v.km)} كم` },
-    { Icon: FuelIcon, label: "نوع الوقود", value: AR.fuel[v.fuel] },
-    { Icon: GearIcon, label: "ناقل السرعة", value: AR.gearbox[v.gearbox] },
-    { Icon: Horsepower, label: "القوة الجبائية", value: `${v.fiscalPower} حصان` },
+    { Icon: Calendar, label: sp.year, value: String(v.year) },
+    { Icon: Odometer, label: sp.km, value: `${formatNumber(v.km)} ${kmUnit(locale)}` },
+    { Icon: FuelIcon, label: sp.fuel, value: L.fuel[v.fuel] },
+    { Icon: GearIcon, label: sp.gearbox, value: L.gearbox[v.gearbox] },
+    { Icon: Horsepower, label: sp.fiscal, value: `${v.fiscalPower} ${sp.hp}` },
     ...(v.kind === "car"
       ? [
-          { Icon: Door, label: "عدد الأبواب", value: String(v.doors ?? "-") },
-          { Icon: Seat, label: "عدد المقاعد", value: (v.doors ?? 5) >= 5 ? "5" : "4" },
+          { Icon: Door, label: sp.doors, value: String(v.doors ?? "-") },
+          { Icon: Seat, label: sp.seats, value: (v.doors ?? 5) >= 5 ? "5" : "4" },
           /* v.drivetrain اختياري — البائع هو اللي كيعمّرو، بلا تخمين */
           ...(v.drivetrain
-            ? [{ Icon: Driveshaft, label: "نوع الدفع", value: DRIVETRAINS.find((d) => d.value === v.drivetrain)?.label ?? "-" }]
+            ? [{ Icon: Driveshaft, label: sp.drivetrain, value: optLabel(DRIVETRAINS.find((d) => d.value === v.drivetrain)) }]
             : []),
         ]
-      : [{ Icon: Piston, label: "سعة المحرك", value: `${v.displacement} سم³` }]),
-    { Icon: OilCan, label: "الاستهلاك", value: `${v.consumption} ل/100كم` },
-    { Icon: Palette, label: "اللون", value: v.color },
+      : [{ Icon: Piston, label: sp.displacement, value: `${v.displacement} ${sp.cc}` }]),
+    { Icon: OilCan, label: sp.consumption, value: `${v.consumption} ${sp.consumptionUnit}` },
+    { Icon: Palette, label: sp.color, value: colorLabel(v.color, locale) },
     ...(v.origin
-      ? [{ Icon: Flag, label: "مصدر السيارة", value: ORIGINS.find((o) => o.value === v.origin)?.label ?? "-" }]
+      ? [{ Icon: Flag, label: sp.origin, value: optLabel(ORIGINS.find((o) => o.value === v.origin)) }]
       : []),
-    { Icon: BadgeCheck, label: "الحالة العامة", value: AR.condition[v.condition] },
-    { Icon: Users, label: "عدد الملاّك", value: String(v.owners) },
-    { Icon: ClipboardCheck, label: "الفحص التقني", value: formatDate(v.technicalControl) },
-    { Icon: MapPin, label: "المدينة", value: cityName(v.city) },
+    { Icon: BadgeCheck, label: sp.condition, value: L.condition[v.condition] },
+    { Icon: Users, label: sp.owners, value: String(v.owners) },
+    { Icon: ClipboardCheck, label: sp.technicalControl, value: fmtDate(v.technicalControl, locale) },
+    { Icon: MapPin, label: sp.city, value: cityLabel(v.city, locale) },
   ];
 
   const jsonLd = {
@@ -124,15 +147,15 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
     model: v.model,
     vehicleModelDate: String(v.year),
     mileageFromOdometer: { "@type": "QuantitativeValue", value: v.km, unitCode: "KMT" },
-    fuelType: AR.fuel[v.fuel],
-    vehicleTransmission: AR.gearbox[v.gearbox],
+    fuelType: L.fuel[v.fuel],
+    vehicleTransmission: L.gearbox[v.gearbox],
     color: v.color,
     offers: {
       "@type": "Offer",
       price: v.price,
       priceCurrency: "MAD",
       availability: "https://schema.org/InStock",
-      areaServed: cityName(v.city),
+      areaServed: cityLabel(v.city, locale),
     },
   };
 
@@ -142,10 +165,10 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <nav className="mb-5 flex flex-wrap items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-        <Link href="/" className="transition hover:text-[var(--brand)]" transitionTypes={["nav-back"]}>الرئيسية</Link>
+        <Link href="/" className="transition hover:text-[var(--brand)]" transitionTypes={["nav-back"]}>{t.vehicle.home}</Link>
         <ChevronLeft size={12} className="dir-flip" />
         <Link href={section} className="transition hover:text-[var(--brand)]" transitionTypes={["nav-back"]}>
-          {v.kind === "car" ? "سيارات" : "دراجات نارية"}
+          {v.kind === "car" ? t.vehicle.cars : t.vehicle.motos}
         </Link>
         <ChevronLeft size={12} className="dir-flip" />
         <Link href={`${section}/${brandSlug(v.make)}`} className="transition hover:text-[var(--brand)]" transitionTypes={["nav-back"]}>
@@ -170,10 +193,10 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
                 <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>{v.version}</p>
                 <div className="mt-3.5 flex flex-wrap gap-1.5">
                   <span className="chip"><Calendar size={12} /><span className="num">{v.year}</span></span>
-                  <span className="chip"><Odometer size={12} /><span className="num">{formatNumber(v.km)}</span> كم</span>
-                  <span className="chip"><FuelIcon size={12} />{AR.fuel[v.fuel]}</span>
-                  <span className="chip"><GearIcon size={12} />{AR.gearbox[v.gearbox]}</span>
-                  <span className="chip"><MapPin size={12} />{cityName(v.city)}</span>
+                  <span className="chip"><Odometer size={12} /><span className="num">{formatNumber(v.km)}</span> {kmUnit(locale)}</span>
+                  <span className="chip"><FuelIcon size={12} />{L.fuel[v.fuel]}</span>
+                  <span className="chip"><GearIcon size={12} />{L.gearbox[v.gearbox]}</span>
+                  <span className="chip"><MapPin size={12} />{cityLabel(v.city, locale)}</span>
                 </div>
               </div>
               <TrustRing score={trust.score} grade={trust.grade} size={62} />
@@ -186,11 +209,12 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
               <div>
                 <Price value={v.price} className="text-3xl font-extrabold tracking-tight" />
                 <div className="mt-2 flex flex-wrap gap-1.5 text-[11px]">
-                  {v.negotiable && <span className="tag tag-mute"><Check size={10} /> قابل للنقاش</span>}
-                  {v.exchangeAccepted && <span className="tag tag-mute"><Scale size={10} /> يقبل التبادل</span>}
+                  {v.negotiable && <span className="tag tag-mute"><Check size={10} /> {t.vehicle.negotiable}</span>}
+                  {v.exchangeAccepted && <span className="tag tag-mute"><Scale size={10} /> {t.vehicle.exchange}</span>}
                   {v.priceDrops.length > 0 && (
                     <span className="tag tag-good">
-                      <TrendingDown size={10} /> انخفض <span className="num">{formatNumber(v.priceDrops.reduce((a, b) => a + b, 0))}</span> د.م
+                      <TrendingDown size={10} /> {t.vehicle.dropped}{" "}
+                      <span className="num">{formatNumber(v.priceDrops.reduce((a, b) => a + b, 0))}</span> {dhUnit(locale)}
                     </span>
                   )}
                 </div>
@@ -198,9 +222,9 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
               <div className="flex gap-4 text-[11px]" style={{ color: "var(--text-dim)" }}>
                 <span className="flex items-center gap-1"><Eye size={12} /><span className="num">{formatNumber(v.views)}</span></span>
                 <span className="flex items-center gap-1"><Heart size={12} /><span className="num">{v.saves}</span></span>
-                <span>نُشر {timeAgo(v.publishedAt)}</span>
+                <span>{t.vehicle.publishedAgo} {fmtTimeAgo(v.publishedAt, locale)}</span>
                 {new Date(v.updatedAt).getTime() - new Date(v.publishedAt).getTime() > 3600_000 && (
-                  <span>· آخر تحديث {timeAgo(v.updatedAt)}</span>
+                  <span>· {t.vehicle.updatedAgo} {fmtTimeAgo(v.updatedAt, locale)}</span>
                 )}
               </div>
             </div>
@@ -213,14 +237,17 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
               <header className="mb-4 flex items-start gap-2.5">
                 <Sparkle size={18} style={{ color: "var(--brand)" }} className="mt-0.5 shrink-0" />
                 <div>
-                  <h2 className="text-[15px] font-bold">ليش قد تهمّك هاد المركبة؟</h2>
+                  <h2 className="text-[15px] font-bold">{t.highlights.title}</h2>
                   <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                    أهم النقط المستخرجة من مواصفات الإعلان.
+                    {t.highlights.lead}
                   </p>
                 </div>
               </header>
               <div className="grid gap-2.5 sm:grid-cols-2">
-                {highlights.map((h) => (
+                {highlights.map((h) => {
+                  const hl = t.highlights[h.key as keyof typeof t.highlights] as { label: string; detail: string };
+                  const vars = { ...(h.vars ?? {}), ...(h.dateIso ? { date: fmtMonthYear(h.dateIso, locale) } : {}) };
+                  return (
                   <div key={h.key} className="flex items-start gap-2.5 rounded-xl p-3" style={{ background: "var(--surface-1)" }}>
                     <span
                       className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
@@ -229,13 +256,14 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
                       <h.Icon size={15} />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-[12.5px] font-bold">{h.label}</p>
+                      <p className="text-[12.5px] font-bold">{hl.label}</p>
                       <p className="mt-0.5 text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                        <Mixed text={h.detail} />
+                        <Mixed text={fill(hl.detail, vars)} />
                       </p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
           )}
@@ -245,9 +273,9 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
             <header className="mb-5 flex items-start gap-2.5">
               <Road size={18} style={{ color: "var(--brand)" }} className="mt-0.5 shrink-0" />
               <div>
-                <h2 className="text-[15px] font-bold">المواصفات</h2>
+                <h2 className="text-[15px] font-bold">{t.vehicle.specsTitle}</h2>
                 <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
-                  كل المعطيات التقنية كما صرّح بها البائع.
+                  {t.vehicle.specsLead}
                 </p>
               </div>
             </header>
@@ -273,7 +301,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
             {v.equipment.length > 0 && (
               <>
                 <h3 className="mt-6 mb-3 flex items-center gap-1.5 text-[13px] font-bold">
-                  <Sparkle size={14} style={{ color: "var(--brand)" }} /> التجهيزات
+                  <Sparkle size={14} style={{ color: "var(--brand)" }} /> {t.vehicle.equipment}
                 </h3>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {v.equipment.map((e) => {
@@ -285,7 +313,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
                         style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
                       >
                         <EqIcon size={15} className="shrink-0" style={{ color: "var(--brand)" }} />
-                        <span className="truncate">{e}</span>
+                        <span className="truncate">{equipmentLabel(e, locale)}</span>
                       </span>
                     );
                   })}
@@ -293,7 +321,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
               </>
             )}
 
-            <h3 className="mt-6 mb-2 text-[13px] font-bold">وصف البائع</h3>
+            <h3 className="mt-6 mb-2 text-[13px] font-bold">{t.vehicle.descTitle}</h3>
             <p className="text-[13px] leading-loose" style={{ color: "var(--text-muted)" }}>
               {v.description}
             </p>
@@ -304,26 +332,26 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
             <header className="mb-4 flex items-start gap-2.5">
               <Clock size={18} style={{ color: "var(--brand)" }} className="mt-0.5 shrink-0" />
               <div>
-                <h2 className="text-[15px] font-bold">التاريخ والسعر</h2>
+                <h2 className="text-[15px] font-bold">{t.vehicle.historyTitle}</h2>
                 <p className="mt-1 text-xs" style={{ color: "var(--text-dim)" }}>
-                  تاريخ النشر، آخر تحديث، وأي تغيير حقيقي فالثمن.
+                  {t.vehicle.historyLead}
                 </p>
               </div>
             </header>
             <dl className="grid grid-cols-2 gap-2">
               <div className="rounded-xl p-3" style={{ background: "var(--surface-3)" }}>
-                <dt className="text-[10px]" style={{ color: "var(--text-dim)" }}>تاريخ النشر</dt>
-                <dd className="mt-0.5 text-[12.5px] font-bold">{formatDate(v.publishedAt)}</dd>
+                <dt className="text-[10px]" style={{ color: "var(--text-dim)" }}>{t.vehicle.publishedOn}</dt>
+                <dd className="mt-0.5 text-[12.5px] font-bold">{fmtDate(v.publishedAt, locale)}</dd>
               </div>
               <div className="rounded-xl p-3" style={{ background: "var(--surface-3)" }}>
-                <dt className="text-[10px]" style={{ color: "var(--text-dim)" }}>آخر تحديث</dt>
-                <dd className="mt-0.5 text-[12.5px] font-bold">{formatDate(v.updatedAt)}</dd>
+                <dt className="text-[10px]" style={{ color: "var(--text-dim)" }}>{t.vehicle.updatedOn}</dt>
+                <dd className="mt-0.5 text-[12.5px] font-bold">{fmtDate(v.updatedAt, locale)}</dd>
               </div>
             </dl>
 
             {v.priceHistory.length > 0 && (
               <>
-                <h3 className="mt-5 mb-2.5 text-[12.5px] font-bold">تغيّر الثمن</h3>
+                <h3 className="mt-5 mb-2.5 text-[12.5px] font-bold">{t.vehicle.priceChanges}</h3>
                 <ul className="space-y-1.5">
                   {[...v.priceHistory].reverse().map((p) => (
                     <li
@@ -331,8 +359,8 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
                       className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-[12px]"
                       style={{ background: "var(--surface-3)" }}
                     >
-                      <span style={{ color: "var(--text-dim)" }}>{formatDate(p.date)}</span>
-                      <span className="num font-bold">{formatNumber(p.price)} د.م</span>
+                      <span style={{ color: "var(--text-dim)" }}>{fmtDate(p.date, locale)}</span>
+                      <span className="num font-bold">{formatNumber(p.price)} {dhUnit(locale)}</span>
                     </li>
                   ))}
                 </ul>
@@ -359,10 +387,10 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
           {fp.estimate.comparables.length > 0 && (
             <section className="card p-5">
               <h2 className="flex items-center gap-2 text-[13px] font-bold">
-                <Scale size={15} style={{ color: "var(--brand)" }} /> إعلانات استُعملت في الحساب
+                <Scale size={15} style={{ color: "var(--brand)" }} /> {t.vehicle.comparablesTitle}
               </h2>
               <p className="mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                الثمن المرجعي محسوب من هاد المركبات المشابهة بعد التعديل.
+                {t.vehicle.comparablesLead}
               </p>
               <ul className="mt-3 space-y-1">
                 {fp.estimate.comparables.slice(0, 5).map((c) => (
@@ -374,7 +402,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
                       <span className="truncate">
                         {c.make} {c.model} <span className="num opacity-55">{c.year}</span>
                       </span>
-                      <span className="num shrink-0 font-bold">{formatNumber(c.price)} د.م</span>
+                      <span className="num shrink-0 font-bold">{formatNumber(c.price)} {dhUnit(locale)}</span>
                     </Link>
                   </li>
                 ))}
@@ -388,7 +416,7 @@ export default async function VehiclePage({ params }: { params: Promise<{ slug: 
 
       {similar.length > 0 && (
         <section className="mt-16">
-          <h2 className="h-section mb-6">مركبات مشابهة</h2>
+          <h2 className="h-section mb-6">{t.vehicle.similarTitle}</h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {similar.map((s) => <VehicleCard key={s.id} v={s} compact />)}
           </div>
