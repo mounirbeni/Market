@@ -1,6 +1,6 @@
 # شعارات الماركات — Brand logos
 
-هاد المجلد فيه **69 شعاراً محلياً**: 31 ملف SVG و38 ملف PNG. الواجهة كتختار الامتداد المناسب تلقائياً، والباقي كيتعرض بشارة نصية مصمّمة.
+هاد المجلد فيه **73 شعاراً محلياً**: 31 ملف SVG و42 ملف PNG. الواجهة كتختار الامتداد المناسب تلقائياً، والباقي كيتعرض بشارة نصية مصمّمة.
 
 ## الوضع القانوني — قراه قبل الإطلاق
 
@@ -34,6 +34,7 @@ Moteur.ma) هو **الاستعمال الإشاري** (nominative fair use): ك�
 | [Arcticons](https://arcticons.onnno.nl) | CC0 / GPL-3.0 | Harley-Davidson، Royal Enfield |
 | [theSVG](https://github.com/glincker/thesvg) | MIT | Bajaj |
 | [CarLogos](https://www.carlogos.org/car-brands/) | شروط المصدر غير محددة هنا — خاص التحقق قبل الإطلاق التجاري | 38 PNG لماركات السيارات |
+| صور بعثها المستخدم (بحث Google) | خاص التحقق من المصدر الأصلي قبل الإطلاق التجاري | Kawasaki، Benelli، MBK، SYM |
 
 ## الماركات التي ما زالت بلا شعار محلي
 
@@ -43,7 +44,12 @@ Moteur.ma) هو **الاستعمال الإشاري** (nominative fair use): ك�
 
 وفي قائمة الماركات العامة ما زالت هذه الشعارات تحتاج مصدراً منفصلاً:
 
-`Benelli` · `Docker` · `Haojue` · `Kawasaki` · `Kymco` · `MBK` · `SYM`
+`Docker` · `Haojue` · `Kymco`
+
+ملاحظة على `Kymco`: توصلات صورة ليها من مصدر غير رسمي (علامة مائية
+`cleanpng` بادية فيها، وخلفيتها مربّعات شفافية معاينة، ماشي خلفية
+حقيقية) — رُفضت عمداً. خاصها صورة من مصدر أنظف (Wikipedia غالباً
+فيها نسخة نظيفة).
 
 ملاحظة: `Docker` هنا هي ماركة السيارات النفعية المغربية — **ماشي** أداة
 الحاويات. المجموعات المفتوحة كلها تقريباً عندها `docker` = الحوت الأزرق، فماخذيناهش عمداً.
@@ -67,15 +73,11 @@ npm run add-logo kawasaki ~/Downloads/kawasaki.svg -- --color "#3fa535"
 ```
 
 **فين تلقاهم**: press / media kit ديال الصانع مع الـBrand Guidelines ديالو. ملفات CarLogos المضافة حالياً مخزنة محلياً داخل المشروع، وماكاينش تحميل مباشر وقت التشغيل.
-للسبعة الناقصين:
+للثلاثة الناقصين:
 
 | الماركة | المصدر |
 |---|---|
-| Kawasaki | khi.co.jp — قسم Corporate / Brand |
-| Benelli | benelli.com — Press |
-| Kymco | kymco.com.tw — Media |
-| SYM | sym-global.com — Downloads |
-| MBK | mbk-scooters.com (مجموعة Yamaha) |
+| Kymco | kymco.com.tw — Media، أو Wikipedia (ماشي صورة فيها علامة مائية) |
 | Haojue | haojue.com |
 | Docker | الوكيل المغربي مباشرة |
 
