@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { VehicleCard } from "@/components/VehicleCard";
 import { findAll } from "@/lib/source";
+import { dictionaryOf, getDictionary } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
 import {
   AirCon, ArrowLeft, BadgeCheck, Battery, Belt, BrakePad, BrakeRotor, Car,
   ClipboardCheck, Clock, Diagnostic, EngineBlock, FileText, Gauge, Headlight,
@@ -10,119 +12,70 @@ import {
   Turbo, Window, Wrench,
 } from "@/components/icons";
 
-export const metadata: Metadata = {
-  title: "الفحص المستقل — 120 نقطة قبل الشراء",
-  description:
-    "اطلب فحصاً ميكانيكياً مستقلاً من 120 نقطة قبل شراء سيارة أو دراجة مستعملة في المغرب: تقرير مفصل بالصور، وقراءة لأخطاء الحاسوب.",
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const t = await dictionaryOf(isLocale(lang) ? lang : DEFAULT_LOCALE);
+  return { title: t.inspectionPage.metaTitle, description: t.inspectionPage.metaDesc };
+}
 
-const SECTIONS = [
-  {
-    title: "المحرك وناقل الحركة",
-    points: 32,
-    Icon: EngineBlock,
-    color: "var(--brand)",
-    items: [
-      { Icon: Diagnostic, t: "قراءة أخطاء الحاسوب (OBD) وحذف الأكواد المخفية" },
-      { Icon: OilCan, t: "تسربات الزيت والماء والكشف عن الحشوة (joint de culasse)" },
-      { Icon: Belt, t: "حالة سير التوزيع والبكرات" },
-      { Icon: Turbo, t: "أداء التيربو وضغط النفخ" },
-      { Icon: Transmission, t: "سلاسة تبديل السرعات وحالة الدبرياج" },
-    ],
-  },
-  {
-    title: "الهيكل والصباغة",
-    points: 26,
-    Icon: Palette,
-    color: "var(--data)",
-    items: [
-      { Icon: Palette, t: "قياس سماكة الصباغة على كل قطعة (كشف الصباغة الجديدة)" },
-      { Icon: Scan, t: "تفحص نقاط اللحام الأصلية والشاسي" },
-      { Icon: Shield, t: "فحص أرضية الصندوق وأماكن الصدأ" },
-      { Icon: Scale, t: "تطابق فراغات القطع (jeux de carrosserie)" },
-      { Icon: IdCard, t: "مطابقة رقم الهيكل (VIN) في كل المواضع" },
-    ],
-  },
-  {
-    title: "التعليق والفرامل",
-    points: 24,
-    Icon: BrakeRotor,
-    color: "var(--good)",
-    items: [
-      { Icon: BrakePad, t: "حالة الأقراص والفحمات وقياس السماكة" },
-      { Icon: Shock, t: "المساعدات (amortisseurs) والتسريبات" },
-      { Icon: Steering, t: "المفاصل الكروية وقضبان التوجيه" },
-      { Icon: Tire, t: "تآكل الإطارات وتاريخ الصنع (DOT)" },
-      { Icon: Gauge, t: "اختبار الفرامل على الطريق" },
-    ],
-  },
-  {
-    title: "الكهرباء والتجهيزات",
-    points: 22,
-    Icon: Battery,
-    color: "var(--warn)",
-    items: [
-      { Icon: Battery, t: "البطارية والمولّد وشدة الشحن" },
-      { Icon: Headlight, t: "كل الأضواء والإشارات والأبواق" },
-      { Icon: AirCon, t: "المكيف: درجة البرودة وضغط الغاز" },
-      { Icon: Screen, t: "الشاشة والكاميرات والحساسات" },
-      { Icon: Window, t: "الزجاج الكهربائي والقفل المركزي" },
-    ],
-  },
-  {
-    title: "التاريخ والوثائق",
-    points: 16,
-    Icon: FileText,
-    color: "var(--bad)",
-    items: [
-      { Icon: FileText, t: "مطابقة البطاقة الرمادية لاسم البائع" },
-      { Icon: Lock2, t: "التحقق من عدم وجود رهن أو حجز" },
-      { Icon: Odometer, t: "قراءة العدّاد من الحاسوب ومقارنتها بالمعروض" },
-      { Icon: ShieldCheck, t: "صلاحية الفحص التقني والتأمين" },
-      { Icon: Clock, t: "تاريخ الصيانة من فواتير الوكيل إن وُجدت" },
-    ],
-  },
+const SECTION_META = [
+  { Icon: EngineBlock, color: "var(--brand)", itemIcons: [Diagnostic, OilCan, Belt, Turbo, Transmission] },
+  { Icon: Palette, color: "var(--data)", itemIcons: [Palette, Scan, Shield, Scale, IdCard] },
+  { Icon: BrakeRotor, color: "var(--good)", itemIcons: [BrakePad, Shock, Steering, Tire, Gauge] },
+  { Icon: Battery, color: "var(--warn)", itemIcons: [Battery, Headlight, AirCon, Screen, Window] },
+  { Icon: FileText, color: "var(--bad)", itemIcons: [FileText, Lock2, Odometer, ShieldCheck, Clock] },
 ];
 
-const STEPS = [
-  { n: 1, Icon: ClipboardCheck, t: "اطلب الفحص", d: "من صفحة الإعلان أو من هنا. كتختار التاريخ واللي غادي يخلّص: نتا ولا البائع." },
-  { n: 2, Icon: MapPin, t: "الخبير كيمشي للمركبة", d: "ميكانيكي معتمد كيتنقل لبلاصة المركبة فأي مدينة، ومكيبقاش أكثر من 90 دقيقة." },
-  { n: 3, Icon: Scan, t: "تقرير مفصّل", d: "كتوصلك نتيجة كل نقطة مع صور، أكواد الأعطاب، وتقدير كلفة الإصلاحات." },
-  { n: 4, Icon: BadgeCheck, t: "تفاوض بالحقائق", d: "استعمل التقرير باش تفاوض على الثمن، ولا تمشي إذا لقيتي شي حاجة خطيرة." },
-];
-
-const PRICING = [
-  { name: "دراجة نارية", price: "250", points: "78 نقطة", note: "كل الأحجام", Icon: Moto },
-  { name: "سيارة عادية", price: "450", points: "120 نقطة", note: "الأكثر طلباً", Icon: Car, featured: true },
-  { name: "سيارة فاخرة / 4×4", price: "650", points: "140 نقطة", note: "مع تشخيص متقدم", Icon: Gauge },
+const STEP_ICONS = [ClipboardCheck, MapPin, Scan, BadgeCheck];
+const PRICING_META = [
+  { price: "250", Icon: Moto },
+  { price: "450", Icon: Car, featured: true },
+  { price: "650", Icon: Gauge },
 ];
 
 export default async function InspectionPage() {
+  const t = await getDictionary();
   const inspected = await findAll({ inspectedOnly: true, sort: "trust-desc" }, 4);
+
+  const SECTIONS = t.inspectionPage.sections.map((sec, i) => ({
+    title: sec.title,
+    points: sec.points,
+    Icon: SECTION_META[i].Icon,
+    color: SECTION_META[i].color,
+    items: sec.items.map((text, j) => ({ Icon: SECTION_META[i].itemIcons[j], t: text })),
+  }));
+  const STEPS = t.inspectionPage.steps.map(([title, desc], i) => ({
+    n: i + 1, Icon: STEP_ICONS[i], t: title, d: desc,
+  }));
+  const PRICING = t.inspectionPage.pricing.map((p, i) => ({
+    name: p.name, points: p.points, note: p.note, price: PRICING_META[i].price,
+    Icon: PRICING_META[i].Icon, featured: PRICING_META[i].featured,
+  }));
+
   const total = SECTIONS.reduce((s, x) => s + x.points, 0);
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-12">
       <header className="mb-14 max-w-2xl">
-        <span className="eyebrow"><Wrench size={13} /> خدمة مستقلة · ماشي من البائع</span>
-        <h1 className="h-page mt-4">ماتشريش بعينيك — شري بتقرير</h1>
+        <span className="eyebrow"><Wrench size={13} /> {t.inspectionPage.eyebrow}</span>
+        <h1 className="h-page mt-4">{t.inspectionPage.title}</h1>
         <p className="mt-4 text-[15px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          <span className="num">{total}</span> نقطة فحص كيديرها ميكانيكي مستقل ماعندو حتى
-          علاقة بالبائع. النتيجة كتوصلك نتا، وكتبقى مرفقة بالإعلان باش تزيد الثقة عند
-          المشترين الآخرين.
+          <span className="num">{total}</span> {t.inspectionPage.leadA}
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link href="/vehicles?inspected=1" className="btn btn-primary">
-            <BadgeCheck size={16} /> شوف المركبات المفحوصة
+            <BadgeCheck size={16} /> {t.inspectionPage.seeInspected}
           </Link>
           <Link href="/vehicles" className="btn btn-ghost">
-            اطلب فحصاً لإعلان <ArrowLeft size={15} className="dir-flip" />
+            {t.inspectionPage.requestInspection} <ArrowLeft size={15} className="dir-flip" />
           </Link>
         </div>
       </header>
 
       <section className="mb-16">
-        <h2 className="h-section mb-7">كيفاش كيتم</h2>
+        <h2 className="h-section mb-7">{t.inspectionPage.howTitle}</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((s) => (
             <div key={s.n} className="card card-hover p-5">
@@ -147,7 +100,7 @@ export default async function InspectionPage() {
       </section>
 
       <section className="mb-16">
-        <h2 className="h-section mb-7">شنو كيتفحص بالضبط</h2>
+        <h2 className="h-section mb-7">{t.inspectionPage.whatTitle}</h2>
         <div className="grid gap-4 md:grid-cols-2">
           {SECTIONS.map((sec) => (
             <div key={sec.title} className="card p-5">
@@ -161,7 +114,7 @@ export default async function InspectionPage() {
                   </span>
                   {sec.title}
                 </h3>
-                <span className="chip"><span className="num">{sec.points}</span> نقطة</span>
+                <span className="chip"><span className="num">{sec.points}</span> {t.inspectionPage.point}</span>
               </div>
               <ul className="mt-4 space-y-2">
                 {sec.items.map((it) => (
@@ -182,7 +135,7 @@ export default async function InspectionPage() {
       </section>
 
       <section className="mb-16">
-        <h2 className="h-section mb-7">الأثمنة</h2>
+        <h2 className="h-section mb-7">{t.inspectionPage.pricingTitle}</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           {PRICING.map((p) => (
             <div
@@ -207,7 +160,7 @@ export default async function InspectionPage() {
               <h3 className="mt-4 text-[14px] font-bold">{p.name}</h3>
               <p className="mt-3">
                 <span className="num text-3xl font-extrabold" style={{ color: "var(--brand)" }}>{p.price}</span>
-                <span className="ms-1.5 text-xs font-bold opacity-60">د.م</span>
+                <span className="ms-1.5 text-xs font-bold opacity-60">{t.inspectionPage.dh}</span>
               </p>
               <p className="num mt-2 text-xs" style={{ color: "var(--text-dim)" }}>{p.points}</p>
               {!p.featured && (
@@ -217,16 +170,16 @@ export default async function InspectionPage() {
           ))}
         </div>
         <p className="mt-5 flex items-center justify-center gap-1.5 text-[11px]" style={{ color: "var(--text-dim)" }}>
-          <MapPin size={13} /> التنقل داخل المدينة مجاني. خارج المدينة كتزاد{" "}
-          <span className="num">3</span> دراهم/كم.
+          <MapPin size={13} /> {t.inspectionPage.travelNoteA}{" "}
+          <span className="num">3</span> {t.inspectionPage.travelNoteB}
         </p>
       </section>
 
       {inspected.length > 0 && (
         <section>
           <header className="mb-7 flex flex-wrap items-end justify-between gap-3">
-            <h2 className="h-section">مركبات مفحوصة متوفرة دابا</h2>
-            <Link href="/vehicles?inspected=1" className="btn btn-ghost btn-sm">الكل <ArrowLeft size={14} className="dir-flip" /></Link>
+            <h2 className="h-section">{t.inspectionPage.availableNowTitle}</h2>
+            <Link href="/vehicles?inspected=1" className="btn btn-ghost btn-sm">{t.inspectionPage.all} <ArrowLeft size={14} className="dir-flip" /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {inspected.map((v) => <VehicleCard key={v.id} v={v} compact />)}

@@ -1186,5 +1186,115 @@
         "14 jours"
       ]
     }
+  },
+  "inspectionPage": {
+    "metaTitle": "Inspection indépendante — 120 points avant achat",
+    "metaDesc": "Demandez une inspection mécanique indépendante de 120 points avant d'acheter une voiture ou moto d'occasion au Maroc : rapport détaillé avec photos et lecture des codes défaut.",
+    "eyebrow": "Service indépendant · pas du vendeur",
+    "title": "N'achetez pas les yeux fermés — achetez avec un rapport",
+    "leadA": "points de contrôle réalisés par un mécanicien indépendant, sans aucun lien avec le vendeur. Le résultat vous parvient directement, et reste joint à l'annonce pour rassurer les autres acheteurs.",
+    "seeInspected": "Voir les véhicules inspectés",
+    "requestInspection": "Demander une inspection pour une annonce",
+    "howTitle": "Comment ça marche",
+    "whatTitle": "Ce qui est inspecté exactement",
+    "point": "points",
+    "pricingTitle": "Tarifs",
+    "dh": "DH",
+    "travelNoteA": "Déplacement gratuit en ville. Hors ville, un supplément de",
+    "travelNoteB": "DH/km s'applique.",
+    "availableNowTitle": "Véhicules inspectés disponibles maintenant",
+    "all": "Tout voir",
+    "sections": [
+      {
+        "title": "Moteur et transmission",
+        "points": 32,
+        "items": [
+          "Lecture des codes défaut (OBD) et suppression des codes masqués",
+          "Fuites d'huile et de liquide, détection de joint de culasse",
+          "État de la courroie de distribution et des galets",
+          "Performance du turbo et pression de suralimentation",
+          "Fluidité des rapports et état de l'embrayage"
+        ]
+      },
+      {
+        "title": "Carrosserie et peinture",
+        "points": 26,
+        "items": [
+          "Mesure de l'épaisseur de peinture sur chaque panneau (détection de repeinte)",
+          "Contrôle des points de soudure d'origine et du châssis",
+          "Inspection du plancher de coffre et des zones de rouille",
+          "Cohérence des jeux de carrosserie",
+          "Vérification du numéro de châssis (VIN) sur tous les emplacements"
+        ]
+      },
+      {
+        "title": "Suspension et freins",
+        "points": 24,
+        "items": [
+          "État des disques et plaquettes, mesure de l'épaisseur",
+          "Amortisseurs et fuites",
+          "Rotules et biellettes de direction",
+          "Usure des pneus et date de fabrication (DOT)",
+          "Test de freinage sur route"
+        ]
+      },
+      {
+        "title": "Électricité et équipements",
+        "points": 22,
+        "items": [
+          "Batterie, alternateur et intensité de charge",
+          "Tous les feux, clignotants et avertisseurs",
+          "Climatisation : température et pression du gaz",
+          "Écran, caméras et capteurs",
+          "Vitres électriques et verrouillage central"
+        ]
+      },
+      {
+        "title": "Historique et documents",
+        "points": 16,
+        "items": [
+          "Correspondance de la carte grise au nom du vendeur",
+          "Vérification de l'absence de gage ou de saisie",
+          "Lecture du compteur via ordinateur et comparaison à l'affichage",
+          "Validité de la visite technique et de l'assurance",
+          "Historique d'entretien via les factures du concessionnaire si disponibles"
+        ]
+      }
+    ],
+    "steps": [
+      [
+        "Demandez l'inspection",
+        "Depuis la page de l'annonce ou ici. Vous choisissez la date et qui règle : vous ou le vendeur."
+      ],
+      [
+        "L'expert se déplace jusqu'au véhicule",
+        "Un mécanicien agréé se rend à l'emplacement du véhicule dans n'importe quelle ville, en moins de 90 minutes."
+      ],
+      [
+        "Rapport détaillé",
+        "Vous recevez le résultat de chaque point avec photos, codes de panne et estimation du coût des réparations."
+      ],
+      [
+        "Négociez avec des faits",
+        "Utilisez le rapport pour négocier le prix, ou passez votre chemin si vous trouvez quelque chose de grave."
+      ]
+    ],
+    "pricing": [
+      {
+        "name": "Moto",
+        "points": "78 points",
+        "note": "Toutes cylindrées"
+      },
+      {
+        "name": "Voiture standard",
+        "points": "120 points",
+        "note": "Le plus demandé"
+      },
+      {
+        "name": "Voiture premium / 4x4",
+        "points": "140 points",
+        "note": "Avec diagnostic avancé"
+      }
+    ]
   }
 }
