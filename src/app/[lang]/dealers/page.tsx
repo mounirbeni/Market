@@ -74,10 +74,12 @@ export default async function DealersPage() {
 
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   <span className="chip chip-plain"><MapPin size={11} /> {cityLabel(d.city, locale)}</span>
-                  <span className="chip chip-plain">
-                    <Star size={11} filled style={{ color: "var(--warn)" }} />
-                    <span className="num">{d.rating.toFixed(1)}</span>
-                  </span>
+                  {d.rating != null && (
+                    <span className="chip chip-plain">
+                      <Star size={11} filled style={{ color: "var(--warn)" }} />
+                      <span className="num">{d.rating.toFixed(1)}</span>
+                    </span>
+                  )}
                   <span className="chip chip-plain"><Car size={11} /> <span className="num">{count}</span> {t.dealersPage.vehicle}</span>
                 </div>
 

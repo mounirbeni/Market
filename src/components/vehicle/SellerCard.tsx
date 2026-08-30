@@ -47,7 +47,7 @@ export function SellerCard({
   /* ماعندناش هنا كل مدخلات مؤشر ثقة الحساب (نشاط، جودة الإعلانات…) —
      تقدير من التقييم وعدد المبيعات كافي باش نميّزو «بائع موثوق»
      الحقيقي من حساب موثّق جديد بلا تاريخ. */
-  const trustLevel = seller.idVerified && seller.rating >= 4.5 && seller.salesCount >= 5
+  const trustLevel = seller.idVerified && seller.rating != null && seller.rating >= 4.5 && seller.salesCount >= 5
     ? "high" as const
     : seller.idVerified ? "medium" as const : "low" as const;
   const badges = userBadges({
@@ -99,16 +99,20 @@ export function SellerCard({
               <span>{t.sellerCard.memberSince} <span className="num">{seller.since}</span></span>
             </p>
             <div className="mt-2.5 flex flex-wrap gap-1.5">
-              <span className="chip chip-plain">
-                <Star size={11} filled style={{ color: "var(--warn)" }} />
-                <span className="num">{seller.rating.toFixed(1)}</span>
-              </span>
+              {seller.rating != null && (
+                <span className="chip chip-plain">
+                  <Star size={11} filled style={{ color: "var(--warn)" }} />
+                  <span className="num">{seller.rating.toFixed(1)}</span>
+                </span>
+              )}
               <span className="chip chip-plain">
                 <span className="num">{seller.salesCount}</span> {t.sellerCard.sales}
               </span>
-              <span className="chip chip-plain">
-                <Clock size={11} /> ~<span className="num">{seller.responseMinutes}</span> {t.sellerCard.minutes}
-              </span>
+              {seller.responseMinutes != null && (
+                <span className="chip chip-plain">
+                  <Clock size={11} /> ~<span className="num">{seller.responseMinutes}</span> {t.sellerCard.minutes}
+                </span>
+              )}
               {activeListings != null && activeListings > 1 && (
                 <span className="chip chip-plain">
                   <Car size={11} /> <span className="num">{activeListings}</span> {t.sellerCard.activeListings}

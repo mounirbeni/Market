@@ -378,9 +378,9 @@ export function rowToVehicle(
       since: new Date(r.seller_since).getFullYear(),
       idVerified: r.seller_id_ver,
       phoneVerified: r.seller_phone_ver,
-      rating: Number(r.seller_rating ?? 4.5),
+      rating: r.seller_rating != null ? Number(r.seller_rating) : null,
       salesCount: r.seller_sales,
-      responseMinutes: r.seller_resp ?? 60,
+      responseMinutes: r.seller_resp,
       phone: r.seller_phone,
     },
   };
@@ -412,9 +412,9 @@ export function rowToSeller(r: SellerRow): Seller {
     since: new Date(r.member_since).getFullYear(),
     idVerified: r.id_verified,
     phoneVerified: r.phone_verified,
-    rating: Number(r.rating ?? 4.5),
+    rating: r.rating != null ? Number(r.rating) : null,
     salesCount: r.sales_count,
-    responseMinutes: r.response_minutes ?? 60,
+    responseMinutes: r.response_minutes,
     phone: r.phone,
   };
 }

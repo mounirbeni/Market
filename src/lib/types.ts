@@ -37,9 +37,11 @@ export interface Seller {
   phoneVerified: boolean;
   /** رقم التواصل — كيبان غير ملي يضغط الزائر «أظهر الرقم» */
   phone?: string | null;
-  rating: number;
+  /** null = بلا تقييمات بعد — ماكاينش نظام مراجعات حقيقي دابا، فبلا هادشي كنعرضو رقم مختلق */
+  rating: number | null;
   salesCount: number;
-  responseMinutes: number;
+  /** null = ماكاينش قياس حقيقي لوقت الرد بعد */
+  responseMinutes: number | null;
 }
 
 export interface HistoryEvent {

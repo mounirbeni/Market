@@ -371,9 +371,9 @@ export function trustScore(
       since: CURRENT_YEAR,
       idVerified: false,
       phoneVerified: false,
-      rating: 3.5,
+      rating: null,
       salesCount: 0,
-      responseMinutes: 120,
+      responseMinutes: null,
     };
   const parts: TrustPart[] = [];
   const flags: TrustResult["flags"] = [];
@@ -385,7 +385,10 @@ export function trustScore(
   else flags.push({ level: "warn", k: "idNotVerified" });
   if (seller.phoneVerified) sellerScore += 4;
   else flags.push({ level: "warn", k: "phoneNotVerified" });
-  sellerScore += Math.round(((seller.rating - 3.5) / 1.5) * 4);
+  // بلا نظام مراجعات حقيقي، ماكاينش تقييم — بلا هادشي كنعطيو نقط
+  // على رقم مختلق. seller.rating == null فكل الحسابات دابا (لا
+  // كتابة حقيقية للعمود)، فهاد الجزء مؤقتاً معطّل.
+  if (seller.rating != null) sellerScore += Math.round(((seller.rating - 3.5) / 1.5) * 4);
   const seniority = Math.min(4, Math.max(0, CURRENT_YEAR - seller.since));
   sellerScore += seniority;
   sellerScore = Math.max(0, Math.min(20, sellerScore));
@@ -395,11 +398,13 @@ export function trustScore(
     max: 20,
     detail: [
       { k: seller.idVerified ? "idVerified" : "noVerify" },
-      { k: "rating", vars: { r: seller.rating.toFixed(1) } },
+      ...(seller.rating != null ? [{ k: "rating", vars: { r: seller.rating.toFixed(1) } }] : []),
       { k: "since", vars: { y: String(seller.since) } },
     ],
   });
-  if (seller.idVerified && seller.rating >= 4.5) strengths.push("verifiedHighRating");
+  if (seller.idVerified && seller.rating != null && seller.rating >= 4.5) {
+    strengths.push("verifiedHighRating");
+  }
 
   // 2) الوثائق — 20
   let docs = 0;

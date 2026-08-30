@@ -152,9 +152,9 @@ function draftSeller(d: Draft): Seller {
     since: 2026,
     idVerified: d.idVerified,
     phoneVerified: d.phoneVerified,
-    rating: 4.5,
+    rating: null,
     salesCount: 0,
-    responseMinutes: 60,
+    responseMinutes: null,
   };
 }
 

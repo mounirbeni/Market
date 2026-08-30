@@ -53,7 +53,7 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
     getSellerStats(id),
   ]);
 
-  const trustLevel = seller.idVerified && seller.rating >= 4.5 && seller.salesCount >= 5
+  const trustLevel = seller.idVerified && seller.rating != null && seller.rating >= 4.5 && seller.salesCount >= 5
     ? "high" as const
     : seller.idVerified ? "medium" as const : "low" as const;
   const badges = userBadges({
@@ -117,8 +117,10 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
           {[
             { Icon: Car, v: formatNumber(listings.length), l: p.statActive },
             { Icon: BadgeCheck, v: formatNumber(stats.soldListings), l: p.statSold },
-            { Icon: Star, v: seller.rating.toFixed(1), l: p.statRating },
-            { Icon: Clock, v: `~${seller.responseMinutes}`, l: p.statResponse },
+            ...(seller.rating != null ? [{ Icon: Star, v: seller.rating.toFixed(1), l: p.statRating }] : []),
+            ...(seller.responseMinutes != null
+              ? [{ Icon: Clock, v: `~${seller.responseMinutes}`, l: p.statResponse }]
+              : []),
           ].map((s) => (
             <div key={s.l} className="card flex items-center gap-3 p-4">
               <span

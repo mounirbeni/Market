@@ -62,7 +62,7 @@ export default async function DealerPage({ params }: { params: Promise<{ lang: s
     name: d.name,
     description: d.about,
     address: { "@type": "PostalAddress", streetAddress: d.address, addressLocality: cityLabel(d.city, locale), addressCountry: "MA" },
-    ...(d.rating > 0 && d.salesCount > 0
+    ...(d.rating != null && d.rating > 0 && d.salesCount > 0
       ? { aggregateRating: { "@type": "AggregateRating", ratingValue: d.rating, bestRating: 5, ratingCount: d.salesCount } }
       : {}),
     openingHours: d.hours,
@@ -180,19 +180,23 @@ export default async function DealerPage({ params }: { params: Promise<{ lang: s
                   <Clock size={15} className="mt-0.5 shrink-0" style={{ color: "var(--text-dim)" }} />
                   <span style={{ color: "var(--text-muted)" }}>{d.hours}</span>
                 </li>
-                <li className="flex gap-2.5">
-                  <Star size={15} className="mt-0.5 shrink-0" style={{ color: "var(--warn)" }} filled />
-                  <span style={{ color: "var(--text-muted)" }}>
-                    <span className="num">{d.rating.toFixed(1)}</span> {t.dealerPage.outOf5} ·{" "}
-                    <span className="num">{d.salesCount}</span> {t.dealerPage.ratingsCount}
-                  </span>
-                </li>
-                <li className="flex gap-2.5">
-                  <Timer size={15} className="mt-0.5 shrink-0" style={{ color: "var(--text-dim)" }} />
-                  <span style={{ color: "var(--text-muted)" }}>
-                    {t.dealerPage.respondsIn}<span className="num">{d.responseMinutes}</span> {t.dealerPage.minutes}
-                  </span>
-                </li>
+                {d.rating != null && (
+                  <li className="flex gap-2.5">
+                    <Star size={15} className="mt-0.5 shrink-0" style={{ color: "var(--warn)" }} filled />
+                    <span style={{ color: "var(--text-muted)" }}>
+                      <span className="num">{d.rating.toFixed(1)}</span> {t.dealerPage.outOf5} ·{" "}
+                      <span className="num">{d.salesCount}</span> {t.dealerPage.ratingsCount}
+                    </span>
+                  </li>
+                )}
+                {d.responseMinutes != null && (
+                  <li className="flex gap-2.5">
+                    <Timer size={15} className="mt-0.5 shrink-0" style={{ color: "var(--text-dim)" }} />
+                    <span style={{ color: "var(--text-muted)" }}>
+                      {t.dealerPage.respondsIn}<span className="num">{d.responseMinutes}</span> {t.dealerPage.minutes}
+                    </span>
+                  </li>
+                )}
                 <li className="flex gap-2.5">
                   <Navigation size={15} className="mt-0.5 shrink-0" style={{ color: "var(--text-dim)" }} />
                   <span style={{ color: "var(--text-muted)" }}>{t.dealerPage.memberSince} <span className="num">{d.since}</span></span>

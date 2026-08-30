@@ -622,10 +622,12 @@ export default async function HomePage() {
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     <span className="chip chip-plain"><MapPin size={10} /> {cityLabel(d.city, locale)}</span>
-                    <span className="chip chip-plain">
-                      <Star size={10} filled style={{ color: "var(--warn)" }} />
-                      <span className="num">{d.rating.toFixed(1)}</span>
-                    </span>
+                    {d.rating != null && (
+                      <span className="chip chip-plain">
+                        <Star size={10} filled style={{ color: "var(--warn)" }} />
+                        <span className="num">{d.rating.toFixed(1)}</span>
+                      </span>
+                    )}
                     <span className="chip chip-plain"><Car size={10} /> <span className="num">{count}</span></span>
                   </div>
                 </div>
