@@ -10,11 +10,11 @@ export async function POST(req: Request) {
   const b = await body<{ email?: string; code?: string; name?: string }>(req);
   const email = normalizeEmail(b?.email ?? "");
   const code = (b?.code ?? "").replace(/\D/g, "");
-  if (!email) return fail("الإيميل ماشي صحيح.");
-  if (code.length !== 6) return fail("الرمز خاصو يكون 6 أرقام.");
+  if (!email) return fail("الإيميل ماشي صحيح.", 400, "BAD_EMAIL");
+  if (code.length !== 6) return fail("الرمز خاصو يكون 6 أرقام.", 400, "BAD_CODE_LENGTH");
 
   const check = await verifyOtp(email, code);
-  if (!check.ok) return fail(check.error ?? "الرمز ماشي صحيح.", 401);
+  if (!check.ok) return fail(check.error ?? "الرمز ماشي صحيح.", 401, check.code);
 
   const userId = await upsertUserByEmail(email, b?.name);
   await createSession(userId, req.headers.get("user-agent") ?? undefined);

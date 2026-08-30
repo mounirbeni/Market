@@ -4,8 +4,8 @@ import { NextResponse } from "next/server";
 export const ok = <T>(data: T, init?: ResponseInit) =>
   NextResponse.json({ ok: true, data }, init);
 
-export const fail = (error: string, status = 400) =>
-  NextResponse.json({ ok: false, error }, { status });
+export const fail = (error: string, status = 400, code?: string) =>
+  NextResponse.json({ ok: false, error, ...(code ? { code } : {}) }, { status });
 
 export const unauthorized = () => fail("خاصك تسجّل الدخول.", 401);
 export const forbidden = () => fail("ماعندكش الصلاحية.", 403);

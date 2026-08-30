@@ -100,6 +100,8 @@ export function normalizeEmail(raw: string): string | null {
 export interface OtpIssue {
   ok: boolean;
   error?: string;
+  /** رمز ثابت — الواجهة كتترجمو حسب لغة الزائر بدل النص العربي مباشرة */
+  code?: string;
   /**
    * كيترجع غير فالتطوير المحلي.
    *
@@ -117,7 +119,7 @@ export async function issueOtp(email: string): Promise<OtpIssue> {
     [email],
   );
   if (Number(recent?.n ?? 0) >= OTP_RATE_PER_HOUR) {
-    return { ok: false, error: "طلبتي رموز بزاف. عاود من بعد ساعة." };
+    return { ok: false, error: "طلبتي رموز بزاف. عاود من بعد ساعة.", code: "RATE_LIMIT" };
   }
 
   const code = String(randomBytes(4).readUInt32BE(0) % 1_000_000).padStart(6, "0");
@@ -145,6 +147,7 @@ export async function issueOtp(email: string): Promise<OtpIssue> {
       return {
         ok: false,
         error: "إرسال الإيميل ماشي مضبوط فهاد الموقع. تواصل مع المسؤول.",
+        code: "MAIL_NOT_CONFIGURED",
       };
     }
     return { ok: true, devCode: code };
@@ -155,6 +158,7 @@ export async function issueOtp(email: string): Promise<OtpIssue> {
     return {
       ok: false,
       error: "ماقدرناش نصيفطو الرمز للإيميل ديالك. عاود المحاولة.",
+      code: "SEND_FAILED",
     };
   }
   return { ok: true };
@@ -163,6 +167,7 @@ export async function issueOtp(email: string): Promise<OtpIssue> {
 export interface OtpCheck {
   ok: boolean;
   error?: string;
+  code?: string;
 }
 
 /** التحقق من الرمز واستهلاكه */
@@ -173,9 +178,9 @@ export async function verifyOtp(email: string, code: string): Promise<OtpCheck> 
      ORDER BY created_at DESC LIMIT 1`,
     [email],
   );
-  if (!row) return { ok: false, error: "الرمز منتهي ولا ماكاينش. اطلب واحد جديد." };
+  if (!row) return { ok: false, error: "الرمز منتهي ولا ماكاينش. اطلب واحد جديد.", code: "CODE_EXPIRED" };
   if (row.attempts >= OTP_MAX_ATTEMPTS) {
-    return { ok: false, error: "محاولات بزاف. اطلب رمزاً جديداً." };
+    return { ok: false, error: "محاولات بزاف. اطلب رمزاً جديداً.", code: "TOO_MANY_ATTEMPTS" };
   }
 
   const a = Buffer.from(sha256(code));
@@ -184,7 +189,7 @@ export async function verifyOtp(email: string, code: string): Promise<OtpCheck> 
 
   if (!good) {
     await sql("UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1", [row.id]);
-    return { ok: false, error: "الرمز ماشي صحيح." };
+    return { ok: false, error: "الرمز ماشي صحيح.", code: "BAD_CODE" };
   }
   await sql("UPDATE otp_codes SET consumed_at = now() WHERE id = $1", [row.id]);
   return { ok: true };

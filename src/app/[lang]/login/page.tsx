@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthForm } from "@/components/AuthForm";
+import { dictionaryOf } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "تسجيل الدخول",
-  description: "دخل لحسابك فطريق باش توصل لإعلاناتك ورسائلك ومفضلتك.",
-  robots: { index: false, follow: true },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const t = await dictionaryOf(isLocale(lang) ? lang : DEFAULT_LOCALE);
+  return { title: t.auth.loginTitle, description: t.auth.loginDesc, robots: { index: false, follow: true } };
+}
 
 export default function LoginPage() {
   return (

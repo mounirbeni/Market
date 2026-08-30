@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AuthForm } from "@/components/AuthForm";
+import { dictionaryOf } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "إنشاء حساب",
-  description: "أنشئ حساباً مجانياً فطريق: انشر إعلاناتك، احفظ المركبات، وتوصلك تنبيهات الأثمنة.",
-  robots: { index: false, follow: true },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const t = await dictionaryOf(isLocale(lang) ? lang : DEFAULT_LOCALE);
+  return { title: t.auth.registerTitle, description: t.auth.registerDesc, robots: { index: false, follow: true } };
+}
 
 export default function RegisterPage() {
   return (

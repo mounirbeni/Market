@@ -711,5 +711,43 @@
       "displacement": "{n} cm³",
       "depreciation": "Écart entre le prix d'achat et le prix de revente estimé"
     }
+  },
+  "auth": {
+    "loginTitle": "Connexion",
+    "loginDesc": "Connectez-vous à votre compte TRIQ pour accéder à vos annonces, messages et favoris.",
+    "registerTitle": "Créer un compte",
+    "registerDesc": "Créez un compte gratuit sur TRIQ : publiez vos annonces, enregistrez des véhicules et recevez des alertes de prix.",
+    "genericError": "Une erreur est survenue.",
+    "heading": {
+      "login": "Connexion",
+      "register": "Créer un compte"
+    },
+    "leadEmail": "Par e-mail uniquement — sans mot de passe. Nous vous envoyons un code de vérification.",
+    "leadCodeA": "Entrez le code reçu à",
+    "nameLabel": "Nom",
+    "namePlaceholder": "Ex : Youssef El Idrissi",
+    "emailLabel": "E-mail",
+    "sending": "Envoi…",
+    "sendCode": "Envoyer le code",
+    "devModeNote": "Mode développement — votre code :",
+    "devModeNoteEnd": "En production, il est envoyé par e-mail.",
+    "codeLabel": "Code de vérification",
+    "verifying": "Vérification…",
+    "login": "Connexion",
+    "changeEmail": "Changer d'e-mail",
+    "hasAccount": "Vous avez déjà un compte ?",
+    "noAccount": "Pas encore de compte ?",
+    "registerCta": "Créer un compte",
+    "privacyNote": "Votre e-mail n'est jamais publié — nous l'utilisons uniquement pour la connexion et les alertes.",
+    "errors": {
+      "BAD_EMAIL": "L'e-mail n'est pas valide. Exemple : nom@example.com",
+      "BAD_CODE_LENGTH": "Le code doit contenir 6 chiffres.",
+      "RATE_LIMIT": "Trop de codes demandés. Réessayez dans une heure.",
+      "MAIL_NOT_CONFIGURED": "L'envoi d'e-mails n'est pas configuré sur ce site. Contactez l'administrateur.",
+      "SEND_FAILED": "Impossible d'envoyer le code à votre e-mail. Réessayez.",
+      "CODE_EXPIRED": "Le code a expiré ou n'existe pas. Demandez-en un nouveau.",
+      "TOO_MANY_ATTEMPTS": "Trop de tentatives. Demandez un nouveau code.",
+      "BAD_CODE": "Le code est incorrect."
+    }
   }
 }
