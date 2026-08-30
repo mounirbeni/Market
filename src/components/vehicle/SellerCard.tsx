@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Link } from "@/components/Link";
+import { Avatar } from "@/components/Avatar";
 import type { Seller, Vehicle } from "@/lib/types";
 import { useDict, useLocale } from "@/lib/i18n/client";
 import { cityLabel, fill, sellerDisplayName, specs } from "@/lib/i18n/labels";
@@ -79,13 +80,12 @@ export function SellerCard({
     <section className="card overflow-hidden">
       <div className="p-5">
         <div className="flex items-start gap-3">
-          <div
-            className="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-lg font-extrabold"
+          <Avatar
+            src={seller.avatarUrl}
+            name={sellerDisplayName(seller.name, locale)}
+            className="h-12 w-12 rounded-xl text-lg"
             style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
-            aria-hidden="true"
-          >
-            {sellerDisplayName(seller.name, locale).trim().slice(0, 1)}
-          </div>
+          />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
               <h3 className="truncate text-sm font-bold">{sellerDisplayName(seller.name, locale)}</h3>

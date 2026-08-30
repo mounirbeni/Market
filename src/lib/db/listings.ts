@@ -52,6 +52,7 @@ export interface ListingRow {
   published_at: string;
   updated_at: string;
   seller_name: string;
+  seller_avatar: string | null;
   seller_type: "particulier" | "professionnel";
   dealer_slug: string | null;
   owners: number;
@@ -104,7 +105,7 @@ const SELECT_COLS = `
   l.displacement, l.doors, l.technical_control, l.service_book, l.description,
   l.equipment, l.negotiable, l.exchange_accepted,
   l.seller_id::text AS seller_ref,
-  u.name AS seller_name, u.type AS seller_type, d.slug AS dealer_slug,
+  u.name AS seller_name, u.avatar_url AS seller_avatar, u.type AS seller_type, d.slug AS dealer_slug,
   u.city AS seller_city, u.member_since AS seller_since,
   u.id_verified AS seller_id_ver, u.phone_verified AS seller_phone_ver,
   u.rating AS seller_rating, u.sales_count AS seller_sales,
@@ -371,6 +372,7 @@ export function rowToVehicle(
     seller: {
       id: r.seller_ref,
       name: r.seller_name,
+      avatarUrl: r.seller_avatar,
       type: r.seller_type,
       city: r.seller_city ?? "casablanca",
       since: new Date(r.seller_since).getFullYear(),
@@ -388,6 +390,7 @@ export function rowToVehicle(
 export interface SellerRow {
   ref: string;
   name: string;
+  avatar_url: string | null;
   type: "particulier" | "professionnel";
   city: string | null;
   member_since: string;
@@ -403,6 +406,7 @@ export function rowToSeller(r: SellerRow): Seller {
   return {
     id: r.ref,
     name: r.name,
+    avatarUrl: r.avatar_url,
     type: r.type,
     city: r.city ?? "casablanca",
     since: new Date(r.member_since).getFullYear(),
@@ -456,7 +460,7 @@ export async function findSimilarListings(v: SimilarInput, limit = 8): Promise<L
 /** بائع إعلان معيّن */
 export async function getSellerOf(listingRef: string): Promise<Seller | null> {
   const r = await one<SellerRow>(
-    `SELECT u.id::text AS ref, u.name, u.type, u.city, u.member_since,
+    `SELECT u.id::text AS ref, u.name, u.avatar_url, u.type, u.city, u.member_since,
             u.id_verified, u.phone_verified, u.rating, u.sales_count,
             u.response_minutes, u.phone
      FROM listings l JOIN users u ON u.id = l.seller_id
@@ -504,7 +508,7 @@ export async function sellerStats(userId: string): Promise<SellerStats> {
 /** بائع واحد بمعرّفو مباشرة — لصفحة الملف العام */
 export async function sellerById(userId: string): Promise<SellerRow | null> {
   return one<SellerRow>(
-    `SELECT u.id::text AS ref, u.name, u.type, u.city, u.member_since,
+    `SELECT u.id::text AS ref, u.name, u.avatar_url, u.type, u.city, u.member_since,
             u.id_verified, u.phone_verified, u.rating, u.sales_count,
             u.response_minutes, u.phone
      FROM users u WHERE u.id = $1::uuid`,

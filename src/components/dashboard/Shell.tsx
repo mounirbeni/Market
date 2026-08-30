@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
 import { useDict } from "@/lib/i18n/client";
+import { Avatar } from "@/components/Avatar";
 import { ProfileCompletionBanner } from "./ProfileCompletionBanner";
 import {
   BadgeCheck, Calendar, Car, Chart, Heart, Message, Plus, ShieldCheck, Sliders, Users,
@@ -64,12 +65,12 @@ export function DashboardShell({ title, children }: { title: string; children: R
               className="flex items-center gap-3 border-b p-4"
               style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
             >
-              <span
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-lg font-extrabold"
+              <Avatar
+                src={user.avatar_url}
+                name={user.name}
+                className="h-11 w-11 rounded-xl text-lg"
                 style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
-              >
-                {user.name.trim().slice(0, 1)}
-              </span>
+              />
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="truncate text-[13px] font-bold">{user.name}</span>

@@ -7,6 +7,7 @@ import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
 import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 import { cityLabel, sellerDisplayName } from "@/lib/i18n/labels";
 import { VehicleCard } from "@/components/VehicleCard";
+import { Avatar } from "@/components/Avatar";
 import {
   BadgeCheck, Car, Clock, MapPin, ShieldCheck, Star, Users,
 } from "@/components/icons";
@@ -77,12 +78,12 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
 
       <div className="mx-auto max-w-[1200px] px-4">
         <div className="-mt-12 flex flex-wrap items-end gap-4">
-          <span
-            className="grid h-20 w-20 shrink-0 place-items-center rounded-3xl border-4 text-3xl font-extrabold"
+          <Avatar
+            src={seller.avatarUrl}
+            name={displayName}
+            className="h-20 w-20 rounded-3xl border-4 text-3xl"
             style={{ background: "var(--surface-1)", borderColor: "var(--bg)", color: "var(--brand)" }}
-          >
-            {displayName.trim().slice(0, 1)}
-          </span>
+          />
           <div className="min-w-0 flex-1 pb-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="h-section">{displayName}</h1>

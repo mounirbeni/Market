@@ -28,6 +28,7 @@ export type SellerType = "particulier" | "professionnel";
 export interface Seller {
   id: string;
   name: string;
+  avatarUrl?: string | null;
   type: SellerType;
   city: string;
   since: number;
