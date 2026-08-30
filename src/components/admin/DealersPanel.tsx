@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useRouter } from "next/navigation";
 import { adminAction } from "./actions";
-import { timeAgo } from "@/lib/format";
-import { cityName } from "@/lib/cities";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { cityLabel, fmtTimeAgo } from "@/lib/i18n/labels";
 import { BadgeCheck, Car } from "@/components/icons";
 
 interface Row {
@@ -14,6 +14,9 @@ interface Row {
 }
 
 export function DealersPanel({ rows }: { rows: Row[] }) {
+  const t = useDict();
+  const locale = useLocale();
+  const p = t.dealersPanel;
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +36,9 @@ export function DealersPanel({ rows }: { rows: Row[] }) {
   return (
     <div>
       <header className="mb-5">
-        <h2 className="text-[17px] font-extrabold">المعارض</h2>
+        <h2 className="text-[17px] font-extrabold">{p.title}</h2>
         <p className="mt-1 text-[12.5px]" style={{ color: "var(--text-muted)" }}>
-          شارة «موثّق» كتتحط غير من هنا، بعد ما تشوف السجل التجاري. اللي ماشي
-          موثّق كيبان أولاً.
+          {p.lead}
         </p>
       </header>
 
@@ -44,7 +46,7 @@ export function DealersPanel({ rows }: { rows: Row[] }) {
 
       {rows.length === 0 ? (
         <div className="card p-10 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-          باقي ماتسجّل حتى معرض.
+          {p.empty}
         </div>
       ) : (
         <ul className="space-y-2.5">
@@ -58,20 +60,20 @@ export function DealersPanel({ rows }: { rows: Row[] }) {
                     </Link>
                     {d.verified ? (
                       <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
-                        <BadgeCheck size={10} /> موثّق
+                        <BadgeCheck size={10} /> {p.verified}
                       </span>
                     ) : (
                       <span className="tag" style={{ background: "var(--warn)", color: "#000" }}>
-                        فانتظار التوثيق
+                        {p.awaitingVerification}
                       </span>
                     )}
                   </div>
                   <p className="mt-0.5 flex flex-wrap gap-x-2.5 text-[11.5px]" style={{ color: "var(--text-dim)" }}>
-                    <span>{cityName(d.city)}</span>
+                    <span>{cityLabel(d.city, locale)}</span>
                     <span><Car size={11} /> <span className="num">{d.listings}</span></span>
                     <span>{d.owner_name}</span>
                     {d.owner_email && <bdi dir="ltr" className="num">{d.owner_email}</bdi>}
-                    <span>{timeAgo(d.created_at)}</span>
+                    <span>{fmtTimeAgo(d.created_at, locale)}</span>
                   </p>
                 </div>
                 <button
@@ -83,7 +85,7 @@ export function DealersPanel({ rows }: { rows: Row[] }) {
                   disabled={busy !== null}
                   onClick={() => act(d.slug, !d.verified)}
                 >
-                  {d.verified ? "حيّد التوثيق" : "وثّق المعرض"}
+                  {d.verified ? p.unverify : p.verifyDealer}
                 </button>
               </div>
             </li>

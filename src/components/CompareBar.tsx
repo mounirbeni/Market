@@ -1,13 +1,16 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useApp } from "@/store/app";
 import { useVehiclesByIds } from "@/lib/useVehicles";
+import { useDict } from "@/lib/i18n/client";
 import { VehicleArt } from "./VehicleArt";
 import { Close, Scale, Trash } from "./icons";
 import { artShape } from "@/lib/artshape";
 
 export function CompareBar() {
+  const t = useDict();
+  const c = t.compareBar;
   const { compare, toggleCompare, clearCompare, ready } = useApp();
   const { items } = useVehiclesByIds(compare);
   if (!ready || compare.length === 0) return null;
@@ -32,7 +35,7 @@ export function CompareBar() {
               </div>
               <button
                 onClick={() => toggleCompare(v!.id)}
-                aria-label={`إزالة ${v!.make} من المقارنة`}
+                aria-label={`${c.removeAria} ${v!.make} ${c.fromCompare}`}
                 className="absolute -top-1.5 -end-1.5 grid h-4 w-4 place-items-center rounded-full"
                 style={{ background: "var(--bad)", color: "#fff" }}
               >
@@ -46,19 +49,19 @@ export function CompareBar() {
               className="grid h-11 w-16 shrink-0 place-items-center rounded-lg border border-dashed text-[10px]"
               style={{ borderColor: "var(--line)", color: "var(--text-dim)" }}
             >
-              أضف
+              {c.add}
             </div>
           ))}
         </div>
         <button onClick={clearCompare} className="btn btn-ghost btn-sm">
-          <Trash size={13} /> مسح
+          <Trash size={13} /> {c.clear}
         </button>
         <Link
           href="/compare"
           className="btn btn-sm"
           style={{ background: "var(--data)", color: "#fff" }}
         >
-          <Scale size={14} /> قارن <span className="num">({items.length})</span>
+          <Scale size={14} /> {c.compare} <span className="num">({items.length})</span>
         </Link>
       </div>
     </div>

@@ -2332,5 +2332,334 @@
     "saving": "Enregistrement…",
     "update": "Mettre à jour le profil",
     "create": "Créer le profil"
+  },
+  "adminShell": {
+    "metaTitle": "Administration",
+    "eyebrow": "Administration",
+    "title": "Tableau de bord",
+    "signOut": "Se déconnecter",
+    "nav": {
+      "overview": "Vue d'ensemble",
+      "reports": "Signalements",
+      "listings": "Annonces",
+      "users": "Comptes",
+      "verifications": "Vérifications",
+      "dealers": "Concessions",
+      "promos": "Promotion",
+      "catalog": "Catalogue",
+      "log": "Journal"
+    }
+  },
+  "adminToolbar": {
+    "defaultPlaceholder": "Rechercher…"
+  },
+  "adminLogin": {
+    "title": "Panneau d'administration",
+    "leadPw": "Connexion protégée par mot de passe et code",
+    "leadCodeA": "Nous avons envoyé un code à 6 chiffres à",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Mot de passe",
+    "codeLabel": "Code",
+    "devHint": "Développement local :",
+    "genericError": "Une erreur est survenue.",
+    "continue": "Continuer",
+    "login": "Connexion",
+    "back": "Retour"
+  },
+  "adminHome": {
+    "cards": {
+      "users": "Comptes",
+      "listingsActive": "Annonces actives",
+      "reportsOpen": "Signalements ouverts",
+      "promosPending": "Promotions en attente de paiement",
+      "verifsPending": "Vérifications en attente",
+      "dealers": "Concessions",
+      "listingsHidden": "Annonces masquées",
+      "usersBanned": "Comptes bannis",
+      "messages7d": "Messages (7 jours)",
+      "appointments": "Rendez-vous demandés",
+      "models": "Modèles au catalogue"
+    },
+    "today": "aujourd'hui",
+    "active": "active(s)",
+    "notVerified": "non vérifiée(s)",
+    "proSellers": "vendeur(s) professionnel(s)",
+    "recentActionsTitle": "Dernières actions",
+    "noActionsYet": "Aucune action pour le moment."
+  },
+  "adminLog": {
+    "metaTitle": "Journal des actions",
+    "title": "Journal des actions",
+    "lead": "Chaque action d'administration est enregistrée ici. Les",
+    "colWhen": "Quand",
+    "colWho": "Qui",
+    "colAction": "Action",
+    "colTarget": "Sur quoi",
+    "empty": "Rien pour le moment."
+  },
+  "reportsPanel": {
+    "title": "Signalements",
+    "lead": "Chaque signalement contient l'annonce et le vendeur. « Masquer » retire l'annonce du site, et « Bannir » suspend le compte et retire toutes ses annonces.",
+    "tabs": {
+      "open": "Ouverts",
+      "actioned": "Traités",
+      "dismissed": "Rejetés",
+      "all": "Tous"
+    },
+    "reasons": {
+      "fake": "Annonce frauduleuse",
+      "sold": "Vendue mais toujours en ligne",
+      "price": "Prix incorrect",
+      "photos": "Photos ne correspondant pas",
+      "papers": "Problème de documents",
+      "deposit": "Demande un acompte",
+      "duplicate": "Annonce dupliquée",
+      "other": "Autre raison"
+    },
+    "emptyTitle": "Aucun signalement",
+    "restoreListing": "Restaurer l'annonce",
+    "hideListing": "Masquer l'annonce",
+    "unban": "Lever le bannissement",
+    "ban": "Bannir le vendeur",
+    "actioned": "Traiter",
+    "dismiss": "Pas un problème",
+    "hiddenNote": "L'annonce est masquée du site. ",
+    "bannedNote": "Le compte est banni."
+  },
+  "listingsPanel": {
+    "title": "Annonces",
+    "lead": "Toutes les annonces, quel que soit leur état. La mise en avant est gratuite ici — pour les cas particuliers.",
+    "searchPlaceholder": "Référence, marque, modèle, ou e-mail du vendeur…",
+    "tabs": {
+      "all": "Toutes",
+      "active": "Actives",
+      "rejected": "Masquées",
+      "sold": "Vendues"
+    },
+    "status": {
+      "active": "Active",
+      "rejected": "Masquée",
+      "sold": "Vendue",
+      "draft": "Brouillon",
+      "pending": "En attente",
+      "expired": "Expirée"
+    },
+    "empty": "Aucune annonce.",
+    "reportsSuffix": "signalement(s)",
+    "trustPrefix": "confiance",
+    "banned": "banni",
+    "hide": "Masquer",
+    "restore": "Restaurer",
+    "noPromo": "Sans mise en avant",
+    "promoFeatured": "Mise en avant",
+    "promoUrgent": "Urgent",
+    "promoTop": "Priorité",
+    "confirmDelete": "Confirmer ? Supprimer"
+  },
+  "usersPanel": {
+    "title": "Comptes",
+    "lead": "Le bannissement coupe la session immédiatement et retire toutes les annonces actives du compte.",
+    "searchPlaceholder": "E-mail, nom, ou téléphone…",
+    "tabs": {
+      "all": "Tous",
+      "pro": "Professionnels",
+      "verified": "Vérifiés",
+      "banned": "Bannis"
+    },
+    "empty": "Aucun compte.",
+    "pro": "Professionnel",
+    "verified": "Vérifié",
+    "banned": "Banni",
+    "unverify": "Retirer la vérification",
+    "verify": "Vérifier",
+    "makePrivate": "Passer en particulier",
+    "makePro": "Passer en professionnel",
+    "unban": "Lever le bannissement",
+    "ban": "Bannir"
+  },
+  "verificationsPanel": {
+    "title": "Vérification d'identité",
+    "leadA": "Consultez le document et vérifiez que le nom correspond à celui du compte. L'approbation accorde le badge « vérifié » et",
+    "leadB": "points dans l'indice de confiance de toutes ses annonces.",
+    "tabs": {
+      "pending": "En attente",
+      "approved": "Approuvées",
+      "rejected": "Refusées",
+      "all": "Toutes"
+    },
+    "kinds": {
+      "cin": "Carte nationale d'identité",
+      "registre": "Registre de commerce"
+    },
+    "approved": "Approuvé",
+    "rejected": "Refusé",
+    "reviewedByPrefix": "Révisé par",
+    "reasonPrefix": "Raison :",
+    "rejectReasonPlaceholder": "Raison du refus (facultatif)",
+    "approve": "Approuver",
+    "reject": "Refuser",
+    "empty": "Aucune demande.",
+    "docAlt": "document",
+    "zoomAria": "Agrandir le document"
+  },
+  "dealersPanel": {
+    "title": "Concessions",
+    "lead": "Le badge « vérifié » n'est accordé que d'ici, après vérification du registre de commerce. Les concessions non vérifiées apparaissent en premier.",
+    "empty": "Aucune concession inscrite pour le moment.",
+    "verified": "Vérifié",
+    "awaitingVerification": "En attente de vérification",
+    "unverify": "Retirer la vérification",
+    "verifyDealer": "Vérifier la concession"
+  },
+  "promosPanel": {
+    "title": "Promotion",
+    "lead": "Le vendeur fait la demande depuis la page de promotion, et vous confirmez le paiement ici. La durée commence à la confirmation, et le badge est retiré automatiquement à l'expiration.",
+    "tabs": {
+      "pending": "En attente de paiement",
+      "active": "Actives",
+      "ended": "Terminées",
+      "all": "Toutes"
+    },
+    "empty": "Aucune demande.",
+    "daysSuffix": "jour(s)",
+    "awaitingPayment": "En attente de paiement",
+    "liveA": "Active · reste",
+    "liveB": "jour(s)",
+    "ended": "Terminée",
+    "free": "Gratuit",
+    "confirmPayment": "Confirmer le paiement",
+    "extend": "Prolonger",
+    "reject": "Refuser",
+    "stop": "Arrêter"
+  },
+  "catalogPanel": {
+    "title": "Catalogue",
+    "leadA": "modèle(s). Ce sont ceux affichés dans les listes de vente, d'estimation et de suggestions.",
+    "kindLabel": "Type",
+    "car": "Voiture",
+    "moto": "Moto",
+    "makeLabel": "Marque",
+    "modelLabel": "Modèle",
+    "add": "Ajouter",
+    "searchPlaceholder": "Marque ou modèle…",
+    "colKind": "Type",
+    "colMake": "Marque",
+    "colModel": "Modèle",
+    "colListings": "Annonces",
+    "usedTitle": "A des annonces — ne peut pas être supprimé",
+    "removeTitle": "Supprimer du catalogue"
+  },
+  "siteMeta": {
+    "title": "TRIQ — Marché des voitures et motos d'occasion au Maroc",
+    "description": "Le premier marché marocain qui vous donne un indice de confiance pour chaque annonce, un prix de référence calculé à partir du marché, et un coût d'usage réel en dirhams avant d'acheter votre voiture ou moto.",
+    "keywords": [
+      "voiture occasion maroc",
+      "moto occasion maroc",
+      "voitures occasion Maroc",
+      "motos occasion Maroc",
+      "prix voiture maroc"
+    ],
+    "ogDescription": "Indice de confiance, prix de référence, et coût d'usage réel pour chaque véhicule d'occasion au Maroc.",
+    "ogImageAlt": "TRIQ",
+    "appleTitle": "TRIQ"
+  },
+  "notFoundPage": {
+    "title": "Vous vous êtes perdu en chemin",
+    "text": "La page que vous cherchez n'existe pas, ou l'annonce a été vendue et retirée. Essayez de repartir du marché.",
+    "browseVehicles": "Parcourir les véhicules",
+    "home": "Page d'accueil"
+  },
+  "offlinePage": {
+    "metaTitle": "Hors ligne",
+    "title": "Pas de connexion internet",
+    "text": "Votre téléphone est actuellement coupé du réseau. Vérifiez le Wi-Fi ou les données mobiles, et réessayez.",
+    "retry": "Réessayer",
+    "home": "Page d'accueil"
+  },
+  "suggestedForYou": {
+    "eyebrow": "Pour vous",
+    "title": "Basé sur ce que vous avez consulté",
+    "lead": "Suggéré à partir des marques, types de carrosserie et prix que vous avez parcourus. Nous ne partageons ces données avec personne — elles restent dans votre navigateur."
+  },
+  "loadingResults": "Chargement des résultats",
+  "installPrompt": {
+    "androidTitle": "Ajoutez TRIQ à l'écran d'accueil",
+    "androidText": "Accès plus rapide, sans la barre du navigateur.",
+    "iosTitle": "Ajoutez TRIQ à l'écran d'accueil :",
+    "iosTextA": "Appuyez sur le bouton partager",
+    "iosTextB": "en bas, puis « Sur l'écran d'accueil ».",
+    "install": "Installer",
+    "dismiss": "Fermer"
+  },
+  "compareBar": {
+    "removeAria": "Retirer",
+    "fromCompare": "de la comparaison",
+    "add": "Ajouter",
+    "clear": "Effacer",
+    "compare": "Comparer"
+  },
+  "brandMarkUnit": {
+    "car": "annonce(s)",
+    "moto": "moto(s)"
+  },
+  "rangeSlider": {
+    "min": "Minimum",
+    "max": "Maximum"
+  },
+  "sellerPage": {
+    "notFound": "Vendeur introuvable",
+    "metaDescPrefix": "Annonces de",
+    "verifiedAccount": "Compte vérifié",
+    "memberSince": "Membre depuis",
+    "statActive": "annonce(s) active(s)",
+    "statSold": "véhicule(s) vendu(s)",
+    "statRating": "Note",
+    "statResponse": "minute(s) pour répondre",
+    "listingsOf": "Annonces de",
+    "carSuffix": "voiture(s)",
+    "motoSuffix": "moto(s)",
+    "noActiveListings": "Ce vendeur n'a aucune annonce active pour le moment.",
+    "cautionTitle": "Ne payez jamais avant d'avoir vu :",
+    "cautionText": "Rencontrez-vous dans un lieu public et de jour, et vérifiez la carte grise et le numéro de châssis avant tout paiement."
+  },
+  "photoUploader": {
+    "megaUnit": "Mo",
+    "serverError": "Le serveur a répondu",
+    "networkError": "Le réseau a été coupé. Réessayez.",
+    "timeoutError": "Le téléversement a pris trop de temps. Réessayez.",
+    "abortedError": "Le téléversement a été interrompu.",
+    "genericError": "Nous n'avons pas pu la téléverser",
+    "tooLargeAfterCompress": "Trop volumineuse après compression",
+    "tooLarge": "Trop volumineuse",
+    "loginRequired": "Connectez-vous pour téléverser des photos — elles sont liées à votre compte.",
+    "disabledA": "Le téléversement de photos n'est pas configuré dans cette version (nécessite",
+    "disabledB": "). Vous pouvez compléter l'annonce maintenant et ajouter les photos plus tard.",
+    "label": "Photos du véhicule",
+    "watermarkNote": "Vos photos sont enregistrées avec un filigrane TRIQ pour compliquer leur réutilisation.",
+    "cover": "Couverture",
+    "makeCoverAria": "Définir comme photo de couverture",
+    "removePhotoAria": "Supprimer la photo",
+    "retry": "Réessayer",
+    "remove": "Retirer",
+    "preparing": "Préparation…",
+    "addPhotos": "Ajouter des photos",
+    "goodCount": "Bon nombre de photos — ces annonces reçoivent deux fois plus de contacts.",
+    "tipA": "Les annonces avec",
+    "tipB": "photos ou plus reçoivent deux fois plus de contacts. Les photos sont compressées automatiquement avant l'envoi pour aller plus vite."
+  },
+  "videoUploader": {
+    "megaUnit": "Mo",
+    "kiloUnit": "Ko",
+    "genericError": "Nous n'avons pas pu téléverser la vidéo.",
+    "tooLargeA": "La vidéo est trop volumineuse",
+    "tooLargeB": "Limite",
+    "label": "Courte vidéo",
+    "bonusPoints": "+4 points",
+    "removeAria": "Supprimer la vidéo",
+    "uploading": "Téléversement de la vidéo…",
+    "secondsSuffix": "secondes · La vidéo est volumineuse, laissez la page ouverte",
+    "addVideo": "Ajouter une vidéo du véhicule",
+    "addVideoHint": "Moteur + tour du véhicule · jusqu'à",
+    "retry": "Réessayer"
   }
 }

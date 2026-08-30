@@ -106,7 +106,7 @@ function AppointmentDialogBody({
             {v.make} {v.model} <span className="num">{v.year}</span>
           </p>
         </div>
-        <ModalCloseButton />
+        <ModalCloseButton label={t.common.close} />
       </div>
 
       {!user ? (

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { adminAction } from "./actions";
 import { Toolbar } from "./Toolbar";
+import { useDict } from "@/lib/i18n/client";
 import { Car, Moto, Plus, Trash } from "@/components/icons";
 
 interface Row {
@@ -20,6 +21,8 @@ interface Row {
    كيبقاو خدّامين ولكن الموديل كيختفي من القوائم، وهادشي كيخلّط.
    ============================================================ */
 export function CatalogPanel({ rows, total }: { rows: Row[]; total: number }) {
+  const t = useDict();
+  const p = t.catalogPanel;
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,38 +60,37 @@ export function CatalogPanel({ rows, total }: { rows: Row[]; total: number }) {
   return (
     <div>
       <header className="mb-5">
-        <h2 className="text-[17px] font-extrabold">الكتالوج</h2>
+        <h2 className="text-[17px] font-extrabold">{p.title}</h2>
         <p className="mt-1 text-[12.5px]" style={{ color: "var(--text-muted)" }}>
-          <span className="num">{total}</span> موديل. هادو اللي كيبانو فقوائم البيع
-          والتقييم والاقتراحات.
+          <span className="num">{total}</span> {p.leadA}
         </p>
       </header>
 
       <form onSubmit={add} className="card mb-4 flex flex-wrap items-end gap-2 p-4">
         <div className="min-w-[110px]">
-          <label className="label" htmlFor="c-kind">النوع</label>
+          <label className="label" htmlFor="c-kind">{p.kindLabel}</label>
           <select id="c-kind" className="field" value={form.kind}
             onChange={(e) => setForm((f) => ({ ...f, kind: e.target.value }))}>
-            <option value="car">سيارة</option>
-            <option value="moto">دراجة</option>
+            <option value="car">{p.car}</option>
+            <option value="moto">{p.moto}</option>
           </select>
         </div>
         <div className="min-w-[140px] flex-1">
-          <label className="label" htmlFor="c-make">الماركة</label>
+          <label className="label" htmlFor="c-make">{p.makeLabel}</label>
           <input id="c-make" className="field" dir="ltr" value={form.make}
             onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} placeholder="BYD" />
         </div>
         <div className="min-w-[140px] flex-1">
-          <label className="label" htmlFor="c-model">الموديل</label>
+          <label className="label" htmlFor="c-model">{p.modelLabel}</label>
           <input id="c-model" className="field" dir="ltr" value={form.model}
             onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))} placeholder="Seal" />
         </div>
         <button type="submit" className="btn btn-primary" disabled={busy !== null}>
-          <Plus size={15} /> زيد
+          <Plus size={15} /> {p.add}
         </button>
       </form>
 
-      <Toolbar tabs={[]} placeholder="ماركة ولا موديل…" />
+      <Toolbar tabs={[]} placeholder={p.searchPlaceholder} />
 
       {error && <p className="mb-3 text-[12px] font-bold" style={{ color: "var(--bad)" }}>{error}</p>}
 
@@ -96,10 +98,10 @@ export function CatalogPanel({ rows, total }: { rows: Row[]; total: number }) {
         <table className="w-full text-start text-[12px]">
           <thead>
             <tr style={{ color: "var(--text-dim)" }}>
-              <th className="p-3 font-bold">النوع</th>
-              <th className="p-3 font-bold">الماركة</th>
-              <th className="p-3 font-bold">الموديل</th>
-              <th className="p-3 font-bold">إعلانات</th>
+              <th className="p-3 font-bold">{p.colKind}</th>
+              <th className="p-3 font-bold">{p.colMake}</th>
+              <th className="p-3 font-bold">{p.colModel}</th>
+              <th className="p-3 font-bold">{p.colListings}</th>
               <th className="p-3" />
             </tr>
           </thead>
@@ -119,7 +121,7 @@ export function CatalogPanel({ rows, total }: { rows: Row[]; total: number }) {
                     <button
                       className="btn btn-ghost btn-sm"
                       disabled={busy !== null || used}
-                      title={used ? "عندو إعلانات — ماكيتمسحش" : "امسح من الكتالوج"}
+                      title={used ? p.usedTitle : p.removeTitle}
                       onClick={() =>
                         act(key, { action: "catalog:remove", kind: r.kind, make: r.make, model: r.model })
                       }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDict } from "@/lib/i18n/client";
 import { Close, Download, Share, SquarePlus } from "./icons";
 
 /* ============================================================
@@ -44,6 +45,8 @@ function recentlyDismissed(): boolean {
 }
 
 export function InstallPrompt() {
+  const t = useDict();
+  const ip = t.installPrompt;
   const [mode, setMode] = useState<"none" | "android" | "ios">("none");
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [busy, setBusy] = useState(false);
@@ -106,15 +109,14 @@ export function InstallPrompt() {
         <div className="min-w-0 flex-1 text-[12.5px] leading-snug">
           {mode === "android" ? (
             <>
-              <span className="font-bold" style={{ color: "var(--text)" }}>زيد طريق للشاشة الرئيسية</span>{" "}
-              <span style={{ color: "var(--text-muted)" }}>— دخول أسرع، بلا شريط المتصفح.</span>
+              <span className="font-bold" style={{ color: "var(--text)" }}>{ip.androidTitle}</span>{" "}
+              <span style={{ color: "var(--text-muted)" }}>— {ip.androidText}</span>
             </>
           ) : (
             <>
-              <span className="font-bold" style={{ color: "var(--text)" }}>زيد طريق للشاشة الرئيسية:</span>{" "}
+              <span className="font-bold" style={{ color: "var(--text)" }}>{ip.iosTitle}</span>{" "}
               <span style={{ color: "var(--text-muted)" }}>
-                اضغط زر المشاركة <Share size={11} style={{ display: "inline", verticalAlign: "-1.5px" }} /> تحت،
-                من بعد «إضافة إلى الشاشة الرئيسية».
+                {ip.iosTextA} <Share size={11} style={{ display: "inline", verticalAlign: "-1.5px" }} /> {ip.iosTextB}
               </span>
             </>
           )}
@@ -126,13 +128,13 @@ export function InstallPrompt() {
             disabled={busy}
             className="btn btn-primary btn-sm shrink-0"
           >
-            {busy ? "…" : "تنصيب"}
+            {busy ? "…" : ip.install}
           </button>
         )}
 
         <button
           onClick={dismiss}
-          aria-label="حيّد"
+          aria-label={ip.dismiss}
           className="grid h-7 w-7 shrink-0 place-items-center rounded-lg transition hover:bg-black/5"
           style={{ color: "var(--text-dim)" }}
         >

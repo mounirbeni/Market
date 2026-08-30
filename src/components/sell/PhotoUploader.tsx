@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MAX_PHOTOS, PHOTO_TYPES } from "@/lib/blob";
 import { MAX_UPLOAD_BYTES, prepareImage } from "@/lib/image";
 import { useSession } from "@/store/session";
+import { useDict } from "@/lib/i18n/client";
 import { Camera, Check, Close, Star } from "@/components/icons";
 
 export interface UploadedPhoto {
@@ -30,7 +31,12 @@ const MAX_SOURCE_BYTES = 48 * 1024 * 1024;
 /** الرفع خاصو يسالي فهاد المدة — 3 ميغا على شبكة ضعيفة كتاخد أقل */
 const UPLOAD_TIMEOUT_MS = 90_000;
 
-const prettyBytes = (n: number) => `${(n / (1024 * 1024)).toFixed(1)} ميغا`;
+type Messages = {
+  megaUnit: string; serverError: string; networkError: string;
+  timeoutError: string; abortedError: string;
+};
+
+const prettyBytes = (n: number, unit: string) => `${(n / (1024 * 1024)).toFixed(1)} ${unit}`;
 
 /** الرؤوس ديال HTTP كتقبل غير ASCII — اسم بالعربية كيرمي غلطة */
 const asciiName = (name: string) => {
@@ -73,6 +79,7 @@ function putPhoto(
   file: File,
   onProgress: (percentage: number) => void,
   signal: AbortSignal,
+  messages: Messages,
 ): Promise<{ url: string }> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -98,12 +105,12 @@ function putPhoto(
         resolve({ url: parsed.data.url });
         return;
       }
-      reject(new Error(parsed?.error ?? `الخادم رجّع ${xhr.status}`));
+      reject(new Error(parsed?.error ?? `${messages.serverError} ${xhr.status}`));
     };
 
-    xhr.onerror = () => reject(new Error("الشبكة تقطعات. عاود."));
-    xhr.ontimeout = () => reject(new Error("الرفع طوّل بزاف. عاود."));
-    xhr.onabort = () => reject(new Error("الرفع توقّف."));
+    xhr.onerror = () => reject(new Error(messages.networkError));
+    xhr.ontimeout = () => reject(new Error(messages.timeoutError));
+    xhr.onabort = () => reject(new Error(messages.abortedError));
 
     signal.addEventListener("abort", () => xhr.abort(), { once: true });
     if (signal.aborted) {
@@ -122,6 +129,8 @@ export function PhotoUploader({
   photos: UploadedPhoto[];
   onChange: (next: UploadedPhoto[]) => void;
 }) {
+  const t = useDict();
+  const p0 = t.photoUploader;
   const { user } = useSession();
   const [pending, setPending] = useState<Pending[]>([]);
   const [enabled, setEnabled] = useState<boolean | null>(null);
@@ -156,7 +165,7 @@ export function PhotoUploader({
         const { file: ready, thumb, width, height } = await prepareImage(file);
 
         if (ready.size > MAX_UPLOAD_BYTES) {
-          throw new Error(`كبيرة بزاف بعد الضغط (${prettyBytes(ready.size)})`);
+          throw new Error(`${p0.tooLargeAfterCompress} (${prettyBytes(ready.size, p0.megaUnit)})`);
         }
 
         setPending((p) => p.map((x) => (x.id === id ? { ...x, stage: "up" } : x)));
@@ -168,6 +177,7 @@ export function PhotoUploader({
             setPending((p) => p.map((x) => (x.id === id ? { ...x, progress: pct } : x)));
           },
           ctrl.signal,
+          p0,
         );
 
         /* المصغّرة ثانوية: إلا فشلت كنكملو بالصورة الكاملة بدل ما
@@ -175,7 +185,7 @@ export function PhotoUploader({
         let thumbUrl: string | undefined;
         if (thumb) {
           try {
-            thumbUrl = (await putPhoto(thumb, () => {}, ctrl.signal)).url;
+            thumbUrl = (await putPhoto(thumb, () => {}, ctrl.signal, p0)).url;
           } catch {
             thumbUrl = undefined;
           }
@@ -185,7 +195,7 @@ export function PhotoUploader({
         URL.revokeObjectURL(preview);
         return { url, kind: "photo", thumbUrl, width, height };
       } catch (e) {
-        const msg = e instanceof Error && e.message ? e.message : "ماقدرناش نرفعوها";
+        const msg = e instanceof Error && e.message ? e.message : p0.genericError;
         setPending((p) => p.map((x) => (x.id === id ? { ...x, error: msg } : x)));
         report({
           message: msg,
@@ -198,7 +208,7 @@ export function PhotoUploader({
         return null;
       }
     },
-    [user],
+    [user, p0],
   );
 
   const pick = useCallback(
@@ -221,7 +231,7 @@ export function PhotoUploader({
               preview,
               progress: 0,
               stage: "prep",
-              error: `كبيرة بزاف (${prettyBytes(file.size)})`,
+              error: `${p0.tooLarge} (${prettyBytes(file.size, p0.megaUnit)})`,
             },
           ]);
           continue;
@@ -235,7 +245,7 @@ export function PhotoUploader({
       if (added.length > 0) onChange([...photos, ...added]);
       if (inputRef.current) inputRef.current.value = "";
     },
-    [photos, onChange, user, runOne],
+    [photos, onChange, user, runOne, p0],
   );
 
   /** «عاود» على صورة طاحت — بلا ما يعاود المستخدم يختار من التيليفون */
@@ -277,7 +287,7 @@ export function PhotoUploader({
         className="rounded-lg p-3 text-[11.5px] leading-relaxed"
         style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
       >
-        سجّل الدخول باش ترفع الصور — هي كتّربط بالحساب ديالك.
+        {p0.loginRequired}
       </div>
     );
   }
@@ -288,8 +298,7 @@ export function PhotoUploader({
         className="rounded-lg p-3 text-[11.5px] leading-relaxed"
         style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
       >
-        رفع الصور ماشي مضبوط فهاد النسخة (خاص <span className="num">BLOB_READ_WRITE_TOKEN</span>).
-        تقدّر تكمّل الإعلان دابا وتزيد الصور من بعد.
+        {p0.disabledA} <span className="num">BLOB_READ_WRITE_TOKEN</span>{p0.disabledB}
       </div>
     );
   }
@@ -297,13 +306,13 @@ export function PhotoUploader({
   return (
     <div>
       <label className="label">
-        <Camera size={13} /> صور المركبة
+        <Camera size={13} /> {p0.label}
         <span className="num me-auto" style={{ color: "var(--brand)" }}>
           {photos.length}/{MAX_PHOTOS}
         </span>
       </label>
       <p className="mt-1 text-[10.5px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
-        كتتحفظ صورك بعلامة مائية خاصة بـTRIQ باش تصعّب الاستغلال وإعادة النشر.
+        {p0.watermarkNote}
       </p>
 
       <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -320,7 +329,7 @@ export function PhotoUploader({
                 className="tag absolute bottom-1 start-1"
                 style={{ background: "var(--brand)", color: "#fff" }}
               >
-                <Star size={10} /> الغلاف
+                <Star size={10} /> {p0.cover}
               </span>
             )}
             {/* فالتيليفون ماكاينش hover — الأزرار خاصها تبان ديما.
@@ -330,7 +339,7 @@ export function PhotoUploader({
                 <button
                   type="button"
                   onClick={() => makeCover(p.url)}
-                  aria-label="خلّيها صورة الغلاف"
+                  aria-label={p0.makeCoverAria}
                   className="grid h-7 w-7 place-items-center rounded-md shadow-md"
                   style={{ background: "rgba(10,30,61,0.85)", color: "#fff" }}
                 >
@@ -342,8 +351,8 @@ export function PhotoUploader({
               <button
                 type="button"
                 onClick={() => remove(p.url)}
-                aria-label="حيّد الصورة"
-                title="حيّد الصورة"
+                aria-label={p0.removePhotoAria}
+                title={p0.removePhotoAria}
                 className="grid h-7 w-7 place-items-center rounded-md shadow-md"
                 style={{ background: "var(--bad)", color: "#fff" }}
               >
@@ -368,7 +377,7 @@ export function PhotoUploader({
                   <span className="mt-1 flex justify-center gap-2">
                     {x.file.size <= MAX_SOURCE_BYTES && (
                       <button type="button" onClick={() => void retry(x.id)} className="underline">
-                        عاود
+                        {p0.retry}
                       </button>
                     )}
                     <button
@@ -376,12 +385,12 @@ export function PhotoUploader({
                       onClick={() => setPending((p) => p.filter((y) => y.id !== x.id))}
                       className="underline"
                     >
-                      حيّد
+                      {p0.remove}
                     </button>
                   </span>
                 </span>
               ) : x.stage === "prep" ? (
-                <span className="text-[10px] font-bold">كنحضّروها…</span>
+                <span className="text-[10px] font-bold">{p0.preparing}</span>
               ) : (
                 <span className="num text-[11px] font-bold">{Math.round(x.progress)}%</span>
               )}
@@ -398,7 +407,7 @@ export function PhotoUploader({
           >
             <span className="flex flex-col items-center gap-1">
               <Camera size={18} />
-              <span className="text-[10.5px] font-bold">زيد صور</span>
+              <span className="text-[10.5px] font-bold">{p0.addPhotos}</span>
             </span>
           </button>
         )}
@@ -416,12 +425,11 @@ export function PhotoUploader({
       <p className="mt-2 text-[11px]" style={{ color: "var(--text-dim)" }}>
         {photos.length >= 12 ? (
           <span style={{ color: "var(--good)" }}>
-            <Check size={11} /> عدد الصور مزيان — هاد الإعلانات كتوصل ضعف الاتصالات.
+            <Check size={11} /> {p0.goodCount}
           </span>
         ) : (
           <>
-            الإعلانات ب<span className="num">12</span> صورة فما فوق كتوصل ضعف الاتصالات.
-            كنصغّرو الصور أوتوماتيكياً قبل الرفع باش تمشي بسرعة.
+            {p0.tipA} <span className="num">12</span> {p0.tipB}
           </>
         )}
       </p>

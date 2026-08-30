@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useApp } from "@/store/app";
 import type { Vehicle } from "@/lib/types";
 import { VehicleCard } from "@/components/VehicleCard";
+import { useDict } from "@/lib/i18n/client";
 import { Sparkle } from "@/components/icons";
 
 /**
@@ -11,6 +12,8 @@ import { Sparkle } from "@/components/icons";
  * كترجع null قبل الترطيب باش ماكاينش اختلاف بين الخادم والمتصفح.
  */
 export function SuggestedForYou({ limit = 4 }: { limit?: number }) {
+  const t = useDict();
+  const s = t.suggestedForYou;
   const { recent, ready } = useApp();
   const [items, setItems] = useState<Vehicle[]>([]);
   const key = recent.join(",");
@@ -41,11 +44,10 @@ export function SuggestedForYou({ limit = 4 }: { limit?: number }) {
   return (
     <section className="mx-auto max-w-[1400px] px-4 py-16">
       <header className="mb-7">
-        <span className="eyebrow"><Sparkle size={13} /> مخصّص ليك</span>
-        <h2 className="h-section mt-3">بناءً على اللي شفتي</h2>
+        <span className="eyebrow"><Sparkle size={13} /> {s.eyebrow}</span>
+        <h2 className="h-section mt-3">{s.title}</h2>
         <p className="mt-2 max-w-xl text-sm" style={{ color: "var(--text-muted)" }}>
-          مقترحة من الماركات، أنواع الهياكل والأثمنة اللي كتصفّحتي فيها. ماكنشاركو
-          هاد المعطيات مع حتى حد — كتبقى فالمتصفح ديالك.
+          {s.lead}
         </p>
       </header>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

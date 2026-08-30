@@ -3,11 +3,17 @@ import { notFound } from "next/navigation";
 import { adminConfigured, getAdmin } from "@/lib/admin";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminLogin } from "@/components/admin/AdminLogin";
+import { dictionaryOf } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "الإشراف",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  return { title: t.adminShell.metaTitle, robots: { index: false, follow: false } };
+}
 export const dynamic = "force-dynamic";
 
 /**

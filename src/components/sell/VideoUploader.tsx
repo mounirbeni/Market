@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
 import { BLOB_ACCESS, MAX_VIDEO_BYTES, VIDEO_TYPES, mediaUrl } from "@/lib/blob";
 import { useSession } from "@/store/session";
+import { useDict } from "@/lib/i18n/client";
 import { Close, Play } from "@/components/icons";
 
 export interface UploadedVideo {
@@ -11,8 +12,8 @@ export interface UploadedVideo {
   kind: "video";
 }
 
-const prettyBytes = (n: number) =>
-  n >= 1024 * 1024 ? `${(n / (1024 * 1024)).toFixed(0)} ميغا` : `${Math.round(n / 1024)} كيلو`;
+const prettyBytes = (n: number, mega: string, kilo: string) =>
+  n >= 1024 * 1024 ? `${(n / (1024 * 1024)).toFixed(0)} ${mega}` : `${Math.round(n / 1024)} ${kilo}`;
 
 /**
  * واش نقدرو نطلبو شريط التقدّم؟
@@ -36,6 +37,8 @@ export function VideoUploader({
   video: UploadedVideo | null;
   onChange: (next: UploadedVideo | null) => void;
 }) {
+  const t = useDict();
+  const v0 = t.videoUploader;
   const { user } = useSession();
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
@@ -59,8 +62,8 @@ export function VideoUploader({
   // عدّاد الثواني — ملي ماعندناش نسبة، على الأقل المستخدم يشوف حركة
   useEffect(() => {
     if (!busy) return;
-    const t = setInterval(() => setElapsed((s) => s + 1), 1000);
-    return () => clearInterval(t);
+    const tm = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(tm);
   }, [busy]);
 
   const send = useCallback(
@@ -87,7 +90,7 @@ export function VideoUploader({
         // الخزّان خاص — الرابط ديالو ماكيتقراش من المتصفح، كنقدّموه حنا
         onChange({ url: mediaUrl(blob.pathname), kind: "video" });
       } catch (e) {
-        const msg = e instanceof Error && e.message ? e.message : "ماقدرناش نرفعو الفيديو.";
+        const msg = e instanceof Error && e.message ? e.message : v0.genericError;
         setError(msg);
         /* الفيديو كيمشي للخزّان نيشان — الخادم ديالنا ماكيشوفش الخطأ.
            كنبلّغوه باش يبان فالسجلات إلا وقع شي مشكل. */
@@ -113,14 +116,14 @@ export function VideoUploader({
         if (inputRef.current) inputRef.current.value = "";
       }
     },
-    [user, onChange],
+    [user, onChange, v0.genericError],
   );
 
   const pick = (files: FileList | null) => {
     const file = files?.[0];
     if (!file) return;
     if (file.size > MAX_VIDEO_BYTES) {
-      setError(`الفيديو كبير بزاف (${prettyBytes(file.size)}). الحد ${prettyBytes(MAX_VIDEO_BYTES)}.`);
+      setError(`${v0.tooLargeA} (${prettyBytes(file.size, v0.megaUnit, v0.kiloUnit)}). ${v0.tooLargeB} ${prettyBytes(MAX_VIDEO_BYTES, v0.megaUnit, v0.kiloUnit)}.`);
       if (inputRef.current) inputRef.current.value = "";
       return;
     }
@@ -145,9 +148,9 @@ export function VideoUploader({
   return (
     <div>
       <label className="label">
-        <Play size={13} /> فيديو قصير
+        <Play size={13} /> {v0.label}
         <span className="num me-auto text-[10px]" style={{ color: "var(--good)" }}>
-          +4 نقط
+          {v0.bonusPoints}
         </span>
       </label>
 
@@ -166,8 +169,8 @@ export function VideoUploader({
           <button
             type="button"
             onClick={remove}
-            aria-label="حيّد الفيديو"
-            title="حيّد الفيديو"
+            aria-label={v0.removeAria}
+            title={v0.removeAria}
             className="absolute end-1 top-1 grid h-7 w-7 place-items-center rounded-md shadow-md"
             style={{ background: "var(--bad)", color: "#fff" }}
           >
@@ -180,7 +183,7 @@ export function VideoUploader({
           style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
         >
           <div className="font-bold">
-            {progress === null ? "كنرفعو الفيديو…" : `${Math.round(progress)}%`}
+            {progress === null ? v0.uploading : `${Math.round(progress)}%`}
           </div>
           <div
             className="mt-2 h-1.5 overflow-hidden rounded-full"
@@ -196,7 +199,7 @@ export function VideoUploader({
             />
           </div>
           <div className="num mt-1.5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
-            {elapsed} ثانية · الفيديو كبير، خلّي الصفحة محلولة
+            {elapsed} {v0.secondsSuffix}
           </div>
         </div>
       ) : (
@@ -208,8 +211,8 @@ export function VideoUploader({
         >
           <span className="flex flex-col items-center gap-1">
             <Play size={18} />
-            <span className="text-[11px] font-bold">زيد فيديو ديال المركبة</span>
-            <span className="text-[10.5px]">المحرك + جولة حول المركبة · حتى {prettyBytes(MAX_VIDEO_BYTES)}</span>
+            <span className="text-[11px] font-bold">{v0.addVideo}</span>
+            <span className="text-[10.5px]">{v0.addVideoHint} {prettyBytes(MAX_VIDEO_BYTES, v0.megaUnit, v0.kiloUnit)}</span>
           </span>
         </button>
       )}
@@ -223,7 +226,7 @@ export function VideoUploader({
               onClick={() => lastFile.current && void send(lastFile.current)}
               className="me-2 underline"
             >
-              عاود
+              {v0.retry}
             </button>
           )}
         </p>

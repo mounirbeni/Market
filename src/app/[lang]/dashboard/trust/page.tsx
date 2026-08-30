@@ -6,7 +6,7 @@ import { getDealerOfSeller, getSellerStats } from "@/lib/source";
 import { userTrustScore } from "@/lib/userTrust";
 import { userBadges } from "@/lib/userBadges";
 import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
-import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 import { DashboardShell } from "@/components/dashboard/Shell";
 import { TrustRing } from "@/components/TrustBadge";
 import {
@@ -27,7 +27,7 @@ export default async function TrustCenterPage() {
   const locale = await getLocale();
   const p = t.trustPage;
   const user = await getCurrentUser();
-  if (!user) redirect("/login?next=/dashboard/trust");
+  if (!user) redirect(localePath("/login?next=/dashboard/trust", locale));
 
   const [stats, dealer] = await Promise.all([
     getSellerStats(user.id),

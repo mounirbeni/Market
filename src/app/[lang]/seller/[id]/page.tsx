@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getDealerOfSeller, getSellerById, getSellerListings, getSellerStats } from "@/lib/source";
-import { cityName } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
 import { userBadges } from "@/lib/userBadges";
-import { getDictionary, getLocale } from "@/lib/i18n/server";
-import { sellerDisplayName } from "@/lib/i18n/labels";
+import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
+import { cityLabel, sellerDisplayName } from "@/lib/i18n/labels";
 import { VehicleCard } from "@/components/VehicleCard";
 import {
   BadgeCheck, Car, Clock, MapPin, ShieldCheck, Star, Users,
@@ -17,21 +17,25 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
-}: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params;
+}: { params: Promise<{ lang: string; id: string }> }): Promise<Metadata> {
+  const { lang, id } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
   const seller = await getSellerById(id);
-  if (!seller) return { title: "بائع غير موجود" };
+  if (!seller) return { title: t.sellerPage.notFound };
+  const city = cityLabel(seller.city, locale);
   return {
-    title: `${seller.name} — ${cityName(seller.city)}`,
-    description: `إعلانات ${seller.name} على طريق — ${cityName(seller.city)}.`,
+    title: `${seller.name} — ${city}`,
+    description: `${t.sellerPage.metaDescPrefix} ${seller.name} — TRIQ — ${city}.`,
     robots: { index: false, follow: true },
-    alternates: { canonical: `/seller/${id}` },
+    alternates: { canonical: localePath(`/seller/${id}`, locale) },
   };
 }
 
 export default async function SellerPage({ params }: { params: Promise<{ id: string }> }) {
   const t = await getDictionary();
   const locale = await getLocale();
+  const p = t.sellerPage;
   const { id } = await params;
   const seller = await getSellerById(id);
   if (!seller) notFound();
@@ -41,7 +45,7 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
      صفحة المعرض (فيها تاغلاين، عنوان، ساعات العمل...) — بلا
      ماندوبلو نفس المعلومات فصفحتين. */
   const dealer = await getDealerOfSeller(id);
-  if (dealer) redirect(`/dealer/${dealer.slug}`);
+  if (dealer) redirect(localePath(`/dealer/${dealer.slug}`, locale));
 
   const [listings, stats] = await Promise.all([
     getSellerListings(id),
@@ -84,12 +88,12 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
               <h1 className="h-section">{displayName}</h1>
               {seller.idVerified && (
                 <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
-                  <BadgeCheck size={11} /> حساب موثّق
+                  <BadgeCheck size={11} /> {p.verifiedAccount}
                 </span>
               )}
             </div>
             <p className="mt-1 flex items-center gap-1.5 text-[13px]" style={{ color: "var(--text-muted)" }}>
-              <MapPin size={13} /> {cityName(seller.city)} · عضو منذ <span className="num">{seller.since}</span>
+              <MapPin size={13} /> {cityLabel(seller.city, locale)} · {p.memberSince} <span className="num">{seller.since}</span>
             </p>
             {badges.length > 0 && (
               <div className="mt-2.5 flex flex-wrap gap-1.5">
@@ -110,10 +114,10 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
         {/* الأرقام */}
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { Icon: Car, v: formatNumber(listings.length), l: "إعلان نشيط" },
-            { Icon: BadgeCheck, v: formatNumber(stats.soldListings), l: "مركبة مباعة" },
-            { Icon: Star, v: seller.rating.toFixed(1), l: "التقييم" },
-            { Icon: Clock, v: `~${seller.responseMinutes}`, l: "دقيقة للجواب" },
+            { Icon: Car, v: formatNumber(listings.length), l: p.statActive },
+            { Icon: BadgeCheck, v: formatNumber(stats.soldListings), l: p.statSold },
+            { Icon: Star, v: seller.rating.toFixed(1), l: p.statRating },
+            { Icon: Clock, v: `~${seller.responseMinutes}`, l: p.statResponse },
           ].map((s) => (
             <div key={s.l} className="card flex items-center gap-3 p-4">
               <span
@@ -133,10 +137,10 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
         {/* الإعلانات */}
         <section className="mt-10 pb-16">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-            <h2 className="h-section">إعلانات {displayName}</h2>
+            <h2 className="h-section">{p.listingsOf} {displayName}</h2>
             {listings.length > 0 && (
               <p className="text-xs" style={{ color: "var(--text-dim)" }}>
-                <span className="num">{cars}</span> سيارة · <span className="num">{motos}</span> دراجة
+                <span className="num">{cars}</span> {p.carSuffix} · <span className="num">{motos}</span> {p.motoSuffix}
               </p>
             )}
           </div>
@@ -148,7 +152,7 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
             <div className="card flex flex-col items-center gap-2 p-10 text-center">
               <Users size={22} style={{ color: "var(--text-dim)" }} />
               <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                ماكاين حتى إعلان نشيط لهاد البائع دابا.
+                {p.noActiveListings}
               </p>
             </div>
           )}
@@ -160,8 +164,7 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
         >
           <ShieldCheck size={16} className="mt-px shrink-0" style={{ color: "var(--bad)" }} />
           <span>
-            <b style={{ color: "var(--bad)" }}>ماتخلّصش قبل ما تشوف:</b> تلاقاو فبلاصة عامة ونهاراً،
-            وتأكد من البطاقة الرمادية ورقم الهيكل قبل أي دفع.
+            <b style={{ color: "var(--bad)" }}>{p.cautionTitle}</b> {p.cautionText}
           </span>
         </div>
       </div>

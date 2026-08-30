@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useRouter } from "next/navigation";
 import { adminAction } from "./actions";
 import { Toolbar } from "./Toolbar";
-import { formatNumber, timeAgo } from "@/lib/format";
-import { cityName } from "@/lib/cities";
+import { formatNumber } from "@/lib/format";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { cityLabel, dhUnit, fmtTimeAgo } from "@/lib/i18n/labels";
 import { AlertTriangle, Camera, Close, Eye, Star, Trash } from "@/components/icons";
 
 interface Row {
@@ -16,16 +17,20 @@ interface Row {
   seller_email: string | null; seller_banned: string | null; reports: string;
 }
 
-const STATUS: Record<string, { label: string; color: string }> = {
-  active: { label: "نشيط", color: "var(--good)" },
-  rejected: { label: "محيّد", color: "var(--bad)" },
-  sold: { label: "تباع", color: "var(--data)" },
-  draft: { label: "مسوّدة", color: "var(--text-dim)" },
-  pending: { label: "فانتظار", color: "var(--warn)" },
-  expired: { label: "منتهي", color: "var(--text-dim)" },
+const STATUS_COLOR: Record<string, string> = {
+  active: "var(--good)",
+  rejected: "var(--bad)",
+  sold: "var(--data)",
+  draft: "var(--text-dim)",
+  pending: "var(--warn)",
+  expired: "var(--text-dim)",
 };
 
 export function ListingsPanel({ rows }: { rows: Row[] }) {
+  const t = useDict();
+  const locale = useLocale();
+  const dh = dhUnit(locale);
+  const p = t.listingsPanel;
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,19 +49,19 @@ export function ListingsPanel({ rows }: { rows: Row[] }) {
   return (
     <div>
       <header className="mb-5">
-        <h2 className="text-[17px] font-extrabold">الإعلانات</h2>
+        <h2 className="text-[17px] font-extrabold">{p.title}</h2>
         <p className="mt-1 text-[12.5px]" style={{ color: "var(--text-muted)" }}>
-          كل الإعلانات بكل حالاتها. الترويج من هنا مجاني — للحالات الخاصة.
+          {p.lead}
         </p>
       </header>
 
       <Toolbar
-        placeholder="مرجع، ماركة، موديل، ولا إيميل البائع…"
+        placeholder={p.searchPlaceholder}
         tabs={[
-          { key: "all", label: "كلشي" },
-          { key: "active", label: "نشيطة" },
-          { key: "rejected", label: "محيّدة" },
-          { key: "sold", label: "تباعت" },
+          { key: "all", label: p.tabs.all },
+          { key: "active", label: p.tabs.active },
+          { key: "rejected", label: p.tabs.rejected },
+          { key: "sold", label: p.tabs.sold },
         ]}
       />
 
@@ -64,20 +69,21 @@ export function ListingsPanel({ rows }: { rows: Row[] }) {
 
       {rows.length === 0 ? (
         <div className="card p-10 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-          ماكاين حتى إعلان.
+          {p.empty}
         </div>
       ) : (
         <ul className="space-y-2.5">
           {rows.map((r) => {
-            const st = STATUS[r.status] ?? { label: r.status, color: "var(--text-dim)" };
+            const stLabel = p.status[r.status as keyof typeof p.status] ?? r.status;
+            const stColor = STATUS_COLOR[r.status] ?? "var(--text-dim)";
             const open = Number(r.reports);
             return (
               <li key={r.ref} className="card p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="tag" style={{ background: st.color, color: "#fff" }}>
-                        {st.label}
+                      <span className="tag" style={{ background: stColor, color: "#fff" }}>
+                        {stLabel}
                       </span>
                       {r.promo && (
                         <span className="tag" style={{ background: "var(--warn)", color: "#000" }}>
@@ -86,7 +92,7 @@ export function ListingsPanel({ rows }: { rows: Row[] }) {
                       )}
                       {open > 0 && (
                         <span className="tag" style={{ background: "var(--bad)", color: "#fff" }}>
-                          <AlertTriangle size={10} /> <span className="num">{open}</span> تبليغ
+                          <AlertTriangle size={10} /> <span className="num">{open}</span> {p.reportsSuffix}
                         </span>
                       )}
                     </div>
@@ -97,19 +103,19 @@ export function ListingsPanel({ rows }: { rows: Row[] }) {
 
                     <p className="mt-0.5 flex flex-wrap gap-x-2.5 text-[11.5px]" style={{ color: "var(--text-dim)" }}>
                       <span className="num font-bold" style={{ color: "var(--text-muted)" }}>
-                        {formatNumber(r.price_mad)} د.م
+                        {formatNumber(r.price_mad)} {dh}
                       </span>
-                      <span>{cityName(r.city)}</span>
+                      <span>{cityLabel(r.city, locale)}</span>
                       <span><Camera size={11} /> <span className="num">{r.photo_count}</span></span>
                       <span><Eye size={11} /> <span className="num">{r.views}</span></span>
-                      {r.trust_score != null && <span className="num">ثقة {r.trust_score}</span>}
-                      <span>{timeAgo(r.created_at)}</span>
+                      {r.trust_score != null && <span className="num">{p.trustPrefix} {r.trust_score}</span>}
+                      <span>{fmtTimeAgo(r.created_at, locale)}</span>
                     </p>
                     <p className="mt-0.5 text-[11px]" style={{ color: "var(--text-dim)" }}>
                       {r.seller_name}
                       {r.seller_email && <bdi dir="ltr" className="num"> · {r.seller_email}</bdi>}
                       {r.seller_banned && (
-                        <span style={{ color: "var(--bad)" }}> · محضور</span>
+                        <span style={{ color: "var(--bad)" }}> · {p.banned}</span>
                       )}
                     </p>
                   </div>
@@ -118,12 +124,12 @@ export function ListingsPanel({ rows }: { rows: Row[] }) {
                     {r.status === "active" ? (
                       <button className="btn btn-solid btn-sm" disabled={busy !== null}
                         onClick={() => act(r.ref + "h", { action: "listing:hide", ref: r.ref })}>
-                        <Close size={13} /> حيّد
+                        <Close size={13} /> {p.hide}
                       </button>
                     ) : (
                       <button className="btn btn-solid btn-sm" disabled={busy !== null}
                         onClick={() => act(r.ref + "r", { action: "listing:restore", ref: r.ref })}>
-                        رجّع
+                        {p.restore}
                       </button>
                     )}
 
@@ -140,17 +146,17 @@ export function ListingsPanel({ rows }: { rows: Row[] }) {
                         )
                       }
                     >
-                      <option value="">بلا ترويج</option>
-                      <option value="featured">مميّز</option>
-                      <option value="urgent">مستعجل</option>
-                      <option value="top">فوق</option>
+                      <option value="">{p.noPromo}</option>
+                      <option value="featured">{p.promoFeatured}</option>
+                      <option value="urgent">{p.promoUrgent}</option>
+                      <option value="top">{p.promoTop}</option>
                     </select>
 
                     {confirming === r.ref ? (
                       <button className="btn btn-sm" style={{ background: "var(--bad)", color: "#fff" }}
                         disabled={busy !== null}
                         onClick={() => act(r.ref + "d", { action: "listing:delete", ref: r.ref })}>
-                        متأكّد؟ امسح
+                        {p.confirmDelete}
                       </button>
                     ) : (
                       <button className="btn btn-ghost btn-sm" onClick={() => setConfirming(r.ref)}>

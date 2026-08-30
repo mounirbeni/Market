@@ -2,18 +2,20 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { useDict } from "@/lib/i18n/client";
 import { Search } from "@/components/icons";
 
 /** بحث + فلاتر — كيكتبو فالرابط باش الصفحة تبقى قابلة للمشاركة */
 export function Toolbar({
   tabs,
   tabKey = "status",
-  placeholder = "بحث…",
+  placeholder,
 }: {
   tabs: { key: string; label: string; count?: number }[];
   tabKey?: string;
   placeholder?: string;
 }) {
+  const t = useDict();
   const router = useRouter();
   const params = useSearchParams();
   const [q, setQ] = useState(params.get("q") ?? "");
@@ -41,25 +43,25 @@ export function Toolbar({
         />
         <input
           className="field pe-9"
-          placeholder={placeholder}
+          placeholder={placeholder ?? t.adminToolbar.defaultPlaceholder}
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
       </form>
       <div className="flex flex-wrap gap-1.5">
-        {tabs.map((t) => (
+        {tabs.map((tb) => (
           <button
-            key={t.key}
-            onClick={() => go({ [tabKey]: t.key })}
+            key={tb.key}
+            onClick={() => go({ [tabKey]: tb.key })}
             className="chip transition"
             style={{
-              borderColor: active === t.key ? "var(--brand)" : "var(--line)",
-              background: active === t.key ? "var(--brand-soft)" : "var(--surface-1)",
-              color: active === t.key ? "var(--brand)" : "var(--text-muted)",
+              borderColor: active === tb.key ? "var(--brand)" : "var(--line)",
+              background: active === tb.key ? "var(--brand-soft)" : "var(--surface-1)",
+              color: active === tb.key ? "var(--brand)" : "var(--text-muted)",
             }}
           >
-            {t.label}
-            {t.count !== undefined && t.count > 0 ? <span className="num"> {t.count}</span> : null}
+            {tb.label}
+            {tb.count !== undefined && tb.count > 0 ? <span className="num"> {tb.count}</span> : null}
           </button>
         ))}
       </div>

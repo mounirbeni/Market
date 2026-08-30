@@ -1,3 +1,7 @@
+"use client";
+
+import { useDict } from "@/lib/i18n/client";
+
 /* ============================================================
    هيكل تحميل شبكة المركبات
 
@@ -43,11 +47,12 @@ export function VehicleGridSkeleton({
   count?: number;
   view?: "grid" | "list";
 }) {
+  const t = useDict();
   return (
     <div
       className={view === "grid" ? "grid gap-5 sm:grid-cols-2 xl:grid-cols-3" : "flex flex-col gap-4"}
       aria-busy="true"
-      aria-label="كنحمّلو النتائج"
+      aria-label={t.loadingResults}
     >
       {Array.from({ length: count }).map((_, i) => (
         <VehicleCardSkeleton key={i} view={view} />

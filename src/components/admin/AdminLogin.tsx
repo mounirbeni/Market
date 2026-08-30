@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useDict } from "@/lib/i18n/client";
 import { Lock, ShieldCheck } from "@/components/icons";
 
 /* ============================================================
@@ -12,6 +13,8 @@ import { Lock, ShieldCheck } from "@/components/icons";
    حتى إلا تسرّبات كلمة السر، اللي ماعندوش الصندوق ماكيدخلش.
    ============================================================ */
 export function AdminLogin() {
+  const t = useDict();
+  const l = t.adminLogin;
   const [step, setStep] = useState<"pw" | "code">("pw");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +36,7 @@ export function AdminLogin() {
         ),
       });
       const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش.");
+      if (!json?.ok) throw new Error(json?.error ?? l.genericError);
 
       if (json.data.step === "code") {
         setStep("code");
@@ -44,7 +47,7 @@ export function AdminLogin() {
         window.location.reload();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ماقدرناش.");
+      setError(err instanceof Error ? err.message : l.genericError);
     } finally {
       setBusy(false);
     }
@@ -60,18 +63,18 @@ export function AdminLogin() {
           >
             <ShieldCheck size={22} />
           </span>
-          <h1 className="mt-4 text-lg font-extrabold">لوحة الإشراف</h1>
+          <h1 className="mt-4 text-lg font-extrabold">{l.title}</h1>
           <p className="mt-1 text-[12px]" style={{ color: "var(--text-muted)" }}>
             {step === "pw"
-              ? "دخول محمي بكلمة سر ورمز"
-              : `صيفطنا رمز ديال 6 أرقام لـ${email}`}
+              ? l.leadPw
+              : `${l.leadCodeA} ${email}`}
           </p>
         </div>
 
         {step === "pw" ? (
           <>
             <div>
-              <label className="label" htmlFor="a-email">الإيميل</label>
+              <label className="label" htmlFor="a-email">{l.emailLabel}</label>
               <input
                 id="a-email" className="field" type="email" dir="ltr" required autoFocus
                 autoComplete="username"
@@ -79,7 +82,7 @@ export function AdminLogin() {
               />
             </div>
             <div>
-              <label className="label" htmlFor="a-pw"><Lock size={13} /> كلمة السر</label>
+              <label className="label" htmlFor="a-pw"><Lock size={13} /> {l.passwordLabel}</label>
               <input
                 id="a-pw" className="field" type="password" dir="ltr" required
                 autoComplete="current-password"
@@ -89,7 +92,7 @@ export function AdminLogin() {
           </>
         ) : (
           <div>
-            <label className="label" htmlFor="a-code">الرمز</label>
+            <label className="label" htmlFor="a-code">{l.codeLabel}</label>
             <input
               id="a-code" className="field num text-center text-lg tracking-[0.5em]"
               inputMode="numeric" maxLength={6} required autoFocus dir="ltr"
@@ -97,7 +100,7 @@ export function AdminLogin() {
             />
             {hint && (
               <p className="num mt-1 text-[11px]" style={{ color: "var(--warn)" }}>
-                تطوير محلي: {hint}
+                {l.devHint} {hint}
               </p>
             )}
           </div>
@@ -108,7 +111,7 @@ export function AdminLogin() {
         )}
 
         <button type="submit" className="btn btn-primary w-full" disabled={busy}>
-          {busy ? "…" : step === "pw" ? "متابعة" : "دخول"}
+          {busy ? "…" : step === "pw" ? l.continue : l.login}
         </button>
 
         {step === "code" && (
@@ -117,7 +120,7 @@ export function AdminLogin() {
             className="btn btn-ghost btn-sm w-full"
             onClick={() => { setStep("pw"); setCode(""); setError(null); setHint(null); }}
           >
-            رجع
+            {l.back}
           </button>
         )}
       </form>

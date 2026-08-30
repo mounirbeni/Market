@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useRouter } from "next/navigation";
 import { adminAction } from "./actions";
 import { Toolbar } from "./Toolbar";
 import { PROMOS, type PromoTier } from "@/lib/promo";
-import { formatNumber, timeAgo } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { dhUnit, fmtTimeAgo, promoLabel } from "@/lib/i18n/labels";
 import { Check, Close, Phone, Star } from "@/components/icons";
 
 interface Row {
@@ -37,6 +39,10 @@ export function PromosPanel({
   rows: Row[];
   counts: { pending: number; active: number };
 }) {
+  const t = useDict();
+  const locale = useLocale();
+  const dh = dhUnit(locale);
+  const p = t.promosPanel;
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,10 +59,9 @@ export function PromosPanel({
   return (
     <div>
       <header className="mb-5">
-        <h2 className="text-[17px] font-extrabold">الترويج</h2>
+        <h2 className="text-[17px] font-extrabold">{p.title}</h2>
         <p className="mt-1 text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          البائع كيطلب من صفحة الترويج، ونتا كتأكّد الأداء هنا. المدة كتبدا
-          من لحظة التأكيد، والشارة كتّحيّد أوتوماتيكياً ملي تسالي.
+          {p.lead}
         </p>
       </header>
 
@@ -64,10 +69,10 @@ export function PromosPanel({
         tabKey="filter"
         placeholder=""
         tabs={[
-          { key: "pending", label: "فانتظار الأداء", count: counts.pending },
-          { key: "active", label: "شغّالة", count: counts.active },
-          { key: "ended", label: "سالات" },
-          { key: "all", label: "كلشي" },
+          { key: "pending", label: p.tabs.pending, count: counts.pending },
+          { key: "active", label: p.tabs.active, count: counts.active },
+          { key: "ended", label: p.tabs.ended },
+          { key: "all", label: p.tabs.all },
         ]}
       />
 
@@ -75,79 +80,79 @@ export function PromosPanel({
 
       {rows.length === 0 ? (
         <div className="card p-10 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-          ماكاين حتى طلب.
+          {p.empty}
         </div>
       ) : (
         <ul className="space-y-2.5">
-          {rows.map((p) => {
-            const meta = PROMOS[p.tier as PromoTier];
-            const pending = !p.paid_at;
-            const live = Boolean(p.paid_at && p.ends_at && Date.parse(p.ends_at) > Date.now());
+          {rows.map((row) => {
+            const meta = PROMOS[row.tier as PromoTier];
+            const pending = !row.paid_at;
+            const live = Boolean(row.paid_at && row.ends_at && Date.parse(row.ends_at) > Date.now());
             return (
-              <li key={p.id} className="card p-4">
+              <li key={row.id} className="card p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="tag" style={{ background: meta?.color ?? "var(--brand)", color: "#fff" }}>
-                        <Star size={10} /> {meta?.label ?? p.tier}
+                        <Star size={10} /> {row.tier in PROMOS ? promoLabel(row.tier as PromoTier, locale, t) : row.tier}
                       </span>
                       <span className="num text-[13px] font-extrabold">
-                        {formatNumber(p.amount_mad)} د.م
+                        {formatNumber(row.amount_mad)} {dh}
                       </span>
                       <span className="num text-[11px]" style={{ color: "var(--text-dim)" }}>
-                        {p.days} يوم
+                        {row.days} {p.daysSuffix}
                       </span>
                       {pending ? (
                         <span className="tag" style={{ background: "var(--warn)", color: "#000" }}>
-                          فانتظار الأداء
+                          {p.awaitingPayment}
                         </span>
                       ) : live ? (
                         <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
-                          شغّال · باقي <span className="num">{daysLeft(p.ends_at!)}</span> يوم
+                          {p.liveA} <span className="num">{daysLeft(row.ends_at!)}</span> {p.liveB}
                         </span>
                       ) : (
-                        <span className="tag" style={{ background: "var(--surface-3)" }}>سالا</span>
+                        <span className="tag" style={{ background: "var(--surface-3)" }}>{p.ended}</span>
                       )}
-                      {p.provider === "admin" && (
-                        <span className="tag" style={{ background: "var(--surface-3)" }}>مجاني</span>
+                      {row.provider === "admin" && (
+                        <span className="tag" style={{ background: "var(--surface-3)" }}>{p.free}</span>
                       )}
                     </div>
 
-                    <Link href={`/vehicle/${p.listing_slug}`} className="mt-1.5 block truncate text-[14px] font-bold">
-                      {p.listing_title} <span className="num opacity-55">{p.listing_ref}</span>
+                    <Link href={`/vehicle/${row.listing_slug}`} className="mt-1.5 block truncate text-[14px] font-bold">
+                      {row.listing_title} <span className="num opacity-55">{row.listing_ref}</span>
                     </Link>
 
                     <p className="mt-0.5 flex flex-wrap gap-x-2.5 text-[11.5px]" style={{ color: "var(--text-dim)" }}>
-                      <span>{p.seller_name}</span>
-                      {p.seller_email && <bdi dir="ltr" className="num">{p.seller_email}</bdi>}
-                      {p.seller_phone && (
-                        <a href={`tel:${p.seller_phone}`} className="num" style={{ color: "var(--brand)" }}>
-                          <Phone size={11} /> {p.seller_phone}
+                      <span>{row.seller_name}</span>
+                      {row.seller_email && <bdi dir="ltr" className="num">{row.seller_email}</bdi>}
+                      {row.seller_phone && (
+                        <a href={`tel:${row.seller_phone}`} className="num" style={{ color: "var(--brand)" }}>
+                          <Phone size={11} /> {row.seller_phone}
                         </a>
                       )}
-                      <span>{timeAgo(p.created_at)}</span>
+                      <span>{fmtTimeAgo(row.created_at, locale)}</span>
                     </p>
                   </div>
 
                   <div className="flex shrink-0 flex-wrap gap-1.5">
                     {pending && (
                       <button className="btn btn-primary btn-sm" disabled={busy !== null}
-                        onClick={() => act(p.id + "a", { action: "promo:activate", promoId: p.id })}>
-                        <Check size={13} /> أكّد الأداء
+                        onClick={() => act(row.id + "a", { action: "promo:activate", promoId: row.id })}>
+                        <Check size={13} /> {p.confirmPayment}
                       </button>
                     )}
                     {live && (
                       <button className="btn btn-solid btn-sm" disabled={busy !== null}
-                        onClick={() => act(p.id + "e", { action: "promo:activate", promoId: p.id })}>
-                        مدّد
+                        onClick={() => act(row.id + "e", { action: "promo:activate", promoId: row.id })}>
+                        {p.extend}
                       </button>
                     )}
                     {(pending || live) && (
                       <button className="btn btn-sm"
                         style={{ background: "var(--bad)", color: "#fff" }}
                         disabled={busy !== null}
-                        onClick={() => act(p.id + "c", { action: "promo:cancel", promoId: p.id })}>
-                        <Close size={13} /> {pending ? "ارفض" : "وقّف"}
+                        onClick={() => act(row.id + "c", { action: "promo:cancel", promoId: row.id })}>
+                        <Close size={13} /> {pending ? p.reject : p.stop}
                       </button>
                     )}
                   </div>

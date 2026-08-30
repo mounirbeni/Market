@@ -1,5 +1,8 @@
+"use client";
+
 import { brandByName, brandInitials, brandLogoPath } from "@/lib/brands";
 import { brandSlug } from "@/lib/slug";
+import { useDict } from "@/lib/i18n/client";
 
 /* ============================================================
    شارة الماركة
@@ -84,6 +87,7 @@ export function BrandMark({ name, size = 44, variant = "wordmark", className = "
 export function BrandTile({
   name, count, href, kind,
 }: { name: string; count?: number; href: string; kind?: "car" | "moto" }) {
+  const t = useDict();
   const meta = brandByName(name);
   const accent = meta?.accent ?? "var(--brand)";
 
@@ -104,7 +108,7 @@ export function BrandTile({
           كتبقى موجودة وكتبيّن حالة فارغة */}
       {count !== undefined && count > 0 && (
         <span className="text-[10px] leading-none" style={{ color: "var(--text-dim)" }}>
-          <span className="num">{count}</span> {kind === "moto" ? "دراجة" : "إعلان"}
+          <span className="num">{count}</span> {kind === "moto" ? t.brandMarkUnit.moto : t.brandMarkUnit.car}
         </span>
       )}
     </a>

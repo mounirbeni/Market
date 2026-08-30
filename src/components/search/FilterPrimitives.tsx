@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useDict } from "@/lib/i18n/client";
 import { ChevronDown } from "@/components/icons";
 import type { IconProps } from "@/components/icons";
 
@@ -205,6 +206,7 @@ export function DualRange({
   histogram?: number[];
   format: (n: number) => string;
 }) {
+  const t = useDict();
   const lo = low ?? min;
   const hi = high ?? max;
   const span = max - min || 1;
@@ -253,7 +255,7 @@ export function DualRange({
             const v = Math.min(Number(e.target.value), hi - step);
             onChange(v <= min ? undefined : v, high);
           }}
-          aria-label="الحد الأدنى"
+          aria-label={t.rangeSlider.min}
           className="pointer-events-none absolute inset-0 h-5 w-full appearance-none bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-track]:bg-transparent"
         />
         <input
@@ -266,7 +268,7 @@ export function DualRange({
             const v = Math.max(Number(e.target.value), lo + step);
             onChange(low, v >= max ? undefined : v);
           }}
-          aria-label="الحد الأقصى"
+          aria-label={t.rangeSlider.max}
           className="pointer-events-none absolute inset-0 h-5 w-full appearance-none bg-transparent [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-track]:bg-transparent"
         />
       </div>

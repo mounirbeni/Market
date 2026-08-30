@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import { IBM_Plex_Sans_Arabic, Noto_Kufi_Arabic, Space_Grotesk } from "next/font/google";
 import "../globals.css";
-import { DIR, HTML_LANG, isLocale, LOCALES } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE, DIR, HTML_LANG, isLocale, LOCALES } from "@/lib/i18n/config";
 import { dictionaryOf } from "@/lib/i18n/server";
 import { I18nProvider } from "@/lib/i18n/client";
 import { AppProvider } from "@/store/app";
@@ -39,39 +39,38 @@ const num = Space_Grotesk({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://triq.ma"),
-  title: {
-    default: "طريق TRIQ — سوق السيارات والدراجات النارية المستعملة في المغرب",
-    template: "%s · طريق TRIQ",
-  },
-  description:
-    "أول سوق مغربي يعطيك مؤشر ثقة لكل إعلان، ثمناً مرجعياً محسوباً من السوق، وتكلفة استعمال حقيقية بالدرهم قبل ما تشري سيارتك أو دراجتك.",
-  keywords: [
-    "سيارات مستعملة المغرب",
-    "دراجات نارية مستعملة",
-    "طوموبيل مستعملة",
-    "voiture occasion maroc",
-    "moto occasion maroc",
-    "ثمن السيارة في المغرب",
-  ],
-  openGraph: {
-    type: "website",
-    locale: "ar_MA",
-    siteName: "طريق TRIQ",
-    title: "طريق TRIQ — سوق السيارات والدراجات النارية المستعملة في المغرب",
-    description:
-      "مؤشر ثقة، ثمن مرجعي، وتكلفة استعمال حقيقية لكل مركبة مستعملة في المغرب.",
-    images: [{ url: "/hero-vehicles.webp", width: 1774, height: 887, alt: "طريق TRIQ" }],
-  },
-  robots: { index: true, follow: true },
-  /* ملي كيتزاد للشاشة الرئيسية فiOS: بلا شريط سفاري، وباسم مختصر */
-  appleWebApp: {
-    capable: true,
-    title: "طريق",
-    statusBarStyle: "black-translucent",
-  },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  const m = t.siteMeta;
+  return {
+    metadataBase: new URL("https://triq.ma"),
+    title: {
+      default: m.title,
+      template: locale === "fr" ? "%s · TRIQ" : "%s · طريق TRIQ",
+    },
+    description: m.description,
+    keywords: m.keywords,
+    openGraph: {
+      type: "website",
+      locale: locale === "fr" ? "fr_MA" : "ar_MA",
+      siteName: "TRIQ",
+      title: m.title,
+      description: m.ogDescription,
+      images: [{ url: "/hero-vehicles.webp", width: 1774, height: 887, alt: m.ogImageAlt }],
+    },
+    robots: { index: true, follow: true },
+    /* ملي كيتزاد للشاشة الرئيسية فiOS: بلا شريط سفاري، وباسم مختصر */
+    appleWebApp: {
+      capable: true,
+      title: m.appleTitle,
+      statusBarStyle: "black-translucent",
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [

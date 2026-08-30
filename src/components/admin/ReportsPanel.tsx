@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useRouter } from "next/navigation";
-import { timeAgo } from "@/lib/format";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { fmtTimeAgo } from "@/lib/i18n/labels";
 import { adminAction } from "./actions";
 import { AlertTriangle, BadgeCheck, Check, Close } from "@/components/icons";
 
@@ -23,24 +24,7 @@ interface Report {
   seller_banned: string | null;
 }
 
-/* نفس القيم ديال report_reason فقاعدة البيانات */
-const REASONS: Record<string, string> = {
-  fake: "إعلان مزوّر",
-  sold: "تباعت وباقية",
-  price: "الثمن غالط",
-  photos: "صور ماشي ديالها",
-  papers: "مشكل فالوثائق",
-  deposit: "كيطلب عربون",
-  duplicate: "إعلان مكرّر",
-  other: "سبب آخر",
-};
-
-const TABS = [
-  { key: "open", label: "مفتوحة" },
-  { key: "actioned", label: "تعالجات" },
-  { key: "dismissed", label: "مرفوضة" },
-  { key: "all", label: "كلشي" },
-];
+const TAB_KEYS = ["open", "actioned", "dismissed", "all"] as const;
 
 export function ReportsPanel({
   reports,
@@ -51,6 +35,9 @@ export function ReportsPanel({
   counts: Record<string, number>;
   status: string;
 }) {
+  const t = useDict();
+  const locale = useLocale();
+  const r0 = t.reportsPanel;
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -67,27 +54,26 @@ export function ReportsPanel({
   return (
     <div>
       <header className="mb-5">
-        <h2 className="text-[17px] font-extrabold">التبليغات</h2>
+        <h2 className="text-[17px] font-extrabold">{r0.title}</h2>
         <p className="mt-1 text-[12.5px]" style={{ color: "var(--text-muted)" }}>
-          كل تبليغ فيه الإعلان والبائع. «حيّد» كيخرّج الإعلان من الموقع،
-          و«حضر» كيوقف الحساب وكيخرّج كل الإعلانات ديالو.
+          {r0.lead}
         </p>
       </header>
 
       <div className="mb-5 flex flex-wrap gap-1.5">
-        {TABS.map((t) => (
+        {TAB_KEYS.map((k) => (
           <Link
-            key={t.key}
-            href={`/admin/reports?status=${t.key}`}
+            key={k}
+            href={`/admin/reports?status=${k}`}
             className="chip transition"
             style={{
-              borderColor: status === t.key ? "var(--brand)" : "var(--line)",
-              background: status === t.key ? "var(--brand-soft)" : "var(--surface-1)",
-              color: status === t.key ? "var(--brand)" : "var(--text-muted)",
+              borderColor: status === k ? "var(--brand)" : "var(--line)",
+              background: status === k ? "var(--brand-soft)" : "var(--surface-1)",
+              color: status === k ? "var(--brand)" : "var(--text-muted)",
             }}
           >
-            {t.label}
-            {counts[t.key] ? <span className="num"> {counts[t.key]}</span> : null}
+            {r0.tabs[k]}
+            {counts[k] ? <span className="num"> {counts[k]}</span> : null}
           </Link>
         ))}
       </div>
@@ -104,7 +90,7 @@ export function ReportsPanel({
           >
             <BadgeCheck size={26} />
           </span>
-          <h2 className="mt-4 text-lg font-bold">ماكاين حتى تبليغ</h2>
+          <h2 className="mt-4 text-lg font-bold">{r0.emptyTitle}</h2>
         </div>
       ) : (
         <ul className="space-y-3">
@@ -116,7 +102,7 @@ export function ReportsPanel({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <span className="tag" style={{ background: "var(--bad)", color: "#fff" }}>
-                      <AlertTriangle size={11} /> {REASONS[r.reason] ?? r.reason}
+                      <AlertTriangle size={11} /> {r0.reasons[r.reason as keyof typeof r0.reasons] ?? r.reason}
                     </span>
                     <Link
                       href={`/vehicle/${r.listing_slug}`}
@@ -129,7 +115,7 @@ export function ReportsPanel({
                       {r.seller_name}
                       {r.seller_email && <span className="num"> · {r.seller_email}</span>}
                       {" · "}
-                      {timeAgo(r.created_at)}
+                      {fmtTimeAgo(r.created_at, locale)}
                     </p>
                     {r.note && (
                       <p
@@ -152,7 +138,7 @@ export function ReportsPanel({
                         })
                       }
                     >
-                      {hidden ? "رجّع الإعلان" : <><Close size={13} /> حيّد الإعلان</>}
+                      {hidden ? r0.restoreListing : <><Close size={13} /> {r0.hideListing}</>}
                     </button>
                     <button
                       className="btn btn-sm"
@@ -165,7 +151,7 @@ export function ReportsPanel({
                         })
                       }
                     >
-                      {banned ? "رفع الحضر" : "حضر البائع"}
+                      {banned ? r0.unban : r0.ban}
                     </button>
                     {r.status === "open" && (
                       <>
@@ -174,14 +160,14 @@ export function ReportsPanel({
                           disabled={busy !== null}
                           onClick={() => act(r.id + "a", { action: "report:actioned", reportId: r.id })}
                         >
-                          <Check size={13} /> تعالج
+                          <Check size={13} /> {r0.actioned}
                         </button>
                         <button
                           className="btn btn-ghost btn-sm"
                           disabled={busy !== null}
                           onClick={() => act(r.id + "d", { action: "report:dismissed", reportId: r.id })}
                         >
-                          ماشي مشكل
+                          {r0.dismiss}
                         </button>
                       </>
                     )}
@@ -190,8 +176,8 @@ export function ReportsPanel({
 
                 {(hidden || banned) && (
                   <p className="mt-2 text-[11px] font-bold" style={{ color: "var(--warn)" }}>
-                    {hidden && "الإعلان محيّد من الموقع. "}
-                    {banned && "الحساب محضور."}
+                    {hidden && r0.hiddenNote}
+                    {banned && r0.bannedNote}
                   </p>
                 )}
               </li>
