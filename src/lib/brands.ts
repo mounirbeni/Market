@@ -79,13 +79,13 @@ export const OFFICIAL_LOGOS = new Set<string>([
   "chevrolet", "citroen", "cupra", "dacia", "deepal", "dfsk", "docker",
   "dongfeng", "ds", "exeed", "ferrari", "fiat", "ford", "foton", "gaz",
   "geely", "gwm", "harley-davidson", "haojue", "honda", "hyundai", "isuzu",
-  "jac", "jaecoo", "jaguar", "jeep", "jetour", "kawasaki", "kia", "ktm",
-  "land-rover", "leapmotor", "lexus", "mahindra", "maserati", "mazda",
-  "mbk", "mercedes", "mg", "mini", "mitsubishi", "nissan", "opel",
-  "peugeot", "porsche", "renault", "rox", "royal-enfield", "seat", "skoda",
-  "smart", "soueast", "ssangyong", "subaru", "suzuki", "sym", "tata",
-  "tesla", "toyota", "vespa", "volkswagen", "volvo", "xpeng", "yamaha",
-  "zeekr",
+  "jac", "jaecoo", "jaguar", "jeep", "jetour", "kawasaki", "kgm", "kia",
+  "ktm", "land-rover", "leapmotor", "lexus", "lynk-co", "mahindra",
+  "maserati", "mazda", "mbk", "mercedes", "mg", "mini", "mitsubishi",
+  "neo-motors", "nissan", "omoda", "opel", "peugeot", "porsche", "renault",
+  "rox", "royal-enfield", "seat", "seres", "skoda", "smart", "soueast",
+  "ssangyong", "subaru", "suzuki", "sym", "tata", "tesla", "toyota",
+  "vespa", "volkswagen", "volvo", "xpeng", "yamaha", "zeekr",
 ]);
 
 /** الشعارات التي أُضيفت من carlogos.org أو رفعها المستخدم بصيغة PNG. */
@@ -93,10 +93,11 @@ export const PNG_LOGOS = new Set<string>([
   "abarth", "alfa-romeo", "alpine", "aston-martin", "baic", "benelli",
   "bentley", "byd", "changan", "chery", "cupra", "deepal", "dfsk",
   "docker", "dongfeng", "ds", "exeed", "ferrari", "foton", "gaz", "geely",
-  "gwm", "haojue", "jac", "jaecoo", "jaguar", "jetour", "kawasaki",
-  "leapmotor", "lexus", "mahindra", "maserati", "mazda", "mbk", "mg",
-  "mini", "porsche", "rox", "smart", "soueast", "ssangyong", "subaru",
-  "sym", "tata", "volvo", "xpeng", "zeekr",
+  "gwm", "haojue", "jac", "jaecoo", "jaguar", "jetour", "kawasaki", "kgm",
+  "leapmotor", "lexus", "lynk-co", "mahindra", "maserati", "mazda", "mbk",
+  "mg", "mini", "neo-motors", "omoda", "porsche", "rox", "seres", "smart",
+  "soueast", "ssangyong", "subaru", "sym", "tata", "volvo", "xpeng",
+  "zeekr",
 ]);
 
 export const hasOfficialLogo = (slug: string) => OFFICIAL_LOGOS.has(slug);
