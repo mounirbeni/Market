@@ -823,9 +823,14 @@ export function SellWizard() {
                 ))}
               </div>
 
+              {d.photos === 0 && (
+                <p className="text-center text-[12px] font-semibold" style={{ color: "var(--bad)" }}>
+                  {t.sellWizard.photosRequired}
+                </p>
+              )}
               <button
                 onClick={publish}
-                disabled={publishing}
+                disabled={publishing || d.photos === 0}
                 className="btn btn-primary w-full"
               >
                 <Sparkle size={16} /> {publishing ? t.sellWizard.publishing : t.sellWizard.publish}

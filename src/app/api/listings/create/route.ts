@@ -140,8 +140,8 @@ export async function POST(req: Request) {
   }));
 
   const photoRows = media.filter((m) => m.kind === "photo").length;
-  // إلا كانو صور حقيقية هوما اللي كيحسبو، وإلا كناخدو العدد اللي دخل
-  const photos = photoRows > 0 ? photoRows : clampInt(b.photos, 0, 40, 0);
+  if (photoRows < 1) return fail("خاصك ترفع على الأقل صورة وحدة باش تنشر الإعلان.", 400);
+  const photos = photoRows;
   const hasVideo = media.some((m) => m.kind === "video") || Boolean(b.hasVideo);
 
   /* كنبنيو مركبة مؤقتة باش نحسبو الثقة والثمن المرجعي بنفس منطق العرض */
