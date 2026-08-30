@@ -3,6 +3,7 @@ import { Link } from "@/components/Link";
 import { notFound } from "next/navigation";
 import { getDealer, getDealerListings } from "@/lib/source";
 import { formatNumber } from "@/lib/format";
+import { jsonLdHtml } from "@/lib/jsonLd";
 import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
 import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 import { cityLabel } from "@/lib/i18n/labels";
@@ -69,7 +70,7 @@ export default async function DealerPage({ params }: { params: Promise<{ lang: s
 
   return (
     <div>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }} />
 
       {/* الغلاف */}
       <div

@@ -8,6 +8,7 @@ import {
 import { fairPriceFrom, trustOf, trustScore } from "@/lib/market";
 import { vehicleHighlights } from "@/lib/highlights";
 import { formatNumber } from "@/lib/format";
+import { jsonLdHtml } from "@/lib/jsonLd";
 import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
 import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 import {
@@ -162,7 +163,7 @@ export default async function VehiclePage({
   return (
     <PageTransition>
     <div className="mx-auto max-w-[1400px] px-4 py-6 pb-24 lg:pb-6">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }} />
 
       <nav className="mb-5 flex flex-wrap items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
         <Link href="/" className="transition hover:text-[var(--brand)]" transitionTypes={["nav-back"]}>{t.vehicle.home}</Link>

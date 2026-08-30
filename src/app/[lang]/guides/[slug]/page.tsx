@@ -3,6 +3,7 @@ import { Link } from "@/components/Link";
 import { notFound } from "next/navigation";
 import { guidesFor, guideBySlugFor } from "@/lib/data/guides";
 import { fmtDate } from "@/lib/i18n/labels";
+import { jsonLdHtml } from "@/lib/jsonLd";
 import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
 import { DEFAULT_LOCALE, HTML_LANG, isLocale, localePath } from "@/lib/i18n/config";
 import { ArrowLeft, Check, ChevronLeft, Clock, FileText } from "@/components/icons";
@@ -49,7 +50,7 @@ export default async function GuidePage({ params }: { params: Promise<{ lang: st
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-8">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdHtml(jsonLd) }} />
 
       <nav className="mb-6 flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
         <Link href="/" className="transition hover:text-[var(--brand)]">{t.guideDetail.home}</Link>
