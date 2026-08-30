@@ -69,6 +69,9 @@ export interface CreateBody {
   vinChecked?: boolean;
   accidentDeclared?: boolean;
   accidentNote?: string;
+  unpaidVignette?: boolean;
+  unpaidFines?: boolean;
+  underLien?: boolean;
   description?: string;
   equipment?: string[];
   negotiable?: boolean;
@@ -183,6 +186,9 @@ export async function POST(req: Request) {
     vinChecked: Boolean(b.vinChecked),
     accidentDeclared,
     accidentNote: accidentNote || null,
+    unpaidVignette: Boolean(b.unpaidVignette),
+    unpaidFines: Boolean(b.unpaidFines),
+    underLien: Boolean(b.underLien),
     description: text(b.description, 4000),
     equipment: (b.equipment ?? []).slice(0, 40).map((e) => text(e, 60)).filter(Boolean),
     history: accidentDeclared
@@ -239,6 +245,9 @@ export async function POST(req: Request) {
     vinChecked: draft.vinChecked,
     accidentDeclared: draft.accidentDeclared,
     accidentNote: draft.accidentNote ?? null,
+    unpaidVignette: draft.unpaidVignette,
+    unpaidFines: draft.unpaidFines,
+    underLien: draft.underLien,
     description: draft.description,
     equipment: draft.equipment,
     negotiable: draft.negotiable,

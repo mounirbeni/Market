@@ -53,6 +53,9 @@ interface Form {
   inspected: boolean;
   accidentDeclared: boolean;
   accidentNote: string;
+  unpaidVignette: boolean;
+  unpaidFines: boolean;
+  underLien: boolean;
 }
 
 export function EditListing({ listingRef }: { listingRef: string }) {
@@ -100,6 +103,9 @@ export function EditListing({ listingRef }: { listingRef: string }) {
       inspected: v.inspected,
       accidentDeclared: v.accidentDeclared,
       accidentNote: v.accidentNote ?? "",
+      unpaidVignette: v.unpaidVignette,
+      unpaidFines: v.unpaidFines,
+      underLien: v.underLien,
     });
   }, [v, form]);
 
@@ -402,6 +408,26 @@ export function EditListing({ listingRef }: { listingRef: string }) {
                 placeholder={e.docs.accidentNotePlaceholder} />
             </div>
           )}
+        </div>
+
+        {/* ---------- مشاكل إدارية/مالية ---------- */}
+        <div className="rounded-xl p-3.5 space-y-2" style={{ background: "var(--warn-soft)" }}>
+          <span className="flex items-center gap-1.5 text-xs font-bold">
+            <AlertTriangle size={13} style={{ color: "var(--warn)" }} />
+            {e.docs.docIssuesTitle}
+          </span>
+          {([
+            ["unpaidVignette", e.docs.docIssueVignette],
+            ["unpaidFines", e.docs.docIssueFines],
+            ["underLien", e.docs.docIssueLien],
+          ] as const).map(([key, label]) => (
+            <label key={key} className="flex cursor-pointer items-start gap-2.5">
+              <input type="checkbox" checked={form[key]}
+                onChange={(ev) => set({ [key]: ev.target.checked } as Partial<Form>)}
+                className="mt-0.5 h-4 w-4" />
+              <span className="flex-1 text-xs">{label}</span>
+            </label>
+          ))}
         </div>
       </section>
 

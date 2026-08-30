@@ -108,6 +108,12 @@ export interface Vehicle {
   accidentDeclared: boolean;
   /** تفاصيل الحادث/الإصلاح — نص حر من البائع */
   accidentNote?: string | null;
+  /** الضريبة السنوية (الفينيت) غير مؤداة */
+  unpaidVignette: boolean;
+  /** غرامات مرورية غير مؤداة */
+  unpaidFines: boolean;
+  /** المركبة مرهونة عند بنك (قرض لم يُسدَّد بعد) */
+  underLien: boolean;
   description: string;
   equipment: string[];
   history: HistoryEvent[];

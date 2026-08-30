@@ -64,6 +64,9 @@ export interface ListingRow {
   service_book: boolean;
   accident_declared: boolean;
   accident_note: string | null;
+  unpaid_vignette: boolean;
+  unpaid_fines: boolean;
+  under_lien: boolean;
   description: string;
   equipment: string[];
   negotiable: boolean;
@@ -107,6 +110,7 @@ const SELECT_COLS = `
   l.displacement, l.doors, l.technical_control, l.service_book, l.description,
   l.equipment, l.negotiable, l.exchange_accepted,
   l.accident_declared, l.accident_note,
+  l.unpaid_vignette, l.unpaid_fines, l.under_lien,
   l.seller_id::text AS seller_ref,
   u.name AS seller_name, u.avatar_url AS seller_avatar, u.type AS seller_type, d.slug AS dealer_slug,
   u.city AS seller_city, u.member_since AS seller_since,
@@ -358,6 +362,9 @@ export function rowToVehicle(
     vinChecked: r.vin_checked,
     accidentDeclared: r.accident_declared,
     accidentNote: r.accident_note,
+    unpaidVignette: r.unpaid_vignette,
+    unpaidFines: r.unpaid_fines,
+    underLien: r.under_lien,
     description: r.description,
     equipment: r.equipment ?? [],
     /* البائع صرّح بحادث/إصلاح — كنزيدوه كحدث حقيقي فالسجل باش

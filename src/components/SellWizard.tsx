@@ -48,6 +48,9 @@ interface Draft {
   technicalControlValid: boolean;
   accident: boolean;
   accidentNote: string;
+  unpaidVignette: boolean;
+  unpaidFines: boolean;
+  underLien: boolean;
   photos: number;
   hasVideo: boolean;
   description: string;
@@ -85,6 +88,9 @@ const initialDraft: Draft = {
   technicalControlValid: true,
   accident: false,
   accidentNote: "",
+  unpaidVignette: false,
+  unpaidFines: false,
+  underLien: false,
   photos: 0,
   hasVideo: false,
   description: "",
@@ -130,6 +136,9 @@ function draftToVehicle(d: Draft): Vehicle {
     vinChecked: d.vinChecked,
     accidentDeclared: d.accident,
     accidentNote: d.accidentNote || null,
+    unpaidVignette: d.unpaidVignette,
+    unpaidFines: d.unpaidFines,
+    underLien: d.underLien,
     description: d.description,
     equipment: d.equipment,
     history: d.accident
@@ -287,6 +296,7 @@ export function SellWizard() {
           vinChecked: d.vinChecked,
           accidentDeclared: d.accident,
           accidentNote: d.accident ? d.accidentNote.trim() : "",
+          unpaidVignette: d.unpaidVignette, unpaidFines: d.unpaidFines, underLien: d.underLien,
           description: d.description,
           equipment: d.equipment, photos: d.photos, hasVideo: d.hasVideo,
           negotiable: d.negotiable,
@@ -643,6 +653,27 @@ export function SellWizard() {
                       placeholder={t.sellWizard.disclosureNotePlaceholder} />
                   </div>
                 )}
+              </div>
+
+              {/* مشاكل إدارية/مالية شائعة — مربعات اختيار بسيطة، بلا
+                  نص حر: حالات معروفة ومحدودة، الاختيار أسرع وأدق */}
+              <div className="rounded-xl p-3.5 space-y-2" style={{ background: "var(--warn-soft)" }}>
+                <span className="flex items-center gap-1.5 text-xs font-bold">
+                  <AlertTriangle size={13} style={{ color: "var(--warn)" }} />
+                  {t.sellWizard.docIssuesTitle}
+                </span>
+                {([
+                  ["unpaidVignette", t.sellWizard.docIssueVignette],
+                  ["unpaidFines", t.sellWizard.docIssueFines],
+                  ["underLien", t.sellWizard.docIssueLien],
+                ] as const).map(([key, label]) => (
+                  <label key={key} className="flex cursor-pointer items-start gap-2.5">
+                    <input type="checkbox" checked={d[key]}
+                      onChange={(e) => set({ [key]: e.target.checked } as Partial<Draft>)}
+                      className="mt-0.5 h-4 w-4" />
+                    <span className="flex-1 text-xs">{label}</span>
+                  </label>
+                ))}
               </div>
             </div>
           )}

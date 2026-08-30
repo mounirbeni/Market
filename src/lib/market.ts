@@ -414,6 +414,12 @@ export function trustScore(
   const tcValid = new Date(v.technicalControl).getTime() > Date.parse("2026-08-24");
   if (tcValid) docs += 6;
   else flags.push({ level: "warn", k: "tcExpiring" });
+  /* التزامات مالية/قانونية معلّقة كتنتقل للمشتري — خصم حقيقي من
+     نقطة الثقة، ماشي غير علَم إعلامي */
+  if (v.unpaidVignette) { docs -= 3; flags.push({ level: "danger", k: "unpaidVignette" }); }
+  if (v.unpaidFines) { docs -= 3; flags.push({ level: "danger", k: "unpaidFines" }); }
+  if (v.underLien) { docs -= 6; flags.push({ level: "danger", k: "underLien" }); }
+  docs = Math.max(0, docs);
   parts.push({
     key: "docs",
     score: docs,
