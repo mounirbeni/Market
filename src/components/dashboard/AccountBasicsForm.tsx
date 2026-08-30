@@ -152,9 +152,12 @@ export function AccountBasicsForm({
       </div>
 
       <div>
-        <label className="label" htmlFor="ab-phone"><Phone size={13} /> {a.phoneLabel}</label>
+        <label className="label" htmlFor="ab-phone">
+          <Phone size={13} /> {a.phoneLabel}
+          <span style={{ color: "var(--text-dim)", fontWeight: 400 }}> ({a.optional})</span>
+        </label>
         <input
-          id="ab-phone" className="field num" dir="ltr" inputMode="tel" required
+          id="ab-phone" className="field num" dir="ltr" inputMode="tel"
           placeholder="0612345678"
           value={form.phone} onChange={(e) => set({ phone: e.target.value })}
         />

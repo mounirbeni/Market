@@ -2131,7 +2131,7 @@
     "metaTitle": "Complétez les informations de votre compte",
     "title": "Complétez les informations de votre compte",
     "leadSelling": "Complétez d'abord les informations de votre compte pour pouvoir publier votre annonce et profiter de tous les services de la plateforme.",
-    "leadDefault": "Il vous reste une étape pour profiter de tous les services de TRIQ : le nom, le téléphone, la ville, et le type de compte.",
+    "leadDefault": "Il vous reste une étape pour profiter de tous les services de TRIQ : le nom, la ville, et le type de compte. Le téléphone est facultatif mais facilite le contact avec vous.",
     "note": "Ces informations sont obligatoires pour garantir un échange réel entre vendeurs et acheteurs — la vérification d'identité reste totalement facultative.",
     "cta": "Continuer"
   },
@@ -2255,7 +2255,8 @@
     "cityPlaceholder": "Choisissez votre ville",
     "accountTypeLabel": "Type de compte",
     "dealerHint": "Après l'enregistrement, vous serez redirigé pour créer votre page concession.",
-    "saved": "Enregistré"
+    "saved": "Enregistré",
+    "optional": "facultatif"
   },
   "settingsPage": {
     "metaTitle": "Paramètres",

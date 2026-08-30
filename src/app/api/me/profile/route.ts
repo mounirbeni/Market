@@ -69,10 +69,10 @@ export async function POST(req: Request) {
 
   const finalCity = city || user.city;
   const finalPhone = phone ?? user.phone;
-  /* استكمال الملف الشخصي: الاسم حقيقي (ماشي الافتراضي)، الهاتف،
-     المدينة، ونوع الحساب — الأربعة خاصهم يوصلو لحالة صحيحة مرة
-     وحدة باش onboarded يتحط true. */
-  const complete = name.length >= 2 && name !== "مستعمل طريق" && Boolean(finalPhone) && Boolean(finalCity);
+  /* استكمال الملف الشخصي: الاسم حقيقي (ماشي الافتراضي) والمدينة
+     كافيين. الهاتف ماشي إلزامي هنا — ماكاينش مزوّد SMS يتحقق منو
+     أصلاً، فما كاينش داعي نجبرو المستخدم يدخلو باش ينشر إعلان. */
+  const complete = name.length >= 2 && name !== "مستعمل طريق" && Boolean(finalCity);
 
   await sql(
     `UPDATE users SET
