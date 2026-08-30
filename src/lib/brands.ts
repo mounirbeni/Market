@@ -74,16 +74,16 @@ export const brandBySlug = (slug: string) => BY_SLUG.get(slug);
  * شوف public/brands/README.md للمصادر وللوضع القانوني.
  */
 export const OFFICIAL_LOGOS = new Set<string>([
-  "abarth", "audi", "alfa-romeo", "alpine", "aston-martin", "baic", "bajaj", "dacia",
-  "bentley", "bmw", "byd", "changan", "chevrolet", "chery", "citroen",
-  "cupra", "deepal", "ds", "dongfeng", "exeed", "ferrari", "fiat", "ford",
-  "foton", "gaz", "geely", "harley-davidson", "honda", "hyundai", "isuzu",
-  "jac", "jaguar", "jeep", "jetour", "kia", "land-rover", "leapmotor", "lexus",
-  "mahindra", "maserati", "mazda", "mercedes", "mg", "mini", "mitsubishi",
-  "nissan", "opel", "peugeot", "porsche", "renault", "royal-enfield", "rox",
-  "seat", "skoda", "smart", "soueast", "ssangyong", "subaru", "suzuki",
-  "tata", "tesla", "toyota", "vespa", "volkswagen", "volvo", "yamaha", "xpeng",
-  "zeekr",
+  "abarth", "alfa-romeo", "alpine", "aston-martin", "audi", "baic",
+  "bajaj", "bentley", "bmw", "byd", "changan", "chery", "chevrolet",
+  "citroen", "cupra", "dacia", "deepal", "dongfeng", "ds", "exeed",
+  "ferrari", "fiat", "ford", "foton", "gaz", "geely", "harley-davidson",
+  "honda", "hyundai", "isuzu", "jac", "jaguar", "jeep", "jetour", "kia",
+  "ktm", "land-rover", "leapmotor", "lexus", "mahindra", "maserati",
+  "mazda", "mercedes", "mg", "mini", "mitsubishi", "nissan", "opel",
+  "peugeot", "porsche", "renault", "rox", "royal-enfield", "seat", "skoda",
+  "smart", "soueast", "ssangyong", "subaru", "suzuki", "tata", "tesla",
+  "toyota", "vespa", "volkswagen", "volvo", "xpeng", "yamaha", "zeekr",
 ]);
 
 /** الشعارات التي أُضيفت من carlogos.org بصيغة PNG. */
