@@ -2567,7 +2567,7 @@
     "removeTitle": "Supprimer du catalogue"
   },
   "siteMeta": {
-    "title": "TRIQ — Marché des voitures et motos d'occasion au Maroc",
+    "title": "tariq — Marché des voitures et motos d'occasion au Maroc",
     "description": "Le premier marché marocain qui vous donne un indice de confiance pour chaque annonce, un prix de référence calculé à partir du marché, et un coût d'usage réel en dirhams avant d'acheter votre voiture ou moto.",
     "keywords": [
       "voiture occasion maroc",
@@ -2577,8 +2577,8 @@
       "prix voiture maroc"
     ],
     "ogDescription": "Indice de confiance, prix de référence, et coût d'usage réel pour chaque véhicule d'occasion au Maroc.",
-    "ogImageAlt": "TRIQ",
-    "appleTitle": "TRIQ"
+    "ogImageAlt": "tariq",
+    "appleTitle": "tariq"
   },
   "notFoundPage": {
     "title": "Vous vous êtes perdu en chemin",

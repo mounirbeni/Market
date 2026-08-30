@@ -47,17 +47,17 @@ export async function generateMetadata({
   const t = await dictionaryOf(locale);
   const m = t.siteMeta;
   return {
-    metadataBase: new URL("https://triq.ma"),
+    metadataBase: new URL("https://tariqmaroc.com"),
     title: {
       default: m.title,
-      template: locale === "fr" ? "%s · TRIQ" : "%s · طريق TRIQ",
+      template: locale === "fr" ? "%s · tariq" : "%s · طريق tariq",
     },
     description: m.description,
     keywords: m.keywords,
     openGraph: {
       type: "website",
       locale: locale === "fr" ? "fr_MA" : "ar_MA",
-      siteName: "TRIQ",
+      siteName: "tariq",
       title: m.title,
       description: m.ogDescription,
       images: [{ url: "/hero-vehicles.webp", width: 1774, height: 887, alt: m.ogImageAlt }],

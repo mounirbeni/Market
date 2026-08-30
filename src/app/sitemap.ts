@@ -4,7 +4,7 @@ import { GUIDES } from "@/lib/data/guides";
 import { brandsOf } from "@/lib/slug";
 import { getDealers, getSitemapEntries } from "@/lib/source";
 
-const BASE = "https://triq.ma";
+const BASE = "https://tariqmaroc.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries = await getSitemapEntries();

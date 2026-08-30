@@ -233,9 +233,9 @@ const oneLine = (s: string, max = 90) =>
  * (مفيد للتجريب على نطاق مؤقت ديال Vercel).
  */
 const siteUrl = () =>
-  (process.env.NEXT_PUBLIC_SITE_URL || "https://triq.ma").replace(/\/+$/, "");
+  (process.env.NEXT_PUBLIC_SITE_URL || "https://tariqmaroc.com").replace(/\/+$/, "");
 
-/** رابط مطلق من مسار داخلي: "/messages" → "https://triq.ma/messages" */
+/** رابط مطلق من مسار داخلي: "/messages" → "https://tariqmaroc.com/messages" */
 const abs = (path: string) => `${siteUrl()}${path.startsWith("/") ? path : `/${path}`}`;
 
 /**
