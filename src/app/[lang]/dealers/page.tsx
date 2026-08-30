@@ -1,18 +1,28 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { getDealerCounts, getDealers } from "@/lib/source";
-import { cityName } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
+import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
+import { cityLabel } from "@/lib/i18n/labels";
 import { ArrowLeft, BadgeCheck, Car, Clock, MapPin, Star, Users } from "@/components/icons";
 
-export const metadata: Metadata = {
-  title: "الوكلاء والمعارض المعتمدة",
-  description:
-    "لائحة المعارض والوكلاء المعتمدين في المغرب: مخزون المركبات، التقييمات، العنوان وساعات العمل.",
-  alternates: { canonical: "/dealers" },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  return {
+    title: t.dealersPage.metaTitle,
+    description: t.dealersPage.metaDesc,
+    alternates: { canonical: localePath("/dealers", locale) },
+  };
+}
 
 export default async function DealersPage() {
+  const t = await getDictionary();
+  const locale = await getLocale();
   const [counts, dealers] = await Promise.all([getDealerCounts(), getDealers()]);
   const rows = dealers
     .map((d) => ({ d, count: counts[d.slug] ?? 0 }))
@@ -23,20 +33,16 @@ export default async function DealersPage() {
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-10">
       <header className="mb-9 max-w-2xl">
-        <span className="eyebrow"><Users size={13} /> بائعون محترفون</span>
-        <h1 className="h-page mt-4">الوكلاء والمعارض</h1>
+        <span className="eyebrow"><Users size={13} /> {t.dealersPage.eyebrow}</span>
+        <h1 className="h-page mt-4">{t.dealersPage.title}</h1>
         <p className="mt-3 text-[15px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
           {rows.length > 0 ? (
             <>
-              <span className="num">{rows.length}</span> معرضاً معتمداً كيعرضو{" "}
-              <span className="num">{formatNumber(totalListings)}</span> مركبة. كل معرض موثّق
-              بهوية تجارية وتقييمات من مشترين حقيقيين.
+              <span className="num">{rows.length}</span> {t.dealersPage.leadFoundA}{" "}
+              <span className="num">{formatNumber(totalListings)}</span> {t.dealersPage.leadFoundB}
             </>
           ) : (
-            <>
-              باقي ماتسجّل حتى معرض. المعارض المعتمدة كيتوثّقو بالسجل التجاري،
-              وكيبانو هنا بالمخزون ديالهم وساعات العمل والعنوان.
-            </>
+            <>{t.dealersPage.leadEmpty}</>
           )}
         </p>
       </header>
@@ -57,7 +63,7 @@ export default async function DealersPage() {
                 </span>
                 {d.verified && (
                   <span className="tag absolute top-3 end-3" style={{ background: "rgba(255,255,255,0.16)", color: "#fff" }}>
-                    <BadgeCheck size={11} /> موثّق
+                    <BadgeCheck size={11} /> {t.dealersPage.verified}
                   </span>
                 )}
               </div>
@@ -67,12 +73,12 @@ export default async function DealersPage() {
                 <p className="mt-0.5 text-[11.5px]" style={{ color: "var(--text-dim)" }}>{d.tagline}</p>
 
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  <span className="chip chip-plain"><MapPin size={11} /> {cityName(d.city)}</span>
+                  <span className="chip chip-plain"><MapPin size={11} /> {cityLabel(d.city, locale)}</span>
                   <span className="chip chip-plain">
                     <Star size={11} filled style={{ color: "var(--warn)" }} />
                     <span className="num">{d.rating.toFixed(1)}</span>
                   </span>
-                  <span className="chip chip-plain"><Car size={11} /> <span className="num">{count}</span> مركبة</span>
+                  <span className="chip chip-plain"><Car size={11} /> <span className="num">{count}</span> {t.dealersPage.vehicle}</span>
                 </div>
 
                 <p className="mt-3 flex items-center gap-1.5 text-[11px]" style={{ color: "var(--text-dim)" }}>
@@ -83,7 +89,7 @@ export default async function DealersPage() {
                   className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-bold transition-all"
                   style={{ color: "var(--brand)" }}
                 >
-                  شوف المعرض <ArrowLeft size={14} className="dir-flip" />
+                  {t.dealersPage.seeDealer} <ArrowLeft size={14} className="dir-flip" />
                 </span>
               </div>
             </Link>

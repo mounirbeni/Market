@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { notFound } from "next/navigation";
 import { getDealer, getDealerListings } from "@/lib/source";
-import { cityName } from "@/lib/cities";
 import { formatNumber } from "@/lib/format";
+import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
+import { cityLabel } from "@/lib/i18n/labels";
 import { trustOf } from "@/lib/market";
 import { brandSlug } from "@/lib/slug";
 import { VehicleCard } from "@/components/VehicleCard";
@@ -25,21 +27,25 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
-}: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
+}: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
+  const { lang, slug } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
   const d = await getDealer(slug);
-  if (!d) return { title: "معرض غير موجود" };
+  if (!d) return { title: t.dealerPage.notFound };
   return {
-    title: `${d.name} — ${cityName(d.city)}`,
+    title: `${d.name} — ${cityLabel(d.city, locale)}`,
     description: `${d.tagline}. ${d.about.slice(0, 120)}`,
-    alternates: { canonical: `/dealer/${slug}` },
+    alternates: { canonical: localePath(`/dealer/${slug}`, locale) },
   };
 }
 
-export default async function DealerPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function DealerPage({ params }: { params: Promise<{ lang: string; slug: string }> }) {
   const { slug } = await params;
   const d = await getDealer(slug);
   if (!d) notFound();
+  const t = await getDictionary();
+  const locale = await getLocale();
 
   const listings = await getDealerListings(d.slug);
   const avgTrust = listings.length
@@ -54,7 +60,7 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
     "@type": "AutoDealer",
     name: d.name,
     description: d.about,
-    address: { "@type": "PostalAddress", streetAddress: d.address, addressLocality: cityName(d.city), addressCountry: "MA" },
+    address: { "@type": "PostalAddress", streetAddress: d.address, addressLocality: cityLabel(d.city, locale), addressCountry: "MA" },
     ...(d.rating > 0 && d.salesCount > 0
       ? { aggregateRating: { "@type": "AggregateRating", ratingValue: d.rating, bestRating: 5, ratingCount: d.salesCount } }
       : {}),
@@ -86,7 +92,7 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
               <h1 className="h-section">{d.name}</h1>
               {d.verified && (
                 <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
-                  <BadgeCheck size={11} /> وكيل موثّق
+                  <BadgeCheck size={11} /> {t.dealerPage.verifiedDealer}
                 </span>
               )}
             </div>
@@ -99,10 +105,10 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
             {/* الأرقام */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
-                { Icon: Car, v: formatNumber(listings.length), l: "مركبة معروضة" },
-                { Icon: ShieldCheck, v: `${avgTrust}/100`, l: "متوسط الثقة" },
-                { Icon: BadgeCheck, v: formatNumber(inspected), l: "مفحوصة" },
-                { Icon: Users, v: formatNumber(d.salesCount), l: "عملية بيع" },
+                { Icon: Car, v: formatNumber(listings.length), l: t.dealerPage.statVehicles },
+                { Icon: ShieldCheck, v: `${avgTrust}/100`, l: t.dealerPage.statTrust },
+                { Icon: BadgeCheck, v: formatNumber(inspected), l: t.dealerPage.statInspected },
+                { Icon: Users, v: formatNumber(d.salesCount), l: t.dealerPage.statSales },
               ].map((s) => (
                 <div key={s.l} className="card flex items-center gap-3 p-4">
                   <span
@@ -121,7 +127,7 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
 
             {/* عن المعرض */}
             <section className="card p-5">
-              <h2 className="text-[15px] font-bold">عن المعرض</h2>
+              <h2 className="text-[15px] font-bold">{t.dealerPage.aboutTitle}</h2>
               <p className="mt-2.5 text-[13px] leading-loose" style={{ color: "var(--text-muted)" }}>
                 {d.about}
               </p>
@@ -141,9 +147,9 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
             {/* المخزون */}
             <section>
               <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-                <h2 className="h-section">مخزون المعرض</h2>
+                <h2 className="h-section">{t.dealerPage.inventoryTitle}</h2>
                 <p className="text-xs" style={{ color: "var(--text-dim)" }}>
-                  <span className="num">{cars}</span> سيارة · <span className="num">{motos}</span> دراجة
+                  <span className="num">{cars}</span> {t.dealerPage.car} · <span className="num">{motos}</span> {t.dealerPage.moto}
                 </p>
               </div>
               {listings.length ? (
@@ -152,7 +158,7 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
                 </div>
               ) : (
                 <div className="card p-10 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-                  ماكاين حتى مركبة معروضة حالياً.
+                  {t.dealerPage.noInventory}
                 </div>
               )}
             </section>
@@ -163,7 +169,7 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
             <DealerContact dealer={d} />
 
             <section className="card p-5">
-              <h2 className="text-[13px] font-bold">معلومات المعرض</h2>
+              <h2 className="text-[13px] font-bold">{t.dealerPage.infoTitle}</h2>
               <ul className="mt-3 space-y-3 text-[12px]">
                 <li className="flex gap-2.5">
                   <MapPin size={15} className="mt-0.5 shrink-0" style={{ color: "var(--text-dim)" }} />
@@ -176,19 +182,19 @@ export default async function DealerPage({ params }: { params: Promise<{ slug: s
                 <li className="flex gap-2.5">
                   <Star size={15} className="mt-0.5 shrink-0" style={{ color: "var(--warn)" }} filled />
                   <span style={{ color: "var(--text-muted)" }}>
-                    <span className="num">{d.rating.toFixed(1)}</span> من 5 ·{" "}
-                    <span className="num">{d.salesCount}</span> تقييم
+                    <span className="num">{d.rating.toFixed(1)}</span> {t.dealerPage.outOf5} ·{" "}
+                    <span className="num">{d.salesCount}</span> {t.dealerPage.ratingsCount}
                   </span>
                 </li>
                 <li className="flex gap-2.5">
                   <Timer size={15} className="mt-0.5 shrink-0" style={{ color: "var(--text-dim)" }} />
                   <span style={{ color: "var(--text-muted)" }}>
-                    كيجاوب في ~<span className="num">{d.responseMinutes}</span> دقيقة
+                    {t.dealerPage.respondsIn}<span className="num">{d.responseMinutes}</span> {t.dealerPage.minutes}
                   </span>
                 </li>
                 <li className="flex gap-2.5">
                   <Navigation size={15} className="mt-0.5 shrink-0" style={{ color: "var(--text-dim)" }} />
-                  <span style={{ color: "var(--text-muted)" }}>عضو منذ <span className="num">{d.since}</span></span>
+                  <span style={{ color: "var(--text-muted)" }}>{t.dealerPage.memberSince} <span className="num">{d.since}</span></span>
                 </li>
               </ul>
             </section>

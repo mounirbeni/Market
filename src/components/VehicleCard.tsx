@@ -6,7 +6,7 @@ import { useMemo, ViewTransition } from "react";
 import type { Vehicle } from "@/lib/types";
 import { formatNumber } from "@/lib/format";
 import { useDict, useLocale } from "@/lib/i18n/client";
-import { cityLabel, fmtTimeAgo, kmUnit, specs } from "@/lib/i18n/labels";
+import { cityLabel, fmtTimeAgo, kmUnit, promoLabel, specs } from "@/lib/i18n/labels";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { promoOf } from "@/lib/promo";
 import { useApp } from "@/store/app";
@@ -86,13 +86,14 @@ function CardActions({ v }: { v: Vehicle }) {
 
 function Badges({ v, featured = false }: { v: Vehicle; featured?: boolean }) {
   const t = useDict();
+  const locale = useLocale();
   const promo = promoOf(v);
   return (
     <div className="absolute top-3 start-3 z-10 flex flex-wrap justify-end gap-1.5">
       {promo ? (
         <span className="tag" style={{ background: promo.color, color: "#fff" }}>
           {promo.tier === "urgent" ? <Timer size={11} /> : promo.tier === "top" ? <TrendingUp size={11} /> : <Sparkle size={11} />}
-          {promo.label}
+          {promoLabel(promo.tier, locale, t)}
         </span>
       ) : featured && (
         <span className="tag" style={{ background: "var(--warn)", color: "#fff" }}>
@@ -245,7 +246,7 @@ export function VehicleRow({ v }: { v: Vehicle }) {
                   </h3>
                   {rowPromo && (
                     <span className="tag" style={{ background: `color-mix(in oklab, ${rowPromo.color} 14%, transparent)`, color: rowPromo.color }}>
-                      <Sparkle size={11} /> {rowPromo.label}
+                      <Sparkle size={11} /> {promoLabel(rowPromo.tier, locale, t)}
                     </span>
                   )}
                   {v.inspected && <span className="tag tag-good"><BadgeCheck size={11} /> {t.card.inspected}</span>}

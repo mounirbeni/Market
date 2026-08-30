@@ -1058,5 +1058,133 @@
     "back": "Retour",
     "next": "Suivant",
     "seeSuggestions": "Voir les suggestions"
+  },
+  "dealersPage": {
+    "metaTitle": "Concessionnaires et garages agréés",
+    "metaDesc": "Liste des concessionnaires et garages agréés au Maroc : stock de véhicules, avis, adresse et horaires.",
+    "eyebrow": "Vendeurs professionnels",
+    "title": "Concessionnaires et garages",
+    "leadFoundA": "concessionnaires agréés proposent",
+    "leadFoundB": "véhicules. Chaque concessionnaire est vérifié par son identité commerciale et noté par de vrais acheteurs.",
+    "leadEmpty": "Aucun concessionnaire inscrit pour le moment. Les concessionnaires agréés sont vérifiés par leur registre de commerce, et apparaissent ici avec leur stock, leurs horaires et leur adresse.",
+    "verified": "Vérifié",
+    "vehicle": "véhicules",
+    "seeDealer": "Voir le concessionnaire"
+  },
+  "dealerPage": {
+    "notFound": "Concessionnaire introuvable",
+    "verifiedDealer": "Concessionnaire vérifié",
+    "statVehicles": "véhicules en stock",
+    "statTrust": "Confiance moyenne",
+    "statInspected": "Inspectées",
+    "statSales": "ventes",
+    "aboutTitle": "À propos",
+    "inventoryTitle": "Stock du concessionnaire",
+    "car": "voiture",
+    "moto": "moto",
+    "noInventory": "Aucun véhicule en stock actuellement.",
+    "infoTitle": "Informations",
+    "outOf5": "sur 5",
+    "ratingsCount": "avis",
+    "respondsIn": "Répond en ~",
+    "minutes": "min",
+    "memberSince": "Membre depuis"
+  },
+  "dealerContact": {
+    "title": "Contacter le concessionnaire",
+    "revealPhone": "Afficher le numéro",
+    "whatsapp": "WhatsApp",
+    "whatsappText": "Bonjour, je souhaite me renseigner sur les véhicules de {name}",
+    "bookVisit": "Demander un rendez-vous",
+    "share": "Partager",
+    "copied": "Lien copié"
+  },
+  "promotePage": {
+    "metaTitle": "Boostez votre annonce — vendez plus vite",
+    "metaDesc": "Options de mise en avant sur TRIQ : en tête de liste, vente urgente, annonce en vedette. Comparez les vues et le prix de chaque option.",
+    "loading": "Chargement…",
+    "eyebrow": "Pour les vendeurs",
+    "title": "Boostez votre annonce et vendez plus vite",
+    "lead": "Publier une annonce est toujours gratuit. La mise en avant est optionnelle — elle fait voir votre annonce à plus de monde, plus vite. Pas d'abonnement mensuel, vous ne payez que pour l'annonce que vous choisissez de booster.",
+    "promotingListing": "Annonce à booster",
+    "view": "vues",
+    "viewPerDay": "vues/jour",
+    "seeListing": "Voir l'annonce",
+    "mostRequested": "Le plus demandé",
+    "perDays": "jours",
+    "estimateTitleA": "Estimation avec «",
+    "estimateTitleB": "»",
+    "estimateLead": "Calculé à partir de la performance moyenne d'annonces similaires dans la même catégorie. Le résultat réel varie selon le prix, l'état et la qualité des photos.",
+    "withoutBoost": "Sans boost",
+    "costPerView": "Coût par vue",
+    "duration": "Durée",
+    "total": "Total",
+    "requested": "Demande enregistrée",
+    "sending": "Envoi…",
+    "activateA": "Activer «",
+    "activateB": "» pour",
+    "backToListings": "Retour aux annonces",
+    "pickListingA": "Choisissez une annonce dans",
+    "pickListingB": "à booster.",
+    "yourListings": "vos annonces",
+    "requestedNote": "Votre demande est enregistrée. Le boost s'active une fois le paiement confirmé — nous vous contacterons.",
+    "preRequestNote": "Le paiement par carte bancaire et par agence n'est pas encore activé. Pour l'instant, la demande est enregistrée et nous vous contacterons pour le règlement.",
+    "loginRequired": "Vous devez vous connecter pour booster votre annonce.",
+    "genericError": "Impossible d'enregistrer la demande. Réessayez.",
+    "networkError": "Connexion interrompue. Réessayez.",
+    "faqTitle": "Questions sur la mise en avant",
+    "faqs": [
+      [
+        "La mise en avant garantit-elle la vente ?",
+        "Non. Elle augmente les vues, pas la vente. Un prix raisonnable, des photos claires et des documents en règle sont ce qui vend vraiment."
+      ],
+      [
+        "Puis-je changer de formule après coup ?",
+        "Oui. Vous pouvez passer de « Vedette » à « En tête de liste » et seule la différence sur les jours restants vous est facturée."
+      ],
+      [
+        "Que se passe-t-il à la fin de la période ?",
+        "L'annonce redevient normale et reste publiée. Pas de renouvellement automatique, aucun prélèvement sans votre accord."
+      ],
+      [
+        "Achetez-vous le classement dans la recherche ?",
+        "La mise en avant améliore le classement, mais l'indice de confiance et le prix juste ne sont jamais falsifiés. Une annonce boostée avec un faible indice de confiance garde son vrai score affiché."
+      ]
+    ]
+  },
+  "promo": {
+    "top": {
+      "label": "En tête de liste",
+      "short": "En tête",
+      "blurb": "Votre annonce apparaît dans les 3 premiers résultats de chaque recherche correspondant à votre véhicule.",
+      "benefits": [
+        "3 premiers résultats pour chaque recherche correspondante",
+        "Cadre bleu et badge visible sur la carte",
+        "Apparition dans la section « Véhicules en vedette » de la page d'accueil",
+        "Statistiques détaillées : vues, favoris, clics sur le numéro",
+        "30 jours"
+      ]
+    },
+    "urgent": {
+      "label": "Vente urgente",
+      "short": "Urgent",
+      "blurb": "Montrez aux acheteurs que vous voulez vendre vite — augmente nettement les contacts.",
+      "benefits": [
+        "Badge rouge « Vente urgente » sur la carte et la page de l'annonce",
+        "Priorité de classement sur les annonces normales",
+        "Filtre dédié : les acheteurs à la recherche d'une affaire vous trouvent",
+        "21 jours"
+      ]
+    },
+    "featured": {
+      "label": "Annonce en vedette",
+      "short": "Vedette",
+      "blurb": "L'essentiel : votre carte affiche un badge doré et se démarque du reste.",
+      "benefits": [
+        "Badge « Vedette » sur la carte",
+        "Léger boost de classement",
+        "14 jours"
+      ]
+    }
   }
 }

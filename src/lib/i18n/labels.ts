@@ -199,3 +199,24 @@ export const sellerDisplayName = (name: string, locale: Locale) =>
   name === DEFAULT_SELLER_NAME
     ? (locale === "fr" ? "Utilisateur TRIQ" : DEFAULT_SELLER_NAME)
     : name;
+
+/* ============================================================
+   درجات الترويج (promo.ts)
+
+   `PROMOS` بقات عربية — الداشبورد والإدارة كيقراوها مباشرة، وماشي
+   دابا وقتهم. هنا كنعطيو نسخة مترجمة للسطوح العمومية (بطاقة
+   المركبة، صفحة الترويج) بلا ما نمسّو المصدر الأصلي.
+   ============================================================ */
+import type { PromoTier } from "@/lib/promo";
+import { PROMOS } from "@/lib/promo";
+import type { Dictionary } from "./server";
+
+export function promoLabel(tier: PromoTier, locale: Locale, t: Dictionary): string {
+  return locale === "fr" ? t.promo[tier].label : PROMOS[tier].label;
+}
+export function promoBlurb(tier: PromoTier, locale: Locale, t: Dictionary): string {
+  return locale === "fr" ? t.promo[tier].blurb : PROMOS[tier].blurb;
+}
+export function promoBenefits(tier: PromoTier, locale: Locale, t: Dictionary): string[] {
+  return locale === "fr" ? t.promo[tier].benefits : PROMOS[tier].benefits;
+}
