@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
+import { useDict } from "@/lib/i18n/client";
 import { AccountBasicsForm } from "./AccountBasicsForm";
 import {
   BadgeCheck, Bell, IdCard, Info, ShieldCheck, Sparkle, Users,
@@ -15,6 +16,8 @@ interface VerifState {
 }
 
 export function DashboardSettings() {
+  const t = useDict();
+  const s = t.settingsPage;
   const { unit, setUnit, theme, toggleTheme } = useApp();
   const { user, signOut } = useSession();
 
@@ -22,14 +25,14 @@ export function DashboardSettings() {
     <div className="grid gap-5 lg:grid-cols-2">
       <div className="card p-5">
         <h2 className="flex items-center gap-2 text-[14px] font-bold">
-          <Users size={16} style={{ color: "var(--brand)" }} /> معلومات الحساب
+          <Users size={16} style={{ color: "var(--brand)" }} /> {s.accountInfoTitle}
         </h2>
         <Link
           href="/dashboard/trust"
           className="mt-2 flex items-center gap-1.5 text-[11px] font-bold transition hover:gap-2.5"
           style={{ color: "var(--brand)" }}
         >
-          <Sparkle size={12} /> شوف مركز الثقة والأمان ديالك
+          <Sparkle size={12} /> {s.seeTrustCenter}
         </Link>
         <div className="mt-4">
           <AccountBasicsForm />
@@ -40,11 +43,11 @@ export function DashboardSettings() {
 
       <section className="card p-5">
         <h2 className="flex items-center gap-2 text-[14px] font-bold">
-          <Bell size={16} style={{ color: "var(--brand)" }} /> العرض
+          <Bell size={16} style={{ color: "var(--brand)" }} /> {s.displayTitle}
         </h2>
         <div className="mt-4 space-y-3">
           <div>
-            <span className="label">وحدة الثمن</span>
+            <span className="label">{s.priceUnit}</span>
             <div className="flex gap-1.5">
               {(["dh", "million"] as const).map((u) => (
                 <button
@@ -56,15 +59,15 @@ export function DashboardSettings() {
                     color: unit === u ? "var(--brand)" : "var(--text-muted)",
                   }}
                 >
-                  {u === "dh" ? "درهم" : "مليون"}
+                  {u === "dh" ? s.dh : s.million}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <span className="label">المظهر</span>
+            <span className="label">{s.theme}</span>
             <button type="button" onClick={toggleTheme} className="btn btn-solid btn-sm">
-              {theme === "dark" ? "فاتح" : "غامق"}
+              {theme === "dark" ? s.light : s.dark}
             </button>
           </div>
           <p
@@ -72,16 +75,16 @@ export function DashboardSettings() {
             style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
           >
             <Info size={13} className="mt-px shrink-0" style={{ color: "var(--data)" }} />
-            هاد الإعدادات كتبقى فالمتصفح ديال هاد الجهاز وحدو.
+            {s.localOnly}
           </p>
         </div>
       </section>
 
       <section className="card p-5">
         <h2 className="flex items-center gap-2 text-[14px] font-bold">
-          <ShieldCheck size={16} style={{ color: "var(--brand)" }} /> الحساب
+          <ShieldCheck size={16} style={{ color: "var(--brand)" }} /> {s.accountTitle}
         </h2>
-        <button onClick={signOut} className="btn btn-solid btn-sm mt-4">خروج</button>
+        <button onClick={signOut} className="btn btn-solid btn-sm mt-4">{s.signOut}</button>
       </section>
     </div>
   );
@@ -94,6 +97,8 @@ export function DashboardSettings() {
    كترفع البطاقة، والمشرف كيشوفها وكيقرّر.
    ============================================================ */
 function VerificationCard({ verified, pro }: { verified: boolean; pro: boolean }) {
+  const t = useDict();
+  const s = t.settingsPage;
   const [state, setState] = useState<VerifState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +124,7 @@ function VerificationCard({ verified, pro }: { verified: boolean; pro: boolean }
       body: file,
     });
     const json = await res.json();
-    if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نرفعو الوثيقة.");
+    if (!json?.ok) throw new Error(json?.error ?? s.docUploadError);
     return json.data.pathname as string;
   }
 
@@ -140,10 +145,10 @@ function VerificationCard({ verified, pro }: { verified: boolean; pro: boolean }
         body: JSON.stringify({ kind: pro ? "registre" : "cin", doc, back: backPath }),
       });
       const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نسجّلو الطلب.");
+      if (!json?.ok) throw new Error(json?.error ?? s.requestError);
       setState({ verified: false, request: { kind: "cin", status: "pending", note: null, created_at: new Date().toISOString() } });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ماقدرناش.");
+      setError(err instanceof Error ? err.message : s.genericError);
     } finally {
       setBusy(false);
     }
@@ -155,18 +160,18 @@ function VerificationCard({ verified, pro }: { verified: boolean; pro: boolean }
   return (
     <section className="card p-5">
       <h2 className="flex items-center gap-2 text-[14px] font-bold">
-        <IdCard size={16} style={{ color: "var(--brand)" }} /> توثيق الهوية
+        <IdCard size={16} style={{ color: "var(--brand)" }} /> {s.idVerificationTitle}
       </h2>
 
       {done ? (
         <p className="mt-4 flex items-center gap-2 rounded-lg p-3 text-[12.5px]"
           style={{ background: "var(--good-soft)", color: "var(--good)" }}>
-          <BadgeCheck size={16} /> هويتك موثّقة. الشارة كتبان فكل إعلاناتك.
+          <BadgeCheck size={16} /> {s.idVerifiedText}
         </p>
       ) : status === "pending" ? (
         <p className="mt-4 rounded-lg p-3 text-[12.5px] leading-relaxed"
           style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}>
-          الطلب ديالك فانتظار المراجعة. غادي نجاوبوك فأقرب وقت.
+          {s.pendingText}
         </p>
       ) : (
         <form onSubmit={submit} className="mt-4 space-y-3">
@@ -174,35 +179,34 @@ function VerificationCard({ verified, pro }: { verified: boolean; pro: boolean }
             className="space-y-1 rounded-lg p-3 text-[11.5px] leading-relaxed"
             style={{ background: "var(--brand-soft)", color: "var(--text-muted)" }}
           >
-            <li>· توثيق الحساب اختياري تماماً — ماشي شرط باش تستعمل المنصة.</li>
-            <li>· اللي كيوثّق كيربح: مؤشر ثقة أعلى، شارة «حساب موثق»، وثقة أكبر من المشترين.</li>
+            <li>· {s.optionalNote}</li>
+            <li>· {s.benefitNote}</li>
           </ul>
           {status === "rejected" && (
             <p className="rounded-lg p-3 text-[12px] leading-relaxed"
               style={{ background: "var(--bad-soft, var(--surface-3))", color: "var(--bad)" }}>
-              الطلب السابق تّرفض.
-              {state?.request?.note ? ` السبب: ${state.request.note}` : ""} تقدّر تعاود.
+              {s.rejectedPrefix}
+              {state?.request?.note ? ` ${s.rejectedReason} ${state.request.note}` : ""} {s.canRetry}
             </p>
           )}
           <p className="text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            صوّر {pro ? "السجل التجاري" : "البطاقة الوطنية"} وارفعها. الوثيقة
-            كيشوفها غير فريق المراجعة — عمرها ما كتبان فالموقع.
+            {s.uploadInstructionA} {pro ? s.registreCommerce : s.cinCard} {s.uploadInstructionB}
           </p>
           <div>
             <label className="label" htmlFor="v-front">
-              {pro ? "السجل التجاري" : "الوجه الأمامي"}
+              {pro ? s.registreCommerce : s.frontLabel}
             </label>
             <input id="v-front" ref={front} type="file" accept="image/*" required className="field" />
           </div>
           {!pro && (
             <div>
-              <label className="label" htmlFor="v-back">الوجه الخلفي (اختياري)</label>
+              <label className="label" htmlFor="v-back">{s.backLabel}</label>
               <input id="v-back" ref={back} type="file" accept="image/*" className="field" />
             </div>
           )}
           {error && <p className="text-[12px] font-bold" style={{ color: "var(--bad)" }}>{error}</p>}
           <button className="btn btn-primary btn-sm" disabled={busy}>
-            {busy ? "كنرفعو…" : "صيفط للمراجعة"}
+            {busy ? s.uploading : s.submitForReview}
           </button>
         </form>
       )}

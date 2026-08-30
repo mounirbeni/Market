@@ -1,66 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDict } from "@/lib/i18n/client";
 import { Diagnostic, FileText, Scale, Wallet } from "@/components/icons";
 
-const GROUPS = [
-  {
-    title: "قبل ما تمشي",
-    Icon: Scale,
-    color: "var(--brand)",
-    items: [
-      "قارن الثمن مع الثمن المرجعي ديال طريق",
-      "شوف مؤشر الثقة وقرا التنبيهات كاملة",
-      "سول البائع على رقم الهيكل (VIN) وتحقق منه",
-      "اطلب صور إضافية للمحرك وأرضية الصندوق",
-      "تأكد من صلاحية الفحص التقني والتأمين",
-    ],
-  },
-  {
-    title: "فوقت المعاينة",
-    Icon: Diagnostic,
-    color: "var(--good)",
-    items: [
-      "تلاقاو نهاراً وفبلاصة عامة ومعروفة",
-      "جيب معاك شي حد كيفهم فالميكانيك",
-      "شوف المحرك بارد — ماشي مسخّن من قبل",
-      "قارن رقم الهيكل على المركبة مع البطاقة الرمادية",
-      "شوف سماكة الصباغة وفراغات القطع",
-      "جرّب المركبة على الأقل 15 دقيقة، فالمدينة وفالطريق السيار",
-      "اختبر الفرامل، التوجيه، المكيف وكل الأضواء",
-      "قرا أخطاء الحاسوب (OBD) إذا أمكن",
-    ],
-  },
-  {
-    title: "الوثائق",
-    Icon: FileText,
-    color: "var(--data)",
-    items: [
-      "البطاقة الرمادية أصلية وفسمية البائع",
-      "البطاقة الوطنية للبائع مطابقة للاسم",
-      "شهادة عدم الرهن / عدم الحجز",
-      "الفحص التقني ساري المفعول",
-      "الوصولات ديال الفينيات مدفوعة",
-      "دفتر الصيانة والفواتير",
-    ],
-  },
-  {
-    title: "الأداء والتحويل",
-    Icon: Wallet,
-    color: "var(--warn)",
-    items: [
-      "ماتدفعش عربوناً قبل ما تشوف المركبة والوثائق",
-      "الأداء يكون بحضور شهود أو عبر تحويل بنكي موثّق",
-      "حرّر عقد بيع مكتوب بنسختين مع نسخ البطائق",
-      "دير التحويل (المطالبة بتغيير الملكية) داخل 30 يوماً",
-      "احتفظ بنسخة من كل شي حتى تخرج البطاقة الجديدة بسميتك",
-    ],
-  },
-];
+const GROUP_ICONS = [
+  { Icon: Scale, color: "var(--brand)" },
+  { Icon: Diagnostic, color: "var(--good)" },
+  { Icon: FileText, color: "var(--data)" },
+  { Icon: Wallet, color: "var(--warn)" },
+] as const;
 
 const KEY = "triq:checklist";
 
 export function SafetyChecklist() {
+  const t = useDict();
+  const groups = t.safetyChecklist.groups.map((g, i) => ({ ...g, ...GROUP_ICONS[i] }));
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [ready, setReady] = useState(false);
 
@@ -83,14 +38,14 @@ export function SafetyChecklist() {
     }
   }, [done, ready]);
 
-  const total = GROUPS.reduce((s, g) => s + g.items.length, 0);
+  const total = groups.reduce((s, g) => s + g.items.length, 0);
   const checked = Object.values(done).filter(Boolean).length;
 
   return (
     <div id="checklist">
       <div className="card mb-5 p-4">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-extrabold">تقدّمك في اللائحة</span>
+          <span className="font-extrabold">{t.safetyChecklist.progress}</span>
           <span className="num font-bold" style={{ color: "var(--brand)" }}>
             {checked} / {total}
           </span>
@@ -107,13 +62,13 @@ export function SafetyChecklist() {
             className="mt-2 text-[11px] underline"
             style={{ color: "var(--text-dim)" }}
           >
-            إعادة الضبط
+            {t.safetyChecklist.reset}
           </button>
         )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {GROUPS.map((g) => (
+        {groups.map((g) => (
           <div key={g.title} className="card p-5">
             <h3 className="mb-3 flex items-center gap-2.5 text-sm font-extrabold">
               <span

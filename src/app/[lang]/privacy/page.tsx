@@ -1,74 +1,25 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/LegalPage";
+import { dictionaryOf, getDictionary } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "سياسة الخصوصية",
-  description: "كيفاش كنجمعو ونستعملو ونحميو معطياتك الشخصية فمنصة طريق.",
-  alternates: { canonical: "/privacy" },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  return {
+    title: t.privacyPage.metaTitle,
+    description: t.privacyPage.metaDescription,
+    alternates: { canonical: localePath("/privacy", locale) },
+  };
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const t = await getDictionary();
+  const p = t.privacyPage;
   return (
-    <LegalPage
-      title="سياسة الخصوصية"
-      updated="غشت 2026"
-      intro="هاد السياسة كتشرح شنو كنجمعو من معطيات، علاش، وكيفاش كنحميوه."
-      sections={[
-        {
-          heading: "1. المعطيات اللي كنجمعوها",
-          list: [
-            "معطيات الحساب: الاسم، رقم الهاتف، نوع الحساب",
-            "معطيات الإعلانات: معلومات المركبة، الصور، الثمن، المدينة",
-            "معطيات الاستعمال: الصفحات اللي زرتيها، البحوث، المركبات المحفوظة",
-            "معطيات تقنية: نوع المتصفح، الجهاز، عنوان IP",
-          ],
-        },
-        {
-          heading: "2. علاش كنستعملوها",
-          list: [
-            "تشغيل الخدمة: عرض الإعلانات، البحث، المراسلة",
-            "الأمان: كشف الحسابات المزيفة ومحاولات النصب",
-            "التحسين: فهم كيفاش كيتستعمل الموقع باش نحسنوه",
-            "التواصل: إشعارات على رسائلك وإعلاناتك وتنبيهات الأثمنة اللي فعّلتيها",
-          ],
-        },
-        {
-          heading: "3. شنو كنشاركو مع الآخرين",
-          body: [
-            "المعطيات اللي كتبان للعموم هي اللي كتنشرها فالإعلان: معلومات المركبة، المدينة، واسم العرض.",
-            "رقم الهاتف كيتبان فقط ملي كيضغط المستعمل على «أظهر الرقم». ماكنبيعوش المعطيات الشخصية لأي طرف ثالث.",
-          ],
-        },
-        {
-          id: "cookies",
-          heading: "4. ملفات تعريف الارتباط",
-          body: [
-            "كنستعملو التخزين المحلي فالمتصفح باش نحفظو تفضيلاتك: المفضلة، المقارنة، وحدة الثمن، والمظهر.",
-            "هاد المعطيات كتبقى فجهازك وكتقدر تمسحها فأي وقت من إعدادات المتصفح.",
-          ],
-        },
-        {
-          heading: "5. حقوقك",
-          list: [
-            "الوصول للمعطيات ديالك وتصحيحها",
-            "حذف حسابك وكل معطياتك",
-            "الاعتراض على استعمال معطياتك لأغراض التحسين",
-            "سحب موافقتك على الإشعارات فأي وقت",
-          ],
-        },
-        {
-          heading: "6. الأمان",
-          body: [
-            "كنطبّقو إجراءات تقنية وتنظيمية لحماية المعطيات. ومع ذلك، ماكاين حتى نظام آمن 100٪، وكنوصيوك باستعمال رقم هاتف موثّق وبعدم مشاركة معطيات حساسة فالرسائل.",
-          ],
-        },
-        {
-          heading: "7. الاتصال",
-          body: [
-            "لأي سؤال على معطياتك، ولا باش تطلب حذف حسابك، تواصل معنا عبر صفحة الاتصال.",
-          ],
-        },
-      ]}
-    />
+    <LegalPage title={p.title} updated={p.updated} intro={p.intro} sections={p.sections} />
   );
 }

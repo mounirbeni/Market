@@ -1,32 +1,38 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useState } from "react";
 import { useMyListings } from "@/lib/useMyListings";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { promoOf } from "@/lib/promo";
-import { formatNumber, timeAgo } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import { vehicleHref } from "@/lib/slug";
 import { artShape } from "@/lib/artshape";
 import { VehicleArt } from "@/components/VehicleArt";
 import { TrustDot } from "@/components/TrustBadge";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { dhUnit, fmtTimeAgo, promoLabel } from "@/lib/i18n/labels";
 import { BadgeCheck, Check, Eye, Heart, Plus, Sparkle, Timer, Trash, TrendingUp } from "@/components/icons";
 
 /** نفس قيم listing_status اللي فقاعدة البيانات */
 type Status = "draft" | "pending" | "active" | "sold" | "expired" | "rejected";
 
-const STATUS: Record<Status, { label: string; color: string }> = {
-  draft: { label: "مسوّدة", color: "var(--text-dim)" },
-  pending: { label: "في المراجعة", color: "var(--warn)" },
-  active: { label: "نشيط", color: "var(--good)" },
-  sold: { label: "مباع", color: "var(--data)" },
-  expired: { label: "منتهي", color: "var(--text-dim)" },
-  rejected: { label: "مرفوض", color: "var(--bad)" },
+const STATUS_COLOR: Record<Status, string> = {
+  draft: "var(--text-dim)",
+  pending: "var(--warn)",
+  active: "var(--good)",
+  sold: "var(--data)",
+  expired: "var(--text-dim)",
+  rejected: "var(--bad)",
 };
 
-const asStatus = (s: string): Status => (s in STATUS ? (s as Status) : "active");
+const asStatus = (s: string): Status => (s in STATUS_COLOR ? (s as Status) : "active");
 
 export function DashboardListings() {
+  const t = useDict();
+  const locale = useLocale();
+  const dh = dhUnit(locale);
+  const p = t.listingsPage;
   const [filter, setFilter] = useState<Status | "all">("all");
   /* الإعلان اللي فيه عملية دابا — باش نعطّلو أزرارو وحدو */
   const [busy, setBusy] = useState<string | null>(null);
@@ -48,10 +54,10 @@ export function DashboardListings() {
         body: JSON.stringify({ status }),
       });
       const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش.");
+      if (!json?.ok) throw new Error(json?.error ?? p.genericError);
       setItems((list) => list.map((x) => (x.id === ref ? { ...x, status } : x)));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "ماقدرناش.");
+      setError(e instanceof Error ? e.message : p.genericError);
     } finally {
       setBusy(null);
     }
@@ -63,11 +69,11 @@ export function DashboardListings() {
     try {
       const res = await fetch(`/api/me/listings/${ref}`, { method: "DELETE" });
       const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نمسحوه.");
+      if (!json?.ok) throw new Error(json?.error ?? p.deleteError);
       setItems((list) => list.filter((x) => x.id !== ref));
       setConfirming(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "ماقدرناش نمسحوه.");
+      setError(e instanceof Error ? e.message : p.deleteError);
     } finally {
       setBusy(null);
     }
@@ -83,33 +89,33 @@ export function DashboardListings() {
     return acc;
   }, {});
 
+  const statusKeys: (Status | "all")[] = ["all", "draft", "pending", "active", "sold", "expired", "rejected"];
+
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-1.5">
-          {([["all", "الكل"], ...Object.entries(STATUS).map(([k, v]) => [k, v.label])] as [string, string][]).map(
-            ([k, label]) => {
-              const on = filter === k;
-              const n = k === "all" ? mine.length : counts[k] ?? 0;
-              return (
-                <button
-                  key={k}
-                  onClick={() => setFilter(k as Status | "all")}
-                  aria-pressed={on}
-                  className="chip transition"
-                  style={{
-                    borderColor: on ? "var(--brand)" : "var(--line)",
-                    background: on ? "var(--brand-soft)" : "var(--surface-1)",
-                    color: on ? "var(--brand)" : "var(--text-muted)",
-                  }}
-                >
-                  {label} <span className="num opacity-60">{n}</span>
-                </button>
-              );
-            },
-          )}
+          {statusKeys.map((k) => {
+            const on = filter === k;
+            const n = k === "all" ? mine.length : counts[k] ?? 0;
+            return (
+              <button
+                key={k}
+                onClick={() => setFilter(k)}
+                aria-pressed={on}
+                className="chip transition"
+                style={{
+                  borderColor: on ? "var(--brand)" : "var(--line)",
+                  background: on ? "var(--brand-soft)" : "var(--surface-1)",
+                  color: on ? "var(--brand)" : "var(--text-muted)",
+                }}
+              >
+                {p.status[k]} <span className="num opacity-60">{n}</span>
+              </button>
+            );
+          })}
         </div>
-        <Link href="/sell" className="btn btn-primary btn-sm"><Plus size={14} /> إعلان جديد</Link>
+        <Link href="/sell" className="btn btn-primary btn-sm"><Plus size={14} /> {p.newListing}</Link>
       </div>
 
       {error && (
@@ -122,7 +128,8 @@ export function DashboardListings() {
         {rows.map(({ v, status }) => {
           const trust = trustOf(v);
           const fp = fairPriceOf(v);
-          const st = STATUS[status];
+          const stColor = STATUS_COLOR[status];
+          const promo = promoOf(v);
           return (
             <article key={v.id} className="card overflow-hidden">
               <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
@@ -137,13 +144,13 @@ export function DashboardListings() {
                     </Link>
                     <span
                       className="tag"
-                      style={{ background: `color-mix(in oklab, ${st.color} 14%, transparent)`, color: st.color }}
+                      style={{ background: `color-mix(in oklab, ${stColor} 14%, transparent)`, color: stColor }}
                     >
-                      {st.label}
+                      {p.status[status]}
                     </span>
-                    {promoOf(v) ? (
-                      <span className="tag" style={{ background: promoOf(v)!.color, color: "#fff" }}>
-                        <Sparkle size={10} /> {promoOf(v)!.label}
+                    {promo ? (
+                      <span className="tag" style={{ background: promo.color, color: "#fff" }}>
+                        <Sparkle size={10} /> {promoLabel(promo.tier, locale, t)}
                       </span>
                     ) : (
                       <Link
@@ -151,18 +158,18 @@ export function DashboardListings() {
                         className="tag transition-colors hover:brightness-95"
                         style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
                       >
-                        <TrendingUp size={10} /> روّج
+                        <TrendingUp size={10} /> {p.promote}
                       </Link>
                     )}
                   </div>
                   <p className="num mt-1 text-[13px] font-bold" style={{ color: "var(--brand)" }}>
-                    {formatNumber(v.price)} د.م
+                    {formatNumber(v.price)} {dh}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-3 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                    <span className="flex items-center gap-1"><Eye size={12} /> <span className="num">{formatNumber(v.views)}</span> مشاهدة</span>
-                    <span className="flex items-center gap-1"><Heart size={12} /> <span className="num">{v.saves}</span> حفظ</span>
-                    <span className="flex items-center gap-1"><Timer size={12} /> نُشر {timeAgo(v.publishedAt)}</span>
-                    <span className="tag tag-mute">{fp.weak ? "مراجع محدودة" : fp.label}</span>
+                    <span className="flex items-center gap-1"><Eye size={12} /> <span className="num">{formatNumber(v.views)}</span> {p.viewsSuffix}</span>
+                    <span className="flex items-center gap-1"><Heart size={12} /> <span className="num">{v.saves}</span> {p.savesSuffix}</span>
+                    <span className="flex items-center gap-1"><Timer size={12} /> {p.publishedPrefix} {fmtTimeAgo(v.publishedAt, locale)}</span>
+                    <span className="tag tag-mute">{fp.weak ? p.limitedRefs : fp.label}</span>
                   </div>
                 </div>
 
@@ -176,7 +183,7 @@ export function DashboardListings() {
                 style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
               >
                 <Link href={`/dashboard/listings/${v.id}/edit`} className="btn btn-solid btn-sm">
-                  تعديل
+                  {p.edit}
                 </Link>
 
                 {status === "active" ? (
@@ -184,14 +191,14 @@ export function DashboardListings() {
                     type="button" className="btn btn-solid btn-sm" disabled={busy === v.id}
                     onClick={() => setStatus(v.id, "draft")}
                   >
-                    إيقاف مؤقت
+                    {p.pause}
                   </button>
                 ) : status !== "sold" ? (
                   <button
                     type="button" className="btn btn-solid btn-sm" disabled={busy === v.id}
                     onClick={() => setStatus(v.id, "active")}
                   >
-                    نشّر من جديد
+                    {p.republish}
                   </button>
                 ) : null}
 
@@ -200,7 +207,7 @@ export function DashboardListings() {
                   className="btn btn-sm"
                   style={{ background: "var(--brand)", color: "#fff" }}
                 >
-                  <Sparkle size={13} /> ترويج
+                  <Sparkle size={13} /> {p.boost}
                 </Link>
 
                 {status !== "sold" && (
@@ -208,7 +215,7 @@ export function DashboardListings() {
                     type="button" className="btn btn-solid btn-sm" disabled={busy === v.id}
                     onClick={() => setStatus(v.id, "sold")}
                   >
-                    <Check size={13} /> علّم كمباع
+                    <Check size={13} /> {p.markSold}
                   </button>
                 )}
 
@@ -216,20 +223,20 @@ export function DashboardListings() {
                 {confirming === v.id ? (
                   <span className="me-auto flex items-center gap-1.5">
                     <span className="text-[11px] font-bold" style={{ color: "var(--bad)" }}>
-                      تمسحو نهائياً؟
+                      {p.confirmDelete}
                     </span>
                     <button
                       type="button" className="btn btn-sm" disabled={busy === v.id}
                       style={{ background: "var(--bad)", color: "#fff" }}
                       onClick={() => remove(v.id)}
                     >
-                      {busy === v.id ? "…" : "إيه، امسحو"}
+                      {busy === v.id ? "…" : p.yesDelete}
                     </button>
                     <button
                       type="button" className="btn btn-solid btn-sm"
                       onClick={() => setConfirming(null)}
                     >
-                      لا
+                      {p.no}
                     </button>
                   </span>
                 ) : (
@@ -239,7 +246,7 @@ export function DashboardListings() {
                     style={{ color: "var(--bad)", borderColor: "var(--line)" }}
                     onClick={() => { setError(null); setConfirming(v.id); }}
                   >
-                    <Trash size={13} /> حذف
+                    <Trash size={13} /> {p.delete}
                   </button>
                 )}
               </div>
@@ -250,7 +257,7 @@ export function DashboardListings() {
         {rows.length === 0 && (
           <div className="card flex flex-col items-center p-12 text-center">
             <BadgeCheck size={28} style={{ color: "var(--text-dim)" }} />
-            <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>ماكاين حتى إعلان بهاد الحالة.</p>
+            <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>{p.emptyText}</p>
           </div>
         )}
       </div>

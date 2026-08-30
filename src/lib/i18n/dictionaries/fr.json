@@ -117,7 +117,7 @@
     "howWeWork": "Comment ça marche",
     "statCars": "voitures en vente",
     "statMotos": "motos",
-    "statTrust": "indice de confiance moyen",
+    "statTrust": "Indice de confiance",
     "statCities": "villes marocaines",
     "gtVerified": "Véhicules vérifiés",
     "gtVerifiedD": "Documents et numéro de châssis contrôlés",
@@ -155,7 +155,83 @@
     "sellCta": "Vous vendez ? Laissez parler les chiffres",
     "sellCtaLead": "Publier est gratuit. On vous propose un prix basé sur le marché et on vous montre comment améliorer votre indice de confiance pour vendre vite et au bon prix.",
     "sellFree": "Publier gratuitement",
-    "valuateFirst": "Estimer d'abord"
+    "valuateFirst": "Estimer d'abord",
+    "liveExampleEyebrow": "Exemple réel de la plateforme",
+    "liveExampleTitle": "Voici comment le véhicule vous apparaît avant même de contacter le vendeur",
+    "liveExampleLeadA": "Prenez cette",
+    "liveExampleLeadB": " : plutôt que de deviner, vous voyez le score de confiance détaillé, la position du prix par rapport au marché, et ce qu'elle vous coûtera par an.",
+    "seeFullListing": "Voir l'annonce complète",
+    "inspectedByTriq": "Inspectée par TRIQ",
+    "statVsMarket": "Face au marché",
+    "statPerMonth": "DH / mois",
+    "guidesEyebrow": "À savoir avant d'acheter",
+    "guidesTitle": "Guides et conseils",
+    "allGuides": "Tous les guides",
+    "minutes": "minutes",
+    "listingSuffix": "annonces",
+    "quick": {
+      "cars": "Voitures",
+      "motos": "Motos",
+      "deals": "Meilleures affaires",
+      "inspected": "Inspectées",
+      "advSearch": "Recherche avancée"
+    },
+    "pillars": {
+      "trust": {
+        "title": "Indice de confiance",
+        "text": "Chaque annonce est notée sur 100 selon la vérification du vendeur, les documents, l'historique du véhicule, la transparence de l'annonce et la cohérence des données. Vous voyez le score avant même d'appeler.",
+        "cta": "Voir les véhicules très fiables"
+      },
+      "price": {
+        "title": "Le prix juste",
+        "text": "Nous calculons un prix de référence à partir d'annonces comparables après ajustement de l'année, du kilométrage et de l'état, et vous disons si ce prix est au-dessus ou en dessous du marché.",
+        "cta": "Estimer mon véhicule gratuitement"
+      },
+      "cost": {
+        "title": "Le coût réel",
+        "text": "Pas seulement le prix d'achat : vignette, assurance, carburant, entretien, pneus et dépréciation — tout en dirhams par an et par kilomètre.",
+        "cta": "Calculer le coût"
+      }
+    },
+    "trustPoints": {
+      "verified": {
+        "title": "Annonces vérifiées",
+        "text": "Chaque annonce est contrôlée : documents, numéro de châssis, et photos réelles du véhicule — sans copier-coller."
+      },
+      "directContact": {
+        "title": "Contact direct avec le vendeur",
+        "text": "Sans intermédiaire ni commission : vous parlez directement au vendeur par téléphone ou WhatsApp."
+      },
+      "allCities": {
+        "title": "Des véhicules dans toutes les villes du Maroc",
+        "text": "Des annonces réelles réparties dans des dizaines de villes — de Tanger à Laâyoune."
+      },
+      "privacy": {
+        "title": "Protection et confidentialité",
+        "text": "Votre numéro de téléphone n'apparaît qu'avec votre accord, et vos données sont protégées et jamais vendues."
+      }
+    },
+    "priceBrackets": {
+      "u50": "Moins de 50 000 DH",
+      "50-100": "De 50 000 à 100 000 DH",
+      "100-200": "De 100 000 à 200 000 DH",
+      "o200": "Plus de 200 000 DH"
+    },
+    "categoryTiles": {
+      "cars": "Voitures",
+      "motos": "Motos",
+      "carsExcellent": "Voitures en excellent état",
+      "carsBon": "Voitures en bon état",
+      "motosExcellent": "Motos en excellent état",
+      "motosBon": "Motos en bon état"
+    },
+    "citiesLeadA": "Les annonces sont réparties dans",
+    "citiesLeadB": "villes marocaines.",
+    "differenceEyebrow": "La différence",
+    "differenceTitle": "Pourquoi TRIQ n'est pas comme les autres",
+    "differenceLead": "Les autres sites vous montrent des annonces. Nous vous donnons les informations qui vous permettent de décider : la confiance, le prix, et le coût.",
+    "aboutUs": "À propos",
+    "heroImgAlt": "Voiture et moto en salle d'exposition"
   },
   "hero": {
     "cars": "Voitures",
@@ -1462,5 +1538,799 @@
         4
       ]
     ]
+  },
+  "guidesPage": {
+    "metaTitle": "Conseils et guides d'achat de véhicules au Maroc",
+    "metaDesc": "Guides pratiques pour acheter et vendre des voitures et motos au Maroc : inspection avant achat, détection de fraude, documents requis, et coût réel.",
+    "eyebrow": "À savoir avant d'acheter",
+    "title": "Conseils et guides",
+    "lead": "Des guides pratiques écrits pour le marché marocain : ce qu'il faut vérifier avant d'acheter, comment détecter la fraude, quels documents sont requis, et combien vous allez vraiment dépenser.",
+    "mostRead": "Le plus lu",
+    "minutes": "minutes",
+    "updatedOn": "Mis à jour",
+    "read": "Lire",
+    "kind": {
+      "car": "Voitures",
+      "moto": "Motos",
+      "general": "Général"
+    }
+  },
+  "guideDetail": {
+    "notFound": "Guide introuvable",
+    "home": "Accueil",
+    "guidesNav": "Conseils",
+    "minutesRead": "minutes de lecture",
+    "updated": "Dernière mise à jour",
+    "ctaTitle": "Prêt à commencer ?",
+    "ctaLead": "Chaque annonce sur TRIQ est accompagnée d'un indice de confiance et d'un prix de référence calculé — pour appliquer ces conseils avec des chiffres.",
+    "browseCars": "Parcourir les voitures",
+    "browseMotos": "Parcourir les motos",
+    "otherGuides": "Autres guides",
+    "allGuides": "Tous les guides"
+  },
+  "legal": {
+    "home": "Accueil",
+    "doc": "Document juridique",
+    "updated": "Dernière mise à jour"
+  },
+  "termsPage": {
+    "metaTitle": "Conditions d'utilisation",
+    "metaDescription": "Conditions d'utilisation de la plateforme TRIQ pour vendre et acheter des voitures et motos.",
+    "title": "Conditions d'utilisation",
+    "updated": "Août 2026",
+    "intro": "Ces conditions régissent votre utilisation de la plateforme TRIQ. En utilisant le site, vous les acceptez.",
+    "sections": [
+      {
+        "heading": "1. Nature du service",
+        "body": [
+          "TRIQ est une plateforme d'annonces qui met en relation vendeurs et acheteurs de véhicules. La plateforme n'est pas partie à la transaction de vente et ne garantit ni l'état des véhicules ni l'exactitude des informations déclarées par les vendeurs.",
+          "L'indice de confiance, le prix de référence et le coût estimé sont des outils d'aide à la décision, et non des garanties ni des évaluations contraignantes."
+        ]
+      },
+      {
+        "heading": "2. Le compte",
+        "list": [
+          "Vous devez avoir 18 ans révolus pour publier une annonce",
+          "Les informations que vous fournissez doivent être exactes et à jour",
+          "Vous êtes responsable de la confidentialité de votre compte et de toute activité qui en découle",
+          "La plateforme se réserve le droit de suspendre ou supprimer tout compte qui enfreint ces conditions"
+        ]
+      },
+      {
+        "heading": "3. Règles de publication des annonces",
+        "list": [
+          "Le véhicule doit être votre propriété ou vous devez disposer d'une autorisation légale de le vendre",
+          "Les photos doivent être réelles et concerner le véhicule en question",
+          "Il est interdit de publier des informations fausses sur le kilométrage, les accidents ou les documents",
+          "Il est interdit de publier le même véhicule dans plusieurs annonces",
+          "Il est interdit de publier des véhicules gagés ou saisis sans déclaration claire",
+          "Tout contenu contraire à la loi marocaine est interdit"
+        ]
+      },
+      {
+        "heading": "4. Les transactions",
+        "body": [
+          "Chaque transaction se déroule directement entre le vendeur et l'acheteur. La plateforme n'intervient ni dans le paiement, ni dans la remise du véhicule, ni dans le transfert de propriété.",
+          "Nous recommandons de lire le guide de la vente en sécurité avant toute transaction, et de ne verser aucun acompte avant d'avoir examiné le véhicule et ses documents."
+        ]
+      },
+      {
+        "heading": "5. Limites de responsabilité",
+        "body": [
+          "La plateforme n'assume aucune responsabilité pour un dommage résultant d'une transaction entre utilisateurs, ni pour l'exactitude des informations publiées par les vendeurs.",
+          "La plateforme met en œuvre des efforts raisonnables pour vérifier les annonces mais ne peut garantir la détection de tous les cas de fraude."
+        ]
+      },
+      {
+        "heading": "6. Propriété intellectuelle",
+        "body": [
+          "Tous les éléments de la plateforme (design, logo, outils de calcul, code) appartiennent à TRIQ. Le contenu publié par les utilisateurs reste leur propriété, avec une licence accordée à la plateforme pour l'afficher."
+        ]
+      },
+      {
+        "heading": "7. Modification des conditions",
+        "body": [
+          "La plateforme peut modifier ces conditions. Toute modification substantielle sera communiquée aux utilisateurs, et la poursuite de l'utilisation du service après modification vaut acceptation."
+        ]
+      },
+      {
+        "heading": "8. Droit applicable",
+        "body": [
+          "Ces conditions sont soumises au droit marocain, et les tribunaux marocains sont seuls compétents pour tout litige."
+        ]
+      }
+    ]
+  },
+  "privacyPage": {
+    "metaTitle": "Politique de confidentialité",
+    "metaDescription": "Comment nous collectons, utilisons et protégeons vos données personnelles sur la plateforme TRIQ.",
+    "title": "Politique de confidentialité",
+    "updated": "Août 2026",
+    "intro": "Cette politique explique quelles données nous collectons, pourquoi, et comment nous les protégeons.",
+    "sections": [
+      {
+        "heading": "1. Les données que nous collectons",
+        "list": [
+          "Données de compte : nom, numéro de téléphone, type de compte",
+          "Données des annonces : informations du véhicule, photos, prix, ville",
+          "Données d'utilisation : pages visitées, recherches, véhicules enregistrés",
+          "Données techniques : type de navigateur, appareil, adresse IP"
+        ]
+      },
+      {
+        "heading": "2. Pourquoi nous les utilisons",
+        "list": [
+          "Fonctionnement du service : affichage des annonces, recherche, messagerie",
+          "Sécurité : détection des comptes frauduleux et tentatives d'arnaque",
+          "Amélioration : comprendre l'utilisation du site pour l'améliorer",
+          "Communication : notifications sur vos messages, vos annonces et les alertes de prix que vous avez activées"
+        ]
+      },
+      {
+        "heading": "3. Ce que nous partageons avec d'autres",
+        "body": [
+          "Les données visibles publiquement sont celles que vous publiez dans l'annonce : informations du véhicule, ville, et nom d'affichage.",
+          "Le numéro de téléphone n'apparaît que lorsque l'utilisateur clique sur « Afficher le numéro ». Nous ne vendons jamais de données personnelles à un tiers."
+        ]
+      },
+      {
+        "id": "cookies",
+        "heading": "4. Cookies et stockage local",
+        "body": [
+          "Nous utilisons le stockage local du navigateur pour enregistrer vos préférences : favoris, comparaison, unité de prix, et thème.",
+          "Ces données restent sur votre appareil et vous pouvez les effacer à tout moment depuis les paramètres du navigateur."
+        ]
+      },
+      {
+        "heading": "5. Vos droits",
+        "list": [
+          "Accéder à vos données et les corriger",
+          "Supprimer votre compte et toutes vos données",
+          "Vous opposer à l'utilisation de vos données à des fins d'amélioration",
+          "Retirer votre consentement aux notifications à tout moment"
+        ]
+      },
+      {
+        "heading": "6. Sécurité",
+        "body": [
+          "Nous appliquons des mesures techniques et organisationnelles pour protéger les données. Cependant, aucun système n'est sécurisé à 100 %, et nous vous recommandons d'utiliser un numéro de téléphone vérifié et de ne pas partager de données sensibles dans les messages."
+        ]
+      },
+      {
+        "heading": "7. Contact",
+        "body": [
+          "Pour toute question sur vos données, ou pour demander la suppression de votre compte, contactez-nous via la page de contact."
+        ]
+      }
+    ]
+  },
+  "aboutPage": {
+    "metaTitle": "À propos",
+    "metaDescription": "TRIQ est une plateforme marocaine pour vendre et acheter voitures et motos, bâtie sur la transparence : indice de confiance, prix de référence et coût d'usage réel.",
+    "eyebrow": "À propos",
+    "title": "Un marché de véhicules bâti sur la confiance",
+    "lead": "Le marché des véhicules d'occasion au Maroc est vaste, mais l'acheteur décide souvent sans information suffisante : ce prix est-il raisonnable ? Le vendeur est-il fiable ? Combien cette voiture va-t-elle réellement me coûter par an ? TRIQ a été créé pour répondre à ces trois questions avant tout contact.",
+    "statVehicles": "véhicules en vente",
+    "statDealers": "concessions vérifiées",
+    "statCities": "villes marocaines",
+    "statInspection": "points de contrôle",
+    "valuesTitle": "Nos valeurs",
+    "values": [
+      {
+        "title": "La transparence avant tout",
+        "text": "Nous ne cachons pas l'information gênante. Si le kilométrage est suspect, si les documents sont incomplets, ou si le prix est éloigné du marché — nous le disons clairement dans l'annonce."
+      },
+      {
+        "title": "Des chiffres, pas des impressions",
+        "text": "Le prix de référence est calculé à partir d'annonces réelles, et l'indice de confiance repose sur des critères publics. Quand les données sont insuffisantes, nous indiquons « références limitées » plutôt que d'inventer un chiffre."
+      },
+      {
+        "title": "Le coût réel",
+        "text": "Le prix d'achat n'est pas le coût. Nous calculons la vignette, l'assurance, le carburant, l'entretien et la dépréciation pour que vous sachiez ce que vous allez réellement dépenser."
+      },
+      {
+        "title": "Une inspection indépendante",
+        "text": "L'inspection est réalisée par un mécanicien sans aucun lien avec le vendeur, et le rapport arrive directement à l'acheteur."
+      }
+    ],
+    "businessTitle": "Notre modèle économique",
+    "businessP1": "La publication d'annonce est gratuite pour les particuliers, sans aucune commission sur l'acheteur. Les revenus proviennent de services optionnels : mise en avant des annonces, abonnements des concessions, et le service d'inspection indépendante.",
+    "businessP2": "Ce modèle est volontaire : nous n'avons aucun intérêt à faire monter les prix ni à cacher l'information, car notre rémunération ne provient pas d'un pourcentage sur la vente.",
+    "ctaTitle": "Envie de commencer ?",
+    "ctaLead": "Parcourez les véhicules disponibles, ou publiez votre annonce gratuitement et voyez votre score de confiance se construire en direct.",
+    "browseCars": "Parcourir les véhicules",
+    "contactUs": "Nous contacter"
+  },
+  "contactPage": {
+    "metaTitle": "Nous contacter",
+    "metaDescription": "Contactez l'équipe TRIQ : questions, signalement d'annonce, ou partenariat pour votre concession.",
+    "eyebrow": "Nous sommes là",
+    "title": "Nous contacter",
+    "lead": "Vous avez une question, vous avez trouvé une annonce suspecte, ou vous voulez inscrire votre concession ? Envoyez-nous un message.",
+    "infoTitle": "Coordonnées",
+    "hours": "Lundi – Vendredi · 9h00 — 18h00",
+    "city": "Casablanca, Maroc",
+    "reportTitle": "Signaler une arnaque",
+    "reportText": "Si vous trouvez une annonce mensongère ou un vendeur qui demande un acompte avant la visite, signalez-le immédiatement. Nous examinons chaque signalement sous 24 heures.",
+    "safetyGuide": "Guide de la vente en sécurité"
+  },
+  "contactForm": {
+    "topics": [
+      "Question générale",
+      "Problème sur une annonce",
+      "Signaler une arnaque",
+      "Partenariat ou concession",
+      "Suggestion d'amélioration"
+    ],
+    "subjectLabel": "Sujet du message",
+    "nameLabel": "Nom",
+    "namePlaceholder": "Votre nom complet",
+    "phoneLabel": "Téléphone ou e-mail",
+    "phonePlaceholder": "06… ou nom@mail.com",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Expliquez-nous en détail…",
+    "send": "Envoyer le message",
+    "sending": "Envoi en cours…",
+    "genericError": "Nous n'avons pas pu envoyer le message.",
+    "sentTitle": "Nous avons bien reçu votre message",
+    "sentText": "Nous vous répondrons dans les plus brefs délais à l'adresse que vous nous avez fournie.",
+    "anotherMessage": "Autre message",
+    "note": "Nous utilisons l'adresse que vous nous fournissez uniquement pour vous répondre sur ce message."
+  },
+  "helpPage": {
+    "metaTitle": "Centre d'aide",
+    "metaDescription": "Réponses aux questions les plus fréquentes sur la publication, la recherche, la confiance, les prix et l'inspection sur TRIQ.",
+    "eyebrow": "Aide",
+    "title": "Centre d'aide",
+    "lead": "Réponses aux questions les plus fréquentes. Si vous ne trouvez pas votre réponse, contactez-nous directement.",
+    "topics": [
+      "Achat et recherche",
+      "Vente et annonces",
+      "Confiance et sécurité",
+      "Prix et coût"
+    ],
+    "faq": [
+      {
+        "heading": "Achat et recherche",
+        "items": [
+          {
+            "q": "Dans quelle langue dois-je écrire dans la barre de recherche ?",
+            "a": "Les noms de marques et de modèles s'écrivent toujours en caractères latins, comme sur la carte grise : Dacia Logan, Mercedes Classe C, Golf 7 TDI, Yamaha MT-07. Dès que vous tapez la première lettre, une liste de suggestions apparaît — tapez M et vous trouverez Mercedes, MBK et Mitsubishi. Les termes techniques (Diesel, Essence, Automatique, Citadine, SUV) sont acceptés en français. Si vous écrivez en arabe, nous vous suggérons l'orthographe latine correcte."
+          },
+          {
+            "q": "Comment trouver rapidement le véhicule qui me convient ?",
+            "a": "Utilisez la recherche avancée et fixez la marque, le prix et la ville — le nombre de résultats se met à jour en direct. Ou écrivez votre demande en langage naturel dans la barre de recherche (« Clio diesel sous 130 000 DH à Casablanca ») et le site la comprendra et la transformera en filtres."
+          },
+          {
+            "q": "Que signifie « l'indice de confiance » ?",
+            "a": "Un score sur 100 calculé à partir de six piliers : la vérification du vendeur, les documents légaux, l'historique du véhicule, la transparence de l'annonce, la cohérence des données, et l'inspection indépendante. Ce n'est pas une évaluation de la qualité du véhicule, mais du niveau de transparence et de vérification."
+          },
+          {
+            "q": "Pourquoi certaines annonces affichent « références limitées » ?",
+            "a": "Quand il n'y a pas assez d'annonces similaires, le prix de référence devient approximatif. Dans ce cas, nous le précisons clairement plutôt que de vous donner un chiffre imprécis."
+          },
+          {
+            "q": "Puis-je enregistrer une recherche et recevoir une alerte ?",
+            "a": "Oui. Depuis la page de résultats, cliquez sur « Enregistrer la recherche ». Les recherches enregistrées se trouvent dans la page favoris, et dans la version complète vous recevez une notification dès qu'un véhicule correspondant est publié."
+          }
+        ]
+      },
+      {
+        "heading": "Vente et annonces",
+        "items": [
+          {
+            "q": "Combien coûte la publication d'une annonce ?",
+            "a": "La publication est gratuite pour les particuliers, sans limite, et sans commission sur la vente. Les services optionnels (mise en avant de l'annonce, inspection indépendante, abonnement concession) sont payants."
+          },
+          {
+            "q": "Comment augmenter le score de confiance de mon annonce ?",
+            "a": "Vérifiez votre identité, ajoutez le numéro de châssis, mettez plus de 12 photos et une vidéo, joignez le carnet d'entretien, et demandez l'inspection indépendante. L'assistant de publication vous montre le score augmenter à chaque information ajoutée."
+          },
+          {
+            "q": "Combien de temps une annonce reste-t-elle publiée ?",
+            "a": "60 jours, renouvelée automatiquement tant que vous restez actif. Vous pouvez la mettre en pause ou la marquer comme vendue à tout moment depuis votre tableau de bord vendeur."
+          },
+          {
+            "q": "Pourquoi dois-je fixer un prix proche du marché ?",
+            "a": "Les annonces dans la fourchette du marché reçoivent beaucoup plus de contacts. Quand le prix est supérieur de 15 % ou plus, l'annonce reste longtemps sans résultat."
+          }
+        ]
+      },
+      {
+        "heading": "Confiance et sécurité",
+        "items": [
+          {
+            "q": "Comment éviter les arnaques ?",
+            "a": "Ne versez aucun acompte avant d'avoir vu le véhicule et les documents. Rencontrez-vous de jour et dans un lieu public. Vérifiez la carte grise et le numéro de châssis. Gardez la communication à l'intérieur de la plateforme pour garder une preuve écrite."
+          },
+          {
+            "q": "J'ai trouvé une annonce suspecte, que faire ?",
+            "a": "Signalez-la depuis la page de l'annonce ou via la page de contact. Nous examinons chaque signalement sous 24 heures et retirons les annonces non conformes."
+          },
+          {
+            "q": "La plateforme garantit-elle les véhicules ?",
+            "a": "Non. TRIQ est une plateforme d'annonces et n'est pas partie à la vente. Les outils (indice de confiance, prix de référence, inspection) vous aident à décider, mais la responsabilité finale de l'examen et de la vérification vous incombe."
+          }
+        ]
+      },
+      {
+        "heading": "Prix et coût",
+        "items": [
+          {
+            "q": "D'où vient le prix de référence ?",
+            "a": "Il est calculé à partir d'annonces similaires sur la plateforme, ajustées selon l'âge, le kilométrage, l'état, le type de carburant et la puissance. Chaque estimation est accompagnée d'un taux de confiance indiquant la solidité des références."
+          },
+          {
+            "q": "Que calcule « le coût réel » ?",
+            "a": "La vignette selon la puissance fiscale et le carburant, l'assurance, le carburant, l'entretien, les pneus, le contrôle technique, et la dépréciation — en dirhams par an, par mois et par kilomètre."
+          },
+          {
+            "q": "Proposez-vous du financement ou des crédits ?",
+            "a": "Non. TRIQ est uniquement une plateforme d'annonces — nous mettons en relation l'acheteur et le vendeur, un point c'est tout. Nous ne finançons pas, ne prêtons pas, et ne donnons pas de conseils financiers. Pour un financement, contactez directement une banque ou une société de crédit."
+          }
+        ]
+      }
+    ],
+    "rulesTitle": "Règles de publication en bref",
+    "rules": [
+      "Le véhicule doit être votre propriété ou vous devez disposer d'une autorisation de le vendre",
+      "Les photos doivent être réelles et concerner le véhicule en question",
+      "Il est interdit de mentir sur le kilométrage, les accidents ou les documents",
+      "Une seule annonce par véhicule",
+      "Déclaration obligatoire de tout gage ou saisie"
+    ],
+    "noAnswerTitle": "Vous n'avez pas trouvé votre réponse ?",
+    "noAnswerText": "L'équipe support répond en darija du lundi au vendredi.",
+    "contactBtn": "Nous contacter",
+    "safetyBtn": "Vente en sécurité",
+    "inspectionBtn": "Inspection indépendante"
+  },
+  "safetyPage": {
+    "metaTitle": "Guide de la vente et de l'achat en sécurité",
+    "metaDescription": "Comment acheter une voiture d'occasion au Maroc sans vous tromper : liste de vérification complète, arnaques connues, documents requis et étapes du transfert de propriété.",
+    "eyebrow": "Protection · conseils pratiques",
+    "title": "Achetez sans vous tromper",
+    "lead": "La plupart des problèmes sur le marché de l'occasion ne viennent pas du véhicule — mais de la méthode. Ce guide contient la liste que suivent les professionnels, et les arnaques les plus fréquentes au Maroc.",
+    "checklistTitle": "Liste de vérification",
+    "checklistLead": "Valable pour tout véhicule. Elle s'enregistre automatiquement dans votre navigateur — vous pouvez continuer plus tard.",
+    "scamsTitle": "Les arnaques à connaître",
+    "scams": [
+      {
+        "title": "Acompte avant la visite",
+        "sign": "« Retire l'annonce et je t'envoie le véhicule, envoie juste 2000 DH »",
+        "truth": "Même un vendeur sérieux ne demande jamais d'argent avant que vous ayez vu le véhicule. Toute demande de paiement à distance = arnaque."
+      },
+      {
+        "title": "Le prix trop beau pour être vrai",
+        "sign": "Mercedes 2018 à 90 000 DH « à cause d'un départ urgent »",
+        "truth": "Les prix inférieurs de 40 % ou plus au marché : soit le véhicule a un problème grave, soit il est saisi, soit il n'existe pas du tout."
+      },
+      {
+        "title": "Le compteur trafiqué",
+        "sign": "Voiture de 2014 avec seulement 60 000 km et sans carnet d'entretien",
+        "truth": "Comparez le kilométrage à l'âge : la moyenne au Maroc est entre 12 000 et 20 000 km par an. Demandez la lecture du compteur via l'ordinateur de bord."
+      },
+      {
+        "title": "Les documents « en cours »",
+        "sign": "« La carte grise est chez mon frère, elle arrivera plus tard »",
+        "truth": "N'achetez jamais un véhicule dont les documents ne sont pas au nom du vendeur présent avec vous. Risque : véhicule gagé ou volé."
+      },
+      {
+        "title": "Le faux intermédiaire",
+        "sign": "Une personne dit vendre pour le compte du propriétaire et demande une commission à l'avance",
+        "truth": "Sans procuration authentifiée par un adoul ou un notaire, un intermédiaire n'a aucun droit de vendre ou d'encaisser."
+      }
+    ],
+    "docsTitle": "Documents requis pour la vente",
+    "docCol": "Document",
+    "checkCol": "Ce qu'il faut vérifier",
+    "docs": [
+      [
+        "Carte grise",
+        "Originale, au nom du vendeur, sans rature"
+      ],
+      [
+        "Carte nationale",
+        "Du vendeur et de l'acheteur, avec copies"
+      ],
+      [
+        "Contrat de vente",
+        "Deux exemplaires signés, avec le prix, la date et le numéro de châssis"
+      ],
+      [
+        "Certificat de non-gage",
+        "Du centre d'immatriculation — confirme l'absence de crédit ou de saisie"
+      ],
+      [
+        "Contrôle technique",
+        "Valide le jour de la vente"
+      ],
+      [
+        "Reçus de vignette",
+        "Payés au moins pour l'année en cours"
+      ]
+    ],
+    "transferNote": "Après la vente, le transfert de propriété (demande de changement de titulaire) se fait au centre d'immatriculation de l'Agence nationale de la sécurité routière. L'acheteur dispose d'un délai légal court pour l'effectuer — s'il ne le fait pas, le vendeur reste responsable des infractions.",
+    "ctaTitle": "N'y allez pas à l'aveugle",
+    "ctaLead": "L'inspection indépendante de TRIQ passe le véhicule au crible de 120 points avant que vous ne payiez. Pour moins cher qu'une petite réparation.",
+    "seeInspection": "Voir l'inspection indépendante",
+    "verifiedVehicles": "Véhicules aux documents vérifiés"
+  },
+  "safetyChecklist": {
+    "progress": "Votre progression dans la liste",
+    "reset": "Réinitialiser",
+    "groups": [
+      {
+        "title": "Avant de vous déplacer",
+        "items": [
+          "Comparez le prix avec le prix de référence TRIQ",
+          "Consultez l'indice de confiance et lisez toutes les alertes",
+          "Demandez au vendeur le numéro de châssis (VIN) et vérifiez-le",
+          "Demandez des photos supplémentaires du moteur et du plancher du coffre",
+          "Vérifiez la validité du contrôle technique et de l'assurance"
+        ]
+      },
+      {
+        "title": "Pendant la visite",
+        "items": [
+          "Rencontrez-vous de jour, dans un lieu public et connu",
+          "Emmenez avec vous quelqu'un qui s'y connaît en mécanique",
+          "Vérifiez que le moteur est froid — pas préchauffé au préalable",
+          "Comparez le numéro de châssis sur le véhicule avec la carte grise",
+          "Vérifiez l'épaisseur de la peinture et les jeux entre les pièces",
+          "Essayez le véhicule au moins 15 minutes, en ville et sur autoroute",
+          "Testez les freins, la direction, la climatisation et tous les feux",
+          "Lisez les codes défaut de l'ordinateur de bord (OBD) si possible"
+        ]
+      },
+      {
+        "title": "Les documents",
+        "items": [
+          "La carte grise est originale et au nom du vendeur",
+          "La carte nationale du vendeur correspond au nom",
+          "Certificat de non-gage / non-saisie",
+          "Le contrôle technique est valide",
+          "Les reçus de vignette sont payés",
+          "Le carnet d'entretien et les factures"
+        ]
+      },
+      {
+        "title": "Le paiement et le transfert",
+        "items": [
+          "Ne versez aucun acompte avant d'avoir vu le véhicule et les documents",
+          "Le paiement doit se faire en présence de témoins ou par virement bancaire tracé",
+          "Rédigez un contrat de vente écrit en deux exemplaires avec les copies des cartes",
+          "Effectuez le transfert (demande de changement de titulaire) sous 30 jours",
+          "Gardez une copie de tout jusqu'à la sortie de la nouvelle carte à votre nom"
+        ]
+      }
+    ]
+  },
+  "favoritesPage": {
+    "metaTitle": "Mes favoris et recherches",
+    "metaDescription": "Les véhicules enregistrés et les recherches sauvegardées, au même endroit."
+  },
+  "favorites": {
+    "title": "Favoris",
+    "emptyTitle": "Vous n'avez encore enregistré aucun véhicule",
+    "emptyText": "Cliquez sur le cœur de n'importe quelle annonce pour la retrouver ici plus tard, et comparer facilement.",
+    "browseVehicles": "Parcourir les véhicules",
+    "statCount": "Nombre d'enregistrements",
+    "statCheapest": "Le moins cher",
+    "statAvg": "La moyenne",
+    "statCheapestRun": "Coût d'usage le plus bas",
+    "perYear": "DH/an",
+    "priceWatchTitle": "Alerte de baisse de prix :",
+    "priceWatchText": "Activez-la sur n'importe quel véhicule et recevez une notification quand le vendeur baisse le prix.",
+    "priceWatchActive": "activée(s)",
+    "activateAll": "Tout activer",
+    "willNotify": "Vous serez averti(e) en cas de baisse",
+    "notifyMe": "M'avertir en cas de baisse",
+    "savedSearchesTitle": "Recherches enregistrées",
+    "savedSearchesLead": "Les recherches que vous avez sauvegardées. Dans la version complète, vous recevez des notifications quand un véhicule correspondant est publié.",
+    "noFilters": "Sans filtres",
+    "noSearchesText": "Aucune recherche enregistrée. Depuis la page de résultats, cliquez sur « Enregistrer la recherche ».",
+    "alertActive": "Alerte activée",
+    "delete": "Supprimer",
+    "deleteAria": "Supprimer",
+    "favoritesAndAlerts": "Favoris et alertes"
+  },
+  "messagesPage": {
+    "metaTitle": "Messages",
+    "eyebrow": "Communication sécurisée",
+    "title": "Messages"
+  },
+  "messages": {
+    "genericError": "Une erreur est survenue.",
+    "loginTitle": "Connectez-vous pour voir vos messages",
+    "loginText": "La messagerie interne au site vous permet de contacter le vendeur sans donner votre numéro.",
+    "login": "Se connecter",
+    "loading": "Chargement…",
+    "emptyTitle": "Vous n'avez aucune conversation",
+    "emptyText": "Depuis n'importe quelle annonce, cliquez sur « Contacter le vendeur » et la conversation démarrera ici.",
+    "browseVehicles": "Parcourir les véhicules",
+    "searchPlaceholder": "Rechercher dans les conversations",
+    "searchAria": "Rechercher dans les conversations",
+    "back": "Retour",
+    "youAreBuyer": "Vous êtes l'acheteur",
+    "youAreSeller": "Vous êtes le vendeur",
+    "noMessage": "—",
+    "safetyNote": "N'envoyez jamais d'acompte ni vos données bancaires ici. Rencontrez-vous de jour et dans un lieu public.",
+    "safetyGuide": "Guide de la vente en sécurité",
+    "messagePlaceholder": "Écrivez votre message…",
+    "messageAria": "Message"
+  },
+  "notificationsPage": {
+    "metaTitle": "Notifications",
+    "eyebrow": "Vos alertes",
+    "title": "Notifications"
+  },
+  "notifications": {
+    "types": {
+      "message": "Message",
+      "price-drop": "Baisse de prix",
+      "listing": "Annonce",
+      "appointment": "Rendez-vous",
+      "system": "Système"
+    },
+    "loginText": "Connectez-vous pour voir vos notifications.",
+    "login": "Se connecter",
+    "loadingAria": "Chargement des notifications",
+    "unreadSuffix": "notification(s) non lue(s)",
+    "markAllRead": "Tout marquer comme lu",
+    "emptyText": "Aucune notification."
+  },
+  "trustPage": {
+    "metaTitle": "Centre de confiance et sécurité",
+    "title": "Centre de confiance et sécurité",
+    "currentScore": "Indice de confiance actuel",
+    "levelPrefix": "niveau",
+    "completeProfile": "Complétez votre profil",
+    "accountStatusTitle": "État du compte",
+    "email": "E-mail",
+    "emailHint": "Toujours confirmé à la connexion",
+    "phone": "Numéro de téléphone",
+    "phoneHintUnverified": "Pas encore confirmé",
+    "phoneHintMissing": "Aucun numéro",
+    "idVerification": "Vérification du compte",
+    "idVerified": "Vérifié",
+    "idOptional": "Facultatif",
+    "editAccount": "Modifier les informations de votre compte",
+    "raiseTrustTitle": "Pour augmenter le niveau de confiance de votre compte :",
+    "raiseTrustLead": "Chaque facteur repose sur une donnée réelle de votre compte — la vérification d'identité n'en est qu'un parmi d'autres, pas le seul.",
+    "privacyTitle": "Votre vie privée est protégée",
+    "privacyText": "Les autres utilisateurs voient uniquement : le badge de vérification et le niveau de confiance. Vos documents et informations sensibles ne sont jamais visibles — seule l'équipe de vérification y a accès."
+  },
+  "dashShell": {
+    "nav": {
+      "overview": "Tableau de bord",
+      "listings": "Mes annonces",
+      "messages": "Messages",
+      "appointments": "Rendez-vous",
+      "favorites": "Favoris",
+      "dealer": "Ma concession",
+      "trust": "Confiance et sécurité",
+      "settings": "Paramètres"
+    },
+    "loginRequiredTitle": "Vous devez vous connecter",
+    "loginRequiredText": "Le tableau de bord vendeur contient vos annonces, vos messages et vos rendez-vous. Connectez-vous pour y accéder.",
+    "login": "Se connecter",
+    "register": "Créer un compte",
+    "emailVerifiedAria": "E-mail vérifié",
+    "pro": "Professionnel",
+    "individual": "Particulier",
+    "newListing": "Nouvelle annonce",
+    "signOut": "Se déconnecter"
+  },
+  "profileBanner": {
+    "title": "Complétez les informations de votre compte — profil complété à :",
+    "text": "Vous devez compléter le nom, le téléphone et la ville avant de pouvoir publier une annonce ou profiter de tous les services de la plateforme.",
+    "cta": "Compléter maintenant"
+  },
+  "completeProfilePage": {
+    "metaTitle": "Complétez les informations de votre compte",
+    "title": "Complétez les informations de votre compte",
+    "leadSelling": "Complétez d'abord les informations de votre compte pour pouvoir publier votre annonce et profiter de tous les services de la plateforme.",
+    "leadDefault": "Il vous reste une étape pour profiter de tous les services de TRIQ : le nom, le téléphone, la ville, et le type de compte.",
+    "note": "Ces informations sont obligatoires pour garantir un échange réel entre vendeurs et acheteurs — la vérification d'identité reste totalement facultative.",
+    "cta": "Continuer"
+  },
+  "overview": {
+    "cardActive": "annonce active",
+    "cardViews": "vue",
+    "cardSaves": "enregistrement",
+    "cardUnread": "message non lu",
+    "cardTrust": "confiance moyenne",
+    "cardFavorites": "véhicule enregistré",
+    "yourListings": "Vos annonces",
+    "all": "Tout voir",
+    "limitedRefs": "Références limitées",
+    "improveTitle": "Améliorez vos annonces",
+    "weakestLeadA": "Votre annonce la plus faible est",
+    "weakestLeadB": "avec un score de",
+    "seeListing": "Voir l'annonce",
+    "lastMessagesTitle": "Derniers messages",
+    "noThreads": "Aucune conversation pour l'instant. Quand un acheteur vous écrit, ça apparaît ici.",
+    "noMessagesYet": "Aucun message",
+    "quickActionsTitle": "Actions rapides",
+    "actionPublish": "Publier une nouvelle annonce",
+    "actionValuate": "Estimer un véhicule",
+    "actionAppointments": "Voir les rendez-vous",
+    "actionInspection": "Demander une inspection"
+  },
+  "listingsPage": {
+    "metaTitle": "Mes annonces",
+    "status": {
+      "all": "Tout",
+      "draft": "Brouillon",
+      "pending": "En révision",
+      "active": "Active",
+      "sold": "Vendue",
+      "expired": "Expirée",
+      "rejected": "Refusée"
+    },
+    "newListing": "Nouvelle annonce",
+    "genericError": "Nous n'avons pas pu effectuer l'opération.",
+    "deleteError": "Nous n'avons pas pu la supprimer.",
+    "promote": "Promouvoir",
+    "viewsSuffix": "vue(s)",
+    "savesSuffix": "enregistrement(s)",
+    "publishedPrefix": "Publiée",
+    "limitedRefs": "Références limitées",
+    "edit": "Modifier",
+    "pause": "Mettre en pause",
+    "republish": "Republier",
+    "boost": "Booster",
+    "markSold": "Marquer comme vendue",
+    "confirmDelete": "Supprimer définitivement ?",
+    "yesDelete": "Oui, supprimer",
+    "no": "Non",
+    "delete": "Supprimer",
+    "emptyText": "Aucune annonce dans cet état."
+  },
+  "editListing": {
+    "metaTitle": "Modifier l'annonce",
+    "refLabel": "Référence",
+    "refNote": "La marque, le modèle et l'année ne peuvent pas être modifiés",
+    "seeListing": "Voir l'annonce",
+    "notFound": "Cette annonce n'existe pas, ou ne vous appartient pas.",
+    "backToListings": "Retour à mes annonces",
+    "loading": "Chargement…",
+    "genericError": "Nous n'avons pas pu enregistrer.",
+    "priceUsageTitle": "Prix et usage",
+    "priceLabel": "Prix",
+    "priceHint": "Si vous baissez le prix, les personnes qui surveillent l'annonce recevront une alerte.",
+    "kmLabel": "Kilométrage",
+    "negotiable": "Prix négociable",
+    "exchangeAccepted": "J'accepte l'échange",
+    "vehicleDetailsTitle": "Détails du véhicule",
+    "versionLabel": "Version",
+    "colorLabel": "Couleur",
+    "cityLabel": "Ville",
+    "fuelLabel": "Carburant",
+    "gearLabel": "Boîte de vitesses",
+    "ownersLabel": "Nombre de propriétaires",
+    "powerLabel": "Puissance fiscale",
+    "powerUnit": "CV",
+    "doorsLabel": "Nombre de portes",
+    "drivetrainLabel": "Transmission",
+    "unknown": "Non renseigné",
+    "originLabel": "Origine du véhicule",
+    "bodyLabel": "Type de carrosserie",
+    "conditionLabel": "État général",
+    "documentsTitle": "Documents",
+    "docs": {
+      "papersOk": "Carte grise à mon nom et documents complets",
+      "vinChecked": "Accord pour vérifier le numéro de châssis (VIN)",
+      "technicalControlValid": "Contrôle technique valide",
+      "serviceBook": "J'ai le carnet d'entretien avec les factures",
+      "inspected": "L'inspection indépendante TRIQ a été réalisée"
+    },
+    "descEquipTitle": "Description et équipements",
+    "descLabel": "Description",
+    "charsSuffix": "caractères",
+    "equipmentLabel": "Équipements",
+    "saved": "Enregistré",
+    "saving": "Enregistrement…",
+    "save": "Enregistrer les modifications",
+    "back": "Retour"
+  },
+  "accountForm": {
+    "types": {
+      "particulier": "Particulier",
+      "professionnel": "Vendeur professionnel",
+      "professionnel-dealer": "Société ou concession"
+    },
+    "defaultCta": "Enregistrer les modifications",
+    "avatarUploadError": "Nous n'avons pas pu téléverser l'image.",
+    "genericError": "Nous n'avons pas pu enregistrer.",
+    "avatarAlt": "Photo de profil",
+    "avatarTitle": "Photo de profil ou logo de l'activité",
+    "avatarUploading": "Téléversement…",
+    "avatarHint": "Facultatif — augmente votre indice de confiance",
+    "nameLabel": "Nom complet",
+    "phoneLabel": "Numéro de téléphone",
+    "phoneHint": "C'est le numéro qui apparaîtra sur vos annonces.",
+    "cityLabel": "Ville",
+    "cityPlaceholder": "Choisissez votre ville",
+    "accountTypeLabel": "Type de compte",
+    "dealerHint": "Après l'enregistrement, vous serez redirigé pour créer votre page concession.",
+    "saved": "Enregistré"
+  },
+  "settingsPage": {
+    "metaTitle": "Paramètres",
+    "accountInfoTitle": "Informations du compte",
+    "seeTrustCenter": "Voir votre centre de confiance et sécurité",
+    "displayTitle": "Affichage",
+    "priceUnit": "Unité de prix",
+    "dh": "Dirham",
+    "million": "Million",
+    "theme": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "localOnly": "Ces paramètres restent dans le navigateur de cet appareil uniquement.",
+    "accountTitle": "Compte",
+    "signOut": "Se déconnecter",
+    "idVerificationTitle": "Vérification d'identité",
+    "idVerifiedText": "Votre identité est vérifiée. Le badge apparaît sur toutes vos annonces.",
+    "pendingText": "Votre demande est en attente de révision. Nous vous répondrons dans les plus brefs délais.",
+    "optionalNote": "La vérification du compte est totalement facultative — ce n'est pas une condition pour utiliser la plateforme.",
+    "benefitNote": "Se vérifier apporte : un indice de confiance plus élevé, le badge « compte vérifié », et plus de confiance de la part des acheteurs.",
+    "rejectedPrefix": "La demande précédente a été refusée.",
+    "rejectedReason": "Raison :",
+    "canRetry": "Vous pouvez réessayer.",
+    "docUploadError": "Nous n'avons pas pu téléverser le document.",
+    "requestError": "Nous n'avons pas pu enregistrer la demande.",
+    "genericError": "Une erreur est survenue.",
+    "uploadInstructionA": "Photographiez",
+    "registreCommerce": "le registre de commerce",
+    "cinCard": "la carte nationale d'identité",
+    "uploadInstructionB": "et téléversez-la. Seule l'équipe de vérification voit le document — il n'apparaît jamais sur le site.",
+    "frontLabel": "Face avant",
+    "backLabel": "Face arrière (facultatif)",
+    "uploading": "Téléversement…",
+    "submitForReview": "Envoyer pour révision"
+  },
+  "appointmentsPage": {
+    "metaTitle": "Rendez-vous",
+    "status": {
+      "pending": "En attente de confirmation",
+      "confirmed": "Confirmé",
+      "done": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "emptyTitle": "Aucun rendez-vous",
+    "emptyText": "Quand un acheteur demande à visiter votre véhicule, le rendez-vous apparaît ici et vous pouvez le confirmer ou le refuser.",
+    "confirm": "Confirmer le rendez-vous",
+    "contact": "Contacter",
+    "decline": "Refuser",
+    "shellTitle": "Rendez-vous de visite"
+  },
+  "dealerForm": {
+    "metaTitle": "Ma concession",
+    "defaultHours": "Lundi – Samedi · 9h00 — 19h00",
+    "editTitle": "Le profil de votre concession",
+    "createTitle": "Créez un profil de concession",
+    "lead": "Votre compte deviendra « vendeur professionnel », et tout votre stock apparaîtra sur une page unique avec l'adresse et les horaires.",
+    "verified": "Vérifié",
+    "verifyPending": "· La vérification est ajoutée après confirmation du registre de commerce",
+    "nameLabel": "Nom de la concession",
+    "namePlaceholder": "Auto ...",
+    "cityLabel": "Ville",
+    "taglineLabel": "Phrase de présentation",
+    "taglinePlaceholder": "Achat, vente et échange de voitures d'occasion",
+    "aboutLabel": "Description de la concession",
+    "aboutPlaceholder": "Depuis combien de temps vous exercez, ce que vous vendez, si vous offrez une garantie…",
+    "addressLabel": "Adresse",
+    "addressPlaceholder": "Rue …, ville",
+    "hoursLabel": "Horaires d'ouverture",
+    "brandsLabel": "Les marques que vous vendez",
+    "brandsPlaceholder": "Dacia, Renault, Peugeot",
+    "brandsHint": "Séparez-les par une virgule",
+    "genericError": "Nous n'avons pas pu enregistrer.",
+    "saved": "Enregistré",
+    "saving": "Enregistrement…",
+    "update": "Mettre à jour le profil",
+    "create": "Créer le profil"
   }
 }

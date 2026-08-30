@@ -1,24 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getDealerOfSeller, getSellerStats } from "@/lib/source";
 import { userTrustScore } from "@/lib/userTrust";
 import { userBadges } from "@/lib/userBadges";
-import { getDictionary } from "@/lib/i18n/server";
+import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
 import { DashboardShell } from "@/components/dashboard/Shell";
 import { TrustRing } from "@/components/TrustBadge";
 import {
   ArrowLeft, BadgeCheck, Check, Close, IdCard, Mail, Phone, ShieldCheck,
 } from "@/components/icons";
 
-export const metadata: Metadata = {
-  title: "مركز الثقة والأمان",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  return { title: t.trustPage.metaTitle, robots: { index: false, follow: false } };
+}
 
 export default async function TrustCenterPage() {
   const t = await getDictionary();
+  const locale = await getLocale();
+  const p = t.trustPage;
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/dashboard/trust");
 
@@ -37,7 +44,7 @@ export default async function TrustCenterPage() {
     activeListings: stats.activeListings,
     avgListingTrust: stats.avgTrust,
     negativeReports: stats.negativeReports,
-  });
+  }, locale);
 
   const badges = userBadges({
     idVerified: user.id_verified,
@@ -48,14 +55,14 @@ export default async function TrustCenterPage() {
   });
 
   return (
-    <DashboardShell title="مركز الثقة والأمان">
+    <DashboardShell title={p.title}>
       <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
         {/* الملخص */}
         <div className="card flex flex-col items-center p-6 text-center lg:sticky lg:top-[84px] lg:h-fit">
           <TrustRing score={result.score} grade={result.levelLabel} size={120} stroke={10} />
-          <p className="mt-4 text-[13px] font-bold">مؤشر الثقة الحالي</p>
+          <p className="mt-4 text-[13px] font-bold">{p.currentScore}</p>
           <p className="mt-1 text-[11.5px]" style={{ color: "var(--text-dim)" }}>
-            <span className="num font-bold" style={{ color: "var(--brand)" }}>{result.score}%</span> · مستوى {result.levelLabel}
+            <span className="num font-bold" style={{ color: "var(--brand)" }}>{result.score}%</span> · {p.levelPrefix} {result.levelLabel}
           </p>
 
           {badges.length > 0 && (
@@ -74,7 +81,7 @@ export default async function TrustCenterPage() {
 
           {!user.onboarded && (
             <Link href="/dashboard/complete-profile?next=/dashboard/trust" className="btn btn-primary btn-sm mt-5 w-full">
-              أكمل ملفك الشخصي <ArrowLeft size={14} className="dir-flip" />
+              {p.completeProfile} <ArrowLeft size={14} className="dir-flip" />
             </Link>
           )}
         </div>
@@ -82,12 +89,12 @@ export default async function TrustCenterPage() {
         <div className="space-y-5">
           {/* حالة التحقق السريعة */}
           <section className="card p-5">
-            <h2 className="mb-4 text-[14px] font-bold">حالة الحساب</h2>
+            <h2 className="mb-4 text-[14px] font-bold">{p.accountStatusTitle}</h2>
             <div className="grid gap-2 sm:grid-cols-3">
               {[
-                { Icon: Mail, label: "البريد الإلكتروني", done: user.email_verified, hint: "مؤكد دائماً بالدخول" },
-                { Icon: Phone, label: "رقم الهاتف", done: user.phone_verified, hint: user.phone ? "غير مؤكد بعد" : "ماكاينش رقم" },
-                { Icon: IdCard, label: "توثيق الحساب", done: user.id_verified, hint: user.id_verified ? "موثّق" : "اختياري" },
+                { Icon: Mail, label: p.email, done: user.email_verified, hint: p.emailHint },
+                { Icon: Phone, label: p.phone, done: user.phone_verified, hint: user.phone ? p.phoneHintUnverified : p.phoneHintMissing },
+                { Icon: IdCard, label: p.idVerification, done: user.id_verified, hint: user.id_verified ? p.idVerified : p.idOptional },
               ].map((s) => (
                 <div
                   key={s.label}
@@ -108,32 +115,32 @@ export default async function TrustCenterPage() {
               ))}
             </div>
             <Link href="/dashboard/settings" className="mt-4 inline-flex items-center gap-1.5 text-[11.5px] font-bold" style={{ color: "var(--brand)" }}>
-              عدّل معلومات حسابك <ArrowLeft size={12} className="dir-flip" />
+              {p.editAccount} <ArrowLeft size={12} className="dir-flip" />
             </Link>
           </section>
 
           {/* التفصيل */}
           <section className="card p-5">
-            <h2 className="mb-1 text-[14px] font-bold">لرفع مستوى ثقة حسابك يمكنك:</h2>
+            <h2 className="mb-1 text-[14px] font-bold">{p.raiseTrustTitle}</h2>
             <p className="mb-4 text-[11.5px]" style={{ color: "var(--text-muted)" }}>
-              كل عامل مبني على معطى حقيقي فحسابك — التوثيق واحد من بزاف، ماشي الوحيد.
+              {p.raiseTrustLead}
             </p>
             <div className="space-y-2.5">
-              {result.parts.map((p) => (
-                <div key={p.key} className="flex items-center gap-3 rounded-xl p-3" style={{ background: "var(--surface-3)" }}>
+              {result.parts.map((part) => (
+                <div key={part.key} className="flex items-center gap-3 rounded-xl p-3" style={{ background: "var(--surface-3)" }}>
                   <span
                     className="grid h-8 w-8 shrink-0 place-items-center rounded-lg"
-                    style={{ background: p.done ? "var(--good-soft)" : "var(--surface-1)", color: p.done ? "var(--good)" : "var(--text-dim)" }}
+                    style={{ background: part.done ? "var(--good-soft)" : "var(--surface-1)", color: part.done ? "var(--good)" : "var(--text-dim)" }}
                   >
-                    {p.done ? <Check size={15} /> : <Close size={15} />}
+                    {part.done ? <Check size={15} /> : <Close size={15} />}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[12.5px] font-bold">{p.label}</span>
-                      <span className="num text-[11px]" style={{ color: "var(--text-dim)" }}>{p.score}/{p.max}</span>
+                      <span className="text-[12.5px] font-bold">{part.label}</span>
+                      <span className="num text-[11px]" style={{ color: "var(--text-dim)" }}>{part.score}/{part.max}</span>
                     </div>
-                    {p.action && (
-                      <p className="mt-0.5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>{p.action}</p>
+                    {part.action && (
+                      <p className="mt-0.5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>{part.action}</p>
                     )}
                   </div>
                 </div>
@@ -147,10 +154,9 @@ export default async function TrustCenterPage() {
           >
             <ShieldCheck size={20} className="mt-0.5 shrink-0" style={{ color: "var(--brand)" }} />
             <div>
-              <h3 className="text-[13px] font-bold">خصوصيتك محفوظة</h3>
+              <h3 className="text-[13px] font-bold">{p.privacyTitle}</h3>
               <p className="mt-1 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                المستخدمون الآخرون كيشوفو غير: شارة التوثيق ومستوى الثقة. الوثائق
-                والمعلومات الحساسة ديالك عمرها ما كتبان — غير فريق المراجعة اللي كيشوفها.
+                {p.privacyText}
               </p>
             </div>
           </section>

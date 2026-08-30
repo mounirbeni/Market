@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { CITIES } from "@/lib/cities";
+import { Link } from "@/components/Link";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { citiesIn } from "@/lib/i18n/labels";
 import { BadgeCheck, Check, MapPin, Users } from "@/components/icons";
 
 interface Dealer {
@@ -17,11 +18,6 @@ interface Dealer {
   verified: boolean;
 }
 
-const EMPTY = {
-  name: "", tagline: "", about: "", address: "",
-  hours: "الإثنين ـ السبت · 9:00 — 19:00", city: "casablanca", brands: "",
-};
-
 /* ============================================================
    ملف المعرض
 
@@ -30,6 +26,14 @@ const EMPTY = {
    يدخل شي معرض. بلاه القسم كيبقى خاوي للأبد.
    ============================================================ */
 export function DealerProfileForm() {
+  const t = useDict();
+  const locale = useLocale();
+  const d0 = t.dealerForm;
+  const separator = locale === "fr" ? ", " : "، ";
+  const EMPTY = {
+    name: "", tagline: "", about: "", address: "",
+    hours: d0.defaultHours, city: "casablanca", brands: "",
+  };
   const [dealer, setDealer] = useState<Dealer | null>(null);
   const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
@@ -41,22 +45,23 @@ export function DealerProfileForm() {
     fetch("/api/me/dealer")
       .then((r) => r.json())
       .then((j) => {
-        const d: Dealer | null = j?.ok ? j.data.dealer : null;
-        if (d) {
-          setDealer(d);
+        const dl: Dealer | null = j?.ok ? j.data.dealer : null;
+        if (dl) {
+          setDealer(dl);
           setForm({
-            name: d.name,
-            tagline: d.tagline ?? "",
-            about: d.about ?? "",
-            address: d.address ?? "",
-            hours: d.hours ?? "",
-            city: d.city,
-            brands: (d.brands ?? []).join("، "),
+            name: dl.name,
+            tagline: dl.tagline ?? "",
+            about: dl.about ?? "",
+            address: dl.address ?? "",
+            hours: dl.hours ?? "",
+            city: dl.city,
+            brands: (dl.brands ?? []).join(separator),
           });
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const set = (patch: Partial<typeof EMPTY>) => {
@@ -79,8 +84,8 @@ export function DealerProfileForm() {
         }),
       });
       const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نسجّلو.");
-      setDealer((d) => ({
+      if (!json?.ok) throw new Error(json?.error ?? d0.genericError);
+      setDealer((dl) => ({
         slug: json.data.slug,
         name: form.name,
         tagline: form.tagline,
@@ -89,11 +94,11 @@ export function DealerProfileForm() {
         hours: form.hours,
         city: form.city,
         brands: form.brands.split(/[،,]/).map((b) => b.trim()).filter(Boolean),
-        verified: d?.verified ?? false,
+        verified: dl?.verified ?? false,
       }));
       setSaved(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ماقدرناش نسجّلو.");
+      setError(err instanceof Error ? err.message : d0.genericError);
     } finally {
       setBusy(false);
     }
@@ -112,11 +117,10 @@ export function DealerProfileForm() {
         </span>
         <div className="min-w-0">
           <h2 className="text-[15px] font-bold">
-            {dealer ? "ملف المعرض ديالك" : "صاوب ملف معرض"}
+            {dealer ? d0.editTitle : d0.createTitle}
           </h2>
           <p className="mt-1 text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            الحساب ديالك غادي يولّي «بائع محترف»، والمخزون كامل غادي يبان
-            فصفحة وحدة مع العنوان وساعات العمل.
+            {d0.lead}
           </p>
         </div>
       </div>
@@ -131,11 +135,11 @@ export function DealerProfileForm() {
           </Link>
           {dealer.verified ? (
             <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
-              <BadgeCheck size={11} /> موثّق
+              <BadgeCheck size={11} /> {d0.verified}
             </span>
           ) : (
             <span style={{ color: "var(--text-dim)" }}>
-              · التوثيق كيتحط بعد التأكد من السجل التجاري
+              {d0.verifyPending}
             </span>
           )}
         </div>
@@ -143,55 +147,55 @@ export function DealerProfileForm() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="d-name">اسم المعرض</label>
+          <label className="label" htmlFor="d-name">{d0.nameLabel}</label>
           <input
             id="d-name" className="field" required maxLength={80}
             value={form.name} onChange={(e) => set({ name: e.target.value })}
-            placeholder="أوطو ..."
+            placeholder={d0.namePlaceholder}
           />
         </div>
         <div>
-          <label className="label" htmlFor="d-city"><MapPin size={13} /> المدينة</label>
+          <label className="label" htmlFor="d-city"><MapPin size={13} /> {d0.cityLabel}</label>
           <select
             id="d-city" className="field"
             value={form.city} onChange={(e) => set({ city: e.target.value })}
           >
-            {CITIES.map((c) => (
-              <option key={c.slug} value={c.slug}>{c.ar}</option>
+            {citiesIn(locale).map((c) => (
+              <option key={c.slug} value={c.slug}>{c.name}</option>
             ))}
           </select>
         </div>
       </div>
 
       <div>
-        <label className="label" htmlFor="d-tagline">جملة تعريفية</label>
+        <label className="label" htmlFor="d-tagline">{d0.taglineLabel}</label>
         <input
           id="d-tagline" className="field" maxLength={120}
           value={form.tagline} onChange={(e) => set({ tagline: e.target.value })}
-          placeholder="بيع وشراء وتبادل السيارات المستعملة"
+          placeholder={d0.taglinePlaceholder}
         />
       </div>
 
       <div>
-        <label className="label" htmlFor="d-about">تعريف بالمعرض</label>
+        <label className="label" htmlFor="d-about">{d0.aboutLabel}</label>
         <textarea
           id="d-about" className="field min-h-28" maxLength={2000}
           value={form.about} onChange={(e) => set({ about: e.target.value })}
-          placeholder="شحال هادي وأنت خدّام، شنو كتبيع، واش كتوفّر ضمان…"
+          placeholder={d0.aboutPlaceholder}
         />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="d-address">العنوان</label>
+          <label className="label" htmlFor="d-address">{d0.addressLabel}</label>
           <input
             id="d-address" className="field" maxLength={160}
             value={form.address} onChange={(e) => set({ address: e.target.value })}
-            placeholder="زنقة …، المدينة"
+            placeholder={d0.addressPlaceholder}
           />
         </div>
         <div>
-          <label className="label" htmlFor="d-hours">ساعات العمل</label>
+          <label className="label" htmlFor="d-hours">{d0.hoursLabel}</label>
           <input
             id="d-hours" className="field" maxLength={80}
             value={form.hours} onChange={(e) => set({ hours: e.target.value })}
@@ -200,21 +204,21 @@ export function DealerProfileForm() {
       </div>
 
       <div>
-        <label className="label" htmlFor="d-brands">الماركات اللي كتبيع</label>
+        <label className="label" htmlFor="d-brands">{d0.brandsLabel}</label>
         <input
           id="d-brands" className="field" dir="ltr"
           value={form.brands} onChange={(e) => set({ brands: e.target.value })}
-          placeholder="Dacia، Renault، Peugeot"
+          placeholder={d0.brandsPlaceholder}
         />
         <p className="mt-1 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
-          فرّقهم بفاصلة
+          {d0.brandsHint}
         </p>
       </div>
 
       {error && <p className="text-[12px] font-bold" style={{ color: "var(--bad)" }}>{error}</p>}
 
       <button type="submit" className="btn btn-primary w-full" disabled={busy}>
-        {saved ? <><Check size={16} /> تسجّل</> : busy ? "كنسجّلو…" : dealer ? "حيّن الملف" : "صاوب الملف"}
+        {saved ? <><Check size={16} /> {d0.saved}</> : busy ? d0.saving : dealer ? d0.update : d0.create}
       </button>
     </form>
   );

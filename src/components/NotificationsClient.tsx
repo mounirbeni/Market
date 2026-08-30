@@ -1,19 +1,20 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "@/store/session";
-import { timeAgo } from "@/lib/format";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { fmtTimeAgo } from "@/lib/i18n/labels";
 import {
   Bell, BadgeCheck, Calendar, Check, Message, ShieldCheck, TrendingDown,
 } from "@/components/icons";
 
 const META = {
-  message: { Icon: Message, color: "var(--brand)", label: "رسالة" },
-  "price-drop": { Icon: TrendingDown, color: "var(--good)", label: "انخفاض ثمن" },
-  listing: { Icon: BadgeCheck, color: "var(--data)", label: "إعلان" },
-  appointment: { Icon: Calendar, color: "var(--warn)", label: "موعد" },
-  system: { Icon: ShieldCheck, color: "var(--text-dim)", label: "النظام" },
+  message: { Icon: Message, color: "var(--brand)" },
+  "price-drop": { Icon: TrendingDown, color: "var(--good)" },
+  listing: { Icon: BadgeCheck, color: "var(--data)" },
+  appointment: { Icon: Calendar, color: "var(--warn)" },
+  system: { Icon: ShieldCheck, color: "var(--text-dim)" },
 } as const;
 
 interface Notif {
@@ -27,6 +28,9 @@ interface Notif {
 }
 
 export function NotificationsClient() {
+  const t = useDict();
+  const nt = t.notifications;
+  const locale = useLocale();
   const { user } = useSession();
   const [items, setItems] = useState<Notif[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,15 +94,15 @@ export function NotificationsClient() {
       <div className="card flex flex-col items-center p-12 text-center">
         <Bell size={30} style={{ color: "var(--text-dim)" }} />
         <p className="mt-4 text-sm" style={{ color: "var(--text-muted)" }}>
-          سجّل الدخول باش تشوف الإشعارات ديالك.
+          {nt.loginText}
         </p>
-        <Link href="/login?next=%2Fnotifications" className="btn btn-primary mt-5">تسجيل الدخول</Link>
+        <Link href="/login?next=%2Fnotifications" className="btn btn-primary mt-5">{nt.login}</Link>
       </div>
     );
   }
   if (loading) {
     return (
-      <div aria-busy="true" aria-label="كنحمّلو الإشعارات">
+      <div aria-busy="true" aria-label={nt.loadingAria}>
         <div className="skeleton mb-5 h-4 w-40 rounded" />
         <ul className="space-y-2.5">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -121,11 +125,11 @@ export function NotificationsClient() {
     <div>
       <div className="mb-5 flex items-center justify-between gap-3">
         <p className="text-[12.5px]" style={{ color: "var(--text-muted)" }}>
-          <span className="num font-bold" style={{ color: "var(--brand)" }}>{unread.length}</span> إشعار غير مقروء
+          <span className="num font-bold" style={{ color: "var(--brand)" }}>{unread.length}</span> {nt.unreadSuffix}
         </p>
         {unread.length > 0 && (
           <button onClick={markAllRead} className="btn btn-ghost btn-sm">
-            <Check size={13} /> علّم الكل كمقروء
+            <Check size={13} /> {nt.markAllRead}
           </button>
         )}
       </div>
@@ -159,8 +163,8 @@ export function NotificationsClient() {
                     {n.body}
                   </p>
                   <div className="mt-2 flex items-center gap-2 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
-                    <span className="tag tag-mute">{m.label}</span>
-                    <span>{timeAgo(n.created_at)}</span>
+                    <span className="tag tag-mute">{nt.types[n.type]}</span>
+                    <span>{fmtTimeAgo(n.created_at, locale)}</span>
                   </div>
                 </div>
               </Link>
@@ -172,7 +176,7 @@ export function NotificationsClient() {
       {items.length === 0 && (
         <div className="card flex flex-col items-center p-12 text-center">
           <Bell size={30} style={{ color: "var(--text-dim)" }} />
-          <p className="mt-4 text-sm" style={{ color: "var(--text-muted)" }}>ماكاين حتى إشعار.</p>
+          <p className="mt-4 text-sm" style={{ color: "var(--text-muted)" }}>{nt.emptyText}</p>
         </div>
       )}
     </div>

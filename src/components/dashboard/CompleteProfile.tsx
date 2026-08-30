@@ -2,10 +2,14 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { AccountBasicsForm } from "./AccountBasicsForm";
+import { useDict, useHref } from "@/lib/i18n/client";
 import { Info, ShieldCheck } from "@/components/icons";
 
 export function CompleteProfile() {
+  const t = useDict();
+  const p = t.completeProfilePage;
   const router = useRouter();
+  const href = useHref();
   const sp = useSearchParams();
   const next = sp.get("next");
   const forSelling = next === "/sell" || Boolean(next?.startsWith("/sell"));
@@ -18,26 +22,23 @@ export function CompleteProfile() {
       >
         <ShieldCheck size={22} />
       </span>
-      <h1 className="mt-4 text-xl font-extrabold tracking-tight">أكمل معلومات حسابك</h1>
+      <h1 className="mt-4 text-xl font-extrabold tracking-tight">{p.title}</h1>
       <p className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-        {forSelling
-          ? "أكمل معلومات حسابك أولًا للتمكن من نشر إعلانك والاستفادة من جميع خدمات المنصة."
-          : "خطوة وحدة باقية باش تستافد بكل خدمات طريق: الاسم، الهاتف، المدينة، ونوع الحساب."}
+        {forSelling ? p.leadSelling : p.leadDefault}
       </p>
       <p
         className="mt-3 flex items-start gap-2 rounded-lg p-3 text-[11.5px] leading-relaxed"
         style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
       >
         <Info size={14} className="mt-px shrink-0" style={{ color: "var(--data)" }} />
-        هاد المعلومات إلزامية باش نضمنو تواصل حقيقي بين البائعين والمشترين — توثيق
-        الهوية يبقى اختياري تماماً.
+        {p.note}
       </p>
 
       <div className="mt-5">
         <AccountBasicsForm
-          ctaLabel="كمّل وتابع"
+          ctaLabel={p.cta}
           onSaved={({ wantsDealer }) => router.push(
-            wantsDealer ? "/dashboard/dealer" : (next && next.startsWith("/") ? next : "/dashboard"),
+            wantsDealer ? href("/dashboard/dealer") : (next && next.startsWith("/") ? next : href("/dashboard")),
           )}
         />
       </div>

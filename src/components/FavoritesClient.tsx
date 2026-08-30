@@ -1,16 +1,21 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useMemo } from "react";
 import { useApp } from "@/store/app";
 import { useVehiclesByIds } from "@/lib/useVehicles";
 import { VehicleCard } from "@/components/VehicleCard";
 import { computeTco } from "@/lib/tco";
 import { formatNumber } from "@/lib/format";
-import type { Vehicle } from "@/lib/types";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { dhUnit } from "@/lib/i18n/labels";
 import { Bell, Calculator, Car, Coins, Heart, Search, Trash, TrendingDown } from "@/components/icons";
 
 export function FavoritesClient() {
+  const t = useDict();
+  const locale = useLocale();
+  const dh = dhUnit(locale);
+  const f = t.favorites;
   const { favorites, searches, removeSearch, ready, priceWatch, togglePriceWatch, isWatched } = useApp();
 
   /* التفاصيل كتجي من قاعدة البيانات — المتصفح كيخزّن غير المعرّفات */
@@ -40,7 +45,7 @@ export function FavoritesClient() {
   return (
     <div className="space-y-12">
       <section>
-        <h2 className="h-section mb-5">المفضلة</h2>
+        <h2 className="h-section mb-5">{f.title}</h2>
 
         {items.length === 0 ? (
           <div className="card p-12 text-center">
@@ -50,21 +55,21 @@ export function FavoritesClient() {
             >
               <Heart size={30} />
             </span>
-            <h3 className="mt-5 text-lg font-bold">ما زال ماحفظتي حتى مركبة</h3>
+            <h3 className="mt-5 text-lg font-bold">{f.emptyTitle}</h3>
             <p className="mx-auto mt-2 max-w-sm text-sm" style={{ color: "var(--text-muted)" }}>
-              كليكي على القلب فأي إعلان باش تلقاه هنا من بعد، وتقارن بيناتهم بسهولة.
+              {f.emptyText}
             </p>
-            <Link href="/vehicles" className="btn btn-primary mt-6"><Car size={16} /> تصفح المركبات</Link>
+            <Link href="/vehicles" className="btn btn-primary mt-6"><Car size={16} /> {f.browseVehicles}</Link>
           </div>
         ) : (
           <>
             {stats && (
               <div className="card mb-5 grid grid-cols-2 gap-4 p-4 sm:grid-cols-4">
                 {[
-                  { l: "عدد المحفوظات", v: String(items.length), Icon: Heart },
-                  { l: "الأرخص", v: `${formatNumber(stats.min)} د.م`, Icon: TrendingDown },
-                  { l: "المتوسط", v: `${formatNumber(stats.avg)} د.م`, Icon: Coins },
-                  { l: "أقل تكلفة استعمال", v: `${formatNumber(stats.cheapestRun)} د.م/سنة`, Icon: Calculator },
+                  { l: f.statCount, v: String(items.length), Icon: Heart },
+                  { l: f.statCheapest, v: `${formatNumber(stats.min)} ${dh}`, Icon: TrendingDown },
+                  { l: f.statAvg, v: `${formatNumber(stats.avg)} ${dh}`, Icon: Coins },
+                  { l: f.statCheapestRun, v: `${formatNumber(stats.cheapestRun)} ${f.perYear}`, Icon: Calculator },
                 ].map((s) => (
                   <div key={s.l} className="flex flex-col items-center gap-1 text-center">
                     <s.Icon size={16} style={{ color: "var(--brand)" }} />
@@ -80,11 +85,10 @@ export function FavoritesClient() {
             >
               <Bell size={17} className="shrink-0" style={{ color: "var(--brand)" }} />
               <p className="min-w-0 flex-1 text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                <b style={{ color: "var(--brand)" }}>تنبيه انخفاض السعر:</b> فعّلو على أي مركبة
-                وكيوصلك إشعار ملي البائع ينقّص الثمن.{" "}
+                <b style={{ color: "var(--brand)" }}>{f.priceWatchTitle}</b> {f.priceWatchText}{" "}
                 {priceWatch.length > 0 && (
                   <span className="num font-bold" style={{ color: "var(--brand)" }}>
-                    {priceWatch.length} مفعّل
+                    {priceWatch.length} {f.priceWatchActive}
                   </span>
                 )}
               </p>
@@ -92,7 +96,7 @@ export function FavoritesClient() {
                 onClick={() => items.forEach((v) => { if (!isWatched(v.id)) togglePriceWatch(v.id); })}
                 className="btn btn-solid btn-sm shrink-0"
               >
-                فعّلو على الكل
+                {f.activateAll}
               </button>
             </div>
 
@@ -113,7 +117,7 @@ export function FavoritesClient() {
                       }}
                     >
                       <Bell size={13} />
-                      {on ? "غادي نعلمك إلا نقص الثمن" : "نبّهني إلا نقص الثمن"}
+                      {on ? f.willNotify : f.notifyMe}
                     </button>
                   </div>
                 );
@@ -124,9 +128,9 @@ export function FavoritesClient() {
       </section>
 
       <section>
-        <h2 className="h-section mb-2">البحوث المحفوظة</h2>
+        <h2 className="h-section mb-2">{f.savedSearchesTitle}</h2>
         <p className="mb-5 text-sm" style={{ color: "var(--text-muted)" }}>
-          البحوث اللي سجّلتي. فالنسخة الكاملة كتوصلك إشعارات ملي تدخل مركبة مطابقة.
+          {f.savedSearchesLead}
         </p>
 
         {searches.length === 0 ? (
@@ -138,7 +142,7 @@ export function FavoritesClient() {
               <Search size={22} />
             </span>
             <p className="mt-4 text-sm" style={{ color: "var(--text-muted)" }}>
-              ماكاين حتى بحث محفوظ. من صفحة النتائج، كليكي على «احفظ البحث».
+              {f.noSearchesText}
             </p>
           </div>
         ) : (
@@ -151,18 +155,18 @@ export function FavoritesClient() {
                 >
                   <span className="block truncate">{s.label}</span>
                   <span className="block truncate text-[11px] font-normal" style={{ color: "var(--text-dim)" }}>
-                    {s.query || "بدون فلاتر"}
+                    {s.query || f.noFilters}
                   </span>
                 </Link>
                 {s.alert && (
-                  <span className="tag tag-good"><Bell size={11} /> تنبيه مفعّل</span>
+                  <span className="tag tag-good"><Bell size={11} /> {f.alertActive}</span>
                 )}
                 <button
                   onClick={() => removeSearch(s.id)}
                   className="btn btn-ghost btn-sm"
-                  aria-label={`حذف ${s.label}`}
+                  aria-label={`${f.deleteAria} ${s.label}`}
                 >
-                  <Trash size={13} /> حذف
+                  <Trash size={13} /> {f.delete}
                 </button>
               </li>
             ))}

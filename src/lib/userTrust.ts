@@ -8,6 +8,8 @@
    الوحيد — بحال ما تطلب.
    ============================================================ */
 
+import type { Locale } from "./i18n/config";
+
 export type TrustLevel = "low" | "medium" | "high";
 
 export interface UserTrustInput {
@@ -48,13 +50,20 @@ const LEVEL_LABEL: Record<TrustLevel, string> = {
   high: "مرتفع",
 };
 
+const LEVEL_LABEL_FR: Record<TrustLevel, string> = {
+  low: "Faible",
+  medium: "Moyen",
+  high: "Élevé",
+};
+
 function levelOf(score: number): TrustLevel {
   if (score >= 75) return "high";
   if (score >= 40) return "medium";
   return "low";
 }
 
-export function userTrustScore(input: UserTrustInput): UserTrustResult {
+export function userTrustScore(input: UserTrustInput, locale: Locale = "ar"): UserTrustResult {
+  const fr = locale === "fr";
   const months = Math.max(
     0,
     (Date.now() - input.memberSince.getTime()) / (1000 * 60 * 60 * 24 * 30),
@@ -63,68 +72,68 @@ export function userTrustScore(input: UserTrustInput): UserTrustResult {
   const parts: UserTrustPart[] = [
     {
       key: "profile",
-      label: "إكمال الملف الشخصي",
+      label: fr ? "Profil complété" : "إكمال الملف الشخصي",
       score: (input.onboarded ? 15 : 0) + (input.hasAvatar ? 5 : 0),
       max: 20,
       done: input.onboarded && input.hasAvatar,
       action: !input.onboarded
-        ? "كمّل معلومات حسابك الأساسية"
+        ? (fr ? "Complétez les informations de base de votre compte" : "كمّل معلومات حسابك الأساسية")
         : !input.hasAvatar
-          ? "أضف صورة شخصية أو شعار النشاط"
+          ? (fr ? "Ajoutez une photo de profil ou le logo de votre activité" : "أضف صورة شخصية أو شعار النشاط")
           : null,
     },
     {
       key: "phone",
-      label: "تأكيد رقم الهاتف",
+      label: fr ? "Téléphone confirmé" : "تأكيد رقم الهاتف",
       score: input.phoneVerified ? 15 : 0,
       max: 15,
       done: input.phoneVerified,
-      action: input.phoneVerified ? null : "أكّد رقم الهاتف ديالك",
+      action: input.phoneVerified ? null : (fr ? "Confirmez votre numéro de téléphone" : "أكّد رقم الهاتف ديالك"),
     },
     {
       key: "email",
-      label: "تأكيد البريد الإلكتروني",
+      label: fr ? "E-mail confirmé" : "تأكيد البريد الإلكتروني",
       score: input.emailVerified ? 10 : 0,
       max: 10,
       done: input.emailVerified,
-      action: input.emailVerified ? null : "أكّد البريد الإلكتروني ديالك",
+      action: input.emailVerified ? null : (fr ? "Confirmez votre adresse e-mail" : "أكّد البريد الإلكتروني ديالك"),
     },
     {
       key: "id",
-      label: "توثيق الهوية",
+      label: fr ? "Identité vérifiée" : "توثيق الهوية",
       score: input.idVerified ? 25 : 0,
       max: 25,
       done: input.idVerified,
-      action: input.idVerified ? null : "وثّق حسابك (اختياري) — كيرفع الثقة بزاف",
+      action: input.idVerified ? null : (fr ? "Vérifiez votre compte (facultatif) — augmente beaucoup la confiance" : "وثّق حسابك (اختياري) — كيرفع الثقة بزاف"),
     },
     {
       key: "activity",
-      label: "نشاط الحساب",
+      label: fr ? "Activité du compte" : "نشاط الحساب",
       score: Math.round(Math.min(10, (months / 12) * 10)),
       max: 10,
       done: months >= 12,
-      action: months >= 12 ? null : "استمر فاستعمال حسابك — النقطة كتزيد مع الوقت",
+      action: months >= 12 ? null : (fr ? "Continuez à utiliser votre compte — le score augmente avec le temps" : "استمر فاستعمال حسابك — النقطة كتزيد مع الوقت"),
     },
     {
       key: "listings",
-      label: "جودة الإعلانات",
+      label: fr ? "Qualité des annonces" : "جودة الإعلانات",
       score: input.avgListingTrust != null ? Math.round((input.avgListingTrust / 100) * 15) : 0,
       max: 15,
       done: input.avgListingTrust != null && input.avgListingTrust >= 70,
       action:
         input.avgListingTrust == null
-          ? "انشر إعلاناً كاملاً بصور ووثائق"
+          ? (fr ? "Publiez une annonce complète avec photos et documents" : "انشر إعلاناً كاملاً بصور ووثائق")
           : input.avgListingTrust < 70
-            ? "كمّل معلومات ووثائق إعلاناتك الحالية"
+            ? (fr ? "Complétez les informations et documents de vos annonces actuelles" : "كمّل معلومات ووثائق إعلاناتك الحالية")
             : null,
     },
     {
       key: "reports",
-      label: "بلا بلاغات مخالفة",
+      label: fr ? "Aucun signalement" : "بلا بلاغات مخالفة",
       score: Math.max(0, 5 - input.negativeReports * 2.5),
       max: 5,
       done: input.negativeReports === 0,
-      action: input.negativeReports === 0 ? null : "حافظ على معلومات صحيحة ومتناسقة فإعلاناتك",
+      action: input.negativeReports === 0 ? null : (fr ? "Maintenez des informations exactes et cohérentes dans vos annonces" : "حافظ على معلومات صحيحة ومتناسقة فإعلاناتك"),
     },
   ];
 
@@ -134,5 +143,5 @@ export function userTrustScore(input: UserTrustInput): UserTrustResult {
   );
   const level = levelOf(score);
 
-  return { score, level, levelLabel: LEVEL_LABEL[level], parts };
+  return { score, level, levelLabel: (fr ? LEVEL_LABEL_FR : LEVEL_LABEL)[level], parts };
 }

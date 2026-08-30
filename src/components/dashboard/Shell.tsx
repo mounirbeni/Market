@@ -1,27 +1,31 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
+import { useDict } from "@/lib/i18n/client";
 import { ProfileCompletionBanner } from "./ProfileCompletionBanner";
 import {
   BadgeCheck, Calendar, Car, Chart, Heart, Message, Plus, ShieldCheck, Sliders, Users,
 } from "@/components/icons";
 
-const NAV = [
-  { href: "/dashboard", label: "لوحة القيادة", Icon: Chart },
-  { href: "/dashboard/listings", label: "إعلاناتي", Icon: Car },
-  { href: "/dashboard/messages", label: "الرسائل", Icon: Message },
-  { href: "/dashboard/appointments", label: "المواعيد", Icon: Calendar },
-  { href: "/dashboard/favorites", label: "المفضلة", Icon: Heart },
-  { href: "/dashboard/dealer", label: "المعرض ديالي", Icon: Users },
-  { href: "/dashboard/trust", label: "مركز الثقة والأمان", Icon: ShieldCheck },
-  { href: "/dashboard/settings", label: "الإعدادات", Icon: Sliders },
-];
+const NAV_META = [
+  { href: "/dashboard", key: "overview", Icon: Chart },
+  { href: "/dashboard/listings", key: "listings", Icon: Car },
+  { href: "/dashboard/messages", key: "messages", Icon: Message },
+  { href: "/dashboard/appointments", key: "appointments", Icon: Calendar },
+  { href: "/dashboard/favorites", key: "favorites", Icon: Heart },
+  { href: "/dashboard/dealer", key: "dealer", Icon: Users },
+  { href: "/dashboard/trust", key: "trust", Icon: ShieldCheck },
+  { href: "/dashboard/settings", key: "settings", Icon: Sliders },
+] as const;
 
 export function DashboardShell({ title, children }: { title: string; children: ReactNode }) {
+  const t = useDict();
+  const s = t.dashShell;
+  const NAV = NAV_META.map((n) => ({ ...n, label: s.nav[n.key] }));
   const pathname = usePathname();
   const { favorites, ready } = useApp();
   const { user, signOut, unread } = useSession();
@@ -38,13 +42,13 @@ export function DashboardShell({ title, children }: { title: string; children: R
           >
             <Users size={30} />
           </span>
-          <h1 className="mt-5 text-lg font-bold">خاصك تسجّل الدخول</h1>
+          <h1 className="mt-5 text-lg font-bold">{s.loginRequiredTitle}</h1>
           <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            لوحة البائع فيها إعلاناتك ورسائلك ومواعيدك. دخل لحسابك باش توصل ليها.
+            {s.loginRequiredText}
           </p>
           <div className="mt-6 flex gap-2">
-            <Link href="/login" className="btn btn-primary">تسجيل الدخول</Link>
-            <Link href="/register" className="btn btn-ghost">إنشاء حساب</Link>
+            <Link href="/login" className="btn btn-primary">{s.login}</Link>
+            <Link href="/register" className="btn btn-ghost">{s.register}</Link>
           </div>
         </div>
       </div>
@@ -70,11 +74,11 @@ export function DashboardShell({ title, children }: { title: string; children: R
                 <div className="flex items-center gap-1.5">
                   <span className="truncate text-[13px] font-bold">{user.name}</span>
                   {user.email_verified && (
-                    <BadgeCheck size={13} style={{ color: "var(--good)" }} aria-label="إيميل موثّق" />
+                    <BadgeCheck size={13} style={{ color: "var(--good)" }} aria-label={s.emailVerifiedAria} />
                   )}
                 </div>
                 <span className="text-[10.5px]" style={{ color: "var(--text-dim)" }}>
-                  {user.type === "professionnel" ? "محترف" : "خاص"} ·{" "}
+                  {user.type === "professionnel" ? s.pro : s.individual} ·{" "}
                   <bdi dir="ltr">{user.email}</bdi>
                 </span>
               </div>
@@ -112,8 +116,8 @@ export function DashboardShell({ title, children }: { title: string; children: R
             </nav>
 
             <div className="border-t p-3" style={{ borderColor: "var(--line-soft)" }}>
-              <Link href="/sell" className="btn btn-primary btn-sm w-full"><Plus size={14} /> إعلان جديد</Link>
-              <button onClick={() => void signOut()} className="btn btn-ghost btn-sm mt-2 w-full">تسجيل الخروج</button>
+              <Link href="/sell" className="btn btn-primary btn-sm w-full"><Plus size={14} /> {s.newListing}</Link>
+              <button onClick={() => void signOut()} className="btn btn-ghost btn-sm mt-2 w-full">{s.signOut}</button>
             </div>
           </div>
         </aside>

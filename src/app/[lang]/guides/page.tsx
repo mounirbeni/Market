@@ -1,33 +1,39 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { GUIDES } from "@/lib/data/guides";
-import { formatDate } from "@/lib/format";
+import { Link } from "@/components/Link";
+import { guidesFor } from "@/lib/data/guides";
+import { fmtDate } from "@/lib/i18n/labels";
+import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 import { ArrowLeft, Car, Clock, FileText, GUIDE_ICONS, Moto, ShieldCheck } from "@/components/icons";
 
-export const metadata: Metadata = {
-  title: "نصائح وأدلة شراء المركبات في المغرب",
-  description:
-    "أدلة عملية لشراء وبيع السيارات والدراجات النارية في المغرب: الفحص قبل الشراء، كشف الغش، الوثائق المطلوبة، والتكلفة الحقيقية.",
-  alternates: { canonical: "/guides" },
-};
+const KIND_ICON = { car: Car, moto: Moto, general: ShieldCheck } as const;
+const KIND_COLOR = { car: "var(--brand)", moto: "var(--data)", general: "var(--good)" } as const;
 
-const KIND_META = {
-  car: { label: "سيارات", Icon: Car, color: "var(--brand)" },
-  moto: { label: "دراجات", Icon: Moto, color: "var(--data)" },
-  general: { label: "عام", Icon: ShieldCheck, color: "var(--good)" },
-} as const;
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  return {
+    title: t.guidesPage.metaTitle,
+    description: t.guidesPage.metaDesc,
+    alternates: { canonical: localePath("/guides", locale) },
+  };
+}
 
-export default function GuidesPage() {
-  const [featured, ...rest] = GUIDES;
+export default async function GuidesPage() {
+  const t = await getDictionary();
+  const locale = await getLocale();
+  const [featured, ...rest] = guidesFor(locale);
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-10">
       <header className="mb-9 max-w-2xl">
-        <span className="eyebrow"><FileText size={13} /> معرفة قبل الشراء</span>
-        <h1 className="h-page mt-4">النصائح والأدلة</h1>
+        <span className="eyebrow"><FileText size={13} /> {t.guidesPage.eyebrow}</span>
+        <h1 className="h-page mt-4">{t.guidesPage.title}</h1>
         <p className="mt-3 text-[15px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          أدلة عملية مكتوبة للسوق المغربي: شنو تشوف قبل ما تشري، كيفاش تكشف الغش،
-          شنو الوثائق المطلوبة، وشحال غادي تصرف فعلاً.
+          {t.guidesPage.lead}
         </p>
       </header>
 
@@ -44,7 +50,7 @@ export default function GuidesPage() {
         </div>
         <div className="flex-1 p-6">
           <span className="tag" style={{ background: "var(--brand-soft)", color: "var(--brand)" }}>
-            الأكثر قراءة
+            {t.guidesPage.mostRead}
           </span>
           <h2 className="mt-3 text-xl font-bold transition-colors group-hover:text-[var(--brand)]">
             {featured.title}
@@ -53,21 +59,21 @@ export default function GuidesPage() {
             {featured.excerpt}
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3 text-[11px]" style={{ color: "var(--text-dim)" }}>
-            <span className="flex items-center gap-1"><Clock size={12} /> <span className="num">{featured.readMinutes}</span> دقائق</span>
-            <span>تحديث {formatDate(featured.updated)}</span>
+            <span className="flex items-center gap-1"><Clock size={12} /> <span className="num">{featured.readMinutes}</span> {t.guidesPage.minutes}</span>
+            <span>{t.guidesPage.updatedOn} {fmtDate(featured.updated, locale)}</span>
           </div>
         </div>
       </Link>
 
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {rest.map((g) => {
-          const meta = KIND_META[g.kind];
+          const kindColor = KIND_COLOR[g.kind];
           const GIcon = GUIDE_ICONS[g.icon];
           return (
             <Link key={g.slug} href={`/guides/${g.slug}`} className="card card-hover group flex flex-col p-5">
               <span
                 className="grid h-10 w-10 place-items-center rounded-xl"
-                style={{ background: `color-mix(in oklab, ${meta.color} 12%, transparent)`, color: meta.color }}
+                style={{ background: `color-mix(in oklab, ${kindColor} 12%, transparent)`, color: kindColor }}
               >
                 <GIcon size={19} />
               </span>
@@ -81,9 +87,9 @@ export default function GuidesPage() {
                 className="mt-4 flex items-center justify-between border-t pt-3 text-[11px]"
                 style={{ borderColor: "var(--line-soft)", color: "var(--text-dim)" }}
               >
-                <span className="flex items-center gap-1"><Clock size={12} /> <span className="num">{g.readMinutes}</span> دقائق</span>
+                <span className="flex items-center gap-1"><Clock size={12} /> <span className="num">{g.readMinutes}</span> {t.guidesPage.minutes}</span>
                 <span className="flex items-center gap-1 font-bold" style={{ color: "var(--brand)" }}>
-                  قرا <ArrowLeft size={13} className="dir-flip" />
+                  {t.guidesPage.read} <ArrowLeft size={13} className="dir-flip" />
                 </span>
               </div>
             </Link>

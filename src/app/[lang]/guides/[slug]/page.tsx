@@ -1,34 +1,42 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { notFound } from "next/navigation";
-import { GUIDES, guideBySlug } from "@/lib/data/guides";
-import { formatDate } from "@/lib/format";
+import { guidesFor, guideBySlugFor } from "@/lib/data/guides";
+import { fmtDate } from "@/lib/i18n/labels";
+import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, HTML_LANG, isLocale, localePath } from "@/lib/i18n/config";
 import { ArrowLeft, Check, ChevronLeft, Clock, FileText } from "@/components/icons";
 
-export function generateStaticParams() {
-  return GUIDES.map((g) => ({ slug: g.slug }));
-}
+/* السطرين التاليين نفس السبب فباقي صفحات [lang]/.../[slug]: التخطيط
+   الجذري كيقرا الكوكي، فماكيمكنش الصفحة تتّبنى ساكنة بصح — و
+   generateStaticParams القديمة كانت خاصة بـslug وحدو، ماشي
+   lang+slug كيفما دابا. */
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
-}: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
-  const g = guideBySlug(slug);
-  if (!g) return { title: "دليل غير موجود" };
+}: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
+  const { lang, slug } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  const g = guideBySlugFor(slug, locale);
+  if (!g) return { title: t.guideDetail.notFound };
   return {
     title: g.title,
     description: g.excerpt,
-    alternates: { canonical: `/guides/${slug}` },
+    alternates: { canonical: localePath(`/guides/${slug}`, locale) },
     openGraph: { title: g.title, description: g.excerpt, type: "article" },
   };
 }
 
-export default async function GuidePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function GuidePage({ params }: { params: Promise<{ lang: string; slug: string }> }) {
   const { slug } = await params;
-  const g = guideBySlug(slug);
+  const t = await getDictionary();
+  const locale = await getLocale();
+  const g = guideBySlugFor(slug, locale);
   if (!g) notFound();
 
-  const others = GUIDES.filter((x) => x.slug !== g.slug).slice(0, 3);
+  const others = guidesFor(locale).filter((x) => x.slug !== g.slug).slice(0, 3);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -36,7 +44,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
     headline: g.title,
     description: g.excerpt,
     dateModified: g.updated,
-    inLanguage: "ar-MA",
+    inLanguage: HTML_LANG[locale],
   };
 
   return (
@@ -44,9 +52,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <nav className="mb-6 flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-        <Link href="/" className="transition hover:text-[var(--brand)]">الرئيسية</Link>
+        <Link href="/" className="transition hover:text-[var(--brand)]">{t.guideDetail.home}</Link>
         <ChevronLeft size={12} className="dir-flip" />
-        <Link href="/guides" className="transition hover:text-[var(--brand)]">النصائح</Link>
+        <Link href="/guides" className="transition hover:text-[var(--brand)]">{t.guideDetail.guidesNav}</Link>
         <ChevronLeft size={12} className="dir-flip" />
         <span style={{ color: "var(--text-muted)" }}>{g.title}</span>
       </nav>
@@ -59,9 +67,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
               {g.excerpt}
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-3 text-[11.5px]" style={{ color: "var(--text-dim)" }}>
-              <span className="flex items-center gap-1"><Clock size={13} /> <span className="num">{g.readMinutes}</span> دقائق قراءة</span>
+              <span className="flex items-center gap-1"><Clock size={13} /> <span className="num">{g.readMinutes}</span> {t.guideDetail.minutesRead}</span>
               <span>·</span>
-              <span>آخر تحديث {formatDate(g.updated)}</span>
+              <span>{t.guideDetail.updated} {fmtDate(g.updated, locale)}</span>
             </div>
           </header>
 
@@ -92,13 +100,13 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
             className="card-raised zellige relative mt-10 overflow-hidden p-8 text-center"
             style={{ background: "var(--brand-soft)" }}
           >
-            <h2 className="h-section">واجد تبدا؟</h2>
+            <h2 className="h-section">{t.guideDetail.ctaTitle}</h2>
             <p className="mx-auto mt-3 max-w-md text-[13px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              كل إعلان فطريق معاه مؤشر ثقة وثمن مرجعي محسوب — باش تطبّق هاد النصائح بالأرقام.
+              {t.guideDetail.ctaLead}
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Link href="/cars" className="btn btn-primary">تصفح السيارات</Link>
-              <Link href="/motorcycles" className="btn btn-ghost">تصفح الدراجات</Link>
+              <Link href="/cars" className="btn btn-primary">{t.guideDetail.browseCars}</Link>
+              <Link href="/motorcycles" className="btn btn-ghost">{t.guideDetail.browseMotos}</Link>
             </div>
           </div>
         </article>
@@ -106,7 +114,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
         <aside className="lg:sticky lg:top-[84px] lg:h-fit">
           <section className="card p-5">
             <h2 className="flex items-center gap-2 text-[13px] font-bold">
-              <FileText size={15} style={{ color: "var(--brand)" }} /> أدلة أخرى
+              <FileText size={15} style={{ color: "var(--brand)" }} /> {t.guideDetail.otherGuides}
             </h2>
             <ul className="mt-4 space-y-3">
               {others.map((o) => (
@@ -116,7 +124,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
                       {o.title}
                     </span>
                     <span className="mt-1 flex items-center gap-1 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
-                      <Clock size={11} /> <span className="num">{o.readMinutes}</span> دقائق
+                      <Clock size={11} /> <span className="num">{o.readMinutes}</span> {t.guidesPage.minutes}
                     </span>
                   </Link>
                 </li>
@@ -127,7 +135,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
               className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-bold"
               style={{ color: "var(--brand)" }}
             >
-              كل الأدلة <ArrowLeft size={13} className="dir-flip" />
+              {t.guideDetail.allGuides} <ArrowLeft size={13} className="dir-flip" />
             </Link>
           </section>
         </aside>

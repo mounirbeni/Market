@@ -1,12 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useVehiclesByIds } from "@/lib/useVehicles";
 import { vehicleHref } from "@/lib/slug";
-import { formatDate, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import { artShape } from "@/lib/artshape";
 import { VehicleArt } from "@/components/VehicleArt";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { dhUnit, fmtDate } from "@/lib/i18n/labels";
+import { HTML_LANG } from "@/lib/i18n/config";
 import { Calendar, Check, Clock, Close, MapPin, Phone, Users } from "@/components/icons";
 
 /** نفس قيم appt_status فقاعدة البيانات */
@@ -22,14 +25,18 @@ interface Appt {
   role: "buyer" | "seller";
 }
 
-const STATE: Record<ApptState, { label: string; color: string }> = {
-  pending: { label: "في انتظار التأكيد", color: "var(--warn)" },
-  confirmed: { label: "مؤكّد", color: "var(--good)" },
-  done: { label: "منتهي", color: "var(--text-dim)" },
-  cancelled: { label: "ملغي", color: "var(--bad)" },
+const STATE_COLOR: Record<ApptState, string> = {
+  pending: "var(--warn)",
+  confirmed: "var(--good)",
+  done: "var(--text-dim)",
+  cancelled: "var(--bad)",
 };
 
 export function DashboardAppointments() {
+  const t = useDict();
+  const locale = useLocale();
+  const dh = dhUnit(locale);
+  const p = t.appointmentsPage;
   /* المواعيد الحقيقية من قاعدة البيانات */
   const [appts, setAppts] = useState<Appt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,9 +78,9 @@ export function DashboardAppointments() {
         >
           <Calendar size={22} />
         </span>
-        <h2 className="mt-4 text-[15px] font-bold">ماكاين حتى موعد</h2>
+        <h2 className="mt-4 text-[15px] font-bold">{p.emptyTitle}</h2>
         <p className="mx-auto mt-2 max-w-sm text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          ملي شي مشتري يطلب معاينة مركبتك، الموعد كيبان هنا وكتقدر تأكّدو ولا ترفضو.
+          {p.emptyText}
         </p>
       </div>
     );
@@ -84,7 +91,7 @@ export function DashboardAppointments() {
       {appts.map((a) => {
         const v = byId.get(a.ref);
         const state = a.status;
-        const st = STATE[state];
+        const stColor = STATE_COLOR[state];
         const when = new Date(a.scheduled_at);
         return (
           <article key={a.id} className="card overflow-hidden">
@@ -101,22 +108,22 @@ export function DashboardAppointments() {
                   </span>
                   <span
                     className="tag"
-                    style={{ background: `color-mix(in oklab, ${st.color} 14%, transparent)`, color: st.color }}
+                    style={{ background: `color-mix(in oklab, ${stColor} 14%, transparent)`, color: stColor }}
                   >
-                    {st.label}
+                    {p.status[state]}
                   </span>
                 </div>
                 {v && (
                   <p className="mt-1 text-[11.5px]" style={{ color: "var(--text-muted)" }}>
-                    {v.make} {v.model} · <span className="num">{formatNumber(v.price)}</span> د.م
+                    {v.make} {v.model} · <span className="num">{formatNumber(v.price)}</span> {dh}
                   </p>
                 )}
                 <div className="mt-2 flex flex-wrap gap-3 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                  <span className="flex items-center gap-1"><Calendar size={12} /> {formatDate(a.scheduled_at)}</span>
+                  <span className="flex items-center gap-1"><Calendar size={12} /> {fmtDate(a.scheduled_at, locale)}</span>
                   <span className="flex items-center gap-1">
                     <Clock size={12} />{" "}
                     <span className="num">
-                      {when.toLocaleTimeString("fr-MA", { hour: "2-digit", minute: "2-digit" })}
+                      {when.toLocaleTimeString(HTML_LANG[locale], { hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </span>
                   {a.place && <span className="flex items-center gap-1"><MapPin size={12} /> {a.place}</span>}
@@ -130,11 +137,11 @@ export function DashboardAppointments() {
                 style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
               >
                 <button onClick={() => setStatus(a.id, "confirmed")} className="btn btn-primary btn-sm">
-                  <Check size={13} /> أكّد الموعد
+                  <Check size={13} /> {p.confirm}
                 </button>
                 {v && (
                   <Link href={`/messages?listing=${v.id}`} className="btn btn-solid btn-sm">
-                    <Phone size={13} /> تواصل
+                    <Phone size={13} /> {p.contact}
                   </Link>
                 )}
                 <button
@@ -142,7 +149,7 @@ export function DashboardAppointments() {
                   className="btn btn-ghost btn-sm me-auto"
                   style={{ color: "var(--bad)", borderColor: "var(--line)" }}
                 >
-                  <Close size={13} /> رفض
+                  <Close size={13} /> {p.decline}
                 </button>
               </div>
             )}

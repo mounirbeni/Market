@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { timeAgo } from "@/lib/format";
 import { VehicleArt } from "@/components/VehicleArt";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { fmtTimeAgo } from "@/lib/i18n/labels";
 import {
   AlertTriangle, ArrowRight, Check, Message, Phone, Search, Send, ShieldAlert,
 } from "@/components/icons";
@@ -43,14 +44,17 @@ interface Msg {
 
 const POLL_MS = 4000;
 
-async function api<T>(url: string, init?: RequestInit): Promise<T> {
+async function api<T>(url: string, init?: RequestInit, genericError = "Error"): Promise<T> {
   const r = await fetch(url, { ...init, headers: { "content-type": "application/json", ...init?.headers } });
   const j = await r.json();
-  if (!j.ok) throw new Error(j.error ?? "وقع مشكل.");
+  if (!j.ok) throw new Error(j.error ?? genericError);
   return j.data as T;
 }
 
 export function MessagesClient() {
+  const t = useDict();
+  const tm = t.messages;
+  const locale = useLocale();
   const [threads, setThreads] = useState<Thread[] | null>(null);
   const [activeId, setActiveId] = useState<string>("");
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -64,14 +68,14 @@ export function MessagesClient() {
   /* ---- تحميل المحادثات ---- */
   const loadThreads = useCallback(async () => {
     try {
-      const d = await api<{ threads: Thread[] }>("/api/threads");
+      const d = await api<{ threads: Thread[] }>("/api/threads", undefined, tm.genericError);
       setThreads(d.threads);
       setActiveId((cur) => cur || d.threads[0]?.id || "");
     } catch (e) {
       setErr((e as Error).message);
       setThreads([]);
     }
-  }, []);
+  }, [tm.genericError]);
 
   /**
    * كنتحققو من الهوية أولاً عبر /api/auth/me (كيرجع 200 مع user: null).
@@ -98,7 +102,7 @@ export function MessagesClient() {
     let alive = true;
     (async () => {
       try {
-        const d = await api<{ messages: Msg[] }>(`/api/threads/${activeId}/messages`);
+        const d = await api<{ messages: Msg[] }>(`/api/threads/${activeId}/messages`, undefined, tm.genericError);
         if (!alive) return;
         setMessages(d.messages);
         lastId.current = d.messages.at(-1)?.id ?? "";
@@ -152,7 +156,7 @@ export function MessagesClient() {
       const d = await api<{ message: Msg }>(`/api/threads/${activeId}/messages`, {
         method: "POST",
         body: JSON.stringify({ text }),
-      });
+      }, tm.genericError);
       setMessages((m) => m.map((x) => (x.id === temp.id ? { ...d.message, pending: false } : x)));
       lastId.current = d.message.id;
       void loadThreads();
@@ -171,17 +175,17 @@ export function MessagesClient() {
           style={{ background: "var(--brand-soft)", color: "var(--brand)" }}>
           <Message size={30} />
         </span>
-        <h2 className="mt-5 text-lg font-bold">سجّل الدخول باش تشوف رسائلك</h2>
+        <h2 className="mt-5 text-lg font-bold">{tm.loginTitle}</h2>
         <p className="mx-auto mt-2 max-w-sm text-sm" style={{ color: "var(--text-muted)" }}>
-          الدردشة داخل الموقع كتخلّيك تتواصل مع البائع بلا ما تعطي رقمك.
+          {tm.loginText}
         </p>
-        <Link href="/login" className="btn btn-primary mt-6">تسجيل الدخول</Link>
+        <Link href="/login" className="btn btn-primary mt-6">{tm.login}</Link>
       </div>
     );
   }
 
   if (threads === null) {
-    return <div className="card p-12 text-center text-sm" style={{ color: "var(--text-dim)" }}>كنحمّلو…</div>;
+    return <div className="card p-12 text-center text-sm" style={{ color: "var(--text-dim)" }}>{tm.loading}</div>;
   }
 
   if (threads.length === 0) {
@@ -191,11 +195,11 @@ export function MessagesClient() {
           style={{ background: "var(--surface-3)", color: "var(--text-dim)" }}>
           <Message size={30} />
         </span>
-        <h2 className="mt-5 text-lg font-bold">ماعندك حتى محادثة</h2>
+        <h2 className="mt-5 text-lg font-bold">{tm.emptyTitle}</h2>
         <p className="mx-auto mt-2 max-w-sm text-sm" style={{ color: "var(--text-muted)" }}>
-          من أي إعلان، كليكي على «راسل البائع» وغادي تبدا المحادثة هنا.
+          {tm.emptyText}
         </p>
-        <Link href="/cars" className="btn btn-primary mt-6">تصفح المركبات</Link>
+        <Link href="/cars" className="btn btn-primary mt-6">{tm.browseVehicles}</Link>
       </div>
     );
   }
@@ -213,8 +217,8 @@ export function MessagesClient() {
         <div className="border-b p-3" style={{ borderColor: "var(--line-soft)" }}>
           <div className="relative">
             <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-dim)" }} />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="قلّب فالمحادثات"
-              className="field w-full pe-9 text-[12.5px]" aria-label="بحث فالمحادثات" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tm.searchPlaceholder}
+              className="field w-full pe-9 text-[12.5px]" aria-label={tm.searchAria} />
           </div>
         </div>
         <ul className="max-h-[60vh] overflow-y-auto">
@@ -242,7 +246,7 @@ export function MessagesClient() {
                     {t.make} {t.model} {t.year}
                   </bdi>
                   <span className="mt-0.5 block truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
-                    {t.last_body ?? "—"}
+                    {t.last_body ?? tm.noMessage}
                   </span>
                 </span>
               </button>
@@ -255,7 +259,7 @@ export function MessagesClient() {
       {active && (
         <section className="card flex min-h-[62vh] flex-col overflow-hidden">
           <header className="flex items-center gap-3 border-b p-3.5" style={{ borderColor: "var(--line-soft)" }}>
-            <button onClick={() => setActiveId("")} className="btn btn-icon btn-sm lg:hidden" aria-label="رجع">
+            <button onClick={() => setActiveId("")} className="btn btn-icon btn-sm lg:hidden" aria-label={tm.back}>
               <ArrowRight size={16} className="dir-flip" />
             </button>
             <div className="min-w-0 flex-1">
@@ -266,7 +270,7 @@ export function MessagesClient() {
               </Link>
             </div>
             <span className="chip chip-plain shrink-0 text-[10px]">
-              {active.my_role === "buyer" ? "نتا المشتري" : "نتا البائع"}
+              {active.my_role === "buyer" ? tm.youAreBuyer : tm.youAreSeller}
             </span>
           </header>
 
@@ -283,7 +287,7 @@ export function MessagesClient() {
                   <p className="whitespace-pre-wrap text-[13px] leading-relaxed">{m.body}</p>
                   <span className="mt-1 flex items-center gap-1 text-[9.5px]"
                     style={{ color: m.mine ? "rgba(255,255,255,0.7)" : "var(--text-dim)" }}>
-                    {timeAgo(m.created_at)}
+                    {fmtTimeAgo(m.created_at, locale)}
                     {m.mine && !m.pending && <Check size={10} />}
                   </span>
                 </div>
@@ -302,7 +306,7 @@ export function MessagesClient() {
           <form onSubmit={send} className="flex items-end gap-2 border-t p-3" style={{ borderColor: "var(--line-soft)" }}>
             <textarea value={draft} onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void send(e); } }}
-              rows={1} maxLength={2000} placeholder="كتب رسالتك…" aria-label="رسالة"
+              rows={1} maxLength={2000} placeholder={tm.messagePlaceholder} aria-label={tm.messageAria}
               className="field max-h-32 min-h-[42px] flex-1 resize-none py-2.5 text-[13px]" />
             <button type="submit" disabled={!draft.trim()} className="btn btn-primary shrink-0 disabled:opacity-40">
               <Send size={16} />
@@ -312,8 +316,8 @@ export function MessagesClient() {
           <p className="flex items-start gap-2 border-t px-4 py-2.5 text-[10.5px] leading-relaxed"
             style={{ borderColor: "var(--line-soft)", color: "var(--text-muted)" }}>
             <ShieldAlert size={13} className="mt-px shrink-0" style={{ color: "var(--bad)" }} />
-            ماتصيفطش عربوناً ولا معطياتك البنكية هنا. تلاقاو نهاراً وفبلاصة عامة.
-            <Link href="/safety" className="font-bold underline" style={{ color: "var(--brand)" }}>دليل البيع الآمن</Link>
+            {tm.safetyNote}
+            <Link href="/safety" className="font-bold underline" style={{ color: "var(--brand)" }}>{tm.safetyGuide}</Link>
           </p>
         </section>
       )}

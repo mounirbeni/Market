@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { usePathname } from "next/navigation";
 import type { SessionUser } from "@/store/session";
+import { useDict } from "@/lib/i18n/client";
+import { DEFAULT_SELLER_NAME } from "@/lib/i18n/labels";
 import { AlertTriangle, ArrowLeft } from "@/components/icons";
 
 /* ============================================================
@@ -13,11 +15,13 @@ import { AlertTriangle, ArrowLeft } from "@/components/icons";
    راسها ماكتبيّنش هاد التنبيه (لا فائدة تكرار نفس الرسالة).
    ============================================================ */
 export function ProfileCompletionBanner({ user }: { user: SessionUser }) {
+  const t = useDict();
+  const b = t.profileBanner;
   const pathname = usePathname();
   if (user.onboarded || pathname === "/dashboard/complete-profile") return null;
 
   const items = [
-    Boolean(user.name && user.name !== "مستعمل طريق"),
+    Boolean(user.name && user.name !== DEFAULT_SELLER_NAME),
     Boolean(user.phone),
     Boolean(user.city),
     user.email_verified,
@@ -37,18 +41,17 @@ export function ProfileCompletionBanner({ user }: { user: SessionUser }) {
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-[13px] font-bold">
-          أكمل معلومات حسابك — اكتمال الملف الشخصي: <span className="num">{percent}%</span>
+          {b.title} <span className="num">{percent}%</span>
         </p>
         <p className="mt-0.5 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          خاصك تكمّل الاسم، الهاتف، والمدينة قبل ما تقدر تنشر إعلان ولا تستافد
-          من كل خدمات المنصة.
+          {b.text}
         </p>
       </div>
       <Link
         href={`/dashboard/complete-profile?next=${encodeURIComponent(pathname || "/dashboard")}`}
         className="btn btn-primary btn-sm shrink-0"
       >
-        كمّل دابا <ArrowLeft size={14} className="dir-flip" />
+        {b.cta} <ArrowLeft size={14} className="dir-flip" />
       </Link>
     </div>
   );

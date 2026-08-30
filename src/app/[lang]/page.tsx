@@ -4,7 +4,7 @@ import { HeroSearch } from "@/components/HeroSearch";
 import { BrandTile } from "@/components/BrandMark";
 import { SuggestedForYou } from "@/components/SuggestedForYou";
 import { PageTransition } from "@/components/PageTransition";
-import { getDictionary } from "@/lib/i18n/server";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
 import { VehicleCard } from "@/components/VehicleCard";
 import { VehicleArt, VehicleGlyph } from "@/components/VehicleArt";
 import { TrustRing } from "@/components/TrustBadge";
@@ -12,100 +12,52 @@ import { artShape } from "@/lib/artshape";
 import { trustOf, fairPriceOf } from "@/lib/market";
 import { computeTco } from "@/lib/tco";
 import { formatNumber } from "@/lib/format";
-import { CITIES, cityName } from "@/lib/cities";
-import { GUIDES } from "@/lib/data/guides";
+import { CITIES } from "@/lib/cities";
+import { guidesFor } from "@/lib/data/guides";
 import { brandSlug, brandsOf } from "@/lib/slug";
 import { findAll, getBrands, getDealerCounts, getDealers, getStats } from "@/lib/source";
+import { CAR_BODIES, MOTO_BODIES } from "@/lib/vehicle-options";
+import { cityLabel, localizeOptions } from "@/lib/i18n/labels";
 import {
   ArrowLeft, BadgeCheck, Calculator, Car, Clock, Coins, FileText, GUIDE_ICONS, Lock,
   MapPin, Message, Moto, Phone, Scale, Search, ShieldCheck, Sparkle, Star, TrendingDown,
   Users, Wallet, Wrench,
 } from "@/components/icons";
 
-const PILLARS = [
-  {
-    Icon: ShieldCheck,
-    title: "مؤشر الثقة",
-    color: "var(--good)",
-    text: "كل إعلان كيتنقّط على 100 حسب توثيق البائع، الوثائق، سجل المركبة، شفافية الإعلان واتساق المعطيات. كتشوف النقطة قبل ما تتصل.",
-    href: "/cars?trustMin=75",
-    cta: "شوف المركبات عالية الثقة",
-  },
-  {
-    Icon: Scale,
-    title: "الثمن العادل",
-    color: "var(--brand)",
-    text: "كنحسبو ثمناً مرجعياً من إعلانات مشابهة بعد تعديل السنة والكيلومتراج والحالة، وكنقولو ليك واش هاد الثمن فوق ولا تحت السوق.",
-    href: "/valuation",
-    cta: "قيّم مركبتك مجاناً",
-  },
-  {
-    Icon: Calculator,
-    title: "التكلفة الحقيقية",
-    color: "var(--data)",
-    text: "ماشي غير ثمن الشراء: الفينيات، التأمين، المازوط، الصيانة، الإطارات وخسارة القيمة — كلشي بالدرهم فالسنة وبالدرهم للكيلومتر.",
-    href: "/cost",
-    cta: "حسب التكلفة",
-  },
-];
+const PILLARS_META = [
+  { key: "trust", Icon: ShieldCheck, color: "var(--good)", href: "/cars?trustMin=75" },
+  { key: "price", Icon: Scale, color: "var(--brand)", href: "/valuation" },
+  { key: "cost", Icon: Calculator, color: "var(--data)", href: "/cost" },
+] as const;
 
-const QUICK = [
-  { href: "/cars", label: "سيارات", Icon: Car },
-  { href: "/motorcycles", label: "دراجات نارية", Icon: Moto },
-  { href: "/cars?deals=1", label: "أحسن الصفقات", Icon: TrendingDown },
-  { href: "/cars?inspected=1", label: "مفحوصة", Icon: BadgeCheck },
-  { href: "/search", label: "بحث متقدم", Icon: Search },
-];
+const QUICK_META = [
+  { href: "/cars", key: "cars", Icon: Car },
+  { href: "/motorcycles", key: "motos", Icon: Moto },
+  { href: "/cars?deals=1", key: "deals", Icon: TrendingDown },
+  { href: "/cars?inspected=1", key: "inspected", Icon: BadgeCheck },
+  { href: "/search", key: "advSearch", Icon: Search },
+] as const;
 
 const CATEGORIES = [
-  { key: "citadine", label: "مدينية", kind: "car" },
-  { key: "berline", label: "صالون", kind: "car" },
-  { key: "suv", label: "دفع رباعي", kind: "car" },
-  { key: "break", label: "بريك", kind: "car" },
-  { key: "utilitaire", label: "نفعية", kind: "car" },
-  { key: "cabriolet", label: "مكشوفة", kind: "car" },
-  { key: "scooter", label: "سكوتر", kind: "moto" },
-  { key: "roadster", label: "رودستر", kind: "moto" },
-  { key: "trail", label: "طرق وعرة", kind: "moto" },
-  { key: "sportive", label: "رياضية", kind: "moto" },
-  { key: "custom", label: "كوستوم", kind: "moto" },
-] as const;
+  ...CAR_BODIES.map((b) => ({ key: b.value, label: b.label, fr: b.fr, kind: "car" as const })),
+  ...MOTO_BODIES.map((b) => ({ key: b.value, label: b.label, fr: b.fr, kind: "moto" as const })),
+];
 
 /* شرائح الثمن فقسم «حسب السعر» — الحدود مطابقة لـPRICE_BRACKETS فـlib/db/listings.ts */
 const PRICE_BRACKETS: {
-  key: string; label: string; priceMin?: number; priceMax?: number;
+  key: string; priceMin?: number; priceMax?: number;
 }[] = [
-  { key: "u50", label: "أقل من 50,000 درهم", priceMax: 49999 },
-  { key: "50-100", label: "من 50,000 إلى 100,000 درهم", priceMin: 50000, priceMax: 99999 },
-  { key: "100-200", label: "من 100,000 إلى 200,000 درهم", priceMin: 100000, priceMax: 199999 },
-  { key: "o200", label: "أكثر من 200,000 درهم", priceMin: 200000 },
+  { key: "u50", priceMax: 49999 },
+  { key: "50-100", priceMin: 50000, priceMax: 99999 },
+  { key: "100-200", priceMin: 100000, priceMax: 199999 },
+  { key: "o200", priceMin: 200000 },
 ];
 
-const TRUST_POINTS = [
-  {
-    Icon: ShieldCheck,
-    title: "إعلانات موثوقة",
-    text: "كل إعلان كيتفحّص: وثائق، رقم الهيكل، وصور حقيقية ديال المركبة — بلا نسخ ولصق.",
-    href: "/cars?verified=1",
-  },
-  {
-    Icon: Phone,
-    title: "تواصل مباشر مع البائع",
-    text: "بلا وسطاء ولا عمولة: كتهضر مباشرة مع البائع بالهاتف ولا واتساب.",
-    href: "/safety",
-  },
-  {
-    Icon: MapPin,
-    title: "مركبات من كل مدن المغرب",
-    text: "إعلانات حقيقية موزّعة على عشرات المدن — من طنجة حتى العيون.",
-    href: "/cars",
-  },
-  {
-    Icon: Lock,
-    title: "حماية وخصوصية المستخدم",
-    text: "رقم الهاتف ديالك ماكيبانش حتى توافق، والبيانات ديالك محمية وماكتتباعش.",
-    href: "/privacy",
-  },
+const TRUST_POINTS_META = [
+  { key: "verified", Icon: ShieldCheck, href: "/cars?verified=1" },
+  { key: "directContact", Icon: Phone, href: "/safety" },
+  { key: "allCities", Icon: MapPin, href: "/cars" },
+  { key: "privacy", Icon: Lock, href: "/privacy" },
 ] as const;
 
 export default async function HomePage() {
@@ -138,7 +90,12 @@ export default async function HomePage() {
   }
   const carTiles = catalogTiles(brandsOf("car"), carBrands);
   const motoTiles = catalogTiles(brandsOf("moto"), motoBrands);
-  const topGuides = GUIDES.slice(0, 4);
+  const locale = await getLocale();
+  const topGuides = guidesFor(locale).slice(0, 4);
+  const quick = QUICK_META.map((q) => ({ ...q, label: t.quick[q.key] }));
+  const pillars = PILLARS_META.map((p) => ({ ...p, ...t.pillars[p.key] }));
+  const trustPoints = TRUST_POINTS_META.map((p) => ({ ...p, ...t.trustPoints[p.key] }));
+  const categories = localizeOptions(CATEGORIES, locale);
   const topDealers = dealers
     .map((d) => ({ d, count: dealerCounts[d.slug] ?? 0 }))
     .sort((a, b) => b.count - a.count)
@@ -166,28 +123,28 @@ export default async function HomePage() {
      ماكاينش "جديدة" فالبيانات ولا فهوية الموقع، فبدلها كنعرضو الحالة
      («ممتازة»/«جيدة») اللي هي فعلاً موجودة فقاعدة البيانات. */
   const CATEGORY_TILES = [
-    { key: "cars", label: "السيارات", href: "/cars", n: stats.cars, Icon: Car },
-    { key: "motos", label: "الدراجات النارية", href: "/motorcycles", n: stats.motos, Icon: Moto },
+    { key: "cars", label: t.categoryTiles.cars, href: "/cars", n: stats.cars, Icon: Car },
+    { key: "motos", label: t.categoryTiles.motos, href: "/motorcycles", n: stats.motos, Icon: Moto },
     {
-      key: "cars-excellent", label: "سيارات بحالة ممتازة", href: "/cars?condition=excellent",
+      key: "cars-excellent", label: t.categoryTiles.carsExcellent, href: "/cars?condition=excellent",
       n: stats.byKindCondition["car:excellent"] ?? 0, Icon: Star,
     },
     {
-      key: "cars-bon", label: "سيارات بحالة جيدة", href: "/cars?condition=bon",
+      key: "cars-bon", label: t.categoryTiles.carsBon, href: "/cars?condition=bon",
       n: stats.byKindCondition["car:bon"] ?? 0, Icon: BadgeCheck,
     },
     {
-      key: "motos-excellent", label: "دراجات بحالة ممتازة", href: "/motorcycles?condition=excellent",
+      key: "motos-excellent", label: t.categoryTiles.motosExcellent, href: "/motorcycles?condition=excellent",
       n: stats.byKindCondition["moto:excellent"] ?? 0, Icon: Star,
     },
     {
-      key: "motos-bon", label: "دراجات بحالة جيدة", href: "/motorcycles?condition=bon",
+      key: "motos-bon", label: t.categoryTiles.motosBon, href: "/motorcycles?condition=bon",
       n: stats.byKindCondition["moto:bon"] ?? 0, Icon: BadgeCheck,
     },
-  ].filter((t) => t.n > 0);
+  ].filter((tile) => tile.n > 0);
 
   const priceBrackets = PRICE_BRACKETS
-    .map((b) => ({ ...b, n: stats.byPrice[b.key] ?? 0 }))
+    .map((b) => ({ ...b, label: t.priceBrackets[b.key as keyof typeof t.priceBrackets], n: stats.byPrice[b.key] ?? 0 }))
     .filter((b) => b.n > 0);
 
   return (
@@ -199,7 +156,7 @@ export default async function HomePage() {
             src="/hero-vehicles.webp"
             srcSet="/hero-vehicles-sm.webp 900w, /hero-vehicles.webp 1774w"
             sizes="100vw"
-            alt="سيارة ودراجة نارية في صالة عرض"
+            alt={t.heroImgAlt}
             fetchPriority="high"
             className="absolute inset-0 h-full w-full object-cover object-[42%_center] sm:object-[38%_center]"
           />
@@ -287,7 +244,7 @@ export default async function HomePage() {
           <HeroSearch carBrands={carBrands} motoBrands={motoBrands} cities={topCities} />
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {QUICK.map(({ href, label, Icon }) => (
+            {quick.map(({ href, label, Icon }) => (
               <Link
                 key={href}
                 href={href}
@@ -393,7 +350,7 @@ export default async function HomePage() {
                 <c.Icon size={22} />
               </span>
               <span className="text-[12.5px] font-bold">{c.label}</span>
-              <span className="num text-[10.5px]" style={{ color: "var(--text-dim)" }}>{c.n} إعلان</span>
+              <span className="num text-[10.5px]" style={{ color: "var(--text-dim)" }}>{c.n} {t.listingSuffix}</span>
             </Link>
           ))}
         </div>
@@ -404,7 +361,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-[1400px] px-4 py-16">
         <h2 className="h-section mb-7">{t.byBody}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-          {CATEGORIES.map((c) => {
+          {categories.map((c) => {
             const n = stats.byBody[c.key] ?? 0;
             if (!n) return null;
             return (
@@ -427,7 +384,7 @@ export default async function HomePage() {
                   />
                 </span>
                 <span className="text-[12.5px] font-bold">{c.label}</span>
-                <span className="num text-[10.5px]" style={{ color: "var(--text-dim)" }}>{n} إعلان</span>
+                <span className="num text-[10.5px]" style={{ color: "var(--text-dim)" }}>{n} {t.listingSuffix}</span>
               </Link>
             );
           })}
@@ -508,7 +465,7 @@ export default async function HomePage() {
           </p>
 
           <h3 className="mb-3 flex items-center gap-2 text-[12px] font-bold" style={{ color: "var(--text-dim)" }}>
-            <Car size={14} /> سيارات
+            <Car size={14} /> {t.quick.cars}
           </h3>
           <div className="mb-8 grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
             {carTiles.map((b) => (
@@ -522,7 +479,7 @@ export default async function HomePage() {
           </div>
 
           <h3 className="mb-3 flex items-center gap-2 text-[12px] font-bold" style={{ color: "var(--text-dim)" }}>
-            <Moto size={14} /> دراجات نارية
+            <Moto size={14} /> {t.quick.motos}
           </h3>
           <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-8">
             {motoTiles.map((b) => (
@@ -564,7 +521,7 @@ export default async function HomePage() {
                   <Coins size={22} />
                 </span>
                 <span className="text-[12.5px] font-bold leading-snug">{b.label}</span>
-                <span className="num text-[10.5px]" style={{ color: "var(--text-dim)" }}>{b.n} إعلان</span>
+                <span className="num text-[10.5px]" style={{ color: "var(--text-dim)" }}>{b.n} {t.listingSuffix}</span>
               </Link>
             );
           })}
@@ -577,7 +534,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-[1400px] px-4 py-16">
         <h2 className="h-section mb-2">{t.cityTitle}</h2>
         <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
-          الإعلانات موزّعة على <span className="num">{topCities.length}</span> مدينة مغربية.
+          {t.citiesLeadA} <span className="num">{topCities.length}</span> {t.citiesLeadB}
         </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {topCities.slice(0, 12).map((c) => (
@@ -594,8 +551,8 @@ export default async function HomePage() {
                 <MapPin size={16} />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-[12.5px] font-bold">{c.ar}</span>
-                <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>{c.n} إعلان</span>
+                <span className="block truncate text-[12.5px] font-bold">{cityLabel(c.slug, locale)}</span>
+                <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>{c.n} {t.listingSuffix}</span>
               </span>
             </Link>
           ))}
@@ -609,20 +566,20 @@ export default async function HomePage() {
           <span className="eyebrow"><ShieldCheck size={13} /> {t.trustEyebrow}</span>
           <h2 className="h-section mt-3 mb-7">{t.trustTitle}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {TRUST_POINTS.map((t) => (
-              <Link key={t.title} href={t.href} className="card card-hover group flex flex-col gap-3 p-5">
+            {trustPoints.map((tp) => (
+              <Link key={tp.key} href={tp.href} className="card card-hover group flex flex-col gap-3 p-5">
                 <span
                   className="grid h-11 w-11 place-items-center rounded-xl"
                   style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
                 >
-                  <t.Icon size={20} />
+                  <tp.Icon size={20} />
                 </span>
                 <div>
                   <h3 className="text-[13.5px] font-bold transition-colors group-hover:text-[var(--brand)]">
-                    {t.title}
+                    {tp.title}
                   </h3>
                   <p className="mt-1.5 text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                    {t.text}
+                    {tp.text}
                   </p>
                 </div>
               </Link>
@@ -664,7 +621,7 @@ export default async function HomePage() {
                     <BadgeCheck size={13} className="shrink-0" style={{ color: "var(--good)" }} />
                   </div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    <span className="chip chip-plain"><MapPin size={10} /> {cityName(d.city)}</span>
+                    <span className="chip chip-plain"><MapPin size={10} /> {cityLabel(d.city, locale)}</span>
                     <span className="chip chip-plain">
                       <Star size={10} filled style={{ color: "var(--warn)" }} />
                       <span className="num">{d.rating.toFixed(1)}</span>
@@ -682,19 +639,18 @@ export default async function HomePage() {
       <section className="mx-auto max-w-[1400px] px-4 py-16">
         <header className="mb-10 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <span className="eyebrow"><Sparkle size={13} /> الفرق</span>
-            <h2 className="h-section mt-3">علاش طريق ماشي بحال الآخرين</h2>
+            <span className="eyebrow"><Sparkle size={13} /> {t.differenceEyebrow}</span>
+            <h2 className="h-section mt-3">{t.differenceTitle}</h2>
             <p className="mt-2 max-w-xl text-sm" style={{ color: "var(--text-muted)" }}>
-              المواقع الأخرى كتعرض عليك إعلانات. حنا كنعطيوك المعلومات اللي كتخليك تقرر:
-              الثقة، الثمن، والتكلفة.
+              {t.differenceLead}
             </p>
           </div>
-          <Link href="/about" className="btn btn-ghost btn-sm">من نحن <ArrowLeft size={14} className="dir-flip" /></Link>
+          <Link href="/about" className="btn btn-ghost btn-sm">{t.aboutUs} <ArrowLeft size={14} className="dir-flip" /></Link>
         </header>
 
         <div className="grid gap-5 md:grid-cols-3">
-          {PILLARS.map((p) => (
-            <article key={p.title} className="card card-hover group relative overflow-hidden p-6">
+          {pillars.map((p) => (
+            <article key={p.key} className="card card-hover group relative overflow-hidden p-6">
               <div
                 className="absolute -end-8 -top-8 h-28 w-28 rounded-full blur-2xl transition-opacity group-hover:opacity-100"
                 style={{ background: `color-mix(in oklab, ${p.color} 22%, transparent)`, opacity: 0.4 }}
@@ -728,11 +684,10 @@ export default async function HomePage() {
       <section className="border-y" style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}>
         <div className="mx-auto grid max-w-[1400px] items-center gap-12 px-4 py-20 lg:grid-cols-2">
           <div>
-            <span className="eyebrow"><Sparkle size={13} /> مثال حقيقي من المنصة</span>
-            <h2 className="h-section mt-3">هكذا كتبان ليك المركبة قبل ما تتصل بالبائع</h2>
+            <span className="eyebrow"><Sparkle size={13} /> {t.liveExampleEyebrow}</span>
+            <h2 className="h-section mt-3">{t.liveExampleTitle}</h2>
             <p className="mt-3 max-w-lg text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              خُذ {hero.make} {hero.model} <span className="num">{hero.year}</span>: بدل ما تخمّن،
-              كتشوف نقطة الثقة مفصّلة، موقع الثمن من السوق، وشحال غادي تصرف عليها فالسنة.
+              {t.liveExampleLeadA} {hero.make} {hero.model} <span className="num">{hero.year}</span>{t.liveExampleLeadB}
             </p>
 
             <div className="mt-7 space-y-3.5">
@@ -754,7 +709,7 @@ export default async function HomePage() {
             </div>
 
             <Link href={vehicleHref(hero)} className="btn btn-primary mt-8" transitionTypes={["nav-forward"]}>
-              شوف الإعلان كاملاً <ArrowLeft size={15} className="dir-flip" />
+              {t.seeFullListing} <ArrowLeft size={15} className="dir-flip" />
             </Link>
           </div>
 
@@ -769,7 +724,7 @@ export default async function HomePage() {
                 label={`${hero.make} ${hero.model}`}
               />
               <span className="tag absolute top-3 start-3" style={{ background: "var(--good)", color: "#fff" }}>
-                <BadgeCheck size={12} /> مفحوصة من طريق
+                <BadgeCheck size={12} /> {t.inspectedByTriq}
               </span>
             </div>
 
@@ -786,14 +741,14 @@ export default async function HomePage() {
 
               <div className="mt-4 grid grid-cols-3 gap-2">
                 {[
-                  { label: "مؤشر الثقة", value: `${heroTrust.score}/100`, color: "var(--good)", Icon: ShieldCheck },
+                  { label: t.statTrust, value: `${heroTrust.score}/100`, color: "var(--good)", Icon: ShieldCheck },
                   {
-                    label: "مقابل السوق",
-                    value: `${heroFp.delta < 0 ? "−" : "+"}${Math.abs(Math.round(heroFp.delta * 100))}٪`,
+                    label: t.statVsMarket,
+                    value: `${heroFp.delta < 0 ? "−" : "+"}${Math.abs(Math.round(heroFp.delta * 100))}${dict.fairPrice.percent}`,
                     color: heroFp.delta < 0 ? "var(--good)" : "var(--bad)",
                     Icon: Scale,
                   },
-                  { label: "د.م / شهر", value: formatNumber(heroTco.perMonth), color: "var(--data)", Icon: Calculator },
+                  { label: t.statPerMonth, value: formatNumber(heroTco.perMonth), color: "var(--data)", Icon: Calculator },
                 ].map((st) => (
                   <div key={st.label} className="rounded-xl p-3 text-center" style={{ background: "var(--surface-3)" }}>
                     <st.Icon size={15} className="mx-auto" style={{ color: st.color }} />
@@ -815,10 +770,10 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1400px] px-4 py-16">
           <header className="mb-8 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <span className="eyebrow"><FileText size={13} /> معرفة قبل الشراء</span>
-              <h2 className="h-section mt-3">أدلة ونصائح</h2>
+              <span className="eyebrow"><FileText size={13} /> {t.guidesEyebrow}</span>
+              <h2 className="h-section mt-3">{t.guidesTitle}</h2>
             </div>
-            <Link href="/guides" className="btn btn-ghost btn-sm">كل الأدلة <ArrowLeft size={14} className="dir-flip" /></Link>
+            <Link href="/guides" className="btn btn-ghost btn-sm">{t.allGuides} <ArrowLeft size={14} className="dir-flip" /></Link>
           </header>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {topGuides.map((g) => {
@@ -841,7 +796,7 @@ export default async function HomePage() {
                   className="mt-3 flex items-center gap-1 text-[10.5px]"
                   style={{ color: "var(--text-dim)" }}
                 >
-                  <Clock size={11} /> <span className="num">{g.readMinutes}</span> دقائق
+                  <Clock size={11} /> <span className="num">{g.readMinutes}</span> {t.minutes}
                 </span>
               </Link>
               );

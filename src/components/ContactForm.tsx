@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useDict } from "@/lib/i18n/client";
 import { BadgeCheck, Info, Message, Phone, Users } from "./icons";
 
-const TOPICS = ["سؤال عام", "مشكل فإعلان", "التبليغ عن نصب", "شراكة أو معرض", "اقتراح تحسين"];
-
 export function ContactForm() {
+  const t = useDict();
+  const f = t.contactForm;
   const [sent, setSent] = useState(false);
-  const [topic, setTopic] = useState(TOPICS[0]);
+  const [topic, setTopic] = useState(f.topics[0]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,11 +30,11 @@ export function ContactForm() {
         }),
       });
       const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نصيفطو الرسالة.");
+      if (!json?.ok) throw new Error(json?.error ?? f.genericError);
       form.reset();
       setSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ماقدرناش نصيفطو الرسالة.");
+      setError(err instanceof Error ? err.message : f.genericError);
     } finally {
       setBusy(false);
     }
@@ -48,11 +49,11 @@ export function ContactForm() {
         >
           <BadgeCheck size={28} />
         </span>
-        <h2 className="mt-5 text-lg font-bold">توصلنا برسالتك</h2>
+        <h2 className="mt-5 text-lg font-bold">{f.sentTitle}</h2>
         <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          غادي نجاوبوك فأقرب وقت على العنوان اللي عطيتينا.
+          {f.sentText}
         </p>
-        <button onClick={() => setSent(false)} className="btn btn-ghost btn-sm mt-6">رسالة أخرى</button>
+        <button onClick={() => setSent(false)} className="btn btn-ghost btn-sm mt-6">{f.anotherMessage}</button>
       </div>
     );
   }
@@ -63,15 +64,15 @@ export function ContactForm() {
       className="card space-y-4 p-6"
     >
       <div>
-        <span className="label"><Message size={13} /> موضوع الرسالة</span>
+        <span className="label"><Message size={13} /> {f.subjectLabel}</span>
         <div className="flex flex-wrap gap-1.5">
-          {TOPICS.map((t) => {
-            const on = topic === t;
+          {f.topics.map((tp) => {
+            const on = topic === tp;
             return (
               <button
-                key={t}
+                key={tp}
                 type="button"
-                onClick={() => setTopic(t)}
+                onClick={() => setTopic(tp)}
                 aria-pressed={on}
                 className="chip transition"
                 style={{
@@ -80,7 +81,7 @@ export function ContactForm() {
                   color: on ? "var(--brand)" : "var(--text-muted)",
                 }}
               >
-                {t}
+                {tp}
               </button>
             );
           })}
@@ -89,22 +90,22 @@ export function ContactForm() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="ct-name"><Users size={13} /> الاسم</label>
-          <input id="ct-name" name="name" className="field" required placeholder="اسمك الكامل" autoComplete="name" />
+          <label className="label" htmlFor="ct-name"><Users size={13} /> {f.nameLabel}</label>
+          <input id="ct-name" name="name" className="field" required placeholder={f.namePlaceholder} autoComplete="name" />
         </div>
         <div>
-          <label className="label" htmlFor="ct-phone"><Phone size={13} /> الهاتف أو البريد</label>
-          <input id="ct-phone" name="contact" className="field" required placeholder="06… أو name@mail.com" dir="ltr" />
+          <label className="label" htmlFor="ct-phone"><Phone size={13} /> {f.phoneLabel}</label>
+          <input id="ct-phone" name="contact" className="field" required placeholder={f.phonePlaceholder} dir="ltr" />
         </div>
       </div>
 
       <div>
-        <label className="label" htmlFor="ct-msg"><Message size={13} /> الرسالة</label>
-        <textarea id="ct-msg" name="message" className="field min-h-32" required minLength={10} placeholder="اشرح لينا بالتفصيل…" />
+        <label className="label" htmlFor="ct-msg"><Message size={13} /> {f.messageLabel}</label>
+        <textarea id="ct-msg" name="message" className="field min-h-32" required minLength={10} placeholder={f.messagePlaceholder} />
       </div>
 
       <button type="submit" className="btn btn-primary w-full" disabled={busy}>
-        <Message size={16} /> {busy ? "كنصيفطو…" : "صيفط الرسالة"}
+        <Message size={16} /> {busy ? f.sending : f.send}
       </button>
 
       {error && (
@@ -116,7 +117,7 @@ export function ContactForm() {
         style={{ background: "var(--surface-3)", color: "var(--text-muted)" }}
       >
         <Info size={13} className="mt-px shrink-0" style={{ color: "var(--data)" }} />
-        كنستعملو العنوان اللي كتعطينا غير باش نجاوبوك على هاد الرسالة.
+        {f.note}
       </p>
     </form>
   );

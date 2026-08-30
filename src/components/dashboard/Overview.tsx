@@ -1,15 +1,16 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/store/session";
 import { trustOf, fairPriceOf } from "@/lib/market";
-import { formatNumber, timeAgo } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
 import { vehicleHref } from "@/lib/slug";
 import { artShape } from "@/lib/artshape";
 import { VehicleArt } from "@/components/VehicleArt";
 import { useApp } from "@/store/app";
-import { useDict } from "@/lib/i18n/client";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { dhUnit, fmtTimeAgo } from "@/lib/i18n/labels";
 import { useMyListings } from "@/lib/useMyListings";
 import {
   ArrowLeft, BadgeCheck, Calendar, Car, Eye, Heart, Message, ShieldCheck,
@@ -18,6 +19,9 @@ import {
 
 export function DashboardOverview() {
   const t = useDict();
+  const locale = useLocale();
+  const dh = dhUnit(locale);
+  const o = t.overview;
   const { favorites } = useApp();
   /* عدد الرسائل غير المقروءة كيجي من الجلسة — الخادم هو اللي كيحسبو */
   const { unread } = useSession();
@@ -52,16 +56,23 @@ export function DashboardOverview() {
   }, [mine]);
 
   const cards = [
-    { Icon: Car, v: formatNumber(mine.length), l: "إعلان نشيط", c: "var(--brand)", href: "/dashboard/listings" },
-    { Icon: Eye, v: formatNumber(stats.views), l: "مشاهدة", c: "var(--data)", href: "/dashboard/listings" },
-    { Icon: Heart, v: formatNumber(stats.saves), l: "حفظ", c: "var(--bad)", href: "/dashboard/listings" },
-    { Icon: Message, v: formatNumber(unread), l: "رسالة غير مقروءة", c: "var(--good)", href: "/dashboard/messages" },
-    { Icon: ShieldCheck, v: `${stats.avgTrust}/100`, l: "متوسط الثقة", c: "var(--warn)", href: "/dashboard/listings" },
-    { Icon: Users, v: formatNumber(favorites.length), l: "مركبة محفوظة", c: "var(--text-dim)", href: "/dashboard/favorites" },
+    { Icon: Car, v: formatNumber(mine.length), l: o.cardActive, c: "var(--brand)", href: "/dashboard/listings" },
+    { Icon: Eye, v: formatNumber(stats.views), l: o.cardViews, c: "var(--data)", href: "/dashboard/listings" },
+    { Icon: Heart, v: formatNumber(stats.saves), l: o.cardSaves, c: "var(--bad)", href: "/dashboard/listings" },
+    { Icon: Message, v: formatNumber(unread), l: o.cardUnread, c: "var(--good)", href: "/dashboard/messages" },
+    { Icon: ShieldCheck, v: `${stats.avgTrust}/100`, l: o.cardTrust, c: "var(--warn)", href: "/dashboard/listings" },
+    { Icon: Users, v: formatNumber(favorites.length), l: o.cardFavorites, c: "var(--text-dim)", href: "/dashboard/favorites" },
   ];
 
   const weakest = [...mine].sort((a, b) => trustOf(a).score - trustOf(b).score)[0];
   const weakTrust = weakest ? trustOf(weakest) : null;
+
+  const quickActions = [
+    { href: "/sell", label: o.actionPublish, Icon: Car },
+    { href: "/valuation", label: o.actionValuate, Icon: TrendingDown },
+    { href: "/dashboard/appointments", label: o.actionAppointments, Icon: Calendar },
+    { href: "/inspection", label: o.actionInspection, Icon: BadgeCheck },
+  ];
 
   return (
     <div className="space-y-6">
@@ -95,9 +106,9 @@ export function DashboardOverview() {
             className="flex items-center justify-between border-b p-4"
             style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
           >
-            <h2 className="text-[14px] font-bold">إعلاناتك</h2>
+            <h2 className="text-[14px] font-bold">{o.yourListings}</h2>
             <Link href="/dashboard/listings" className="flex items-center gap-1 text-[12px] font-bold" style={{ color: "var(--brand)" }}>
-              الكل <ArrowLeft size={13} className="dir-flip" />
+              {o.all} <ArrowLeft size={13} className="dir-flip" />
             </Link>
           </header>
           <ul className="divide-y" style={{ borderColor: "var(--line-soft)" }}>
@@ -112,14 +123,14 @@ export function DashboardOverview() {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[12.5px] font-bold">{v.make} {v.model}</span>
                       <span className="num block text-[11px]" style={{ color: "var(--brand)" }}>
-                        {formatNumber(v.price)} د.م
+                        {formatNumber(v.price)} {dh}
                       </span>
                     </span>
                     <span className="hidden shrink-0 gap-3 text-[10.5px] sm:flex" style={{ color: "var(--text-dim)" }}>
                       <span className="flex items-center gap-1"><Eye size={11} /> <span className="num">{formatNumber(v.views)}</span></span>
                       <span className="flex items-center gap-1"><Heart size={11} /> <span className="num">{v.saves}</span></span>
                     </span>
-                    <span className="tag tag-mute shrink-0">{fp.weak ? "مراجع محدودة" : fp.label}</span>
+                    <span className="tag tag-mute shrink-0">{fp.weak ? o.limitedRefs : fp.label}</span>
                   </Link>
                 </li>
               );
@@ -132,10 +143,10 @@ export function DashboardOverview() {
           {weakest && weakTrust && (
             <section className="card p-5">
               <h2 className="flex items-center gap-2 text-[13px] font-bold">
-                <Sparkle size={15} style={{ color: "var(--brand)" }} /> حسّن إعلاناتك
+                <Sparkle size={15} style={{ color: "var(--brand)" }} /> {o.improveTitle}
               </h2>
               <p className="mt-2 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                أضعف إعلان عندك هو <b>{weakest.make} {weakest.model}</b> بنقطة{" "}
+                {o.weakestLeadA} <b>{weakest.make} {weakest.model}</b> {o.weakestLeadB}{" "}
                 <span className="num">{weakTrust.score}</span>/100.
               </p>
               <ul className="mt-3 space-y-2">
@@ -157,7 +168,7 @@ export function DashboardOverview() {
                   ))}
               </ul>
               <Link href={vehicleHref(weakest)} className="btn btn-solid btn-sm mt-4 w-full">
-                شوف الإعلان
+                {o.seeListing}
               </Link>
             </section>
           )}
@@ -165,25 +176,25 @@ export function DashboardOverview() {
           {/* آخر الرسائل */}
           <section className="card p-5">
             <h2 className="flex items-center gap-2 text-[13px] font-bold">
-              <Message size={15} style={{ color: "var(--brand)" }} /> آخر الرسائل
+              <Message size={15} style={{ color: "var(--brand)" }} /> {o.lastMessagesTitle}
             </h2>
             {threads.length === 0 ? (
               <p className="mt-3 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                ماكاين حتى محادثة دابا. ملي شي مشتري يراسلك، كتبان هنا.
+                {o.noThreads}
               </p>
             ) : (
               <ul className="mt-3 space-y-3">
-                {threads.slice(0, 3).map((t) => (
-                  <li key={t.id}>
+                {threads.slice(0, 3).map((th) => (
+                  <li key={th.id}>
                     <Link href="/dashboard/messages" className="block">
                       <span className="flex items-center justify-between gap-2">
-                        <span className="truncate text-[12px] font-bold">{t.other_name}</span>
+                        <span className="truncate text-[12px] font-bold">{th.other_name}</span>
                         <span className="shrink-0 text-[10px]" style={{ color: "var(--text-dim)" }}>
-                          {timeAgo(t.last_at)}
+                          {fmtTimeAgo(th.last_at, locale)}
                         </span>
                       </span>
                       <span className="mt-0.5 block truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
-                        {t.last_body ?? "بلا رسائل بعد"}
+                        {th.last_body ?? o.noMessagesYet}
                       </span>
                     </Link>
                   </li>
@@ -194,14 +205,9 @@ export function DashboardOverview() {
 
           {/* إجراءات */}
           <section className="card p-5">
-            <h2 className="text-[13px] font-bold">إجراءات سريعة</h2>
+            <h2 className="text-[13px] font-bold">{o.quickActionsTitle}</h2>
             <div className="mt-3 grid gap-2">
-              {[
-                { href: "/sell", label: "انشر إعلاناً جديداً", Icon: Car },
-                { href: "/valuation", label: "قيّم مركبة", Icon: TrendingDown },
-                { href: "/dashboard/appointments", label: "شوف المواعيد", Icon: Calendar },
-                { href: "/inspection", label: "اطلب فحصاً", Icon: BadgeCheck },
-              ].map((a) => (
+              {quickActions.map((a) => (
                 <Link key={a.href} href={a.href} className="btn btn-solid btn-sm w-full justify-start">
                   <a.Icon size={14} /> {a.label}
                 </Link>

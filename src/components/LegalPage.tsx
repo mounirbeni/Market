@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { Link } from "@/components/Link";
+import { getDictionary } from "@/lib/i18n/server";
 import { ChevronLeft, FileText } from "./icons";
 
 export interface LegalSection {
@@ -8,7 +9,7 @@ export interface LegalSection {
   list?: string[];
 }
 
-export function LegalPage({
+export async function LegalPage({
   title,
   intro,
   updated,
@@ -19,19 +20,20 @@ export function LegalPage({
   updated: string;
   sections: LegalSection[];
 }) {
+  const t = await getDictionary();
   return (
     <div className="mx-auto max-w-[860px] px-4 py-10">
       <nav className="mb-6 flex items-center gap-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-        <Link href="/" className="transition hover:text-[var(--brand)]">الرئيسية</Link>
+        <Link href="/" className="transition hover:text-[var(--brand)]">{t.legal.home}</Link>
         <ChevronLeft size={12} className="dir-flip" />
         <span style={{ color: "var(--text-muted)" }}>{title}</span>
       </nav>
 
       <header className="mb-9">
-        <span className="eyebrow"><FileText size={13} /> وثيقة قانونية</span>
+        <span className="eyebrow"><FileText size={13} /> {t.legal.doc}</span>
         <h1 className="h-page mt-3">{title}</h1>
         <p className="mt-4 text-[14px] leading-relaxed" style={{ color: "var(--text-muted)" }}>{intro}</p>
-        <p className="mt-3 text-[11.5px]" style={{ color: "var(--text-dim)" }}>آخر تحديث: {updated}</p>
+        <p className="mt-3 text-[11.5px]" style={{ color: "var(--text-dim)" }}>{t.legal.updated}: {updated}</p>
       </header>
 
       <div className="space-y-6">

@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useSession } from "@/store/session";
-import { CITIES } from "@/lib/cities";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { citiesIn, DEFAULT_SELLER_NAME } from "@/lib/i18n/labels";
 import {
   Award, BadgeCheck, Camera, Check, MapPin, Phone, Users,
 } from "@/components/icons";
@@ -14,24 +15,28 @@ import {
    فبلاصتين.
    ============================================================ */
 
-const TYPES = [
-  { value: "particulier", label: "فرد", Icon: Users },
-  { value: "professionnel", label: "بائع محترف", Icon: BadgeCheck },
-  { value: "professionnel-dealer", label: "شركة أو معرض", Icon: Award },
+const TYPES_META = [
+  { value: "particulier", Icon: Users },
+  { value: "professionnel", Icon: BadgeCheck },
+  { value: "professionnel-dealer", Icon: Award },
 ] as const;
 
 export function AccountBasicsForm({
-  ctaLabel = "حفظ التغييرات",
+  ctaLabel,
   onSaved,
 }: {
   ctaLabel?: string;
   onSaved?: (info: { wantsDealer: boolean }) => void;
 }) {
+  const t = useDict();
+  const locale = useLocale();
+  const a = t.accountForm;
+  const TYPES = TYPES_META.map((m) => ({ ...m, label: a.types[m.value] }));
   const { user, refresh } = useSession();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
-    name: user?.name === "مستعمل طريق" ? "" : (user?.name ?? ""),
+    name: user?.name === DEFAULT_SELLER_NAME ? "" : (user?.name ?? ""),
     phone: user?.phone ?? "",
     city: user?.city ?? "",
     /* «شركة أو معرض» فالواجهة كتخزن professionnel + كتوجّه المستخدم
@@ -65,11 +70,11 @@ export function AccountBasicsForm({
         body: file,
       });
       const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نرفعو الصورة.");
+      if (!json?.ok) throw new Error(json?.error ?? a.avatarUploadError);
       setAvatarUrl(json.data.url as string);
       setSaved(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ماقدرناش نرفعو الصورة.");
+      setError(err instanceof Error ? err.message : a.avatarUploadError);
     } finally {
       setAvatarBusy(false);
     }
@@ -89,12 +94,12 @@ export function AccountBasicsForm({
         }),
       });
       const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نسجّلو.");
+      if (!json?.ok) throw new Error(json?.error ?? a.genericError);
       await refresh();
       setSaved(true);
       onSaved?.({ wantsDealer: form.wantsDealer });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ماقدرناش نسجّلو.");
+      setError(err instanceof Error ? err.message : a.genericError);
     } finally {
       setBusy(false);
     }
@@ -109,14 +114,14 @@ export function AccountBasicsForm({
           disabled={avatarBusy}
           className="group relative grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl border-2"
           style={{ borderColor: "var(--line)", background: "var(--surface-3)" }}
-          aria-label="صورة الملف الشخصي"
+          aria-label={a.avatarAlt}
         >
           {avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
           ) : (
             <span className="text-lg font-extrabold" style={{ color: "var(--text-dim)" }}>
-              {(form.name || user?.name || "؟").trim().slice(0, 1)}
+              {(form.name || user?.name || (locale === "fr" ? "?" : "؟")).trim().slice(0, 1)}
             </span>
           )}
           <span
@@ -127,9 +132,9 @@ export function AccountBasicsForm({
           </span>
         </button>
         <div className="min-w-0">
-          <p className="text-[12.5px] font-bold">صورة الملف الشخصي أو شعار النشاط</p>
+          <p className="text-[12.5px] font-bold">{a.avatarTitle}</p>
           <p className="mt-0.5 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
-            {avatarBusy ? "كنرفعو…" : "اختياري — كيرفع مؤشر الثقة ديالك"}
+            {avatarBusy ? a.avatarUploading : a.avatarHint}
           </p>
           <input
             ref={fileRef} type="file" accept="image/*" className="hidden"
@@ -139,7 +144,7 @@ export function AccountBasicsForm({
       </div>
 
       <div>
-        <label className="label" htmlFor="ab-name"><Users size={13} /> الاسم الكامل</label>
+        <label className="label" htmlFor="ab-name"><Users size={13} /> {a.nameLabel}</label>
         <input
           id="ab-name" className="field" required maxLength={80}
           value={form.name} onChange={(e) => set({ name: e.target.value })}
@@ -147,42 +152,42 @@ export function AccountBasicsForm({
       </div>
 
       <div>
-        <label className="label" htmlFor="ab-phone"><Phone size={13} /> رقم الهاتف</label>
+        <label className="label" htmlFor="ab-phone"><Phone size={13} /> {a.phoneLabel}</label>
         <input
           id="ab-phone" className="field num" dir="ltr" inputMode="tel" required
           placeholder="0612345678"
           value={form.phone} onChange={(e) => set({ phone: e.target.value })}
         />
         <p className="mt-1 text-[10.5px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
-          هادا هو الرقم اللي غادي يبان فالإعلانات ديالك.
+          {a.phoneHint}
         </p>
       </div>
 
       <div>
-        <label className="label" htmlFor="ab-city"><MapPin size={13} /> المدينة</label>
+        <label className="label" htmlFor="ab-city"><MapPin size={13} /> {a.cityLabel}</label>
         <select
           id="ab-city" className="field" required value={form.city}
           onChange={(e) => set({ city: e.target.value })}
         >
-          <option value="" disabled>اختار مدينتك</option>
-          {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.ar}</option>)}
+          <option value="" disabled>{a.cityPlaceholder}</option>
+          {citiesIn(locale).map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
         </select>
       </div>
 
       <div>
-        <span className="label">نوع الحساب</span>
+        <span className="label">{a.accountTypeLabel}</span>
         <div className="grid grid-cols-3 gap-1.5">
-          {TYPES.map((t) => {
-            const on = t.value === "professionnel-dealer"
+          {TYPES.map((tp) => {
+            const on = tp.value === "professionnel-dealer"
               ? form.type === "professionnel" && form.wantsDealer
-              : t.value === form.type && !form.wantsDealer;
+              : tp.value === form.type && !form.wantsDealer;
             return (
               <button
-                key={t.value}
+                key={tp.value}
                 type="button"
                 onClick={() => set({
-                  type: t.value === "particulier" ? "particulier" : "professionnel",
-                  wantsDealer: t.value === "professionnel-dealer",
+                  type: tp.value === "particulier" ? "particulier" : "professionnel",
+                  wantsDealer: tp.value === "professionnel-dealer",
                 })}
                 aria-pressed={on}
                 className="flex flex-col items-center gap-1.5 rounded-xl border py-3 text-[11px] font-bold transition"
@@ -192,15 +197,15 @@ export function AccountBasicsForm({
                   color: on ? "var(--brand)" : "var(--text-muted)",
                 }}
               >
-                <t.Icon size={18} />
-                {t.label}
+                <tp.Icon size={18} />
+                {tp.label}
               </button>
             );
           })}
         </div>
         {form.wantsDealer && (
           <p className="mt-2 text-[10.5px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
-            من بعد الحفظ، غادي نوجّهوك لإنشاء صفحة المعرض ديالك.
+            {a.dealerHint}
           </p>
         )}
       </div>
@@ -208,7 +213,7 @@ export function AccountBasicsForm({
       {error && <p className="text-[12px] font-bold" style={{ color: "var(--bad)" }}>{error}</p>}
 
       <button className="btn btn-primary btn-sm" disabled={busy}>
-        {saved ? <><Check size={14} /> تسجّل</> : busy ? "…" : ctaLabel}
+        {saved ? <><Check size={14} /> {a.saved}</> : busy ? "…" : (ctaLabel ?? a.defaultCta)}
       </button>
     </form>
   );

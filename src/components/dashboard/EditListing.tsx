@@ -1,14 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CITIES } from "@/lib/cities";
 import { EQUIPMENT } from "@/lib/equipment";
 import { formatNumber } from "@/lib/format";
 import { vehicleHref } from "@/lib/slug";
 import { useMyListings } from "@/lib/useMyListings";
 import { VehicleGlyph } from "@/components/VehicleArt";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { citiesIn, cityLabel, dhUnit, equipmentLabel, kmUnit, localizeOptions, specs } from "@/lib/i18n/labels";
 import {
   CAR_BODIES, DOOR_OPTIONS, DRIVETRAINS, MOTO_BODIES, ORIGINS,
 } from "@/lib/vehicle-options";
@@ -52,14 +53,13 @@ interface Form {
   inspected: boolean;
 }
 
-const CONDITION_AR: Record<Condition, string> = {
-  excellent: "ممتازة",
-  "tres-bon": "جيدة جداً",
-  bon: "جيدة",
-  moyen: "متوسطة",
-};
-
 export function EditListing({ listingRef }: { listingRef: string }) {
+  const t = useDict();
+  const locale = useLocale();
+  const dh = dhUnit(locale);
+  const km = kmUnit(locale);
+  const L = specs(locale);
+  const e = t.editListing;
   const router = useRouter();
   const { items, loading } = useMyListings();
   const v = items.find((x) => x.id === listingRef);
@@ -126,27 +126,27 @@ export function EditListing({ listingRef }: { listingRef: string }) {
         }),
       });
       const json = await res.json();
-      if (!json?.ok) throw new Error(json?.error ?? "ماقدرناش نسجّلو.");
+      if (!json?.ok) throw new Error(json?.error ?? e.genericError);
       setSaved(true);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ماقدرناش نسجّلو.");
+      setError(err instanceof Error ? err.message : e.genericError);
     } finally {
       setBusy(false);
     }
   }
 
   if (loading) {
-    return <p className="card p-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>كنقلبو…</p>;
+    return <p className="card p-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>{e.loading}</p>;
   }
 
   if (!v || !form) {
     return (
       <div className="card p-10 text-center">
         <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-          هاد الإعلان ماكاينش، ولا ماشي ديالك.
+          {e.notFound}
         </p>
-        <Link href="/dashboard/listings" className="btn btn-solid btn-sm mt-4">رجع لإعلاناتي</Link>
+        <Link href="/dashboard/listings" className="btn btn-solid btn-sm mt-4">{e.backToListings}</Link>
       </div>
     );
   }
@@ -157,43 +157,43 @@ export function EditListing({ listingRef }: { listingRef: string }) {
         <div className="min-w-0 flex-1">
           <p className="text-[14px] font-bold">{v.make} {v.model} <span className="num">{v.year}</span></p>
           <p className="mt-0.5 text-[11px]" style={{ color: "var(--text-dim)" }}>
-            المرجع <span className="num">{v.id}</span> · الماركة والموديل والسنة ماكيتبدّلوش
+            {e.refLabel} <span className="num">{v.id}</span> · {e.refNote}
           </p>
         </div>
         <Link href={vehicleHref(v)} className="btn btn-ghost btn-sm">
-          شوف الإعلان <ChevronLeft size={14} className="dir-flip" />
+          {e.seeListing} <ChevronLeft size={14} className="dir-flip" />
         </Link>
       </div>
 
       {/* ---------- الثمن والكيلومتراج ---------- */}
       <section className="card space-y-3 p-5">
-        <h2 className="text-[14px] font-bold">الثمن والاستعمال</h2>
+        <h2 className="text-[14px] font-bold">{e.priceUsageTitle}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="label" htmlFor="ed-price">الثمن (د.م)</label>
+            <label className="label" htmlFor="ed-price">{e.priceLabel} ({dh})</label>
             <input
               id="ed-price" className="field num" dir="ltr" inputMode="numeric" required
               value={form.price}
-              onChange={(e) => set({ price: Number(e.target.value.replace(/\D/g, "")) || 0 })}
+              onChange={(ev) => set({ price: Number(ev.target.value.replace(/\D/g, "")) || 0 })}
             />
             <p className="mt-1 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
-              إلا هبّطتي الثمن، اللي كيراقبو الإعلان كيوصلهم تنبيه.
+              {e.priceHint}
             </p>
           </div>
           <div>
-            <label className="label" htmlFor="ed-km">الكيلومتراج</label>
+            <label className="label" htmlFor="ed-km">{e.kmLabel}</label>
             <input
               id="ed-km" className="field num" dir="ltr" inputMode="numeric"
               value={form.km}
-              onChange={(e) => set({ km: Number(e.target.value.replace(/\D/g, "")) || 0 })}
+              onChange={(ev) => set({ km: Number(ev.target.value.replace(/\D/g, "")) || 0 })}
             />
             <p className="num mt-1 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
-              {formatNumber(form.km)} كم
+              {formatNumber(form.km)} {km}
             </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {([["negotiable", "الثمن قابل للتفاوض"], ["exchangeAccepted", "كنقبل التبادل"]] as const).map(
+          {([["negotiable", e.negotiable], ["exchangeAccepted", e.exchangeAccepted]] as const).map(
             ([key, label]) => (
               <button
                 key={key} type="button" onClick={() => set({ [key]: !form[key] } as Partial<Form>)}
@@ -213,64 +213,64 @@ export function EditListing({ listingRef }: { listingRef: string }) {
 
       {/* ---------- المركبة ---------- */}
       <section className="card space-y-3 p-5">
-        <h2 className="text-[14px] font-bold">تفاصيل المركبة</h2>
+        <h2 className="text-[14px] font-bold">{e.vehicleDetailsTitle}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="label" htmlFor="ed-version">الفئة</label>
+            <label className="label" htmlFor="ed-version">{e.versionLabel}</label>
             <input
               id="ed-version" className="field" maxLength={80} value={form.version}
-              onChange={(e) => set({ version: e.target.value })}
+              onChange={(ev) => set({ version: ev.target.value })}
             />
           </div>
           <div>
-            <label className="label" htmlFor="ed-color">اللون</label>
+            <label className="label" htmlFor="ed-color">{e.colorLabel}</label>
             <input
               id="ed-color" className="field" maxLength={40} value={form.color}
-              onChange={(e) => set({ color: e.target.value })}
+              onChange={(ev) => set({ color: ev.target.value })}
             />
           </div>
           <div>
-            <label className="label" htmlFor="ed-city">المدينة</label>
+            <label className="label" htmlFor="ed-city">{e.cityLabel}</label>
             <select id="ed-city" className="field" value={form.city}
-              onChange={(e) => set({ city: e.target.value })}>
-              {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.ar}</option>)}
+              onChange={(ev) => set({ city: ev.target.value })}>
+              {citiesIn(locale).map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="label" htmlFor="ed-fuel">الوقود</label>
+            <label className="label" htmlFor="ed-fuel">{e.fuelLabel}</label>
             <select id="ed-fuel" className="field" value={form.fuel}
-              onChange={(e) => set({ fuel: e.target.value as Fuel })}>
-              <option value="diesel">ديزل</option>
-              <option value="essence">بنزين</option>
-              <option value="hybride">هجين</option>
-              <option value="electrique">كهربائية</option>
+              onChange={(ev) => set({ fuel: ev.target.value as Fuel })}>
+              <option value="diesel">{L.fuel.diesel}</option>
+              <option value="essence">{L.fuel.essence}</option>
+              <option value="hybride">{L.fuel.hybride}</option>
+              <option value="electrique">{L.fuel.electrique}</option>
             </select>
           </div>
           <div>
-            <label className="label" htmlFor="ed-gear">علبة السرعة</label>
+            <label className="label" htmlFor="ed-gear">{e.gearLabel}</label>
             <select id="ed-gear" className="field" value={form.gearbox}
-              onChange={(e) => set({ gearbox: e.target.value as Gearbox })}>
-              <option value="manuelle">عادية</option>
-              <option value="automatique">أوتوماتيك</option>
+              onChange={(ev) => set({ gearbox: ev.target.value as Gearbox })}>
+              <option value="manuelle">{L.gearbox.manuelle}</option>
+              <option value="automatique">{L.gearbox.automatique}</option>
             </select>
           </div>
           <div>
             <label className="label" htmlFor="ed-owners">
-              عدد الملاّك <span className="num me-auto" style={{ color: "var(--brand)" }}>{form.owners}</span>
+              {e.ownersLabel} <span className="num me-auto" style={{ color: "var(--brand)" }}>{form.owners}</span>
             </label>
             <input id="ed-owners" type="range" min={1} max={5} value={form.owners}
-              onChange={(e) => set({ owners: Number(e.target.value) })} className="w-full" />
+              onChange={(ev) => set({ owners: Number(ev.target.value) })} className="w-full" />
           </div>
           <div>
             <label className="label" htmlFor="ed-power">
-              القوة الجبائية <span className="num me-auto" style={{ color: "var(--brand)" }}>{form.fiscalPower} حصان</span>
+              {e.powerLabel} <span className="num me-auto" style={{ color: "var(--brand)" }}>{form.fiscalPower} {e.powerUnit}</span>
             </label>
             <input id="ed-power" type="range" min={1} max={v.kind === "moto" ? 6 : 30} value={form.fiscalPower}
-              onChange={(e) => set({ fiscalPower: Number(e.target.value) })} className="w-full" />
+              onChange={(ev) => set({ fiscalPower: Number(ev.target.value) })} className="w-full" />
           </div>
           {v.kind === "car" && (
             <div>
-              <span className="label"><Door size={13} /> عدد الأبواب</span>
+              <span className="label"><Door size={13} /> {e.doorsLabel}</span>
               <div className="grid grid-cols-4 gap-1.5">
                 {DOOR_OPTIONS.map((n) => (
                   <button
@@ -290,28 +290,31 @@ export function EditListing({ listingRef }: { listingRef: string }) {
           )}
           {v.kind === "car" && (
             <div>
-              <label className="label" htmlFor="ed-drivetrain">الدفع</label>
+              <label className="label" htmlFor="ed-drivetrain">{e.drivetrainLabel}</label>
               <select id="ed-drivetrain" className="field" value={form.drivetrain}
-                onChange={(e) => set({ drivetrain: e.target.value as Drivetrain | "" })}>
-                <option value="">ماشي معروف</option>
-                {DRIVETRAINS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                onChange={(ev) => set({ drivetrain: ev.target.value as Drivetrain | "" })}>
+                <option value="">{e.unknown}</option>
+                {localizeOptions(DRIVETRAINS, locale).map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
               </select>
             </div>
           )}
           <div>
-            <label className="label" htmlFor="ed-origin">مصدر السيارة</label>
+            <label className="label" htmlFor="ed-origin">{e.originLabel}</label>
             <select id="ed-origin" className="field" value={form.origin}
-              onChange={(e) => set({ origin: e.target.value as Origin | "" })}>
-              <option value="">ماشي معروف</option>
-              {ORIGINS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              onChange={(ev) => set({ origin: ev.target.value as Origin | "" })}>
+              <option value="">{e.unknown}</option>
+              {localizeOptions(ORIGINS, locale).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
         </div>
 
         <div>
-          <span className="label">نوع الهيكل</span>
+          <span className="label">{e.bodyLabel}</span>
           <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
-            {(v.kind === "moto" ? MOTO_BODIES : CAR_BODIES).map((b) => (
+            {localizeOptions(
+              (v.kind === "moto" ? MOTO_BODIES : CAR_BODIES) as readonly { value: string; label: string; fr: string }[],
+              locale,
+            ).map((b) => (
               <button
                 key={b.value}
                 type="button"
@@ -332,9 +335,9 @@ export function EditListing({ listingRef }: { listingRef: string }) {
         </div>
 
         <div>
-          <span className="label">الحالة العامة</span>
+          <span className="label">{e.conditionLabel}</span>
           <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-            {(Object.keys(CONDITION_AR) as Condition[]).map((c) => (
+            {(Object.keys(L.condition) as Condition[]).map((c) => (
               <button
                 key={c} type="button" onClick={() => set({ condition: c })}
                 aria-pressed={form.condition === c}
@@ -344,7 +347,7 @@ export function EditListing({ listingRef }: { listingRef: string }) {
                   color: form.condition === c ? "var(--brand-ink)" : "var(--text-muted)",
                 }}
               >
-                {CONDITION_AR[c]}
+                {L.condition[c]}
               </button>
             ))}
           </div>
@@ -353,18 +356,18 @@ export function EditListing({ listingRef }: { listingRef: string }) {
 
       {/* ---------- الوثائق ---------- */}
       <section className="card space-y-2 p-5">
-        <h2 className="text-[14px] font-bold">الوثائق</h2>
+        <h2 className="text-[14px] font-bold">{e.documentsTitle}</h2>
         {([
-          ["papersOk", "البطاقة الرمادية فسميتي والوثائق كاملة"],
-          ["vinChecked", "موافق على التحقق من رقم الهيكل (VIN)"],
-          ["technicalControlValid", "الفحص التقني صالح"],
-          ["serviceBook", "عندي دفتر الصيانة بالفواتير"],
-          ["inspected", "فحص طريق المستقل تدار"],
+          ["papersOk", e.docs.papersOk],
+          ["vinChecked", e.docs.vinChecked],
+          ["technicalControlValid", e.docs.technicalControlValid],
+          ["serviceBook", e.docs.serviceBook],
+          ["inspected", e.docs.inspected],
         ] as const).map(([key, label]) => (
           <label key={key} className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2.5"
             style={{ background: "var(--surface-3)" }}>
             <input type="checkbox" checked={form[key]}
-              onChange={(e) => set({ [key]: e.target.checked } as Partial<Form>)}
+              onChange={(ev) => set({ [key]: ev.target.checked } as Partial<Form>)}
               className="mt-0.5 h-4 w-4" />
             <span className="flex-1 text-xs">{label}</span>
           </label>
@@ -373,16 +376,16 @@ export function EditListing({ listingRef }: { listingRef: string }) {
 
       {/* ---------- الوصف والتجهيزات ---------- */}
       <section className="card space-y-3 p-5">
-        <h2 className="text-[14px] font-bold">الوصف والتجهيزات</h2>
+        <h2 className="text-[14px] font-bold">{e.descEquipTitle}</h2>
         <div>
           <label className="label" htmlFor="ed-desc">
-            الوصف <span className="num opacity-60">({form.description.length} حرف)</span>
+            {e.descLabel} <span className="num opacity-60">({form.description.length} {e.charsSuffix})</span>
           </label>
           <textarea id="ed-desc" className="field min-h-32" value={form.description}
-            onChange={(e) => set({ description: e.target.value })} />
+            onChange={(ev) => set({ description: ev.target.value })} />
         </div>
         <div>
-          <span className="label">التجهيزات ({form.equipment.length})</span>
+          <span className="label">{e.equipmentLabel} ({form.equipment.length})</span>
           <div className="flex flex-wrap gap-1.5">
             {EQUIPMENT.map((eq) => {
               const on = form.equipment.includes(eq);
@@ -400,7 +403,7 @@ export function EditListing({ listingRef }: { listingRef: string }) {
                     borderColor: "transparent",
                   }}
                 >
-                  {on ? <Check size={11} /> : <Plus size={11} />}{eq}
+                  {on ? <Check size={11} /> : <Plus size={11} />}{equipmentLabel(eq, locale)}
                 </button>
               );
             })}
@@ -417,9 +420,9 @@ export function EditListing({ listingRef }: { listingRef: string }) {
         style={{ borderColor: "var(--line-soft)", background: "var(--surface-1)" }}
       >
         <button className="btn btn-primary" disabled={busy}>
-          {saved ? <><Check size={15} /> تسجّل</> : busy ? "كنسجّلو…" : "حفظ التعديلات"}
+          {saved ? <><Check size={15} /> {e.saved}</> : busy ? e.saving : e.save}
         </button>
-        <Link href="/dashboard/listings" className="btn btn-solid">رجع</Link>
+        <Link href="/dashboard/listings" className="btn btn-solid">{e.back}</Link>
       </div>
     </form>
   );
