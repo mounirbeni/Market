@@ -47,6 +47,7 @@ interface Draft {
   serviceBook: boolean;
   technicalControlValid: boolean;
   accident: boolean;
+  accidentNote: string;
   photos: number;
   hasVideo: boolean;
   description: string;
@@ -83,6 +84,7 @@ const initialDraft: Draft = {
   serviceBook: false,
   technicalControlValid: true,
   accident: false,
+  accidentNote: "",
   photos: 0,
   hasVideo: false,
   description: "",
@@ -126,10 +128,15 @@ function draftToVehicle(d: Draft): Vehicle {
     hasVideo: d.hasVideo,
     serviceBook: d.serviceBook,
     vinChecked: d.vinChecked,
+    accidentDeclared: d.accident,
+    accidentNote: d.accidentNote || null,
     description: d.description,
     equipment: d.equipment,
     history: d.accident
-      ? [{ date: "2022-05-14", type: "accident", label: "حادث مصرّح به" }]
+      ? [{
+          date: "2022-05-14", type: "accident", label: "حادث أو إصلاح كبير مصرّح به",
+          detail: d.accidentNote || undefined,
+        }]
       : [],
     sellerId: "s03",
     publishedAt: "2026-08-24T10:00:00Z",
@@ -277,7 +284,10 @@ export function SellWizard() {
           city: d.city, condition: d.condition,
           papersOk: d.papersOk, technicalControlValid: d.technicalControlValid,
           inspected: d.inspected, serviceBook: d.serviceBook,
-          vinChecked: d.vinChecked, description: d.description,
+          vinChecked: d.vinChecked,
+          accidentDeclared: d.accident,
+          accidentNote: d.accident ? d.accidentNote.trim() : "",
+          description: d.description,
           equipment: d.equipment, photos: d.photos, hasVideo: d.hasVideo,
           negotiable: d.negotiable,
           media: video ? [...uploaded, video] : uploaded,
@@ -591,7 +601,7 @@ export function SellWizard() {
               <div className="space-y-2">
                 {([
                   ["papersOk", 0], ["vinChecked", 1], ["technicalControlValid", 2],
-                  ["serviceBook", 3], ["accident", 4], ["inspected", 5],
+                  ["serviceBook", 3], ["inspected", 4],
                 ] as const).map(([key, i]) => {
                   const [label, gain] = t.sellWizard.checks[i];
                   return (
@@ -605,6 +615,34 @@ export function SellWizard() {
                   </label>
                   );
                 })}
+              </div>
+
+              {/* الإفصاح عن الحوادث والإصلاحات — قسم منفصل ومبرز، ماشي
+                  غير مربّع فقائمة، حيت الهدف الشفافية ماشي نقط ثقة */}
+              <div className="rounded-xl p-3.5" style={{ background: "var(--warn-soft)" }}>
+                <label className="flex cursor-pointer items-start gap-2.5">
+                  <input type="checkbox" checked={d.accident}
+                    onChange={(e) => set({ accident: e.target.checked, ...(e.target.checked ? {} : { accidentNote: "" }) })}
+                    className="mt-0.5 h-4 w-4" />
+                  <span className="flex-1">
+                    <span className="flex items-center gap-1.5 text-xs font-bold">
+                      <AlertTriangle size={13} style={{ color: "var(--warn)" }} />
+                      {t.sellWizard.disclosureToggle}
+                    </span>
+                    <span className="mt-0.5 block text-[11px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
+                      {t.sellWizard.disclosureLead}
+                    </span>
+                  </span>
+                </label>
+                {d.accident && (
+                  <div className="mt-3">
+                    <label className="label" htmlFor="sw-accident-note">{t.sellWizard.disclosureNoteLabel}</label>
+                    <textarea id="sw-accident-note" className="field min-h-20 text-xs"
+                      value={d.accidentNote}
+                      onChange={(e) => set({ accidentNote: e.target.value.slice(0, 500) })}
+                      placeholder={t.sellWizard.disclosureNotePlaceholder} />
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -657,7 +657,8 @@
   },
   "timeline": {
     "title": "Historique du véhicule",
-    "lead": "Tout ce que le vendeur a déclaré ou qui a été vérifié : propriétaires, entretiens, visites techniques et accidents."
+    "lead": "Tout ce que le vendeur a déclaré ou qui a été vérifié : propriétaires, entretiens, visites techniques et accidents.",
+    "accidentLabel": "Accident ou réparation majeure déclaré par le vendeur"
   },
   "recent": {
     "heading": "Vus récemment"
@@ -1435,14 +1436,14 @@
         "+7 pts"
       ],
       [
-        "Le véhicule a eu un accident déclaré",
-        "Transparence"
-      ],
-      [
         "Je souhaite l'inspection indépendante TRIQ (250 DH)",
         "+10 pts"
       ]
     ],
+    "disclosureToggle": "Le véhicule a eu un accident ou une réparation majeure à déclarer",
+    "disclosureLead": "La transparence construit la confiance : déclarez tout accident ou réparation majeure (choc, pièces essentielles remplacées…) pour que l'acheteur décide en toute connaissance de cause.",
+    "disclosureNoteLabel": "Description de l'accident ou de la réparation (facultatif)",
+    "disclosureNotePlaceholder": "Que s'est-il passé exactement ? Qu'est-ce qui a été changé ou réparé ? Quelle était l'ampleur des dégâts…",
     "s3Title": "Photos et description",
     "description": "Description",
     "chars": "caractères",
@@ -2225,7 +2226,10 @@
       "vinChecked": "Accord pour vérifier le numéro de châssis (VIN)",
       "technicalControlValid": "Contrôle technique valide",
       "serviceBook": "J'ai le carnet d'entretien avec les factures",
-      "inspected": "L'inspection indépendante TRIQ a été réalisée"
+      "inspected": "L'inspection indépendante TRIQ a été réalisée",
+      "accidentDeclared": "Le véhicule a eu un accident ou une réparation majeure à déclarer",
+      "accidentNoteLabel": "Description de l'accident ou de la réparation (facultatif)",
+      "accidentNotePlaceholder": "Que s'est-il passé exactement ? Qu'est-ce qui a été changé ou réparé ? Quelle était l'ampleur des dégâts…"
     },
     "descEquipTitle": "Description et équipements",
     "descLabel": "Description",

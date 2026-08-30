@@ -62,6 +62,8 @@ export interface ListingRow {
   doors: number | null;
   technical_control: string | null;
   service_book: boolean;
+  accident_declared: boolean;
+  accident_note: string | null;
   description: string;
   equipment: string[];
   negotiable: boolean;
@@ -104,6 +106,7 @@ const SELECT_COLS = `
   l.views, l.saves, l.published_at, l.updated_at, l.owners, l.fiscal_power, l.consumption,
   l.displacement, l.doors, l.technical_control, l.service_book, l.description,
   l.equipment, l.negotiable, l.exchange_accepted,
+  l.accident_declared, l.accident_note,
   l.seller_id::text AS seller_ref,
   u.name AS seller_name, u.avatar_url AS seller_avatar, u.type AS seller_type, d.slug AS dealer_slug,
   u.city AS seller_city, u.member_since AS seller_since,
@@ -353,9 +356,23 @@ export function rowToVehicle(
     cover: safeMedia[0]?.thumbUrl ?? safeMedia[0]?.url ?? safeCover,
     serviceBook: r.service_book,
     vinChecked: r.vin_checked,
+    accidentDeclared: r.accident_declared,
+    accidentNote: r.accident_note,
     description: r.description,
     equipment: r.equipment ?? [],
-    history,
+    /* البائع صرّح بحادث/إصلاح — كنزيدوه كحدث حقيقي فالسجل باش
+       يبان للمشتري، بلا ما نكرّرو الكتابة فـlisting_history */
+    history: r.accident_declared
+      ? [
+          {
+            date: r.published_at,
+            type: "accident" as const,
+            label: "حادث أو إصلاح كبير مصرّح به",
+            detail: r.accident_note ?? undefined,
+          },
+          ...history,
+        ]
+      : history,
     sellerId: r.seller_ref,
     publishedAt: r.published_at,
     updatedAt: r.updated_at,

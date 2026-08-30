@@ -104,6 +104,10 @@ export interface Vehicle {
   cover?: string;
   serviceBook: boolean;
   vinChecked: boolean;
+  /** حادث أو إصلاح كبير صرّح بيه البائع وقت النشر */
+  accidentDeclared: boolean;
+  /** تفاصيل الحادث/الإصلاح — نص حر من البائع */
+  accidentNote?: string | null;
   description: string;
   equipment: string[];
   history: HistoryEvent[];

@@ -39,6 +39,7 @@ export function HistoryTimeline({ events }: { events: HistoryEvent[] }) {
         />
         {events.map((e, i) => {
           const { color, Icon } = STYLE[e.type];
+          const label = e.type === "accident" ? t.timeline.accidentLabel : e.label;
           return (
             <li key={i} className="relative pb-5 last:pb-0">
               <span
@@ -53,7 +54,7 @@ export function HistoryTimeline({ events }: { events: HistoryEvent[] }) {
                 <Icon size={14} />
               </span>
               <div className="flex flex-wrap items-baseline gap-x-2 pt-1">
-                <span className="text-[12.5px] font-bold">{e.label}</span>
+                <span className="text-[12.5px] font-bold">{label}</span>
                 <span className="text-[11px]" style={{ color: "var(--text-dim)" }}>
                   {fmtMonthYear(e.date, locale)}
                 </span>

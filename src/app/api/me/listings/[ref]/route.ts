@@ -106,6 +106,8 @@ export async function PATCH(
   const owners = clampInt(e.owners, 1, 20, 1);
   const condition = pick(CONDITIONS, e.condition, "bon");
   const technicalControl = e.technicalControlValid ? "2027-01-01" : "2026-01-01";
+  const accidentDeclared = Boolean(e.accidentDeclared);
+  const accidentNote = accidentDeclared ? text(e.accidentNote, 500) : "";
 
   /* نفس منطق النشر: الثقة والثمن المرجعي كيتحسبو فالخادم من
      إعلانات حقيقية — بلا هادشي المستخدم كيقدر يبعث نقطة مزوّرة. */
@@ -139,10 +141,19 @@ export async function PATCH(
     hasVideo: row.has_video,
     serviceBook: Boolean(e.serviceBook),
     vinChecked: Boolean(e.vinChecked),
+    accidentDeclared,
+    accidentNote: accidentNote || null,
     description: text(e.description, 4000),
     equipment: (Array.isArray(e.equipment) ? e.equipment : [])
       .slice(0, 40).map((x) => text(x, 60)).filter(Boolean),
-    history: [],
+    history: accidentDeclared
+      ? [{
+          date: new Date().toISOString(),
+          type: "accident",
+          label: "حادث أو إصلاح كبير مصرّح به",
+          detail: accidentNote || undefined,
+        }]
+      : [],
     sellerId: user.id,
     publishedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -182,6 +193,8 @@ export async function PATCH(
       inspected: draft.inspected,
       serviceBook: draft.serviceBook,
       vinChecked: draft.vinChecked,
+      accidentDeclared: draft.accidentDeclared,
+      accidentNote: draft.accidentNote ?? null,
       description: draft.description,
       equipment: draft.equipment,
       negotiable: draft.negotiable,

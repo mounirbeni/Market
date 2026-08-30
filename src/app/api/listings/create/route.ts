@@ -67,6 +67,8 @@ export interface CreateBody {
   inspected?: boolean;
   serviceBook?: boolean;
   vinChecked?: boolean;
+  accidentDeclared?: boolean;
+  accidentNote?: string;
   description?: string;
   equipment?: string[];
   negotiable?: boolean;
@@ -122,6 +124,10 @@ export async function POST(req: Request) {
 
   const owners = clampInt(b.owners, 1, 20, 1);
 
+  /* التصريح بحادث/إصلاح كبير — النص الحر ماعندوش معنى بلا التبويب */
+  const accidentDeclared = Boolean(b.accidentDeclared);
+  const accidentNote = accidentDeclared ? text(b.accidentNote, 500) : "";
+
   /* الصور: كنقبلو غير الروابط اللي خرجات من الخزّان ديالنا.
      الرفض صريح، ماشي غير إسقاط الرابط، باش المستخدم يعرف علاش ما تنشرش. */
   const incomingMedia = Array.isArray(b.media) ? b.media.slice(0, MAX_PHOTOS + 4) : [];
@@ -175,9 +181,18 @@ export async function POST(req: Request) {
     hasVideo,
     serviceBook: Boolean(b.serviceBook),
     vinChecked: Boolean(b.vinChecked),
+    accidentDeclared,
+    accidentNote: accidentNote || null,
     description: text(b.description, 4000),
     equipment: (b.equipment ?? []).slice(0, 40).map((e) => text(e, 60)).filter(Boolean),
-    history: [],
+    history: accidentDeclared
+      ? [{
+          date: new Date().toISOString(),
+          type: "accident",
+          label: "حادث أو إصلاح كبير مصرّح به",
+          detail: accidentNote || undefined,
+        }]
+      : [],
     sellerId: user.id,
     publishedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -222,6 +237,8 @@ export async function POST(req: Request) {
     inspected: draft.inspected,
     serviceBook: draft.serviceBook,
     vinChecked: draft.vinChecked,
+    accidentDeclared: draft.accidentDeclared,
+    accidentNote: draft.accidentNote ?? null,
     description: draft.description,
     equipment: draft.equipment,
     negotiable: draft.negotiable,

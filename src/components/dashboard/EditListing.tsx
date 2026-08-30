@@ -14,7 +14,7 @@ import {
   CAR_BODIES, DOOR_OPTIONS, DRIVETRAINS, MOTO_BODIES, ORIGINS,
 } from "@/lib/vehicle-options";
 import type { Body, Condition, Drivetrain, Fuel, Gearbox, Origin } from "@/lib/types";
-import { Check, ChevronLeft, Door, Plus } from "@/components/icons";
+import { AlertTriangle, Check, ChevronLeft, Door, Plus } from "@/components/icons";
 
 /* ============================================================
    تعديل إعلان
@@ -51,6 +51,8 @@ interface Form {
   technicalControlValid: boolean;
   serviceBook: boolean;
   inspected: boolean;
+  accidentDeclared: boolean;
+  accidentNote: string;
 }
 
 export function EditListing({ listingRef }: { listingRef: string }) {
@@ -96,6 +98,8 @@ export function EditListing({ listingRef }: { listingRef: string }) {
       technicalControlValid: new Date(v.technicalControl).getTime() > Date.now(),
       serviceBook: v.serviceBook,
       inspected: v.inspected,
+      accidentDeclared: v.accidentDeclared,
+      accidentNote: v.accidentNote ?? "",
     });
   }, [v, form]);
 
@@ -372,6 +376,33 @@ export function EditListing({ listingRef }: { listingRef: string }) {
             <span className="flex-1 text-xs">{label}</span>
           </label>
         ))}
+
+        {/* ---------- الإفصاح عن الحوادث والإصلاحات ---------- */}
+        <div className="rounded-xl p-3.5" style={{ background: "var(--warn-soft)" }}>
+          <label className="flex cursor-pointer items-start gap-2.5">
+            <input type="checkbox" checked={form.accidentDeclared}
+              onChange={(ev) => set({
+                accidentDeclared: ev.target.checked,
+                ...(ev.target.checked ? {} : { accidentNote: "" }),
+              })}
+              className="mt-0.5 h-4 w-4" />
+            <span className="flex-1">
+              <span className="flex items-center gap-1.5 text-xs font-bold">
+                <AlertTriangle size={13} style={{ color: "var(--warn)" }} />
+                {e.docs.accidentDeclared}
+              </span>
+            </span>
+          </label>
+          {form.accidentDeclared && (
+            <div className="mt-3">
+              <label className="label" htmlFor="ed-accident-note">{e.docs.accidentNoteLabel}</label>
+              <textarea id="ed-accident-note" className="field min-h-20 text-xs"
+                value={form.accidentNote}
+                onChange={(ev) => set({ accidentNote: ev.target.value.slice(0, 500) })}
+                placeholder={e.docs.accidentNotePlaceholder} />
+            </div>
+          )}
+        </div>
       </section>
 
       {/* ---------- الوصف والتجهيزات ---------- */}
