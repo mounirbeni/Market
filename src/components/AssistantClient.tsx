@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useEffect, useMemo, useState } from "react";
 import { paramsFromFilters, type Filters } from "@/lib/search";
 import { fairPriceOf, trustOf } from "@/lib/market";
@@ -10,6 +10,9 @@ import { formatNumber } from "@/lib/format";
 import { VehicleCard } from "@/components/VehicleCard";
 import { Mixed } from "@/components/Mixed";
 import type { Vehicle } from "@/lib/types";
+import { useDict, useHref, useLocale } from "@/lib/i18n/client";
+import { cityLabel, dhUnit, fill } from "@/lib/i18n/labels";
+import type { Dictionary } from "@/lib/i18n/server";
 import {
   ArrowLeft, ArrowRight, Car, Check, Coins, Fuel, MapPin, Moto, Reset,
   Road, Search, Sparkle, Users, Wallet,
@@ -26,13 +29,10 @@ interface Answers {
   kmPerYear: number;
 }
 
-const USES: { value: Use; label: string; hint: string; Icon: typeof Car }[] = [
-  { value: "ville", label: "المدينة أساساً", hint: "طلوع ونزول، ركن ضيّق", Icon: MapPin },
-  { value: "route", label: "الطريق السيار", hint: "تنقلات طويلة كل أسبوع", Icon: Road },
-  { value: "famille", label: "العائلة", hint: "دراري، أمتعة، سفر", Icon: Users },
-  { value: "travail", label: "الخدمة", hint: "نقل معدات ولا بضاعة", Icon: Wallet },
-  { value: "plaisir", label: "المتعة", hint: "بغيت شي حاجة كتفرح", Icon: Sparkle },
-];
+const USE_ICONS: Record<Use, typeof Car> = {
+  ville: MapPin, route: Road, famille: Users, travail: Wallet, plaisir: Sparkle,
+};
+const USE_KEYS: Use[] = ["ville", "route", "famille", "travail", "plaisir"];
 
 const BUDGETS = [40000, 70000, 100000, 150000, 220000, 350000];
 const MOTO_BUDGETS = [12000, 25000, 45000, 70000, 110000, 180000];
@@ -61,28 +61,35 @@ function toFilters(a: Answers): Partial<Filters> {
 }
 
 /** لماذا اقترحنا هذه المركبة */
-function reasons(v: Vehicle, a: Answers): string[] {
+function reasons(v: Vehicle, a: Answers, t: Dictionary): string[] {
   const out: string[] = [];
   const fp = fairPriceOf(v);
-  const t = trustOf(v);
+  const tr = trustOf(v);
   const tco = computeTco(v, {
     kmPerYear: a.kmPerYear,
     years: 3,
     coverage: "tiers",
     includeDepreciation: false,
   });
-  if (fp.delta < -0.06) out.push(`تحت الثمن المرجعي بـ${Math.round(Math.abs(fp.delta) * 100)}٪`);
-  if (t.score >= 75) out.push(`نقطة ثقة ${t.score}/100`);
-  if (v.inspected) out.push("مفحوصة من طرف طريق");
-  if (v.firstHand) out.push("يد أولى");
-  out.push(`~${formatNumber(tco.perYear)} د.م تكلفة السنة`);
-  if (a.city && v.city === a.city) out.push("فنفس المدينة ديالك");
+  const r = t.assistant.reason;
+  if (fp.delta < -0.06) out.push(fill(r.belowPrice, { pct: String(Math.round(Math.abs(fp.delta) * 100)) }));
+  if (tr.score >= 75) out.push(fill(r.trustScore, { score: String(tr.score) }));
+  if (v.inspected) out.push(r.inspected);
+  if (v.firstHand) out.push(r.firstHand);
+  out.push(fill(r.yearlyCost, { v: formatNumber(tco.perYear) }));
+  if (a.city && v.city === a.city) out.push(r.sameCity);
   return out.slice(0, 4);
 }
 
-const STEP_TITLES = ["نوع المركبة", "الميزانية", "المدينة", "الاستعمال", "الكيلومترات"];
-
 export function AssistantClient() {
+  const t = useDict();
+  const locale = useLocale();
+  const href = useHref();
+  const dh = dhUnit(locale);
+  const STEP_TITLES = t.assistant.steps;
+  const USES = USE_KEYS.map((k) => ({
+    value: k, label: t.assistant.uses[k][0], hint: t.assistant.uses[k][1], Icon: USE_ICONS[k],
+  }));
   const [step, setStep] = useState(0);
   const [a, setA] = useState<Answers>({
     kind: "car", budget: 100000, city: "", seats: 5, use: "ville", kmPerYear: 15000,
@@ -132,31 +139,30 @@ export function AssistantClient() {
   const budgets = a.kind === "car" ? BUDGETS : MOTO_BUDGETS;
 
   if (done) {
-    const href = `/search?${paramsFromFilters(toFilters(a)).toString()}`;
+    const resultsHref = href(`/search?${paramsFromFilters(toFilters(a)).toString()}`);
     return (
       <div className="mx-auto max-w-[1200px] px-4 py-10">
         <header className="mb-8 max-w-2xl">
-          <span className="eyebrow"><Sparkle size={13} /> النتيجة</span>
+          <span className="eyebrow"><Sparkle size={13} /> {t.assistant.resultEyebrow}</span>
           <h1 className="h-page mt-4">
-            {results.length > 0 ? "هاذي المركبات اللي كتناسبك" : "ماكلقيناش مطابقة دقيقة"}
+            {results.length > 0 ? t.assistant.resultTitleFound : t.assistant.resultTitleEmpty}
           </h1>
           <p className="mt-3 text-[14.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
             {results.length > 0 ? (
               <>
-                مرتّبة حسب أحسن صفقة داخل ميزانية{" "}
-                <b className="num">{formatNumber(a.budget)}</b> د.م. تحت كل مركبة كتلقى
-                علاش اقترحناها عليك بالضبط.
+                {t.assistant.resultLeadFoundA}{" "}
+                <b className="num">{formatNumber(a.budget)}</b> {dh}. {t.assistant.resultLeadFoundB}
               </>
             ) : (
-              <>جرّب ترفع الميزانية شوية ولا تحيّد قيد المدينة.</>
+              <>{t.assistant.resultLeadEmpty}</>
             )}
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <button onClick={() => setStep(0)} className="btn btn-ghost btn-sm">
-              <Reset size={14} /> بدّل الأجوبة
+              <Reset size={14} /> {t.assistant.changeAnswers}
             </button>
-            <Link href={href} className="btn btn-primary btn-sm">
-              <Search size={14} /> شوف كل النتائج المطابقة
+            <Link href={resultsHref} className="btn btn-primary btn-sm">
+              <Search size={14} /> {t.assistant.seeAllMatches}
             </Link>
           </div>
         </header>
@@ -167,7 +173,7 @@ export function AssistantClient() {
               <div key={v.id} className="flex min-w-0 flex-col gap-2">
                 <VehicleCard v={v} />
                 <ul className="flex flex-wrap gap-1.5 px-1">
-                  {reasons(v, a).map((r) => (
+                  {reasons(v, a, t).map((r) => (
                     <li key={r} className="chip chip-plain text-[10.5px]">
                       <Check size={10} style={{ color: "var(--good)" }} /> <Mixed text={r} />
                     </li>
@@ -184,18 +190,17 @@ export function AssistantClient() {
   return (
     <div className="mx-auto max-w-[760px] px-4 py-10">
       <header className="mb-7">
-        <span className="eyebrow"><Sparkle size={13} /> مساعد الاختيار</span>
-        <h1 className="h-page mt-4">مامعرفتيش شنو تشري؟</h1>
+        <span className="eyebrow"><Sparkle size={13} /> {t.assistant.quizEyebrow}</span>
+        <h1 className="h-page mt-4">{t.assistant.quizTitle}</h1>
         <p className="mt-3 text-[14.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          جاوب على <span className="num">5</span> أسئلة بسيطة، ونقترحو عليك مركبات
-          حقيقية من السوق مع سبب واضح لكل اقتراح.
+          {t.assistant.quizLeadA} <span className="num">5</span> {t.assistant.quizLeadB}
         </p>
       </header>
 
       {/* شريط التقدم */}
       <div className="mb-7 flex gap-1.5" role="progressbar" aria-valuenow={step + 1} aria-valuemin={1} aria-valuemax={5}>
-        {STEP_TITLES.map((t, i) => (
-          <div key={t} className="min-w-0 flex-1">
+        {STEP_TITLES.map((st, i) => (
+          <div key={st} className="min-w-0 flex-1">
             <div
               className="h-1.5 rounded-full transition-colors"
               style={{ background: i <= step ? "var(--brand)" : "var(--surface-3)" }}
@@ -204,7 +209,7 @@ export function AssistantClient() {
               className="mt-1.5 block truncate text-[10px] font-bold"
               style={{ color: i <= step ? "var(--brand)" : "var(--text-dim)" }}
             >
-              {t}
+              {st}
             </span>
           </div>
         ))}
@@ -212,9 +217,9 @@ export function AssistantClient() {
 
       <div className="card p-6">
         {step === 0 && (
-          <Q title="واش سيارة ولا دراجة؟">
+          <Q title={t.assistant.q0Title}>
             <div className="grid grid-cols-2 gap-3">
-              {([["car", "سيارة", Car], ["moto", "دراجة نارية", Moto]] as const).map(([k, label, Icon]) => (
+              {([["car", t.assistant.car, Car], ["moto", t.assistant.moto, Moto]] as const).map(([k, label, Icon]) => (
                 <Pick key={k} on={a.kind === k} onClick={() => set({ kind: k, budget: k === "car" ? 100000 : 25000 })}>
                   <Icon size={26} />
                   <span className="mt-2 text-sm font-bold">{label}</span>
@@ -225,12 +230,12 @@ export function AssistantClient() {
         )}
 
         {step === 1 && (
-          <Q title="شحال الميزانية ديالك؟" hint="الحد الأقصى اللي مستعد تخلّص">
+          <Q title={t.assistant.q1Title} hint={t.assistant.q1Hint}>
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
               {budgets.map((b) => (
                 <Pick key={b} on={a.budget === b} onClick={() => set({ budget: b })}>
                   <span className="num text-base font-extrabold">{formatNumber(b)}</span>
-                  <span className="text-[10.5px]" style={{ color: "var(--text-dim)" }}>درهم وأقل</span>
+                  <span className="text-[10.5px]" style={{ color: "var(--text-dim)" }}>{dh} {t.assistant.dhAndLess}</span>
                 </Pick>
               ))}
             </div>
@@ -238,14 +243,14 @@ export function AssistantClient() {
         )}
 
         {step === 2 && (
-          <Q title="فينا مدينة كتسكن؟" hint="باش نقربو عليك المركبات">
+          <Q title={t.assistant.q2Title} hint={t.assistant.q2Hint}>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => set({ city: "" })}
                 className="chip"
                 style={a.city === "" ? { background: "var(--brand)", color: "#fff", borderColor: "transparent" } : undefined}
               >
-                كل المغرب
+                {t.assistant.allMorocco}
               </button>
               {CITIES.slice(0, 14).map((c) => (
                 <button
@@ -254,7 +259,7 @@ export function AssistantClient() {
                   className="chip"
                   style={a.city === c.slug ? { background: "var(--brand)", color: "#fff", borderColor: "transparent" } : undefined}
                 >
-                  {c.ar}
+                  {cityLabel(c.slug, locale)}
                 </button>
               ))}
             </div>
@@ -262,7 +267,7 @@ export function AssistantClient() {
         )}
 
         {step === 3 && (
-          <Q title="غادي تستعملها فاش أساساً؟">
+          <Q title={t.assistant.q3Title}>
             <div className="grid gap-2.5 sm:grid-cols-2">
               {USES.map((u) => (
                 <Pick key={u.value} on={a.use === u.value} onClick={() => set({ use: u.value })} row>
@@ -281,7 +286,7 @@ export function AssistantClient() {
             </div>
             {a.kind === "car" && a.use === "famille" && (
               <div className="mt-4">
-                <span className="label mb-2 block">شحال من شخص عادةً؟</span>
+                <span className="label mb-2 block">{t.assistant.seatsQ}</span>
                 <div className="flex gap-2">
                   {[4, 5, 7].map((n) => (
                     <button
@@ -290,7 +295,7 @@ export function AssistantClient() {
                       className="chip num"
                       style={a.seats === n ? { background: "var(--brand)", color: "#fff", borderColor: "transparent" } : undefined}
                     >
-                      {n === 7 ? "6 ولا أكثر" : n}
+                      {n === 7 ? t.assistant.sixOrMore : n}
                     </button>
                   ))}
                 </div>
@@ -300,13 +305,13 @@ export function AssistantClient() {
         )}
 
         {step === 4 && (
-          <Q title="شحال كتمشي فالعام؟" hint="هادشي كيحدّد واش گازوال ولا بنزين">
+          <Q title={t.assistant.q4Title} hint={t.assistant.q4Hint}>
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               {[
-                { v: 6000, l: "قليل", h: "أقل من 8 آلاف كم" },
-                { v: 15000, l: "عادي", h: "10 ـ 20 ألف كم" },
-                { v: 28000, l: "بزاف", h: "20 ـ 35 ألف كم" },
-                { v: 45000, l: "كثير جداً", h: "فوق 35 ألف كم" },
+                { v: 6000, l: t.assistant.kmOptions[0][0], h: t.assistant.kmOptions[0][1] },
+                { v: 15000, l: t.assistant.kmOptions[1][0], h: t.assistant.kmOptions[1][1] },
+                { v: 28000, l: t.assistant.kmOptions[2][0], h: t.assistant.kmOptions[2][1] },
+                { v: 45000, l: t.assistant.kmOptions[3][0], h: t.assistant.kmOptions[3][1] },
               ].map((o) => (
                 <Pick key={o.v} on={a.kmPerYear === o.v} onClick={() => set({ kmPerYear: o.v })}>
                   <span className="text-[13px] font-bold">{o.l}</span>
@@ -319,8 +324,8 @@ export function AssistantClient() {
               style={{ background: "var(--surface-2)", color: "var(--text-muted)" }}
             >
               <Fuel size={14} className="mt-px shrink-0" style={{ color: "var(--brand)" }} />
-              قاعدة عملية فالمغرب: فوق <span className="num">20</span> ألف كم فالعام الگازوال كيربح،
-              وتحت <span className="num">10</span> آلاف كم البنزين أرخص فالصيانة والتأمين.
+              {t.assistant.dieselTipA} <span className="num">20</span> {t.assistant.dieselTipB}
+              {" "}<span className="num">10</span> {t.assistant.dieselTipC}
             </p>
           </Q>
         )}
@@ -331,13 +336,13 @@ export function AssistantClient() {
             disabled={step === 0}
             className="btn btn-ghost btn-sm"
           >
-            <ArrowRight size={14} className="dir-flip" /> رجع
+            <ArrowRight size={14} className="dir-flip" /> {t.assistant.back}
           </button>
           <button onClick={() => setStep((s) => s + 1)} className="btn btn-primary">
             {step === STEP_TITLES.length - 1 ? (
-              <><Coins size={16} /> شوف الاقتراحات</>
+              <><Coins size={16} /> {t.assistant.seeSuggestions}</>
             ) : (
-              <>التالي <ArrowLeft size={15} className="dir-flip" /></>
+              <>{t.assistant.next} <ArrowLeft size={15} className="dir-flip" /></>
             )}
           </button>
         </div>

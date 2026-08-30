@@ -3,23 +3,31 @@ import { Suspense } from "react";
 import { AdvancedSearch } from "@/components/AdvancedSearch";
 import { SmartSearch } from "@/components/SmartSearch";
 import { Search } from "@/components/icons";
+import { dictionaryOf, getDictionary } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "البحث المتقدم عن المركبات",
-  description:
-    "ابحث عن سيارتك أو دراجتك بدقة: الماركة، الموديل، الهيكل، الثمن، السنة، الكيلومتراج، الوقود، الناقل والمدينة — مع عدد النتائج مباشرة.",
-  alternates: { canonical: "/search" },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  return {
+    title: t.searchPage.metaTitle,
+    description: t.searchPage.metaDesc,
+    alternates: { canonical: localePath("/search", locale) },
+  };
+}
 
-export default function SearchPage() {
+export default async function SearchPage() {
+  const t = await getDictionary();
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-10">
       <header className="mb-8 max-w-2xl">
-        <span className="eyebrow"><Search size={13} /> بحث دقيق</span>
-        <h1 className="h-page mt-4">البحث المتقدم</h1>
+        <span className="eyebrow"><Search size={13} /> {t.searchPage.eyebrow}</span>
+        <h1 className="h-page mt-4">{t.searchPage.title}</h1>
         <p className="mt-3 text-[15px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          حدّد كل معايير المركبة اللي كتقلّب عليها. عدد النتائج كيتحدّث مباشرة مع كل اختيار،
-          فتعرف واش المعايير ديالك واقعية قبل ما تشوف النتائج.
+          {t.searchPage.lead}
         </p>
       </header>
 

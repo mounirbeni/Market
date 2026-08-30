@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
 import { CompareClient } from "@/components/CompareClient";
+import { dictionaryOf, getDictionary } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "قارن بين المركبات",
-  description:
-    "قارن حتى ثلاث سيارات أو دراجات نارية جنباً إلى جنب: الثمن، مؤشر الثقة، تكلفة الاستعمال السنوية والمواصفات الكاملة.",
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const t = await dictionaryOf(isLocale(lang) ? lang : DEFAULT_LOCALE);
+  return { title: t.comparePage.metaTitle, description: t.comparePage.metaDesc };
+}
 
-export default function ComparePage() {
+export default async function ComparePage() {
+  const t = await getDictionary();
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <header className="mb-8">
-        <h1 className="h-page">المقارنة</h1>
+        <h1 className="h-page">{t.comparePage.title}</h1>
         <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-          ماشي غير المواصفات — قارن الثقة، الثمن مقابل السوق، وشحال غادي تصرف فالسنة.
+          {t.comparePage.lead}
         </p>
       </header>
       <CompareClient />

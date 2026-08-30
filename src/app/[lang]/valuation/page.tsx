@@ -1,23 +1,31 @@
 import type { Metadata } from "next";
 import { EstimateTool } from "@/components/EstimateTool";
 import { Sparkle } from "@/components/icons";
+import { dictionaryOf, getDictionary } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/valuation" },
-  title: "قيّم سيارتك أو دراجتك مجاناً",
-  description:
-    "احسب الثمن الحقيقي لسيارتك أو دراجتك النارية في السوق المغربي: تقدير فوري مبني على إعلانات مشابهة مع توقع خسارة القيمة على 5 سنوات.",
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  return {
+    alternates: { canonical: localePath("/valuation", locale) },
+    title: t.valuationPage.metaTitle,
+    description: t.valuationPage.metaDesc,
+  };
+}
 
-export default function EstimatePage() {
+export default async function EstimatePage() {
+  const t = await getDictionary();
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
       <header className="mb-8 max-w-2xl">
-        <span className="eyebrow"><Sparkle size={13} /> مجاني · بلا تسجيل</span>
-        <h1 className="h-page mt-4">شحال كتسوى مركبتك؟</h1>
+        <span className="eyebrow"><Sparkle size={13} /> {t.valuationPage.eyebrow}</span>
+        <h1 className="h-page mt-4">{t.valuationPage.title}</h1>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          دخّل المعطيات وغادي نحسبو ليك ثمناً مرجعياً من إعلانات مشابهة فالسوق المغربي،
-          معدّلاً حسب السنة والكيلومتراج والحالة — بلا ما تخمّن ولا تسول الجيران.
+          {t.valuationPage.lead}
         </p>
       </header>
       <EstimateTool />

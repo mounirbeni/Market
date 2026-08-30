@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
 import { AssistantClient } from "@/components/AssistantClient";
+import { dictionaryOf } from "@/lib/i18n/server";
+import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 
-export const metadata: Metadata = {
-  title: "مساعد اختيار المركبة",
-  description:
-    "جاوب على 5 أسئلة بسيطة — الميزانية، المدينة، عدد الأشخاص، الاستعمال — ونقترحو عليك المركبات اللي كتناسبك فعلاً من السوق المغربي.",
-  alternates: { canonical: "/assistant" },
-};
+export async function generateMetadata({
+  params,
+}: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = await dictionaryOf(locale);
+  return {
+    title: t.assistantPage.metaTitle,
+    description: t.assistantPage.metaDesc,
+    alternates: { canonical: localePath("/assistant", locale) },
+  };
+}
 
 export default function AssistantPage() {
   return <AssistantClient />;

@@ -749,5 +749,314 @@
       "TOO_MANY_ATTEMPTS": "Trop de tentatives. Demandez un nouveau code.",
       "BAD_CODE": "Le code est incorrect."
     }
+  },
+  "searchPage": {
+    "metaTitle": "Recherche avancée de véhicules",
+    "metaDesc": "Recherchez votre voiture ou moto avec précision : marque, modèle, carrosserie, prix, année, kilométrage, carburant, boîte et ville — avec le nombre de résultats en direct.",
+    "eyebrow": "Recherche précise",
+    "title": "Recherche avancée",
+    "lead": "Définissez tous les critères du véhicule que vous cherchez. Le nombre de résultats se met à jour en direct à chaque choix, pour savoir si vos critères sont réalistes avant même de voir les résultats."
+  },
+  "advSearch": {
+    "kindTitle": "Type de véhicule",
+    "cars": "Voitures",
+    "motos": "Motos",
+    "both": "Les deux",
+    "brandModelTitle": "Marque et modèle",
+    "brand": "Marque",
+    "model": "Modèle",
+    "allBrands": "Toutes les marques",
+    "allModelsOf": "Tous les modèles",
+    "chooseBrandFirst": "Choisissez d'abord la marque",
+    "bodyType": "Type de carrosserie",
+    "priceUsageTitle": "Prix et usage",
+    "priceFrom": "Prix à partir de (DH)",
+    "priceTo": "Prix jusqu'à (DH)",
+    "noLimit": "Sans limite",
+    "maxKm": "Kilométrage maximum",
+    "yearFrom": "À partir de l'année",
+    "yearTo": "Jusqu'à l'année",
+    "city": "Ville",
+    "allMorocco": "Tout le Maroc",
+    "mechanicsTitle": "Mécanique",
+    "fuelType": "Carburant",
+    "gearboxType": "Boîte de vitesses",
+    "specsTitle": "Caractéristiques et détails",
+    "color": "Couleur",
+    "anyColor": "Toutes couleurs",
+    "doors": "Nombre de portes",
+    "anyCount": "Tous",
+    "drivetrain": "Transmission",
+    "anyDrivetrain": "Toutes",
+    "origin": "Origine du véhicule",
+    "anyOrigin": "Toutes",
+    "powerFrom": "Puissance à partir de (ch)",
+    "powerTo": "Puissance jusqu'à (ch)",
+    "equipment": "Équipements et options",
+    "guaranteesTitle": "Garanties supplémentaires",
+    "goodDeals": "Sous le prix du marché",
+    "inspected": "Inspectée par TRIQ",
+    "verified": "Documents vérifiés",
+    "firstHand": "Première main",
+    "summaryTitle": "Résumé de la recherche",
+    "matching": "véhicules correspondants",
+    "sKind": "Type",
+    "sAll": "Tout",
+    "sBrand": "Marque",
+    "sModel": "Modèle",
+    "sCity": "Ville",
+    "sPrice": "Prix",
+    "sKm": "Kilométrage",
+    "sUpTo": "jusqu'à",
+    "sColor": "Couleur",
+    "sDoors": "Portes",
+    "sDrivetrain": "Transmission",
+    "sOrigin": "Origine",
+    "sSpecs": "Équipements",
+    "showResults": "Afficher les résultats",
+    "reset": "Réinitialiser"
+  },
+  "valuationPage": {
+    "metaTitle": "Estimez votre voiture ou moto gratuitement",
+    "metaDesc": "Calculez le prix réel de votre voiture ou moto sur le marché marocain : estimation instantanée basée sur des annonces comparables, avec projection de la dépréciation sur 5 ans.",
+    "eyebrow": "Gratuit · Sans inscription",
+    "title": "Combien vaut votre véhicule ?",
+    "lead": "Entrez les données et nous calculons un prix de référence à partir d'annonces comparables sur le marché marocain, ajusté selon l'année, le kilométrage et l'état — sans deviner ni demander aux voisins."
+  },
+  "estimate": {
+    "formTitle": "Caractéristiques du véhicule",
+    "car": "Voiture",
+    "moto": "Moto",
+    "brand": "Marque",
+    "model": "Modèle",
+    "year": "Année",
+    "km": "Kilométrage",
+    "fuel": "Carburant",
+    "gearbox": "Boîte",
+    "city": "Ville",
+    "condition": "État général",
+    "conditions": {
+      "excellent": [
+        "Excellent",
+        "Comme neuve, sans rayure ni problème"
+      ],
+      "tres-bon": [
+        "Très bon",
+        "Traces d'usage tout à fait normales"
+      ],
+      "bon": [
+        "Bon",
+        "Légères rayures, mécanique saine"
+      ],
+      "moyen": [
+        "Moyen",
+        "Nécessite quelques réparations"
+      ]
+    },
+    "suggestedPrice": "Prix suggéré",
+    "reasonableRange": "Fourchette raisonnable :",
+    "accuracy": "Fiabilité",
+    "basedOn": "Calculé à partir de",
+    "basedOnEnd": "annonces comparables sur le marché marocain",
+    "sellAtPrice": "Vendre à ce prix",
+    "seeSimilar": "Voir les annonces similaires",
+    "valueChangeTitle": "Évolution de la valeur",
+    "valueChangeLead": "Projection de la dépréciation jusqu'à {year}, basée sur la moyenne du marché.",
+    "similarNowTitle": "Annonces similaires actuellement sur le marché",
+    "disclaimerA": "L'estimation est indicative et basée sur les annonces disponibles sur la plateforme (",
+    "disclaimerB": " véhicules). Le prix final dépend de l'état du moteur, de l'historique d'entretien, des documents et de la négociation."
+  },
+  "costPage": {
+    "metaTitle": "Calculateur du coût réel d'une voiture au Maroc",
+    "metaDesc": "Calculez le coût annuel réel de votre voiture : vignette selon la puissance fiscale, assurance, carburant, entretien, pneus, visite technique et dépréciation — en dirhams par kilomètre.",
+    "eyebrow": "L'outil qu'aucun site marocain n'a",
+    "title": "Le prix d'achat n'est pas le coût",
+    "lead": "Une voiture bon marché peut coûter cher à l'usage. Découvrez exactement combien vous allez dépenser par an : vignette, assurance, carburant, entretien, pneus, visite technique et dépréciation — avec une comparaison face aux autres véhicules.",
+    "vignetteTitle": "Barème de la vignette annuelle",
+    "vignetteLead": "Le tarif dépend de la puissance fiscale et du type de carburant. Le diesel coûte plus cher que l'essence.",
+    "colPower": "Puissance fiscale",
+    "colPetrol": "Essence",
+    "colDiesel": "Diesel",
+    "note": "Les véhicules électriques en sont exonérés. Les motos paient selon la cylindrée. Barèmes indicatifs — vérifiez sur le site officiel de la Direction Générale des Impôts.",
+    "rows": [
+      [
+        "≤ 7 CV",
+        "350 DH",
+        "700 DH"
+      ],
+      [
+        "8 — 10 CV",
+        "650 DH",
+        "1 500 DH"
+      ],
+      [
+        "11 — 14 CV",
+        "3 000 DH",
+        "6 000 DH"
+      ],
+      [
+        "≥ 15 CV",
+        "8 000 DH",
+        "20 000 DH"
+      ]
+    ]
+  },
+  "costClient": {
+    "pickVehicle": "Choisissez un véhicule du marché",
+    "rankingTitle": "Classement des véhicules par coût d'usage",
+    "rankingLeadA": "Coût annuel (hors dépréciation) sur une base de",
+    "rankingLeadB": "km/an et assurance au tiers.",
+    "cars": "Voitures",
+    "motos": "Motos",
+    "cheapestTitle": "Les moins chers à l'usage",
+    "priciestTitle": "Les plus chers à l'usage",
+    "perYear": "DH/an",
+    "perKm": "DH/km",
+    "perMonth": "DH/mois"
+  },
+  "comparePage": {
+    "metaTitle": "Comparer des véhicules",
+    "metaDesc": "Comparez jusqu'à trois voitures ou motos côte à côte : prix, indice de confiance, coût annuel d'usage et caractéristiques complètes.",
+    "title": "Comparaison",
+    "lead": "Pas seulement les caractéristiques — comparez la confiance, le prix face au marché, et ce que ça va vous coûter par an."
+  },
+  "compareClient": {
+    "groupSummary": "Résumé",
+    "groupSpecs": "Caractéristiques",
+    "groupExpenses": "Dépenses annuelles",
+    "groupTrust": "Confiance et documents",
+    "price": "Prix",
+    "trustScore": "Indice de confiance",
+    "vsMarket": "Écart au prix du marché",
+    "weakRef": "Références limitées",
+    "usageCost": "Coût d'usage",
+    "costPerKm": "Coût par kilomètre",
+    "resale3y": "Valeur de revente après 3 ans",
+    "year": "Année",
+    "km": "Kilométrage",
+    "fuel": "Carburant",
+    "gearbox": "Boîte de vitesses",
+    "body": "Carrosserie",
+    "consumption": "Consommation",
+    "fiscalPower": "Puissance fiscale",
+    "city": "Ville",
+    "fuelExpense": "Carburant",
+    "insurance": "Assurance (au tiers)",
+    "vignette": "Vignette",
+    "exempt": "Exonérée",
+    "maintenance": "Entretien",
+    "owners": "Nombre de propriétaires",
+    "condition": "État",
+    "serviceBook": "Carnet d'entretien",
+    "available": "Disponible",
+    "notAvailable": "Non disponible",
+    "inspection": "Inspection indépendante",
+    "done": "Faite",
+    "notDone": "Non faite",
+    "emptyTitle": "Vous n'avez encore ajouté aucun véhicule à comparer",
+    "emptyLead": "Depuis n'importe quelle annonce, cliquez sur le bouton comparer pour ajouter jusqu'à trois véhicules et les voir côte à côte : prix, confiance, coût et caractéristiques.",
+    "browse": "Parcourir les véhicules",
+    "of3": "sur",
+    "vehicles3": "véhicules",
+    "clearAll": "Tout effacer",
+    "bestOverall": "Le meilleur au global",
+    "remove": "Retirer",
+    "wins": "en tête",
+    "legendA": "La coche indique la meilleure valeur sur chaque ligne. Le coût d'usage est calculé sur",
+    "legendB": "km/an pour les voitures et",
+    "legendC": "km/an pour les motos, avec assurance au tiers et hors dépréciation."
+  },
+  "assistantPage": {
+    "metaTitle": "Assistant de choix de véhicule",
+    "metaDesc": "Répondez à 5 questions simples — budget, ville, nombre de personnes, usage — et nous vous proposons les véhicules qui vous conviennent vraiment sur le marché marocain."
+  },
+  "assistant": {
+    "uses": {
+      "ville": [
+        "Surtout en ville",
+        "Créneaux, montées/descentes, stationnement serré"
+      ],
+      "route": [
+        "Autoroute",
+        "Longs trajets chaque semaine"
+      ],
+      "famille": [
+        "La famille",
+        "Enfants, bagages, voyages"
+      ],
+      "travail": [
+        "Le travail",
+        "Transport de matériel ou de marchandises"
+      ],
+      "plaisir": [
+        "Le plaisir",
+        "Envie de quelque chose qui fait plaisir"
+      ]
+    },
+    "steps": [
+      "Type de véhicule",
+      "Budget",
+      "Ville",
+      "Usage",
+      "Kilométrage"
+    ],
+    "reason": {
+      "belowPrice": "{pct} % sous le prix de référence",
+      "trustScore": "Indice de confiance {score}/100",
+      "inspected": "Inspectée par TRIQ",
+      "firstHand": "Première main",
+      "yearlyCost": "~{v} DH de coût annuel",
+      "sameCity": "Dans votre ville"
+    },
+    "resultEyebrow": "Résultat",
+    "resultTitleFound": "Voici les véhicules qui vous conviennent",
+    "resultTitleEmpty": "Aucune correspondance précise trouvée",
+    "resultLeadFoundA": "Classés par meilleure affaire dans un budget de",
+    "resultLeadFoundB": "DH. Sous chaque véhicule, vous trouverez exactement pourquoi nous l'avons proposé.",
+    "resultLeadEmpty": "Essayez d'augmenter légèrement le budget ou de retirer la contrainte de ville.",
+    "changeAnswers": "Modifier les réponses",
+    "seeAllMatches": "Voir tous les résultats correspondants",
+    "quizEyebrow": "Assistant de choix",
+    "quizTitle": "Vous ne savez pas quoi acheter ?",
+    "quizLeadA": "Répondez à",
+    "quizLeadB": "questions simples, et nous vous proposons des véhicules réels du marché avec une raison claire pour chaque suggestion.",
+    "q0Title": "Voiture ou moto ?",
+    "car": "Voiture",
+    "moto": "Moto",
+    "q1Title": "Quel est votre budget ?",
+    "q1Hint": "Le maximum que vous êtes prêt à payer",
+    "dhAndLess": "DH et moins",
+    "q2Title": "Dans quelle ville habitez-vous ?",
+    "q2Hint": "Pour vous rapprocher des véhicules",
+    "allMorocco": "Tout le Maroc",
+    "q3Title": "Vous l'utiliserez surtout pour quoi ?",
+    "seatsQ": "Combien de personnes en général ?",
+    "sixOrMore": "6 ou plus",
+    "q4Title": "Combien roulez-vous par an ?",
+    "q4Hint": "Cela détermine s'il faut choisir diesel ou essence",
+    "kmOptions": [
+      [
+        "Peu",
+        "Moins de 8 000 km"
+      ],
+      [
+        "Normal",
+        "10 000 à 20 000 km"
+      ],
+      [
+        "Beaucoup",
+        "20 000 à 35 000 km"
+      ],
+      [
+        "Énormément",
+        "Plus de 35 000 km"
+      ]
+    ],
+    "dieselTipA": "Règle pratique au Maroc : au-delà de",
+    "dieselTipB": "000 km par an, le diesel devient rentable, et sous",
+    "dieselTipC": "000 km, l'essence est moins chère à l'entretien et à l'assurance.",
+    "back": "Retour",
+    "next": "Suivant",
+    "seeSuggestions": "Voir les suggestions"
   }
 }

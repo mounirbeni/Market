@@ -1,15 +1,20 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useEffect, useMemo, useState } from "react";
 import type { Vehicle } from "@/lib/types";
 import { computeTco } from "@/lib/tco";
 import { TcoCalculator } from "@/components/vehicle/TcoCalculator";
 import { formatNumber } from "@/lib/format";
 import { vehicleHref } from "@/lib/slug";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { dhUnit } from "@/lib/i18n/labels";
 import { Car, Chart, Moto, TrendingDown, TrendingUp } from "@/components/icons";
 
 export function CostClient() {
+  const t = useDict();
+  const locale = useLocale();
+  const dh = dhUnit(locale);
   const [id, setId] = useState("c003");
   const [kind, setKind] = useState<"car" | "moto">("car");
 
@@ -53,7 +58,7 @@ export function CostClient() {
   return (
     <div className="space-y-10">
       <div className="card p-4">
-        <label className="label" htmlFor="cost-pick"><Car size={13} /> اختر مركبة من السوق</label>
+        <label className="label" htmlFor="cost-pick"><Car size={13} /> {t.costClient.pickVehicle}</label>
         <select
           id="cost-pick"
           className="field"
@@ -62,7 +67,7 @@ export function CostClient() {
         >
           {fleet.map((x) => (
             <option key={x.id} value={x.id}>
-              {x.make} {x.model} {x.version} — {x.year} ({formatNumber(x.price)} د.م)
+              {x.make} {x.model} {x.version} — {x.year} ({formatNumber(x.price)} {dh})
             </option>
           ))}
         </select>
@@ -73,15 +78,14 @@ export function CostClient() {
       <section className="card p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="flex items-center gap-2 text-[15px] font-bold"><Chart size={17} style={{ color: "var(--brand)" }} /> ترتيب المركبات حسب تكلفة الاستعمال</h2>
+            <h2 className="flex items-center gap-2 text-[15px] font-bold"><Chart size={17} style={{ color: "var(--brand)" }} /> {t.costClient.rankingTitle}</h2>
             <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-              التكلفة السنوية (بدون خسارة القيمة) على أساس{" "}
-              <span className="num">{kind === "moto" ? "8 000" : "15 000"}</span> كم في السنة
-              وتأمين ضد الغير.
+              {t.costClient.rankingLeadA}{" "}
+              <span className="num">{kind === "moto" ? "8 000" : "15 000"}</span> {t.costClient.rankingLeadB}
             </p>
           </div>
           <div className="flex gap-1.5">
-            {([["car", "سيارات", Car], ["moto", "دراجات", Moto]] as const).map(([k, l, I]) => (
+            {([["car", t.costClient.cars, Car], ["moto", t.costClient.motos, Moto]] as const).map(([k, l, I]) => (
               <button
                 key={k}
                 onClick={() => setKind(k)}
@@ -100,7 +104,7 @@ export function CostClient() {
         </div>
 
         <h3 className="mt-7 mb-4 flex items-center gap-1.5 text-[12px] font-bold" style={{ color: "var(--good)" }}>
-          <TrendingDown size={14} /> الأرخص في الاستعمال
+          <TrendingDown size={14} /> {t.costClient.cheapestTitle}
         </h3>
         <ul className="space-y-2.5">
           {cheapest.map((r, i) => (
@@ -112,7 +116,7 @@ export function CostClient() {
                     <span className="num opacity-60">{r.v.year}</span>
                   </span>
                   <span className="num shrink-0 font-extrabold">
-                    {formatNumber(r.tco.perYear)} د.م/سنة
+                    {formatNumber(r.tco.perYear)} {t.costClient.perYear}
                   </span>
                 </div>
                 <div className="mt-1 h-1.5 rounded-full" style={{ background: "var(--surface-3)" }}>
@@ -125,7 +129,7 @@ export function CostClient() {
                   />
                 </div>
                 <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>
-                  {r.tco.perKm.toFixed(2)} د.م/كم · {formatNumber(r.tco.perMonth)} د.م/شهر
+                  {r.tco.perKm.toFixed(2)} {t.costClient.perKm} · {formatNumber(r.tco.perMonth)} {t.costClient.perMonth}
                 </span>
               </Link>
             </li>
@@ -133,7 +137,7 @@ export function CostClient() {
         </ul>
 
         <h3 className="mt-8 mb-4 flex items-center gap-1.5 text-[12px] font-bold" style={{ color: "var(--bad)" }}>
-          <TrendingUp size={14} /> الأغلى في الاستعمال
+          <TrendingUp size={14} /> {t.costClient.priciestTitle}
         </h3>
         <ul className="space-y-2.5">
           {priciest.map((r) => (
@@ -144,7 +148,7 @@ export function CostClient() {
                     {r.v.make} {r.v.model} <span className="num opacity-60">{r.v.year}</span>
                   </span>
                   <span className="num shrink-0 font-extrabold">
-                    {formatNumber(r.tco.perYear)} د.م/سنة
+                    {formatNumber(r.tco.perYear)} {t.costClient.perYear}
                   </span>
                 </div>
                 <div className="mt-1 h-1.5 rounded-full" style={{ background: "var(--surface-3)" }}>

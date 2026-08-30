@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { vehicleHref } from "@/lib/slug";
 import { useEffect, useMemo, useState } from "react";
 import { useEstimate } from "@/hooks/useEstimate";
@@ -9,19 +9,20 @@ import { formatNumber } from "@/lib/format";
 import { CITIES } from "@/lib/cities";
 import type { Condition } from "@/lib/types";
 import { Price } from "@/components/Price";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { cityLabel, dhUnit, fill, kmUnit, specs } from "@/lib/i18n/labels";
 import {
   ArrowLeft, BadgeCheck, Calendar, Car, Chart, Coins, Fuel, Gauge, Gearbox,
   Info, MapPin, Moto, Sparkle, TrendingDown, Wallet,
 } from "@/components/icons";
 
-const CONDITIONS: [Condition, string, string][] = [
-  ["excellent", "ممتازة", "كأنها جديدة، بلا خدوش ولا مشاكل"],
-  ["tres-bon", "جيدة جداً", "علامات استعمال عادية جداً"],
-  ["bon", "جيدة", "خدوش خفيفة، ميكانيك سليم"],
-  ["moyen", "متوسطة", "تحتاج بعض الإصلاحات"],
-];
-
 export function EstimateTool() {
+  const t = useDict();
+  const locale = useLocale();
+  const L = specs(locale);
+  const CONDITIONS: [Condition, string, string][] = (
+    ["excellent", "tres-bon", "bon", "moyen"] as const
+  ).map((k) => [k, t.estimate.conditions[k][0], t.estimate.conditions[k][1]]);
   const [kind, setKind] = useState<"car" | "moto">("car");
   const [make, setMake] = useState("Dacia");
   const [model, setModel] = useState("Logan");
@@ -85,10 +86,10 @@ export function EstimateTool() {
     <div className="grid gap-6 lg:grid-cols-[400px_1fr]">
       {/* النموذج */}
       <div className="card h-fit p-5">
-        <h2 className="flex items-center gap-2 text-[13px] font-bold"><Sparkle size={15} style={{ color: "var(--brand)" }} /> معطيات المركبة</h2>
+        <h2 className="flex items-center gap-2 text-[13px] font-bold"><Sparkle size={15} style={{ color: "var(--brand)" }} /> {t.estimate.formTitle}</h2>
 
         <div className="mt-4 grid grid-cols-2 gap-1.5">
-          {([["car", "سيارة", Car], ["moto", "دراجة نارية", Moto]] as const).map(([k, l, I]) => (
+          {([["car", t.estimate.car, Car], ["moto", t.estimate.moto, Moto]] as const).map(([k, l, I]) => (
             <button
               key={k}
               onClick={() => changeKind(k)}
@@ -106,13 +107,13 @@ export function EstimateTool() {
 
         <div className="mt-4 grid gap-3">
           <div>
-            <label className="label" htmlFor="es-make"><BadgeCheck size={13} /> الماركة</label>
+            <label className="label" htmlFor="es-make"><BadgeCheck size={13} /> {t.estimate.brand}</label>
             <select id="es-make" className="field" value={make} onChange={(e) => changeMake(e.target.value)}>
               {makes.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
           <div>
-            <label className="label" htmlFor="es-model"><Car size={13} /> الموديل</label>
+            <label className="label" htmlFor="es-model"><Car size={13} /> {t.estimate.model}</label>
             <select id="es-model" className="field" value={model} onChange={(e) => setModel(e.target.value)}>
               {models.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
@@ -120,7 +121,7 @@ export function EstimateTool() {
 
           <div>
             <label className="label" htmlFor="es-year">
-              <Calendar size={13} /> سنة الصنع
+              <Calendar size={13} /> {t.estimate.year}
               <span className="num me-auto" style={{ color: "var(--brand)" }}>{year}</span>
             </label>
             <input
@@ -136,8 +137,8 @@ export function EstimateTool() {
 
           <div>
             <label className="label" htmlFor="es-km">
-              <Gauge size={13} /> الكيلومتراج
-              <span className="num me-auto" style={{ color: "var(--brand)" }}>{formatNumber(km)} كم</span>
+              <Gauge size={13} /> {t.estimate.km}
+              <span className="num me-auto" style={{ color: "var(--brand)" }}>{formatNumber(km)} {kmUnit(locale)}</span>
             </label>
             <input
               id="es-km"
@@ -153,32 +154,32 @@ export function EstimateTool() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label" htmlFor="es-fuel"><Fuel size={13} /> الوقود</label>
+              <label className="label" htmlFor="es-fuel"><Fuel size={13} /> {t.estimate.fuel}</label>
               <select id="es-fuel" className="field" value={fuel} onChange={(e) => setFuel(e.target.value)}>
-                <option value="diesel">ديزل</option>
-                <option value="essence">بنزين</option>
-                <option value="hybride">هجين</option>
-                <option value="electrique">كهربائي</option>
+                <option value="diesel">{L.fuel.diesel}</option>
+                <option value="essence">{L.fuel.essence}</option>
+                <option value="hybride">{L.fuel.hybride}</option>
+                <option value="electrique">{L.fuel.electrique}</option>
               </select>
             </div>
             <div>
-              <label className="label" htmlFor="es-gb"><Gearbox size={13} /> الناقل</label>
+              <label className="label" htmlFor="es-gb"><Gearbox size={13} /> {t.estimate.gearbox}</label>
               <select id="es-gb" className="field" value={gearbox} onChange={(e) => setGearbox(e.target.value)}>
-                <option value="manuelle">يدوية</option>
-                <option value="automatique">أوتوماتيك</option>
+                <option value="manuelle">{L.gearbox.manuelle}</option>
+                <option value="automatique">{L.gearbox.automatique}</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="label" htmlFor="es-city"><MapPin size={13} /> المدينة</label>
+            <label className="label" htmlFor="es-city"><MapPin size={13} /> {t.estimate.city}</label>
             <select id="es-city" className="field" value={city} onChange={(e) => setCity(e.target.value)}>
-              {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.ar}</option>)}
+              {CITIES.map((c) => <option key={c.slug} value={c.slug}>{cityLabel(c.slug, locale)}</option>)}
             </select>
           </div>
 
           <div>
-            <span className="label"><BadgeCheck size={13} /> الحالة العامة</span>
+            <span className="label"><BadgeCheck size={13} /> {t.estimate.condition}</span>
             <div className="grid gap-1.5">
               {CONDITIONS.map(([k, l, hint]) => (
                 <button
@@ -205,7 +206,7 @@ export function EstimateTool() {
         <div className="card-raised zellige relative overflow-hidden p-7 text-center">
           <div className="glow pointer-events-none absolute inset-0" />
           <div className="relative">
-            <span className="eyebrow mx-auto"><Wallet size={13} /> الثمن المقترح</span>
+            <span className="eyebrow mx-auto"><Wallet size={13} /> {t.estimate.suggestedPrice}</span>
             <p className="mt-2 text-[13px] font-bold">
               {make} {model} <span className="num opacity-60">{year}</span>
             </p>
@@ -213,7 +214,7 @@ export function EstimateTool() {
               <Price value={est.mid} className="text-4xl font-extrabold tracking-tight sm:text-5xl" />
             </div>
             <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
-              المجال المعقول:{" "}
+              {t.estimate.reasonableRange}{" "}
               <b><Price value={est.low} /></b> — <b><Price value={est.high} /></b>
             </p>
 
@@ -229,21 +230,21 @@ export function EstimateTool() {
                   />
                 </div>
                 <span className="num text-[11px]" style={{ color: "var(--text-dim)" }}>
-                  دقة {Math.round(est.confidence * 100)}٪
+                  {t.estimate.accuracy} {Math.round(est.confidence * 100)}{t.fairPrice.percent}
                 </span>
               </div>
               <p className="mt-2 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                محسوب من <span className="num">{est.sampleSize}</span> إعلاناً مشابهاً في السوق المغربي
+                {t.estimate.basedOn} <span className="num">{est.sampleSize}</span> {t.estimate.basedOnEnd}
               </p>
             </div>
 
             <div className="mt-6 flex flex-wrap justify-center gap-2">
-              <Link href="/sell" className="btn btn-primary btn-sm"><Coins size={14} /> بيع بهاد الثمن</Link>
+              <Link href="/sell" className="btn btn-primary btn-sm"><Coins size={14} /> {t.estimate.sellAtPrice}</Link>
               <Link
                 href={`/vehicles?kind=${kind}&make=${make}&model=${encodeURIComponent(model)}`}
                 className="btn btn-ghost btn-sm"
               >
-                شوف الإعلانات المشابهة <ArrowLeft size={14} className="dir-flip" />
+                {t.estimate.seeSimilar} <ArrowLeft size={14} className="dir-flip" />
               </Link>
             </div>
           </div>
@@ -251,9 +252,11 @@ export function EstimateTool() {
 
         {/* توقع القيمة */}
         <div className="card p-5">
-          <h2 className="flex items-center gap-2 text-[13px] font-bold"><Chart size={15} style={{ color: "var(--data)" }} /> كيفاش غادي تتغير القيمة</h2>
+          <h2 className="flex items-center gap-2 text-[13px] font-bold"><Chart size={15} style={{ color: "var(--data)" }} /> {t.estimate.valueChangeTitle}</h2>
           <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-            توقّع خسارة القيمة إلى غاية <span className="num">2031</span> بناءً على معدل السوق.
+            {fill(t.estimate.valueChangeLead, { year: "2031" }).split(/(\d+)/).map((part, i) =>
+              /\d+/.test(part) ? <span key={i} className="num">{part}</span> : part,
+            )}
           </p>
           <div className="mt-5 flex items-end justify-between gap-2" style={{ height: 150 }}>
             {projection.map((p, i) => (
@@ -280,7 +283,7 @@ export function EstimateTool() {
         {/* المقارنات */}
         {est.comparables.length > 0 && (
           <div className="card p-5">
-            <h2 className="flex items-center gap-2 text-[13px] font-bold"><TrendingDown size={15} style={{ color: "var(--brand)" }} /> إعلانات مشابهة في السوق حالياً</h2>
+            <h2 className="flex items-center gap-2 text-[13px] font-bold"><TrendingDown size={15} style={{ color: "var(--brand)" }} /> {t.estimate.similarNowTitle}</h2>
             <div className="mt-3 divide-y" style={{ borderColor: "var(--line-soft)" }}>
               {est.comparables.map((c) => (
                 <Link
@@ -290,9 +293,9 @@ export function EstimateTool() {
                 >
                   <span className="truncate">
                     {c.make} {c.model} <span className="num opacity-60">{c.year}</span>
-                    <span className="num me-2 opacity-60">{formatNumber(c.km)} كم</span>
+                    <span className="num me-2 opacity-60">{formatNumber(c.km)} {kmUnit(locale)}</span>
                   </span>
-                  <span className="num shrink-0 font-bold">{formatNumber(c.price)} د.م</span>
+                  <span className="num shrink-0 font-bold">{formatNumber(c.price)} {dhUnit(locale)}</span>
                 </Link>
               ))}
             </div>
@@ -301,8 +304,7 @@ export function EstimateTool() {
 
         <p className="flex gap-2 text-[11px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
           <Info size={13} className="mt-px shrink-0" />
-          التقدير إرشادي ومبني على الإعلانات المتوفرة داخل المنصة (<span className="num">{formatNumber(fleet)}</span> مركبة).
-          الثمن النهائي كيتأثر بحالة المحرك، تاريخ الصيانة، الوثائق والتفاوض.
+          {t.estimate.disclaimerA}<span className="num">{formatNumber(fleet)}</span>{t.estimate.disclaimerB}
         </p>
       </div>
     </div>

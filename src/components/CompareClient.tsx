@@ -1,14 +1,15 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { vehicleHref } from "@/lib/slug";
 import { useMemo } from "react";
 import { useApp } from "@/store/app";
 import { useVehiclesByIds } from "@/lib/useVehicles";
 import { fairPriceOf, trustOf } from "@/lib/market";
 import { computeTco } from "@/lib/tco";
-import { AR, formatNumber } from "@/lib/format";
-import { cityName } from "@/lib/cities";
+import { formatNumber } from "@/lib/format";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { cityLabel, dhUnit, fill, kmUnit, specs } from "@/lib/i18n/labels";
 import { artShape } from "@/lib/artshape";
 import { VehicleArt } from "@/components/VehicleArt";
 import { TrustRing } from "@/components/TrustBadge";
@@ -39,6 +40,12 @@ interface Group {
 
 export function CompareClient() {
   const { compare, toggleCompare, clearCompare, ready } = useApp();
+  const t = useDict();
+  const locale = useLocale();
+  const L = specs(locale);
+  const dh = dhUnit(locale);
+  const km_ = kmUnit(locale);
+  const pct = t.fairPrice.percent;
 
   /* التفاصيل كتجي من قاعدة البيانات — المتصفح كيخزّن غير المعرّفات */
   const { items } = useVehiclesByIds(compare);
@@ -57,55 +64,56 @@ export function CompareClient() {
     const fps = items.map((v) => fairPriceOf(v));
     const line = (i: number, key: string) => tcos[i].lines.find((l) => l.key === key)?.perYear ?? 0;
 
+    const c = t.compareClient;
     return [
       {
-        title: "الخلاصة",
+        title: c.groupSummary,
         Icon: Award,
         rows: [
-          { label: "الثمن", Icon: Coins, values: items.map((v) => `${formatNumber(v.price)} د.م`), raw: items.map((v) => v.price), best: "min", emphasis: true },
-          { label: "مؤشر الثقة", Icon: ShieldCheck, values: trusts.map((t) => `${t.score}/100`), raw: trusts.map((t) => t.score), best: "max", emphasis: true },
-          { label: "الفرق عن ثمن السوق", Icon: Scale, values: fps.map((f) => (f.weak ? "مراجع محدودة" : `${f.delta > 0 ? "+" : "−"}${Math.abs(Math.round(f.delta * 100))}٪`)), raw: fps.map((f) => (f.weak ? 0 : f.delta)), best: "min", emphasis: true },
-          { label: "تكلفة الاستعمال", Icon: Calculator, values: tcos.map((t) => `${formatNumber(t.perYear)} د.م/سنة`), raw: tcos.map((t) => t.perYear), best: "min", emphasis: true },
-          { label: "التكلفة لكل كيلومتر", Icon: Road, values: tcos.map((t) => `${t.perKm.toFixed(2)} د.م`), raw: tcos.map((t) => t.perKm), best: "min" },
-          { label: "قيمة إعادة البيع بعد 3 سنوات", Icon: TrendingDown, values: tcos.map((t) => `${formatNumber(t.resaleValue)} د.م`), raw: tcos.map((t) => t.resaleValue), best: "max" },
+          { label: c.price, Icon: Coins, values: items.map((v) => `${formatNumber(v.price)} ${dh}`), raw: items.map((v) => v.price), best: "min", emphasis: true },
+          { label: c.trustScore, Icon: ShieldCheck, values: trusts.map((tr) => `${tr.score}/100`), raw: trusts.map((tr) => tr.score), best: "max", emphasis: true },
+          { label: c.vsMarket, Icon: Scale, values: fps.map((f) => (f.weak ? c.weakRef : `${f.delta > 0 ? "+" : "−"}${Math.abs(Math.round(f.delta * 100))}${pct}`)), raw: fps.map((f) => (f.weak ? 0 : f.delta)), best: "min", emphasis: true },
+          { label: c.usageCost, Icon: Calculator, values: tcos.map((tc) => `${formatNumber(tc.perYear)} ${dh}/${locale === "fr" ? "an" : "سنة"}`), raw: tcos.map((tc) => tc.perYear), best: "min", emphasis: true },
+          { label: c.costPerKm, Icon: Road, values: tcos.map((tc) => `${tc.perKm.toFixed(2)} ${dh}`), raw: tcos.map((tc) => tc.perKm), best: "min" },
+          { label: c.resale3y, Icon: TrendingDown, values: tcos.map((tc) => `${formatNumber(tc.resaleValue)} ${dh}`), raw: tcos.map((tc) => tc.resaleValue), best: "max" },
         ],
       },
       {
-        title: "المواصفات",
+        title: c.groupSpecs,
         Icon: Car,
         rows: [
-          { label: "السنة", Icon: Calendar, values: items.map((v) => v.year), raw: items.map((v) => v.year), best: "max" },
-          { label: "الكيلومتراج", Icon: Gauge, values: items.map((v) => `${formatNumber(v.km)} كم`), raw: items.map((v) => v.km), best: "min" },
-          { label: "الوقود", Icon: Fuel, values: items.map((v) => AR.fuel[v.fuel]) },
-          { label: "ناقل السرعة", Icon: Gearbox, values: items.map((v) => AR.gearbox[v.gearbox]) },
-          { label: "الهيكل", Icon: Car, values: items.map((v) => AR.body[v.body]) },
-          { label: "الاستهلاك", Icon: Fuel, values: items.map((v) => `${v.consumption} ل/100كم`), raw: items.map((v) => v.consumption), best: "min" },
-          { label: "القوة الجبائية", Icon: Engine, values: items.map((v) => `${v.fiscalPower} حصان`), raw: items.map((v) => v.fiscalPower), best: "min" },
-          { label: "المدينة", Icon: MapPin, values: items.map((v) => cityName(v.city)) },
+          { label: c.year, Icon: Calendar, values: items.map((v) => v.year), raw: items.map((v) => v.year), best: "max" },
+          { label: c.km, Icon: Gauge, values: items.map((v) => `${formatNumber(v.km)} ${km_}`), raw: items.map((v) => v.km), best: "min" },
+          { label: c.fuel, Icon: Fuel, values: items.map((v) => L.fuel[v.fuel]) },
+          { label: c.gearbox, Icon: Gearbox, values: items.map((v) => L.gearbox[v.gearbox]) },
+          { label: c.body, Icon: Car, values: items.map((v) => L.body[v.body]) },
+          { label: c.consumption, Icon: Fuel, values: items.map((v) => `${v.consumption} ${locale === "fr" ? "L" : "ل"}/100${km_}`), raw: items.map((v) => v.consumption), best: "min" },
+          { label: c.fiscalPower, Icon: Engine, values: items.map((v) => `${v.fiscalPower} ${locale === "fr" ? "CV" : "حصان"}`), raw: items.map((v) => v.fiscalPower), best: "min" },
+          { label: c.city, Icon: MapPin, values: items.map((v) => cityLabel(v.city, locale)) },
         ],
       },
       {
-        title: "المصاريف السنوية",
+        title: c.groupExpenses,
         Icon: Coins,
         rows: [
-          { label: "المحروقات", Icon: Fuel, values: items.map((_, i) => `${formatNumber(line(i, "fuel"))} د.م`), raw: items.map((_, i) => line(i, "fuel")), best: "min" },
-          { label: "التأمين (ضد الغير)", Icon: Shield, values: items.map((_, i) => `${formatNumber(line(i, "insurance"))} د.م`), raw: items.map((_, i) => line(i, "insurance")), best: "min" },
-          { label: "الفينيات", Icon: Coins, values: items.map((_, i) => (line(i, "vignette") ? `${formatNumber(line(i, "vignette"))} د.م` : "معفية")), raw: items.map((_, i) => line(i, "vignette")), best: "min" },
-          { label: "الصيانة", Icon: Wrench, values: items.map((_, i) => `${formatNumber(line(i, "maintenance"))} د.م`), raw: items.map((_, i) => line(i, "maintenance")), best: "min" },
+          { label: c.fuelExpense, Icon: Fuel, values: items.map((_, i) => `${formatNumber(line(i, "fuel"))} ${dh}`), raw: items.map((_, i) => line(i, "fuel")), best: "min" },
+          { label: c.insurance, Icon: Shield, values: items.map((_, i) => `${formatNumber(line(i, "insurance"))} ${dh}`), raw: items.map((_, i) => line(i, "insurance")), best: "min" },
+          { label: c.vignette, Icon: Coins, values: items.map((_, i) => (line(i, "vignette") ? `${formatNumber(line(i, "vignette"))} ${dh}` : c.exempt)), raw: items.map((_, i) => line(i, "vignette")), best: "min" },
+          { label: c.maintenance, Icon: Wrench, values: items.map((_, i) => `${formatNumber(line(i, "maintenance"))} ${dh}`), raw: items.map((_, i) => line(i, "maintenance")), best: "min" },
         ],
       },
       {
-        title: "الثقة والوثائق",
+        title: c.groupTrust,
         Icon: ShieldCheck,
         rows: [
-          { label: "عدد الملاّك", Icon: Users, values: items.map((v) => v.owners), raw: items.map((v) => v.owners), best: "min" },
-          { label: "الحالة", Icon: BadgeCheck, values: items.map((v) => AR.condition[v.condition]) },
-          { label: "دفتر الصيانة", Icon: Wrench, values: items.map((v) => (v.serviceBook ? "متوفر" : "غير متوفر")), raw: items.map((v) => (v.serviceBook ? 1 : 0)), best: "max" },
-          { label: "فحص مستقل", Icon: BadgeCheck, values: items.map((v) => (v.inspected ? "تم" : "لم يتم")), raw: items.map((v) => (v.inspected ? 1 : 0)), best: "max" },
+          { label: c.owners, Icon: Users, values: items.map((v) => v.owners), raw: items.map((v) => v.owners), best: "min" },
+          { label: c.condition, Icon: BadgeCheck, values: items.map((v) => L.condition[v.condition]) },
+          { label: c.serviceBook, Icon: Wrench, values: items.map((v) => (v.serviceBook ? c.available : c.notAvailable)), raw: items.map((v) => (v.serviceBook ? 1 : 0)), best: "max" },
+          { label: c.inspection, Icon: BadgeCheck, values: items.map((v) => (v.inspected ? c.done : c.notDone)), raw: items.map((v) => (v.inspected ? 1 : 0)), best: "max" },
         ],
       },
     ];
-  }, [items]);
+  }, [items, t, locale, dh, km_, pct, L]);
 
   if (!ready) return null;
 
@@ -118,12 +126,11 @@ export function CompareClient() {
         >
           <Scale size={30} />
         </span>
-        <h2 className="mt-5 text-lg font-bold">ما زال ما زدتي حتى مركبة للمقارنة</h2>
+        <h2 className="mt-5 text-lg font-bold">{t.compareClient.emptyTitle}</h2>
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          من أي إعلان، كليكي على زر المقارنة باش تزيد حتى ثلاث مركبات وتشوفهم جنب
-          بعضياتهم: الثمن، الثقة، التكلفة والمواصفات.
+          {t.compareClient.emptyLead}
         </p>
-        <Link href="/vehicles" className="btn btn-primary mt-6"><Car size={16} /> تصفح المركبات</Link>
+        <Link href="/vehicles" className="btn btn-primary mt-6"><Car size={16} /> {t.compareClient.browse}</Link>
       </div>
     );
   }
@@ -144,9 +151,9 @@ export function CompareClient() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <p className="text-xs" style={{ color: "var(--text-dim)" }}>
-          <span className="num">{items.length}</span> من <span className="num">3</span> مركبات
+          <span className="num">{items.length}</span> {t.compareClient.of3} <span className="num">3</span> {t.compareClient.vehicles3}
         </p>
-        <button onClick={clearCompare} className="btn btn-ghost btn-sm"><Trash size={13} /> مسح الكل</button>
+        <button onClick={clearCompare} className="btn btn-ghost btn-sm"><Trash size={13} /> {t.compareClient.clearAll}</button>
       </div>
 
       <div className="min-w-0 overflow-x-auto">
@@ -162,14 +169,14 @@ export function CompareClient() {
                         className="tag absolute top-2 start-2 z-10"
                         style={{ background: "var(--brand)", color: "var(--brand-ink)" }}
                       >
-                        <Award size={11} /> الأفضل إجمالاً
+                        <Award size={11} /> {t.compareClient.bestOverall}
                       </span>
                     )}
                     <div className="relative aspect-[16/10]">
                       <VehicleArt id={v.id} kind={v.kind} body={artShape(v)} color={v.color} className="h-full w-full" />
                       <button
                         onClick={() => toggleCompare(v.id)}
-                        aria-label={`إزالة ${v.make} ${v.model}`}
+                        aria-label={`${t.compareClient.remove} ${v.make} ${v.model}`}
                         className="absolute top-2 end-2 grid h-7 w-7 place-items-center rounded-lg backdrop-blur-md"
                         style={{ background: "rgba(10,30,61,0.6)", color: "#fff" }}
                       >
@@ -188,7 +195,7 @@ export function CompareClient() {
                         <Price value={v.price} className="text-[14px] font-extrabold" />
                       </div>
                       <p className="num mt-1.5 text-[10px]" style={{ color: "var(--text-dim)" }}>
-                        {wins[i]} تفوّق
+                        {wins[i]} {t.compareClient.wins}
                       </p>
                     </div>
                   </div>
@@ -247,9 +254,9 @@ export function CompareClient() {
 
       <p className="mt-5 flex items-start gap-2 text-[11px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
         <Check size={13} className="mt-px shrink-0" style={{ color: "var(--good)" }} />
-        العلامة كتشير للقيمة الأحسن فكل سطر. تكلفة الاستعمال محسوبة على{" "}
-        <span className="num">15 000</span> كم/سنة للسيارات و<span className="num">8 000</span>{" "}
-        كم/سنة للدراجات، بتأمين ضد الغير وبدون خسارة القيمة.
+        {t.compareClient.legendA}{" "}
+        <span className="num">15 000</span> {t.compareClient.legendB}<span className="num">8 000</span>{" "}
+        {t.compareClient.legendC}
       </p>
     </div>
   );
