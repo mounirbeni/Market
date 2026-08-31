@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/components/Link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { trustScore } from "@/lib/market";
 import { useEstimate } from "@/hooks/useEstimate";
 import { useCatalog } from "@/lib/useCatalog";
@@ -222,6 +222,7 @@ export function SellWizard() {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
       const saved = JSON.parse(raw) as { d: Draft; step: number };
+      priceTouched.current = true;
       setD({ ...initialDraft, ...saved.d });
       setStep(Math.min(STEPS.length - 1, Math.max(0, saved.step ?? 0)));
       setDraftState("restored");
@@ -257,6 +258,14 @@ export function SellWizard() {
     gearbox: d.gearbox,
     condition: d.condition,
   });
+
+  /* الثمن كيتبع الاقتراح السوقي حتى البائع يبدّلو بيديه — بلا هادشي
+     كيبقى راكب فثمن السيارة السابقة ملي يبدّل نوع/ماركة/موديل السيارة */
+  const priceTouched = useRef(false);
+  useEffect(() => {
+    if (priceTouched.current || estimate.mid <= 0) return;
+    setD((prev) => ({ ...prev, price: estimate.mid }));
+  }, [estimate.mid]);
 
   const trust = useMemo(
     () => trustScore(draftToVehicle(d), draftSeller(d)),
@@ -400,8 +409,9 @@ export function SellWizard() {
                     key={k}
                     onClick={() => {
                       const m = makesFor(k)[0];
+                      priceTouched.current = false;
                       set({
-                        kind: k, make: m, model: modelsFor(m)[0] ?? "",
+                        kind: k, make: m, model: modelsFor(m)[0] ?? "", version: "",
                         body: k === "moto" ? "roadster" : "berline",
                         fiscalPower: k === "moto" ? 2 : 6,
                         drivetrain: "",
@@ -423,13 +433,20 @@ export function SellWizard() {
                 <div>
                   <label className="label" htmlFor="sw-make">{t.sellWizard.brand}</label>
                   <select id="sw-make" className="field" value={d.make}
-                    onChange={(e) => set({ make: e.target.value, model: modelsFor(e.target.value)[0] ?? "" })}>
+                    onChange={(e) => {
+                      priceTouched.current = false;
+                      set({ make: e.target.value, model: modelsFor(e.target.value)[0] ?? "", version: "" });
+                    }}>
                     {makes.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="label" htmlFor="sw-model">{t.sellWizard.model}</label>
-                  <select id="sw-model" className="field" value={d.model} onChange={(e) => set({ model: e.target.value })}>
+                  <select id="sw-model" className="field" value={d.model}
+                    onChange={(e) => {
+                      priceTouched.current = false;
+                      set({ model: e.target.value, version: "" });
+                    }}>
                     {models.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
@@ -749,9 +766,15 @@ export function SellWizard() {
               <div>
                 <label className="label" htmlFor="sw-price"><Coins size={13} /> {t.sellWizard.yourPrice}</label>
                 <input id="sw-price" type="number" step="1000" className="field num text-lg font-bold"
-                  value={d.price} onChange={(e) => set({ price: Number(e.target.value) || 0 })} />
+                  value={d.price} onChange={(e) => {
+                    priceTouched.current = true;
+                    set({ price: Number(e.target.value) || 0 });
+                  }} />
                 <input type="range" min={Math.round(estimate.low * 0.6)} max={Math.round(estimate.high * 1.5)}
-                  step={1000} value={d.price} onChange={(e) => set({ price: Number(e.target.value) })}
+                  step={1000} value={d.price} onChange={(e) => {
+                    priceTouched.current = true;
+                    set({ price: Number(e.target.value) });
+                  }}
                   className="mt-3 w-full " aria-label={t.sellWizard.priceAriaLabel} />
               </div>
 
