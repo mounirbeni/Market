@@ -2,14 +2,14 @@
 
 import { Link } from "@/components/Link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
 import { useDict } from "@/lib/i18n/client";
 import { Avatar } from "@/components/Avatar";
 import { ProfileCompletionBanner } from "./ProfileCompletionBanner";
 import {
-  BadgeCheck, Calendar, Car, Chart, Heart, Message, Plus, ShieldCheck, Sliders, Users,
+  BadgeCheck, Calendar, Car, Chart, ChevronDown, Heart, Message, Plus, ShieldCheck, Sliders, Users,
 } from "@/components/icons";
 
 const NAV_META = [
@@ -30,6 +30,10 @@ export function DashboardShell({ title, children }: { title: string; children: R
   const pathname = usePathname();
   const { favorites, ready } = useApp();
   const { user, signOut, unread } = useSession();
+  /* الشريط الجانبي مضبوط جاهز فالحاسوب. فالهاتف كيولّي قائمة
+     منسدلة مطوية بالافتراض — قبل كان مفتوح بالكامل ديماً وكيدفع
+     محتوى الصفحة لتحت بزاف. */
+  const [navOpen, setNavOpen] = useState(false);
 
   if (!ready) return null;
 
@@ -61,8 +65,11 @@ export function DashboardShell({ title, children }: { title: string; children: R
       <div className="grid gap-6 lg:grid-cols-[250px_1fr]">
         <aside className="lg:sticky lg:top-[84px] lg:h-fit">
           <div className="card overflow-hidden">
-            <div
-              className="flex items-center gap-3 border-b p-4"
+            <button
+              type="button"
+              onClick={() => setNavOpen((o) => !o)}
+              aria-expanded={navOpen}
+              className="flex w-full items-center gap-3 border-b p-4 text-start lg:cursor-default"
               style={{ borderColor: "var(--line-soft)", background: "var(--surface-2)" }}
             >
               <Avatar
@@ -71,7 +78,7 @@ export function DashboardShell({ title, children }: { title: string; children: R
                 className="h-11 w-11 rounded-xl text-lg"
                 style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
               />
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <span className="truncate text-[13px] font-bold">{user.name}</span>
                   {user.email_verified && (
@@ -83,42 +90,50 @@ export function DashboardShell({ title, children }: { title: string; children: R
                   <bdi dir="ltr">{user.email}</bdi>
                 </span>
               </div>
-            </div>
+              <ChevronDown
+                size={16}
+                className="shrink-0 transition-transform lg:hidden"
+                style={{ color: "var(--text-dim)", transform: navOpen ? "rotate(180deg)" : undefined }}
+              />
+            </button>
 
-            <nav className="p-2">
-              {NAV.map(({ href, label, Icon }) => {
-                const active = pathname === href;
-                const badge =
-                  href === "/dashboard/messages" ? unread
-                    : href === "/dashboard/favorites" ? favorites.length : 0;
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[12.5px] font-semibold transition"
-                    style={{
-                      background: active ? "var(--brand-soft)" : "transparent",
-                      color: active ? "var(--brand)" : "var(--text-muted)",
-                    }}
-                  >
-                    <Icon size={16} />
-                    <span className="flex-1">{label}</span>
-                    {badge > 0 && (
-                      <span
-                        className="num grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-bold"
-                        style={{ background: "var(--brand)", color: "#fff" }}
-                      >
-                        {badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
+            <div className={`${navOpen ? "block" : "hidden"} lg:block`}>
+              <nav className="p-2">
+                {NAV.map(({ href, label, Icon }) => {
+                  const active = pathname === href;
+                  const badge =
+                    href === "/dashboard/messages" ? unread
+                      : href === "/dashboard/favorites" ? favorites.length : 0;
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setNavOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[12.5px] font-semibold transition"
+                      style={{
+                        background: active ? "var(--brand-soft)" : "transparent",
+                        color: active ? "var(--brand)" : "var(--text-muted)",
+                      }}
+                    >
+                      <Icon size={16} />
+                      <span className="flex-1">{label}</span>
+                      {badge > 0 && (
+                        <span
+                          className="num grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-bold"
+                          style={{ background: "var(--brand)", color: "#fff" }}
+                        >
+                          {badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </nav>
 
-            <div className="border-t p-3" style={{ borderColor: "var(--line-soft)" }}>
-              <Link href="/sell" className="btn btn-primary btn-sm w-full"><Plus size={14} /> {s.newListing}</Link>
-              <button onClick={() => void signOut()} className="btn btn-ghost btn-sm mt-2 w-full">{s.signOut}</button>
+              <div className="border-t p-3" style={{ borderColor: "var(--line-soft)" }}>
+                <Link href="/sell" className="btn btn-primary btn-sm w-full"><Plus size={14} /> {s.newListing}</Link>
+                <button onClick={() => void signOut()} className="btn btn-ghost btn-sm mt-2 w-full">{s.signOut}</button>
+              </div>
             </div>
           </div>
         </aside>
