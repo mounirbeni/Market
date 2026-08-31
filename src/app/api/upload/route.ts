@@ -22,7 +22,8 @@ const MAX_BODY_BYTES = 3.6 * 1024 * 1024;
 const WATERMARK_EDGE = 1920;
 const WATERMARK_QUALITIES = [84, 78, 70, 62];
 
-/** علامة مائية متكررة وصعبة القصّ من صور الإعلانات. */
+/** علامة مائية خفيفة جداً ومتكررة (صعبة القصّ) — شفافية منخفضة باش
+ *  ماتبانش كعيب فعرض الصورة، وكتبقى كافية باش تصعّب سرقة الصور. */
 function watermarkSvg() {
   return Buffer.from(`
     <svg xmlns="http://www.w3.org/2000/svg" width="480" height="180" viewBox="0 0 480 180">
@@ -34,7 +35,7 @@ function watermarkSvg() {
           <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
-      <g transform="rotate(-18 240 90)" opacity="0.58" filter="url(#shadow)">
+      <g transform="rotate(-18 240 90)" opacity="0.12" filter="url(#shadow)">
         <circle cx="62" cy="90" r="30" fill="#0a1e3d" fill-opacity="0.76" stroke="#ffffff" stroke-opacity="0.88" stroke-width="3"/>
         <text x="62" y="101" text-anchor="middle" font-family="Arial, sans-serif" font-size="27" font-weight="800" fill="#ffffff">T</text>
         <text x="108" y="88" font-family="Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="2" fill="#ffffff">TRIQ</text>
