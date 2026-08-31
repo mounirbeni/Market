@@ -1,17 +1,18 @@
 "use client";
 
 import { Link } from "./Link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApp } from "@/store/app";
 import { useSession } from "@/store/session";
 import { useUnreadNotifications } from "@/lib/useUnreadNotifications";
-import { useDict } from "@/lib/i18n/client";
+import { useDict, useLocale } from "@/lib/i18n/client";
+import { localePath, stripLocale } from "@/lib/i18n/config";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo } from "./Logo";
 import { UnitToggle } from "./Price";
 import {
-  Bell, Car, Close, Coins, FileText, Heart, Menu, Moon, Moto, Plus, Scale,
+  Bell, Car, ChevronLeft, Close, Coins, FileText, Heart, Menu, Moon, Moto, Plus, Scale,
   Search, ShieldCheck, Sun, Users, Wallet,
 } from "./icons";
 
@@ -76,6 +77,19 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const locale = useLocale();
+
+  /* التطبيق (PWA) مزاد للشاشة الرئيسية = بلا شريط عنوان المتصفح
+     وبلا زر/إيماءة رجوع ديال النظام (خصوصاً فiOS). بلا زر رجوع
+     ديالنا، الزائر كان مضطر يرجع للصفحة الرئيسية باش يبدا من
+     جديد كل مرة — كنستعملو تاريخ التصفح ملي كاين، ولا الرئيسية
+     كملجأ آمن ملي التطبيق تّفتح مباشرة على صفحة داخلية. */
+  const isHome = stripLocale(pathname) === "/";
+  const goBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) router.back();
+    else router.push(localePath("/", locale));
+  };
 
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
@@ -100,7 +114,17 @@ export function Header() {
         viewTransitionName: "site-header",
       }}
     >
-      <div className="mx-auto flex h-[68px] max-w-[1400px] items-center gap-3 px-4">
+      <div className="mx-auto flex h-[68px] max-w-[1400px] items-center gap-2 px-4">
+        {!isHome && (
+          <button
+            onClick={goBack}
+            aria-label={t.back}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border lg:hidden"
+            style={{ borderColor: "var(--nav-line)", color: "var(--nav-text)" }}
+          >
+            <ChevronLeft size={19} className="dir-flip" />
+          </button>
+        )}
         <Link href="/" aria-label={t.home} className="shrink-0">
           <Logo />
         </Link>
