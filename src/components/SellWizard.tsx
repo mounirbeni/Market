@@ -176,6 +176,11 @@ function draftSeller(d: Draft): Seller {
 
 const DRAFT_KEY = "triq:draft";
 
+/** علامة الخانة الإلزامية — رمز عالمي، بلا حاجة لترجمة */
+function Req() {
+  return <span aria-hidden style={{ color: "var(--bad)" }}> *</span>;
+}
+
 export function SellWizard() {
   const t = useDict();
   const locale = useLocale();
@@ -273,6 +278,25 @@ export function SellWizard() {
   );
 
   const priceDelta = estimate.mid ? (d.price - estimate.mid) / estimate.mid : 0;
+
+  /* كل خانة بلا قيمة افتراضية حقيقية خاصها تتعبّى — التنقل بين
+     الخطوات وزر النشر معطّلين حتى الخطوة الحالية تكمل */
+  const stepValid = useMemo<[boolean, boolean, boolean, boolean, boolean]>(() => [
+    Boolean(
+      d.make && d.model && d.version.trim() && d.color.trim()
+      && (d.kind !== "car" || d.drivetrain) && d.origin,
+    ),
+    !d.accident || d.accidentNote.trim().length > 0,
+    d.photos > 0 && d.description.trim().length >= 20 && d.equipment.length > 0,
+    d.price >= 1000,
+    d.sellerName.trim().length > 0,
+  ], [d]);
+  const allValid = stepValid.every(Boolean);
+  const STEP_ERRORS = [
+    t.sellWizard.step0Incomplete, t.sellWizard.step1Incomplete, t.sellWizard.step2Incomplete,
+    t.sellWizard.step3Incomplete, t.sellWizard.step4Incomplete,
+  ];
+  const missingSteps = STEPS.filter((_, i) => !stepValid[i]);
 
   /** اقتراحات لرفع النقطة */
   const tips = useMemo(() => {
@@ -453,7 +477,7 @@ export function SellWizard() {
               </div>
 
               <div>
-                <label className="label" htmlFor="sw-version">{t.sellWizard.version}</label>
+                <label className="label" htmlFor="sw-version">{t.sellWizard.version}<Req /></label>
                 <input id="sw-version" className="field" value={d.version}
                   onChange={(e) => set({ version: e.target.value })} placeholder={t.sellWizard.versionPlaceholder} />
               </div>
@@ -572,7 +596,7 @@ export function SellWizard() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {d.kind === "car" && (
                   <div>
-                    <label className="label" htmlFor="sw-drivetrain">{t.sellWizard.drivetrainOptional}</label>
+                    <label className="label" htmlFor="sw-drivetrain">{t.sellWizard.drivetrainOptional}<Req /></label>
                     <select
                       id="sw-drivetrain" className="field" value={d.drivetrain}
                       onChange={(e) => set({ drivetrain: e.target.value as Drivetrain | "" })}
@@ -583,7 +607,7 @@ export function SellWizard() {
                   </div>
                 )}
                 <div>
-                  <label className="label" htmlFor="sw-origin">{t.sellWizard.originOptional}</label>
+                  <label className="label" htmlFor="sw-origin">{t.sellWizard.originOptional}<Req /></label>
                   <select
                     id="sw-origin" className="field" value={d.origin}
                     onChange={(e) => set({ origin: e.target.value as Origin | "" })}
@@ -663,7 +687,7 @@ export function SellWizard() {
                 </label>
                 {d.accident && (
                   <div className="mt-3">
-                    <label className="label" htmlFor="sw-accident-note">{t.sellWizard.disclosureNoteLabel}</label>
+                    <label className="label" htmlFor="sw-accident-note">{t.sellWizard.disclosureNoteLabel}<Req /></label>
                     <textarea id="sw-accident-note" className="field min-h-20 text-xs"
                       value={d.accidentNote}
                       onChange={(e) => set({ accidentNote: e.target.value.slice(0, 500) })}
@@ -719,7 +743,7 @@ export function SellWizard() {
 
               <div>
                 <label className="label" htmlFor="sw-desc">
-                  {t.sellWizard.description} <span className="num opacity-60">({d.description.length} {t.sellWizard.chars})</span>
+                  {t.sellWizard.description}<Req /> <span className="num opacity-60">({d.description.length} {t.sellWizard.chars})</span>
                 </label>
                 <textarea id="sw-desc" className="field min-h-32" value={d.description}
                   onChange={(e) => set({ description: e.target.value })}
@@ -727,7 +751,7 @@ export function SellWizard() {
               </div>
 
               <div>
-                <span className="label">{t.sellWizard.equipment} ({d.equipment.length})</span>
+                <span className="label">{t.sellWizard.equipment}<Req /> ({d.equipment.length})</span>
                 <div className="flex flex-wrap gap-1.5">
                   {EQUIPMENT.map((e) => {
                     const on = d.equipment.includes(e);
@@ -883,7 +907,7 @@ export function SellWizard() {
 
               <h2 className="text-base font-extrabold">{t.sellWizard.yourInfoTitle}</h2>
               <div>
-                <label className="label" htmlFor="sw-name">{t.sellWizard.nameLabel}</label>
+                <label className="label" htmlFor="sw-name">{t.sellWizard.nameLabel}<Req /></label>
                 <input id="sw-name" className="field" value={d.sellerName}
                   onChange={(e) => set({ sellerName: e.target.value })} placeholder={t.sellWizard.namePlaceholder} />
               </div>
@@ -920,9 +944,14 @@ export function SellWizard() {
                   {t.sellWizard.photosRequired}
                 </p>
               )}
+              {missingSteps.length > 0 && (
+                <p className="text-center text-[12px] font-semibold" style={{ color: "var(--bad)" }}>
+                  {t.sellWizard.completeBeforePublish} {missingSteps.join("، ")}
+                </p>
+              )}
               <button
                 onClick={publish}
-                disabled={publishing || d.photos === 0}
+                disabled={publishing || !allValid}
                 className="btn btn-primary w-full"
               >
                 <Sparkle size={16} /> {publishing ? t.sellWizard.publishing : t.sellWizard.publish}
@@ -933,6 +962,12 @@ export function SellWizard() {
                 </p>
               )}
             </div>
+          )}
+
+          {!stepValid[step] && (
+            <p className="mt-4 text-[11.5px] font-semibold" style={{ color: "var(--bad)" }}>
+              {STEP_ERRORS[step]}
+            </p>
           )}
 
           {/* التنقل */}
@@ -947,7 +982,8 @@ export function SellWizard() {
                   : <><Bookmark size={13} /> {t.sellWizard.saveDraft}</>}
               </button>
               {step < STEPS.length - 1 && (
-                <button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} className="btn btn-primary btn-sm">
+                <button onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
+                  disabled={!stepValid[step]} className="btn btn-primary btn-sm">
                   {t.sellWizard.next} <ArrowLeft size={14} className="dir-flip" />
                 </button>
               )}
