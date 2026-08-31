@@ -330,6 +330,7 @@ export interface PromoRow {
   ends_at: string | null;
   created_at: string;
   provider: string | null;
+  proof_path: string | null;
   listing_ref: string;
   listing_slug: string;
   listing_title: string;
@@ -346,7 +347,7 @@ export interface PromoRow {
 export async function listPromotions(filter = "pending", limit = 80) {
   return sql<PromoRow>(
     `SELECT p.id::text, p.tier::text, p.amount_mad, p.days, p.paid_at,
-            p.starts_at, p.ends_at, p.created_at, p.provider,
+            p.starts_at, p.ends_at, p.created_at, p.provider, p.proof_path,
             l.ref AS listing_ref, l.slug AS listing_slug,
             l.make || ' ' || l.model || ' ' || l.year AS listing_title,
             l.promo::text AS listing_promo,

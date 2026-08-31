@@ -570,6 +570,22 @@ export async function requestPromotion(
   return r!.id;
 }
 
+/**
+ * كيلصق سكرين شوت وصل الأداء بطلب ترويج.
+ *
+ * غير صاحب الطلب يقدر يديرها، وغير قبل ما المشرف يأكّد الأداء —
+ * الهدف باش المشرف يشوف الإثبات قبل القرار، ماشي بعدو.
+ */
+export async function attachPromotionProof(userId: string, promoId: string, proofPath: string) {
+  const r = await one<{ id: string }>(
+    `UPDATE promotions SET proof_path = $3
+       WHERE id = $1::uuid AND user_id = $2::uuid AND paid_at IS NULL
+     RETURNING id`,
+    [promoId, userId, proofPath],
+  );
+  if (!r) throw new WriteError("NOT_FOUND");
+}
+
 /* ---------- الصور ---------- */
 
 export async function addMedia(

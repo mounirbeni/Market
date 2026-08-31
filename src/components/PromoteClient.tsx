@@ -2,7 +2,7 @@
 
 import { Link } from "@/components/Link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { PROMOS, PROMO_ORDER, type PromoTier } from "@/lib/promo";
 import { useVehiclesByIds } from "@/lib/useVehicles";
 import { formatNumber } from "@/lib/format";
@@ -13,7 +13,7 @@ import { Mixed } from "@/components/Mixed";
 import { useDict, useLocale } from "@/lib/i18n/client";
 import { dhUnit, promoBenefits, promoBlurb, promoLabel } from "@/lib/i18n/labels";
 import {
-  ArrowLeft, BadgeCheck, Check, Eye, Info, Phone, Sparkle, Timer, TrendingUp, Wallet,
+  ArrowLeft, BadgeCheck, Camera, Check, Eye, Info, Phone, Sparkle, Timer, TrendingUp, Wallet,
 } from "@/components/icons";
 
 const TIER_ICON = { top: TrendingUp, urgent: Timer, featured: Sparkle } as const;
@@ -33,6 +33,12 @@ export function PromoteClient() {
   const [sending, setSending] = useState(false);
   const [requested, setRequested] = useState(false);
   const [error, setError] = useState("");
+  const [promoId, setPromoId] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofSending, setProofSending] = useState(false);
+  const [proofSent, setProofSent] = useState(false);
+  const [proofError, setProofError] = useState("");
+  const proofInput = useRef<HTMLInputElement>(null);
   const meta = PROMOS[picked];
 
   /** تقدير المشاهدات: أساس الإعلان × مضاعف الدرجة على مدة الترويج */
@@ -62,11 +68,45 @@ export function PromoteClient() {
         );
         return;
       }
+      setPromoId(json.data.id as string);
       setRequested(true);
     } catch {
       setError(t.promotePage.networkError);
     } finally {
       setSending(false);
+    }
+  }
+
+  /** كنرفعو السكرين شوت لمسار خاص — بحال وثائق التوثيق */
+  async function submitProof() {
+    if (!promoId || !proofFile) return;
+    setProofSending(true);
+    setProofError("");
+    try {
+      const up = await fetch("/api/upload", {
+        method: "POST",
+        headers: {
+          "content-type": proofFile.type || "image/jpeg",
+          "x-filename": "proof.jpg",
+          "x-purpose": "doc",
+        },
+        body: proofFile,
+      });
+      const upJson = await up.json();
+      if (!upJson?.ok) throw new Error(upJson?.error ?? t.promotePage.proofError);
+
+      const res = await fetch(`/api/promotions/${promoId}/proof`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ proof: upJson.data.pathname }),
+      });
+      const json = await res.json();
+      if (!json?.ok) throw new Error(json?.error ?? t.promotePage.proofError);
+      setProofSent(true);
+    } catch (err) {
+      setProofError(err instanceof Error ? err.message : t.promotePage.proofError);
+    } finally {
+      setProofSending(false);
     }
   }
 
@@ -246,6 +286,46 @@ export function PromoteClient() {
           <Info size={14} className="mt-0.5 shrink-0" style={{ color: "var(--brand)" }} />
           {requested ? t.promotePage.requestedNote : t.promotePage.preRequestNote}
         </p>
+
+        {requested && promoId && (
+          <div className="mt-5 rounded-xl border p-4" style={{ borderColor: "var(--line)" }}>
+            <h3 className="flex items-center gap-2 text-[13px] font-bold">
+              <Camera size={15} style={{ color: "var(--brand)" }} /> {t.promotePage.proofSectionTitle}
+            </h3>
+            <p className="mt-1.5 text-[12px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+              {t.promotePage.proofInstruction}
+            </p>
+            {proofSent ? (
+              <p className="mt-3 flex items-center gap-2 rounded-lg p-3 text-[12.5px]"
+                style={{ background: "var(--good-soft)", color: "var(--good)" }}>
+                <BadgeCheck size={16} /> {t.promotePage.proofSubmitted}
+              </p>
+            ) : (
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="flex-1">
+                  <label className="label" htmlFor="promo-proof">{t.promotePage.proofUploadLabel}</label>
+                  <input
+                    id="promo-proof" ref={proofInput} type="file" accept="image/*" className="field"
+                    onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={submitProof}
+                  disabled={!proofFile || proofSending}
+                  className="btn btn-primary btn-sm shrink-0"
+                >
+                  {proofSending ? t.promotePage.proofSubmitting : t.promotePage.proofSubmit}
+                </button>
+              </div>
+            )}
+            {proofError && (
+              <p className="mt-2 text-[12px] font-semibold" style={{ color: "var(--bad)" }}>
+                {proofError}
+              </p>
+            )}
+          </div>
+        )}
       </section>
 
       {/* أسئلة */}

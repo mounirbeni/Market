@@ -5,16 +5,17 @@ import { Link } from "@/components/Link";
 import { useRouter } from "next/navigation";
 import { adminAction } from "./actions";
 import { Toolbar } from "./Toolbar";
+import { Modal } from "@/components/Modal";
 import { PROMOS, type PromoTier } from "@/lib/promo";
 import { formatNumber } from "@/lib/format";
 import { useDict, useLocale } from "@/lib/i18n/client";
 import { dhUnit, fmtTimeAgo, promoLabel } from "@/lib/i18n/labels";
-import { Check, Close, Phone, Star } from "@/components/icons";
+import { Camera, Check, Close, Phone, Star } from "@/components/icons";
 
 interface Row {
   id: string; tier: string; amount_mad: number; days: number;
   paid_at: string | null; starts_at: string | null; ends_at: string | null;
-  created_at: string; provider: string | null;
+  created_at: string; provider: string | null; proof_path: string | null;
   listing_ref: string; listing_slug: string; listing_title: string;
   listing_promo: string | null;
   seller_name: string; seller_email: string | null; seller_phone: string | null;
@@ -22,6 +23,9 @@ interface Row {
 
 const daysLeft = (ends: string) =>
   Math.max(0, Math.ceil((Date.parse(ends) - Date.now()) / 86400000));
+
+/** الصورة خاصة — نفس مسار وثائق التوثيق، غير المشرف كيقدر يشوفها */
+const proofUrl = (p: string) => `/api/admin/doc/${p.split("/").map(encodeURIComponent).join("/")}`;
 
 /* ============================================================
    طلبات الترويج
@@ -46,6 +50,7 @@ export function PromosPanel({
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [zoom, setZoom] = useState<string | null>(null);
 
   async function act(key: string, payload: Record<string, string>) {
     setBusy(key);
@@ -157,10 +162,40 @@ export function PromosPanel({
                     )}
                   </div>
                 </div>
+
+                {pending && (
+                  <div className="mt-3 flex items-center gap-2.5">
+                    {row.proof_path ? (
+                      <button
+                        type="button"
+                        onClick={() => setZoom(proofUrl(row.proof_path!))}
+                        className="overflow-hidden rounded-lg border"
+                        style={{ borderColor: "var(--line)" }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={proofUrl(row.proof_path)} alt={p.proofAlt} className="h-24 w-auto object-cover" />
+                      </button>
+                    ) : (
+                      <span className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11.5px]"
+                        style={{ background: "var(--surface-3)", color: "var(--text-dim)" }}>
+                        <Camera size={13} /> {p.noProof}
+                      </span>
+                    )}
+                  </div>
+                )}
               </li>
             );
           })}
         </ul>
+      )}
+
+      {zoom && (
+        <Modal onClose={() => setZoom(null)} ariaLabel={p.zoomAria} maxWidth="max-w-4xl">
+          <div className="grid place-items-center p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={zoom} alt={p.proofAlt} className="max-h-[80vh] max-w-full rounded-lg object-contain" />
+          </div>
+        </Modal>
       )}
     </div>
   );
