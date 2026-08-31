@@ -50,12 +50,31 @@
     "favorites": "Favoris",
     "notifications": "Notifications",
     "back": "Retour",
+    "tourAria": "Comment utiliser la plateforme",
     "menu": "Menu",
     "themeToggle": "Basculer le mode sombre",
     "quickNav": "Navigation rapide",
     "skipToContent": "Aller au contenu",
     "language": "Langue",
     "searchShort": "Recherche"
+  },
+  "tour": {
+    "title": "Visite guidée de TRIQ",
+    "stepOfA": "Étape ",
+    "stepOfB": " sur ",
+    "skip": "Passer",
+    "prev": "Précédent",
+    "next": "Suivant",
+    "done": "Compris, c'est parti",
+    "steps": [
+      ["Bienvenue sur TRIQ", "TRIQ est la marketplace marocaine des voitures et motos. En quelques étapes, on vous montre comment chercher, acheter ou vendre en toute confiance."],
+      ["Trouvez ce que vous cherchez", "Utilisez la recherche et les filtres (marque, prix, ville...) pour trouver rapidement les annonces qui vous correspondent."],
+      ["L'indice de confiance", "Chaque annonce affiche un indice de confiance : photos réelles, détails complets, vendeur vérifié..."],
+      ["Contactez en toute sécurité", "Échangez avec le vendeur directement depuis la plateforme sans donner votre numéro, et signalez toute annonce suspecte."],
+      ["Vendez en quelques minutes", "Cliquez sur '+' pour publier une annonce — renseignez les infos du véhicule, ajoutez des photos, et TRIQ calcule un prix de référence pour vous."],
+      ["Compte vérifié", "Vérifier votre compte (téléphone, identité...) vous donne un badge de confiance visible par les acheteurs et augmente vos chances de vendre."],
+      ["Des outils utiles", "Calculateur de coût d'usage, comparaison d'annonces, demande d'inspection technique — tout pour acheter sans mauvaise surprise."]
+    ]
   },
   "footer": {
     "tagline": "La marketplace marocaine de voitures et motos d'occasion, fondée sur la transparence : un indice de confiance par annonce, un prix de référence calculé, et le coût réel d'utilisation avant l'achat.",

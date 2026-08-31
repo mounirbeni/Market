@@ -14,6 +14,7 @@ import { Footer } from "@/components/Footer";
 import { CompareBar } from "@/components/CompareBar";
 import { PwaRegister } from "@/components/PwaRegister";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { Tour } from "@/components/Tour";
 
 /** نص المتن */
 const body = IBM_Plex_Sans_Arabic({
@@ -134,6 +135,7 @@ export default async function RootLayout({
           <CompareBar />
           <MobileNav />
           <PwaRegister />
+          <Tour />
         </AppProvider>
         </SessionProvider>
         </I18nProvider>

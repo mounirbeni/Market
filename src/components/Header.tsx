@@ -8,11 +8,12 @@ import { useSession } from "@/store/session";
 import { useUnreadNotifications } from "@/lib/useUnreadNotifications";
 import { useDict, useLocale } from "@/lib/i18n/client";
 import { localePath, stripLocale } from "@/lib/i18n/config";
+import { TOUR_OPEN_EVENT } from "@/lib/tour";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Logo } from "./Logo";
 import { UnitToggle } from "./Price";
 import {
-  Bell, Car, ChevronLeft, Close, Coins, FileText, Heart, Menu, Moon, Moto, Plus, Scale,
+  Bell, Car, ChevronRight, Close, Coins, FileText, Heart, Help, Menu, Moon, Moto, Plus, Scale,
   Search, ShieldCheck, Sun, Users, Wallet,
 } from "./icons";
 
@@ -122,7 +123,7 @@ export function Header() {
             className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border lg:hidden"
             style={{ borderColor: "var(--nav-line)", color: "var(--nav-text)" }}
           >
-            <ChevronLeft size={19} className="dir-flip" />
+            <ChevronRight size={19} className="dir-flip" />
           </button>
         )}
         <Link href="/" aria-label={t.home} className="shrink-0">
@@ -149,6 +150,10 @@ export function Header() {
         <div className="ms-auto flex items-center gap-2">
           <div className="hidden lg:block"><UnitToggle compact onNav /></div>
           <div className="hidden md:block"><LanguageSwitcher onNav /></div>
+
+          <NavIconButton onClick={() => window.dispatchEvent(new Event(TOUR_OPEN_EVENT))} label={t.tourAria}>
+            <Help size={17} />
+          </NavIconButton>
 
           <NavIconButton onClick={toggleTheme} label={t.themeToggle}>
             {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
