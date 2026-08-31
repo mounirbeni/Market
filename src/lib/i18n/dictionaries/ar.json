@@ -2707,6 +2707,9 @@
     "genericError": "ماقدرناش نرفعو الفيديو.",
     "tooLargeA": "الفيديو كبير بزاف",
     "tooLargeB": "الحد",
+    "tooLongA": "الفيديو طويل بزاف",
+    "tooLongB": "الحد الأقصى",
+    "secondsUnit": "ثانية",
     "label": "فيديو قصير",
     "bonusPoints": "+4 نقط",
     "removeAria": "حيّد الفيديو",
@@ -2714,6 +2717,7 @@
     "secondsSuffix": "ثانية · الفيديو كبير، خلّي الصفحة محلولة",
     "addVideo": "زيد فيديو ديال المركبة",
     "addVideoHint": "المحرك + جولة حول المركبة · حتى",
+    "addVideoDuration": "· 30 ثانية كحد أقصى",
     "retry": "عاود"
   }
 }

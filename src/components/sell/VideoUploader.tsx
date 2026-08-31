@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
-import { BLOB_ACCESS, MAX_VIDEO_BYTES, VIDEO_TYPES, mediaUrl } from "@/lib/blob";
+import { BLOB_ACCESS, MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, VIDEO_TYPES, mediaUrl } from "@/lib/blob";
 import { useSession } from "@/store/session";
 import { useDict } from "@/lib/i18n/client";
 import { Close, Play } from "@/components/icons";
@@ -14,6 +14,25 @@ export interface UploadedVideo {
 
 const prettyBytes = (n: number, mega: string, kilo: string) =>
   n >= 1024 * 1024 ? `${(n / (1024 * 1024)).toFixed(0)} ${mega}` : `${Math.round(n / 1024)} ${kilo}`;
+
+/** كنحسبو مدة الفيديو محلياً — الملف كيمشي نيشان للخزّان، الخادم
+ *  ماكيشوفش المحتوى باش يتحقق منه هو */
+function probeDuration(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const el = document.createElement("video");
+    el.preload = "metadata";
+    el.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve(el.duration);
+    };
+    el.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("PROBE_FAILED"));
+    };
+    el.src = url;
+  });
+}
 
 /**
  * واش نقدرو نطلبو شريط التقدّم؟
@@ -127,7 +146,21 @@ export function VideoUploader({
       if (inputRef.current) inputRef.current.value = "";
       return;
     }
-    void send(file);
+    probeDuration(file)
+      .then((duration) => {
+        // هامش نصف ثانية باش ماترفضش فيديو 30.0 بالضبط بسبب تقريب المتصفح
+        if (duration > MAX_VIDEO_SECONDS + 0.5) {
+          setError(`${v0.tooLongA} (${Math.round(duration)} ${v0.secondsUnit}). ${v0.tooLongB} ${MAX_VIDEO_SECONDS} ${v0.secondsUnit}.`);
+          if (inputRef.current) inputRef.current.value = "";
+          return;
+        }
+        void send(file);
+      })
+      .catch(() => {
+        // ماقدرناش نحسبو المدة (متصفح/ملف غريب) — نخليوه يكمل، ماشي عادل
+        // نرفضو فيديو صحيح بسبب عجزنا نقيسوه
+        void send(file);
+      });
   };
 
   const remove = () => {
@@ -212,7 +245,7 @@ export function VideoUploader({
           <span className="flex flex-col items-center gap-1">
             <Play size={18} />
             <span className="text-[11px] font-bold">{v0.addVideo}</span>
-            <span className="text-[10.5px]">{v0.addVideoHint} {prettyBytes(MAX_VIDEO_BYTES, v0.megaUnit, v0.kiloUnit)}</span>
+            <span className="text-[10.5px]">{v0.addVideoHint} {prettyBytes(MAX_VIDEO_BYTES, v0.megaUnit, v0.kiloUnit)} {v0.addVideoDuration}</span>
           </span>
         </button>
       )}

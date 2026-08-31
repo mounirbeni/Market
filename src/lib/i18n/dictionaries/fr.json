@@ -2706,6 +2706,9 @@
     "genericError": "Nous n'avons pas pu téléverser la vidéo.",
     "tooLargeA": "La vidéo est trop volumineuse",
     "tooLargeB": "Limite",
+    "tooLongA": "La vidéo est trop longue",
+    "tooLongB": "Limite",
+    "secondsUnit": "secondes",
     "label": "Courte vidéo",
     "bonusPoints": "+4 points",
     "removeAria": "Supprimer la vidéo",
@@ -2713,6 +2716,7 @@
     "secondsSuffix": "secondes · La vidéo est volumineuse, laissez la page ouverte",
     "addVideo": "Ajouter une vidéo du véhicule",
     "addVideoHint": "Moteur + tour du véhicule · jusqu'à",
+    "addVideoDuration": "· 30 secondes maximum",
     "retry": "Réessayer"
   }
 }

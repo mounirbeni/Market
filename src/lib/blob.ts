@@ -21,6 +21,9 @@ export const BLOB_ACCESS = "private" as const;
 /** الحد الأقصى لكل صورة — تصويرة تيليفون عادية بين 2 و8 ميغا */
 export const MAX_PHOTO_BYTES = 12 * 1024 * 1024;
 export const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+/** أقصى مدة للفيديو — كنفحصوها فالمتصفح قبل الرفع (الملف كيمشي
+ *  نيشان للخزّان، الخادم ماكيشوفش المحتوى باش يتحقق منها) */
+export const MAX_VIDEO_SECONDS = 30;
 
 export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/heic"];
 export const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
