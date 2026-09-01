@@ -136,19 +136,24 @@ export function EstimateTool() {
           </div>
 
           <div>
-            <label className="label" htmlFor="es-km">
-              <Gauge size={13} /> {t.estimate.km}
-              <span className="num me-auto" style={{ color: "var(--brand)" }}>{formatNumber(km)} {kmUnit(locale)}</span>
-            </label>
+            <label className="label" htmlFor="es-km"><Gauge size={13} /> {t.estimate.km}</label>
             <input
-              id="es-km"
+              id="es-km" type="number" inputMode="numeric" className="field num" dir="ltr"
+              value={km}
+              onChange={(e) => setKm(Math.max(0, Number(e.target.value.replace(/\D/g, "")) || 0))}
+            />
+            <p className="num mt-1 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
+              {formatNumber(km)} {kmUnit(locale)}
+            </p>
+            <input
               type="range"
               min={0}
               max={kind === "moto" ? 120000 : 350000}
               step={kind === "moto" ? 1000 : 5000}
               value={km}
               onChange={(e) => setKm(Number(e.target.value))}
-              className="w-full "
+              className="mt-2 w-full "
+              aria-label={t.estimate.km}
             />
           </div>
 

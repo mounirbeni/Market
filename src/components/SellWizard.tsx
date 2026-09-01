@@ -13,7 +13,7 @@ import { formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
 import { VehicleGlyph } from "@/components/VehicleArt";
 import { useDict, useHref, useLocale } from "@/lib/i18n/client";
-import { cityLabel, dhUnit, equipmentLabel, localizeOptions, specs } from "@/lib/i18n/labels";
+import { cityLabel, dhUnit, equipmentLabel, kmUnit, localizeOptions, specs } from "@/lib/i18n/labels";
 import {
   CAR_BODIES, COMMON_COLORS, DOOR_OPTIONS, DRIVETRAINS, MOTO_BODIES, ORIGINS,
 } from "@/lib/vehicle-options";
@@ -492,13 +492,19 @@ export function SellWizard() {
                     onChange={(e) => set({ year: Number(e.target.value) })} className="w-full " />
                 </div>
                 <div>
-                  <label className="label" htmlFor="sw-km">
-                    <Gauge size={13} /> {t.sellWizard.km}
-                    <span className="num me-auto" style={{ color: "var(--brand)" }}>{formatNumber(d.km)}</span>
-                  </label>
-                  <input id="sw-km" type="range" min={0} max={d.kind === "moto" ? 120000 : 350000}
+                  <label className="label" htmlFor="sw-km"><Gauge size={13} /> {t.sellWizard.km}</label>
+                  <input
+                    id="sw-km" type="number" inputMode="numeric" className="field num" dir="ltr"
+                    value={d.km}
+                    onChange={(e) => set({ km: Math.max(0, Number(e.target.value.replace(/\D/g, "")) || 0) })}
+                  />
+                  <p className="num mt-1 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
+                    {formatNumber(d.km)} {kmUnit(locale)}
+                  </p>
+                  <input type="range" min={0} max={d.kind === "moto" ? 120000 : 350000}
                     step={d.kind === "moto" ? 1000 : 5000} value={d.km}
-                    onChange={(e) => set({ km: Number(e.target.value) })} className="w-full " />
+                    onChange={(e) => set({ km: Number(e.target.value) })}
+                    className="mt-2 w-full " aria-label={t.sellWizard.km} />
                 </div>
               </div>
 
