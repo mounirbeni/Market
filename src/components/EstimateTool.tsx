@@ -68,6 +68,9 @@ export function EstimateTool() {
   const { estimate: est } = useEstimate({
     kind, make, model, year, km, fuel, gearbox, condition,
   });
+  /* بلا مشابهات كافية فقاعدة البيانات، est كيرجع صفر — كنبيّنو
+     «مراجع محدودة» بدل ما نوريو 0 د.م كأنّو ثمن حقيقي. */
+  const noMarketRef = est.sampleSize === 0;
 
   // توقّع القيمة على 5 سنوات
   const projection = useMemo(() => {
@@ -215,33 +218,46 @@ export function EstimateTool() {
             <p className="mt-2 text-[13px] font-bold">
               {make} {model} <span className="num opacity-60">{year}</span>
             </p>
-            <div className="mt-3">
-              <Price value={est.mid} className="text-4xl font-extrabold tracking-tight sm:text-5xl" />
-            </div>
-            <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
-              {t.estimate.reasonableRange}{" "}
-              <b><Price value={est.low} /></b> — <b><Price value={est.high} /></b>
-            </p>
-
-            <div className="mx-auto mt-5 max-w-md">
-              <div className="flex items-center gap-2">
-                <div className="h-1.5 flex-1 rounded-full" style={{ background: "var(--line)" }}>
-                  <div
-                    className="h-1.5 rounded-full"
-                    style={{
-                      width: `${Math.round(est.confidence * 100)}%`,
-                      background: "var(--data)",
-                    }}
-                  />
-                </div>
-                <span className="num text-[11px]" style={{ color: "var(--text-dim)" }}>
-                  {t.estimate.accuracy} {Math.round(est.confidence * 100)}{t.fairPrice.percent}
-                </span>
+            {noMarketRef ? (
+              <div className="mx-auto mt-4 max-w-sm">
+                <p className="flex items-center justify-center gap-1.5 text-sm font-bold" style={{ color: "var(--text-dim)" }}>
+                  <Info size={14} /> {t.fairPrice.weakTag}
+                </p>
+                <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--text-dim)" }}>
+                  {t.fairPrice.weakNote}
+                </p>
               </div>
-              <p className="mt-2 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                {t.estimate.basedOn} <span className="num">{est.sampleSize}</span> {t.estimate.basedOnEnd}
-              </p>
-            </div>
+            ) : (
+              <>
+                <div className="mt-3">
+                  <Price value={est.mid} className="text-4xl font-extrabold tracking-tight sm:text-5xl" />
+                </div>
+                <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>
+                  {t.estimate.reasonableRange}{" "}
+                  <b><Price value={est.low} /></b> — <b><Price value={est.high} /></b>
+                </p>
+
+                <div className="mx-auto mt-5 max-w-md">
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 flex-1 rounded-full" style={{ background: "var(--line)" }}>
+                      <div
+                        className="h-1.5 rounded-full"
+                        style={{
+                          width: `${Math.round(est.confidence * 100)}%`,
+                          background: "var(--data)",
+                        }}
+                      />
+                    </div>
+                    <span className="num text-[11px]" style={{ color: "var(--text-dim)" }}>
+                      {t.estimate.accuracy} {Math.round(est.confidence * 100)}{t.fairPrice.percent}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[11px]" style={{ color: "var(--text-dim)" }}>
+                    {t.estimate.basedOn} <span className="num">{est.sampleSize}</span> {t.estimate.basedOnEnd}
+                  </p>
+                </div>
+              </>
+            )}
 
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               <Link href="/sell" className="btn btn-primary btn-sm"><Coins size={14} /> {t.estimate.sellAtPrice}</Link>
@@ -256,34 +272,36 @@ export function EstimateTool() {
         </div>
 
         {/* توقع القيمة */}
-        <div className="card p-5">
-          <h2 className="flex items-center gap-2 text-[13px] font-bold"><Chart size={15} style={{ color: "var(--data)" }} /> {t.estimate.valueChangeTitle}</h2>
-          <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-            {fill(t.estimate.valueChangeLead, { year: "2031" }).split(/(\d+)/).map((part, i) =>
-              /\d+/.test(part) ? <span key={i} className="num">{part}</span> : part,
-            )}
-          </p>
-          <div className="mt-5 flex items-end justify-between gap-2" style={{ height: 150 }}>
-            {projection.map((p, i) => (
-              <div key={p.year} className="flex flex-1 flex-col items-center gap-2">
-                <span className="num text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>
-                  {Math.round(p.value / 1000)}k
-                </span>
-                <div
-                  className="w-full rounded-t-md transition-all"
-                  style={{
-                    height: `${(p.value / maxProj) * 110}px`,
-                    background:
-                      i === 0
-                        ? "var(--brand)"
-                        : `color-mix(in oklab, var(--brand) ${Math.max(18, 85 - i * 14)}%, var(--surface-3))`,
-                  }}
-                />
-                <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>{p.year}</span>
-              </div>
-            ))}
+        {!noMarketRef && (
+          <div className="card p-5">
+            <h2 className="flex items-center gap-2 text-[13px] font-bold"><Chart size={15} style={{ color: "var(--data)" }} /> {t.estimate.valueChangeTitle}</h2>
+            <p className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
+              {fill(t.estimate.valueChangeLead, { year: "2031" }).split(/(\d+)/).map((part, i) =>
+                /\d+/.test(part) ? <span key={i} className="num">{part}</span> : part,
+              )}
+            </p>
+            <div className="mt-5 flex items-end justify-between gap-2" style={{ height: 150 }}>
+              {projection.map((p, i) => (
+                <div key={p.year} className="flex flex-1 flex-col items-center gap-2">
+                  <span className="num text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>
+                    {Math.round(p.value / 1000)}k
+                  </span>
+                  <div
+                    className="w-full rounded-t-md transition-all"
+                    style={{
+                      height: `${(p.value / maxProj) * 110}px`,
+                      background:
+                        i === 0
+                          ? "var(--brand)"
+                          : `color-mix(in oklab, var(--brand) ${Math.max(18, 85 - i * 14)}%, var(--surface-3))`,
+                    }}
+                  />
+                  <span className="num text-[10px]" style={{ color: "var(--text-dim)" }}>{p.year}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* المقارنات */}
         {est.comparables.length > 0 && (

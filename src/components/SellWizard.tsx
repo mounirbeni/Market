@@ -306,6 +306,9 @@ export function SellWizard() {
   );
 
   const priceDelta = estimate.mid ? (d.price - estimate.mid) / estimate.mid : 0;
+  /* بلا مشابهات كافية فقاعدة البيانات، estimate كيرجع صفر — كنبيّنو
+     «مراجع محدودة» بدل ما نوريو 0 د.م كأنّو ثمن حقيقي. */
+  const noMarketRef = estimate.sampleSize === 0;
 
   /* كل خانة بلا قيمة افتراضية حقيقية خاصها تتعبّى — التنقل بين
      الخطوات وزر النشر معطّلين حتى الخطوة الحالية تكمل */
@@ -867,12 +870,25 @@ export function SellWizard() {
               <h2 className="text-base font-extrabold">{t.sellWizard.s4Title}</h2>
               <div className="rounded-xl p-4" style={{ background: "var(--surface-3)" }}>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>{t.sellWizard.marketSuggestion}</p>
-                <p className="num mt-1 text-2xl font-black" style={{ color: "var(--brand)" }}>
-                  {formatNumber(estimate.mid)} {dh}
-                </p>
-                <p className="num mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
-                  {t.sellWizard.range} {formatNumber(estimate.low)} — {formatNumber(estimate.high)} {dh}
-                </p>
+                {noMarketRef ? (
+                  <>
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs font-bold" style={{ color: "var(--text-dim)" }}>
+                      <Info size={13} /> {t.fairPrice.weakTag}
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
+                      {t.fairPrice.weakNote}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="num mt-1 text-2xl font-black" style={{ color: "var(--brand)" }}>
+                      {formatNumber(estimate.mid)} {dh}
+                    </p>
+                    <p className="num mt-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
+                      {t.sellWizard.range} {formatNumber(estimate.low)} — {formatNumber(estimate.high)} {dh}
+                    </p>
+                  </>
+                )}
               </div>
 
               <div>
@@ -882,7 +898,9 @@ export function SellWizard() {
                     priceTouched.current = true;
                     set({ price: Number(e.target.value) || 0 });
                   }} />
-                <input type="range" min={Math.round(estimate.low * 0.6)} max={Math.round(estimate.high * 1.5)}
+                <input type="range"
+                  min={noMarketRef ? Math.max(3000, Math.round(d.price * 0.4)) : Math.round(estimate.low * 0.6)}
+                  max={noMarketRef ? Math.max(50000, Math.round(d.price * 2.5)) : Math.round(estimate.high * 1.5)}
                   step={1000} value={d.price} onChange={(e) => {
                     priceTouched.current = true;
                     set({ price: Number(e.target.value) });
@@ -890,28 +908,30 @@ export function SellWizard() {
                   className="mt-3 w-full " aria-label={t.sellWizard.priceAriaLabel} />
               </div>
 
-              <div className="rounded-lg p-3 text-xs leading-relaxed"
-                style={{
-                  background: `color-mix(in oklab, ${
-                    Math.abs(priceDelta) < 0.05
-                      ? "var(--good)"
-                      : priceDelta > 0.14
-                        ? "var(--bad)"
-                        : "var(--brand)"
-                  } 14%, transparent)`,
-                }}>
-                {Math.abs(priceDelta) < 0.05 ? (
-                  <><Check size={13} className="inline" /> {t.sellWizard.feedbackFair}<span className="num">40{pct}</span>{t.sellWizard.feedbackFairEnd}</>
-                ) : priceDelta > 0.14 ? (
-                  <><AlertTriangle size={13} className="inline" /> {t.sellWizard.feedbackHighA}<span className="num">{Math.round(priceDelta * 100)}{pct}</span> {t.sellWizard.feedbackHighB}{" "}
-                    <b className="num">{formatNumber(estimate.high)} {dh}</b>.</>
-                ) : priceDelta < -0.14 ? (
-                  <><Info size={13} className="inline" /> {t.sellWizard.feedbackLowA}{" "}
-                    <b className="num">{formatNumber(estimate.mid - d.price)} {dh}</b>.</>
-                ) : (
-                  <>{t.sellWizard.feedbackCloseA} <span className="num">{Math.round(Math.abs(priceDelta) * 100)}{pct}</span>{t.sellWizard.feedbackCloseB}</>
-                )}
-              </div>
+              {!noMarketRef && (
+                <div className="rounded-lg p-3 text-xs leading-relaxed"
+                  style={{
+                    background: `color-mix(in oklab, ${
+                      Math.abs(priceDelta) < 0.05
+                        ? "var(--good)"
+                        : priceDelta > 0.14
+                          ? "var(--bad)"
+                          : "var(--brand)"
+                    } 14%, transparent)`,
+                  }}>
+                  {Math.abs(priceDelta) < 0.05 ? (
+                    <><Check size={13} className="inline" /> {t.sellWizard.feedbackFair}<span className="num">40{pct}</span>{t.sellWizard.feedbackFairEnd}</>
+                  ) : priceDelta > 0.14 ? (
+                    <><AlertTriangle size={13} className="inline" /> {t.sellWizard.feedbackHighA}<span className="num">{Math.round(priceDelta * 100)}{pct}</span> {t.sellWizard.feedbackHighB}{" "}
+                      <b className="num">{formatNumber(estimate.high)} {dh}</b>.</>
+                  ) : priceDelta < -0.14 ? (
+                    <><Info size={13} className="inline" /> {t.sellWizard.feedbackLowA}{" "}
+                      <b className="num">{formatNumber(estimate.mid - d.price)} {dh}</b>.</>
+                  ) : (
+                    <>{t.sellWizard.feedbackCloseA} <span className="num">{Math.round(Math.abs(priceDelta) * 100)}{pct}</span>{t.sellWizard.feedbackCloseB}</>
+                  )}
+                </div>
+              )}
 
               <label className="flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5" style={{ background: "var(--surface-3)" }}>
                 <input
