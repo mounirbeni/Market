@@ -8,6 +8,7 @@ import { trustColor, trustOf } from "@/lib/market";
 import { useDict } from "@/lib/i18n/client";
 import { fill } from "@/lib/i18n/labels";
 import { Heart, Phone, ShieldCheck, Whatsapp } from "@/components/icons";
+import { ContactSellerButton } from "./ContactSellerButton";
 
 /* الرقم كان مولّداً من معرّف الإعلان — رقم مغربي حقيقي ديال شي
    واحد آخر. دابا كيجي من حساب البائع، وإلا ماكانش كنخبّيو الأزرار. */
@@ -91,15 +92,26 @@ export function StickyActionBar({ v }: { v: Vehicle }) {
 
         {phone &&
           (revealed ? (
-            <a href={`tel:${phone}`} className="btn btn-primary shrink-0">
-              <Phone size={15} />
-              <span className="num text-[12px]">{phone}</span>
+            <a
+              href={`tel:${phone}`}
+              aria-label={phone}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border"
+              style={{ borderColor: "var(--line)", color: "var(--text-muted)" }}
+            >
+              <Phone size={16} />
             </a>
           ) : (
-            <button onClick={() => setRevealed(true)} className="btn btn-primary shrink-0">
-              <Phone size={15} /> {t.sticky.call}
+            <button
+              onClick={() => setRevealed(true)}
+              aria-label={t.sticky.call}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border"
+              style={{ borderColor: "var(--line)", color: "var(--text-muted)" }}
+            >
+              <Phone size={16} />
             </button>
           ))}
+
+        <ContactSellerButton listingRef={v.id} label={t.sticky.chat} className="btn btn-primary shrink-0" />
       </div>
     </div>
   );

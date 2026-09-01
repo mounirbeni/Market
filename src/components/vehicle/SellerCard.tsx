@@ -143,31 +143,35 @@ export function SellerCard({
         </div>
 
         <div className="mt-5 grid gap-2">
+          <ContactSellerButton
+            listingRef={v.id}
+            label={t.sellerCard.internalMessage}
+            className="btn btn-primary w-full"
+          />
           {seller.phone ? (
             revealed ? (
-              <a href={`tel:${seller.phone}`} className="btn btn-primary w-full">
+              <a href={`tel:${seller.phone}`} className="btn btn-solid w-full">
                 <Phone size={16} />
                 <span className="num tracking-wider">{seller.phone}</span>
               </a>
             ) : (
-              <button onClick={() => setRevealed(true)} className="btn btn-primary w-full" aria-live="polite">
+              <button onClick={() => setRevealed(true)} className="btn btn-solid w-full" aria-live="polite">
                 <Phone size={16} /> {t.sellerCard.revealPhone}
               </button>
             )
           ) : null}
-          {seller.phone && (
-            <a
-              href={`https://wa.me/${waNumber(seller.phone)}?text=${waText}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn w-full font-bold"
-              style={{ background: "#25D366", color: "#062d16" }}
-            >
-              <Whatsapp size={17} /> {t.sellerCard.whatsapp}
-            </a>
-          )}
           <div className="grid grid-cols-2 gap-2">
-            <ContactSellerButton listingRef={v.id} label={t.sellerCard.internalMessage} />
+            {seller.phone && (
+              <a
+                href={`https://wa.me/${waNumber(seller.phone)}?text=${waText}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-sm font-bold"
+                style={{ background: "#25D366", color: "#062d16" }}
+              >
+                <Whatsapp size={15} /> {t.sellerCard.whatsapp}
+              </a>
+            )}
             <button onClick={() => setBooking(true)} className="btn btn-solid btn-sm">
               <Calendar size={14} /> {t.sellerCard.bookVisit}
             </button>

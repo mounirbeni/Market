@@ -301,7 +301,7 @@ export function SellWizard() {
   /** اقتراحات لرفع النقطة */
   const tips = useMemo(() => {
     const done = [
-      d.idVerified, d.vinChecked, d.photos >= 12, d.hasVideo,
+      d.idVerified, d.vinChecked, d.photos >= 6, d.hasVideo,
       d.serviceBook, d.inspected, d.description.length > 220, d.equipment.length >= 8,
     ];
     const list = (t.sellWizard.tips as [string, number][]).map(([text, gain], i) => ({ text, gain, done: done[i] }));

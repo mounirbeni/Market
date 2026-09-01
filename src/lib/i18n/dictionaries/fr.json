@@ -672,6 +672,7 @@
     "favorite": "Favoris",
     "whatsapp": "WhatsApp",
     "call": "Appeler",
+    "chat": "Discuter",
     "whatsappText": "Bonjour, j'ai vu votre annonce {title} sur TRIQ. Est-elle toujours disponible ?"
   },
   "contact": {
@@ -1556,7 +1557,7 @@
         6
       ],
       [
-        "Ajoutez plus de 12 photos du véhicule",
+        "Ajoutez plus de 6 photos du véhicule",
         7
       ],
       [
@@ -1866,7 +1867,7 @@
           },
           {
             "q": "Comment augmenter le score de confiance de mon annonce ?",
-            "a": "Vérifiez votre identité, ajoutez le numéro de châssis, mettez plus de 12 photos et une vidéo, joignez le carnet d'entretien, et demandez l'inspection indépendante. L'assistant de publication vous montre le score augmenter à chaque information ajoutée."
+            "a": "Vérifiez votre identité, ajoutez le numéro de châssis, mettez plus de 6 photos et une vidéo, joignez le carnet d'entretien, et demandez l'inspection indépendante. L'assistant de publication vous montre le score augmenter à chaque information ajoutée."
           },
           {
             "q": "Combien de temps une annonce reste-t-elle publiée ?",

@@ -453,12 +453,14 @@ export function trustScore(
 
   // 4) شفافية الإعلان — 18
   let transp = 0;
-  transp += v.photos >= 12 ? 7 : v.photos >= 8 ? 5 : v.photos >= 5 ? 3 : 1;
+  /* 6 صور كافية باش توصل للنقطة الكاملة — رفع لـ20 يبقى متاح
+     ولكن ماشي شرط، الهدف بائع يقدر يوصل للنقطة الكاملة بسرعة */
+  transp += v.photos >= 6 ? 7 : v.photos >= 3 ? 4 : 2;
   if (v.hasVideo) transp += 4;
   transp += v.description.length > 220 ? 3 : v.description.length > 120 ? 2 : 0;
   transp += v.equipment.length >= 8 ? 4 : v.equipment.length >= 4 ? 2 : 1;
   transp = Math.min(18, transp);
-  if (v.photos < 5) flags.push({ level: "warn", k: "fewPhotos" });
+  if (v.photos < 3) flags.push({ level: "warn", k: "fewPhotos" });
   parts.push({
     key: "transparency",
     score: transp,
