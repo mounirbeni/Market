@@ -58,6 +58,7 @@ interface Draft {
   inspected: boolean;
   price: number;
   negotiable: boolean;
+  exchangeAccepted: boolean;
   sellerName: string;
   sellerType: "particulier" | "professionnel";
   idVerified: boolean;
@@ -98,6 +99,7 @@ const initialDraft: Draft = {
   inspected: false,
   price: 120000,
   negotiable: true,
+  exchangeAccepted: false,
   sellerName: "",
   sellerType: "particulier",
   idVerified: false,
@@ -155,7 +157,7 @@ function draftToVehicle(d: Draft): Vehicle {
     priceDrops: [],
     priceHistory: [],
     negotiable: d.negotiable,
-    exchangeAccepted: false,
+    exchangeAccepted: d.exchangeAccepted,
   };
 }
 
@@ -332,7 +334,7 @@ export function SellWizard() {
           unpaidVignette: d.unpaidVignette, unpaidFines: d.unpaidFines, underLien: d.underLien,
           description: d.description,
           equipment: d.equipment, photos: d.photos, hasVideo: d.hasVideo,
-          negotiable: d.negotiable,
+          negotiable: d.negotiable, exchangeAccepted: d.exchangeAccepted,
           media: video ? [...uploaded, video] : uploaded,
         }),
       });
@@ -840,6 +842,15 @@ export function SellWizard() {
                 />
                 <span className="flex-1 text-xs">{t.sellWizard.negotiable}</span>
               </label>
+              <label className="flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5" style={{ background: "var(--surface-3)" }}>
+                <input
+                  type="checkbox"
+                  checked={d.exchangeAccepted}
+                  onChange={(e) => set({ exchangeAccepted: e.target.checked })}
+                  className="h-4 w-4"
+                />
+                <span className="flex-1 text-xs">{t.sellWizard.exchangeAccepted}</span>
+              </label>
             </div>
           )}
 
@@ -892,6 +903,7 @@ export function SellWizard() {
                     <span className="chip chip-plain">{L.fuel[d.fuel as keyof typeof L.fuel] ?? d.fuel}</span>
                     <span className="chip chip-plain">{L.gearbox[d.gearbox as keyof typeof L.gearbox] ?? d.gearbox}</span>
                     {d.negotiable && <span className="chip chip-plain">{t.sellWizard.negotiableChip}</span>}
+                    {d.exchangeAccepted && <span className="chip chip-plain">{t.sellWizard.exchangeAccepted}</span>}
                   </div>
                   {d.description && (
                     <p className="mt-3 text-[11.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
