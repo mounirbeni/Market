@@ -9,11 +9,16 @@ import { PhotoUploader, type UploadedPhoto } from "@/components/sell/PhotoUpload
 import { VideoUploader, type UploadedVideo } from "@/components/sell/VideoUploader";
 import { CITIES } from "@/lib/cities";
 import { EQUIPMENT } from "@/lib/equipment";
+import { KNOWN_ISSUES } from "@/lib/knownIssues";
+import { INCLUDED_ITEMS } from "@/lib/includedItems";
 import { formatNumber } from "@/lib/format";
 import { TrustRing } from "@/components/TrustBadge";
 import { VehicleGlyph } from "@/components/VehicleArt";
 import { useDict, useHref, useLocale } from "@/lib/i18n/client";
-import { cityLabel, dhUnit, equipmentLabel, kmUnit, localizeOptions, specs } from "@/lib/i18n/labels";
+import {
+  cityLabel, dhUnit, equipmentLabel, includedItemLabel, kmUnit, knownIssueLabel,
+  localizeOptions, specs,
+} from "@/lib/i18n/labels";
 import {
   CAR_BODIES, COMMON_COLORS, DOOR_OPTIONS, DRIVETRAINS, MOTO_BODIES, ORIGINS,
 } from "@/lib/vehicle-options";
@@ -51,6 +56,13 @@ interface Draft {
   unpaidVignette: boolean;
   unpaidFines: boolean;
   underLien: boolean;
+  knownIssues: string[];
+  originalPaint: boolean;
+  paintedPanels: number;
+  keysCount: number;
+  includedItems: string[];
+  saleReason: string;
+  sellerDeclared: boolean;
   photos: number;
   hasVideo: boolean;
   description: string;
@@ -92,6 +104,13 @@ const initialDraft: Draft = {
   unpaidVignette: false,
   unpaidFines: false,
   underLien: false,
+  knownIssues: [],
+  originalPaint: true,
+  paintedPanels: 0,
+  keysCount: 2,
+  includedItems: [],
+  saleReason: "",
+  sellerDeclared: false,
   photos: 0,
   hasVideo: false,
   description: "",
@@ -141,6 +160,13 @@ function draftToVehicle(d: Draft): Vehicle {
     unpaidVignette: d.unpaidVignette,
     unpaidFines: d.unpaidFines,
     underLien: d.underLien,
+    knownIssues: d.knownIssues,
+    originalPaint: d.originalPaint,
+    paintedPanels: d.originalPaint ? null : d.paintedPanels,
+    keysCount: d.keysCount,
+    includedItems: d.includedItems,
+    saleReason: d.saleReason || null,
+    sellerDeclared: d.sellerDeclared,
     description: d.description,
     equipment: d.equipment,
     history: d.accident
@@ -291,7 +317,7 @@ export function SellWizard() {
     !d.accident || d.accidentNote.trim().length > 0,
     d.photos > 0 && d.description.trim().length >= 20 && d.equipment.length > 0,
     d.price >= 1000,
-    d.sellerName.trim().length > 0,
+    d.sellerName.trim().length > 0 && d.sellerDeclared,
   ], [d]);
   const allValid = stepValid.every(Boolean);
   const STEP_ERRORS = [
@@ -332,6 +358,10 @@ export function SellWizard() {
           accidentDeclared: d.accident,
           accidentNote: d.accident ? d.accidentNote.trim() : "",
           unpaidVignette: d.unpaidVignette, unpaidFines: d.unpaidFines, underLien: d.underLien,
+          knownIssues: d.knownIssues, originalPaint: d.originalPaint,
+          paintedPanels: d.originalPaint ? undefined : d.paintedPanels,
+          keysCount: d.keysCount, includedItems: d.includedItems,
+          saleReason: d.saleReason.trim() || undefined, sellerDeclared: d.sellerDeclared,
           description: d.description,
           equipment: d.equipment, photos: d.photos, hasVideo: d.hasVideo,
           negotiable: d.negotiable, exchangeAccepted: d.exchangeAccepted,
@@ -724,6 +754,49 @@ export function SellWizard() {
                   </label>
                 ))}
               </div>
+
+              {/* مشاكل حالية معروفة — تصريح صريح بدل ما البائع يخبّي
+                  مشكل ويخلّي المشتري يكتشفو بعد ما يشري */}
+              <div className="rounded-xl p-3.5 space-y-2" style={{ background: "var(--warn-soft)" }}>
+                <span className="flex items-center gap-1.5 text-xs font-bold">
+                  <AlertTriangle size={13} style={{ color: "var(--warn)" }} />
+                  {t.sellWizard.knownIssuesTitle}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {KNOWN_ISSUES.map((issue) => {
+                    const on = d.knownIssues.includes(issue);
+                    return (
+                      <button key={issue} type="button" onClick={() => set({
+                        knownIssues: on ? d.knownIssues.filter((x) => x !== issue) : [...d.knownIssues, issue],
+                      })} aria-pressed={on} className="chip transition"
+                        style={{
+                          background: on ? "var(--warn)" : "var(--surface-1)",
+                          color: on ? "#fff" : "var(--text-muted)",
+                          borderColor: "transparent",
+                        }}>
+                        {on ? <Check size={11} /> : <Plus size={11} />}{knownIssueLabel(issue, locale)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="rounded-lg p-3" style={{ background: "var(--surface-3)" }}>
+                <label className="flex cursor-pointer items-center gap-2.5">
+                  <input type="checkbox" checked={d.originalPaint}
+                    onChange={(e) => set({ originalPaint: e.target.checked })}
+                    className="h-4 w-4" />
+                  <span className="flex-1 text-xs">{t.sellWizard.originalPaint}</span>
+                </label>
+                {!d.originalPaint && (
+                  <div className="mt-2.5">
+                    <label className="label" htmlFor="sw-painted-panels">{t.sellWizard.paintedPanelsLabel}</label>
+                    <input id="sw-painted-panels" type="number" min={1} max={20} className="field num" dir="ltr"
+                      value={d.paintedPanels}
+                      onChange={(e) => set({ paintedPanels: Math.max(0, Number(e.target.value) || 0) })} />
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -756,6 +829,13 @@ export function SellWizard() {
                 <textarea id="sw-desc" className="field min-h-32" value={d.description}
                   onChange={(e) => set({ description: e.target.value })}
                   placeholder={t.sellWizard.descPlaceholder} />
+              </div>
+
+              <div>
+                <label className="label" htmlFor="sw-sale-reason">{t.sellWizard.saleReasonLabel}</label>
+                <input id="sw-sale-reason" className="field" value={d.saleReason}
+                  onChange={(e) => set({ saleReason: e.target.value })}
+                  placeholder={t.sellWizard.saleReasonPlaceholder} maxLength={300} />
               </div>
 
               <div>
@@ -956,6 +1036,41 @@ export function SellWizard() {
                   </label>
                 ))}
               </div>
+
+              <div>
+                <label className="label" htmlFor="sw-keys">{t.sellWizard.keysCountLabel}</label>
+                <input id="sw-keys" type="number" min={0} max={10} className="field num" dir="ltr"
+                  value={d.keysCount}
+                  onChange={(e) => set({ keysCount: Math.max(0, Number(e.target.value) || 0) })} />
+              </div>
+
+              <div>
+                <span className="label">{t.sellWizard.includedItems} ({d.includedItems.length})</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {INCLUDED_ITEMS.map((item) => {
+                    const on = d.includedItems.includes(item);
+                    return (
+                      <button key={item} type="button" onClick={() => set({
+                        includedItems: on ? d.includedItems.filter((x) => x !== item) : [...d.includedItems, item],
+                      })} aria-pressed={on} className="chip transition"
+                        style={{
+                          background: on ? "var(--brand)" : "var(--surface-3)",
+                          color: on ? "var(--brand-ink)" : "var(--text-muted)",
+                          borderColor: "transparent",
+                        }}>
+                        {on ? <Check size={11} /> : <Plus size={11} />}{includedItemLabel(item, locale)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <label className="flex cursor-pointer items-start gap-2.5 rounded-lg p-3" style={{ background: "var(--surface-3)" }}>
+                <input type="checkbox" checked={d.sellerDeclared}
+                  onChange={(e) => set({ sellerDeclared: e.target.checked })}
+                  className="mt-0.5 h-4 w-4" />
+                <span className="flex-1 text-xs leading-relaxed">{t.sellWizard.sellerDeclaration}</span>
+              </label>
 
               {d.photos === 0 && (
                 <p className="text-center text-[12px] font-semibold" style={{ color: "var(--bad)" }}>

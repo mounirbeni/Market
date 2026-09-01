@@ -472,6 +472,10 @@ export function trustScore(
     ],
   });
   if (v.hasVideo) strengths.push("realVideo");
+  /* إقرار البائع بصحة المعلومات كيبان كـbadge منفصل جنب لوحة الثقة
+     (صفحة تفاصيل المركبة) — ماشي فلاغات "الانتباه" حيت هادي إشارة
+     إيجابية، ماشي تحذير */
+  if (v.sellerDeclared) strengths.push("sellerDeclared");
 
   // 5) اتساق المعطيات — 14
   let coherence = 0;

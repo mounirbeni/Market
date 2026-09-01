@@ -67,6 +67,13 @@ export interface ListingRow {
   unpaid_vignette: boolean;
   unpaid_fines: boolean;
   under_lien: boolean;
+  known_issues: string[];
+  original_paint: boolean;
+  painted_panels: number | null;
+  keys_count: number | null;
+  included_items: string[];
+  sale_reason: string | null;
+  seller_declared: boolean;
   description: string;
   equipment: string[];
   negotiable: boolean;
@@ -111,6 +118,8 @@ const SELECT_COLS = `
   l.equipment, l.negotiable, l.exchange_accepted,
   l.accident_declared, l.accident_note,
   l.unpaid_vignette, l.unpaid_fines, l.under_lien,
+  l.known_issues, l.original_paint, l.painted_panels, l.keys_count,
+  l.included_items, l.sale_reason, l.seller_declared,
   l.seller_id::text AS seller_ref,
   u.name AS seller_name, u.avatar_url AS seller_avatar, u.type AS seller_type, d.slug AS dealer_slug,
   u.city AS seller_city, u.member_since AS seller_since,
@@ -365,6 +374,13 @@ export function rowToVehicle(
     unpaidVignette: r.unpaid_vignette,
     unpaidFines: r.unpaid_fines,
     underLien: r.under_lien,
+    knownIssues: r.known_issues ?? [],
+    originalPaint: r.original_paint,
+    paintedPanels: r.painted_panels,
+    keysCount: r.keys_count,
+    includedItems: r.included_items ?? [],
+    saleReason: r.sale_reason,
+    sellerDeclared: r.seller_declared,
     description: r.description,
     equipment: r.equipment ?? [],
     /* البائع صرّح بحادث/إصلاح — كنزيدوه كحدث حقيقي فالسجل باش

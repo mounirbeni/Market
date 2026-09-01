@@ -114,6 +114,20 @@ export interface Vehicle {
   unpaidFines: boolean;
   /** المركبة مرهونة عند بنك (قرض لم يُسدَّد بعد) */
   underLien: boolean;
+  /** مشاكل حالية معروفة صرّح بيها البائع (المحرك، الفرامل...) */
+  knownIssues: string[];
+  /** واش الصباغة أصلية */
+  originalPaint: boolean;
+  /** عدد الأجزاء المتصبّغة — ماشي معروف فالإعلانات القديمة */
+  paintedPanels?: number | null;
+  /** عدد المفاتيح — ماشي معروف فالإعلانات القديمة */
+  keysCount?: number | null;
+  /** أشياء مرفقة (إطار احتياطي، دفتر الصيانة...) */
+  includedItems: string[];
+  /** سبب البيع — اختياري */
+  saleReason?: string | null;
+  /** البائع أقرّ بصحة المعلومات وقت النشر */
+  sellerDeclared: boolean;
   description: string;
   equipment: string[];
   history: HistoryEvent[];

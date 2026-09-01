@@ -171,6 +171,29 @@ const EQUIPMENT_FR: Record<string, string> = {
   "أضواء LED": "Feux LED",
 };
 
+const KNOWN_ISSUES_FR: Record<string, string> = {
+  "المحرك": "Moteur",
+  "ناقل الحركة": "Transmission",
+  "الكهرباء": "Électricité",
+  "التكييف": "Climatisation",
+  "التعليق": "Suspension",
+  "الفرامل": "Freins",
+  "الإطارات": "Pneus",
+  "الهيكل": "Carrosserie",
+  "الطلاء": "Peinture",
+  "الزجاج": "Vitres",
+  "الإلكترونيات": "Électronique",
+};
+
+const INCLUDED_ITEMS_FR: Record<string, string> = {
+  "إطار احتياطي": "Roue de secours",
+  "دفتر الصيانة": "Carnet d'entretien",
+  "دليل المالك": "Manuel du propriétaire",
+  "جنط أصلية": "Jantes d'origine",
+  "قطع أصلية": "Pièces d'origine",
+  "فاتورة الشراء": "Facture d'achat",
+};
+
 /** لون كما كيتعرض — القيمة المخزّنة كتبقى هي هي */
 export const colorLabel = (value: string, locale: Locale) =>
   locale === "fr" ? COLOR_FR[value] ?? value : value;
@@ -178,6 +201,14 @@ export const colorLabel = (value: string, locale: Locale) =>
 /** تجهيز كما كيتعرض — القيمة المخزّنة كتبقى هي هي */
 export const equipmentLabel = (value: string, locale: Locale) =>
   locale === "fr" ? EQUIPMENT_FR[value] ?? value : value;
+
+/** مشكل معروف كما كيتعرض — القيمة المخزّنة كتبقى هي هي */
+export const knownIssueLabel = (value: string, locale: Locale) =>
+  locale === "fr" ? KNOWN_ISSUES_FR[value] ?? value : value;
+
+/** شي مرفق كما كيتعرض — القيمة المخزّنة كتبقى هي هي */
+export const includedItemLabel = (value: string, locale: Locale) =>
+  locale === "fr" ? INCLUDED_ITEMS_FR[value] ?? value : value;
 
 /**
  * كيعوّض `{key}` داخل نص القاموس.

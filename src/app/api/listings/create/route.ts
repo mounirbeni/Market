@@ -72,6 +72,13 @@ export interface CreateBody {
   unpaidVignette?: boolean;
   unpaidFines?: boolean;
   underLien?: boolean;
+  knownIssues?: string[];
+  originalPaint?: boolean;
+  paintedPanels?: number;
+  keysCount?: number;
+  includedItems?: string[];
+  saleReason?: string;
+  sellerDeclared?: boolean;
   description?: string;
   equipment?: string[];
   negotiable?: boolean;
@@ -131,6 +138,16 @@ export async function POST(req: Request) {
   const accidentDeclared = Boolean(b.accidentDeclared);
   const accidentNote = accidentDeclared ? text(b.accidentNote, 500) : "";
 
+  /* إقرار البائع النهائي بصحة المعلومات — إجباري، ماشي واجهة فقط */
+  if (!b.sellerDeclared) return fail("خاصك تقر بصحة المعلومات قبل النشر.", 400);
+
+  const knownIssues = (b.knownIssues ?? []).slice(0, 20).map((e) => text(e, 60)).filter(Boolean);
+  const includedItems = (b.includedItems ?? []).slice(0, 20).map((e) => text(e, 60)).filter(Boolean);
+  const originalPaint = b.originalPaint !== false;
+  const paintedPanels = originalPaint ? null : clampInt(b.paintedPanels, 0, 20, 0);
+  const keysCount = Number.isFinite(Number(b.keysCount)) ? clampInt(b.keysCount, 0, 10, 2) : null;
+  const saleReason = text(b.saleReason, 300) || null;
+
   /* الصور: كنقبلو غير الروابط اللي خرجات من الخزّان ديالنا.
      الرفض صريح، ماشي غير إسقاط الرابط، باش المستخدم يعرف علاش ما تنشرش. */
   const incomingMedia = Array.isArray(b.media) ? b.media.slice(0, MAX_PHOTOS + 4) : [];
@@ -189,6 +206,13 @@ export async function POST(req: Request) {
     unpaidVignette: Boolean(b.unpaidVignette),
     unpaidFines: Boolean(b.unpaidFines),
     underLien: Boolean(b.underLien),
+    knownIssues,
+    originalPaint,
+    paintedPanels,
+    keysCount,
+    includedItems,
+    saleReason,
+    sellerDeclared: true,
     description: text(b.description, 4000),
     equipment: (b.equipment ?? []).slice(0, 40).map((e) => text(e, 60)).filter(Boolean),
     history: accidentDeclared
@@ -248,6 +272,13 @@ export async function POST(req: Request) {
     unpaidVignette: draft.unpaidVignette,
     unpaidFines: draft.unpaidFines,
     underLien: draft.underLien,
+    knownIssues: draft.knownIssues,
+    originalPaint: draft.originalPaint,
+    paintedPanels: draft.paintedPanels,
+    keysCount: draft.keysCount,
+    includedItems: draft.includedItems,
+    saleReason: draft.saleReason,
+    sellerDeclared: draft.sellerDeclared,
     description: draft.description,
     equipment: draft.equipment,
     negotiable: draft.negotiable,

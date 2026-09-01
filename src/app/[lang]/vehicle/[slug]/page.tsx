@@ -13,7 +13,7 @@ import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
 import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 import {
   cityLabel, colorLabel, dhUnit, equipmentLabel, fill, fmtDate, fmtDh, fmtKm,
-  fmtMonthYear, fmtTimeAgo, kmUnit, specs as specLabels,
+  fmtMonthYear, fmtTimeAgo, includedItemLabel, kmUnit, knownIssueLabel, specs as specLabels,
 } from "@/lib/i18n/labels";
 import { Gallery } from "@/components/vehicle/Gallery";
 import { PageTransition } from "@/components/PageTransition";
@@ -31,8 +31,8 @@ import { Price } from "@/components/Price";
 import { Mixed } from "@/components/Mixed";
 import { TrustRing } from "@/components/TrustBadge";
 import {
-  AutoGear, BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Clock, Door,
-  Driveshaft, EQUIPMENT_ICONS, Eye, Flag, FUEL_ICONS, Heart, Horsepower, MapPin,
+  AlertTriangle, AutoGear, BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Clock, Door,
+  Driveshaft, Droplet, EQUIPMENT_ICONS, Eye, Flag, FUEL_ICONS, Heart, Horsepower, Key, MapPin,
   Odometer, OilCan, Palette, Piston, Road, Scale, Seat, Sparkle,
   Transmission, TrendingDown, Users,
 } from "@/components/icons";
@@ -138,6 +138,13 @@ export default async function VehiclePage({
     { Icon: Users, label: sp.owners, value: String(v.owners) },
     { Icon: ClipboardCheck, label: sp.technicalControl, value: fmtDate(v.technicalControl, locale) },
     { Icon: MapPin, label: sp.city, value: cityLabel(v.city, locale) },
+    {
+      Icon: Droplet, label: sp.paint,
+      value: v.originalPaint
+        ? t.vehicle.paintOriginal
+        : fill(t.vehicle.paintRepainted, { n: String(v.paintedPanels ?? 0) }),
+    },
+    ...(v.keysCount != null ? [{ Icon: Key, label: sp.keys, value: String(v.keysCount) }] : []),
   ];
 
   const jsonLd = {
@@ -322,10 +329,45 @@ export default async function VehiclePage({
               </>
             )}
 
+            {v.includedItems.length > 0 && (
+              <>
+                <h3 className="mt-6 mb-3 flex items-center gap-1.5 text-[13px] font-bold">
+                  <BadgeCheck size={14} style={{ color: "var(--brand)" }} /> {t.vehicle.includedItems}
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {v.includedItems.map((item) => (
+                    <span key={item} className="chip chip-plain">{includedItemLabel(item, locale)}</span>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {v.knownIssues.length > 0 && (
+              <>
+                <h3 className="mt-6 mb-3 flex items-center gap-1.5 text-[13px] font-bold">
+                  <AlertTriangle size={14} style={{ color: "var(--warn)" }} /> {t.vehicle.knownIssues}
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {v.knownIssues.map((issue) => (
+                    <span key={issue} className="chip"
+                      style={{ background: "var(--warn-soft)", color: "var(--warn)", borderColor: "transparent" }}>
+                      {knownIssueLabel(issue, locale)}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+
             <h3 className="mt-6 mb-2 text-[13px] font-bold">{t.vehicle.descTitle}</h3>
             <p className="text-[13px] leading-loose" style={{ color: "var(--text-muted)" }}>
               {v.description}
             </p>
+
+            {v.saleReason && (
+              <p className="mt-3 text-[12.5px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
+                <b>{t.vehicle.saleReasonLabel}</b> {v.saleReason}
+              </p>
+            )}
           </section>
 
           {/* التاريخ والسعر */}

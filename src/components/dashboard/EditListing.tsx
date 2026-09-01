@@ -4,12 +4,17 @@ import { Link } from "@/components/Link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { EQUIPMENT } from "@/lib/equipment";
+import { KNOWN_ISSUES } from "@/lib/knownIssues";
+import { INCLUDED_ITEMS } from "@/lib/includedItems";
 import { formatNumber } from "@/lib/format";
 import { vehicleHref } from "@/lib/slug";
 import { useMyListings } from "@/lib/useMyListings";
 import { VehicleGlyph } from "@/components/VehicleArt";
 import { useDict, useLocale } from "@/lib/i18n/client";
-import { citiesIn, cityLabel, dhUnit, equipmentLabel, kmUnit, localizeOptions, specs } from "@/lib/i18n/labels";
+import {
+  citiesIn, cityLabel, dhUnit, equipmentLabel, includedItemLabel, kmUnit,
+  knownIssueLabel, localizeOptions, specs,
+} from "@/lib/i18n/labels";
 import {
   CAR_BODIES, DOOR_OPTIONS, DRIVETRAINS, MOTO_BODIES, ORIGINS,
 } from "@/lib/vehicle-options";
@@ -56,6 +61,12 @@ interface Form {
   unpaidVignette: boolean;
   unpaidFines: boolean;
   underLien: boolean;
+  knownIssues: string[];
+  originalPaint: boolean;
+  paintedPanels: number;
+  keysCount: number;
+  includedItems: string[];
+  saleReason: string;
 }
 
 export function EditListing({ listingRef }: { listingRef: string }) {
@@ -106,6 +117,12 @@ export function EditListing({ listingRef }: { listingRef: string }) {
       unpaidVignette: v.unpaidVignette,
       unpaidFines: v.unpaidFines,
       underLien: v.underLien,
+      knownIssues: v.knownIssues ?? [],
+      originalPaint: v.originalPaint,
+      paintedPanels: v.paintedPanels ?? 0,
+      keysCount: v.keysCount ?? 2,
+      includedItems: v.includedItems ?? [],
+      saleReason: v.saleReason ?? "",
     });
   }, [v, form]);
 
@@ -429,6 +446,48 @@ export function EditListing({ listingRef }: { listingRef: string }) {
             </label>
           ))}
         </div>
+
+        {/* ---------- مشاكل حالية معروفة ---------- */}
+        <div className="rounded-xl p-3.5 space-y-2" style={{ background: "var(--warn-soft)" }}>
+          <span className="flex items-center gap-1.5 text-xs font-bold">
+            <AlertTriangle size={13} style={{ color: "var(--warn)" }} />
+            {e.docs.knownIssuesTitle}
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {KNOWN_ISSUES.map((issue) => {
+              const on = form.knownIssues.includes(issue);
+              return (
+                <button key={issue} type="button" onClick={() => set({
+                  knownIssues: on ? form.knownIssues.filter((x) => x !== issue) : [...form.knownIssues, issue],
+                })} aria-pressed={on} className="chip transition"
+                  style={{
+                    background: on ? "var(--warn)" : "var(--surface-1)",
+                    color: on ? "#fff" : "var(--text-muted)",
+                    borderColor: "transparent",
+                  }}>
+                  {on ? <Check size={11} /> : <Plus size={11} />}{knownIssueLabel(issue, locale)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-lg p-3" style={{ background: "var(--surface-3)" }}>
+          <label className="flex cursor-pointer items-center gap-2.5">
+            <input type="checkbox" checked={form.originalPaint}
+              onChange={(ev) => set({ originalPaint: ev.target.checked })}
+              className="h-4 w-4" />
+            <span className="flex-1 text-xs">{e.docs.originalPaint}</span>
+          </label>
+          {!form.originalPaint && (
+            <div className="mt-2.5">
+              <label className="label" htmlFor="ed-painted-panels">{e.docs.paintedPanelsLabel}</label>
+              <input id="ed-painted-panels" type="number" min={1} max={20} className="field num" dir="ltr"
+                value={form.paintedPanels}
+                onChange={(ev) => set({ paintedPanels: Math.max(0, Number(ev.target.value) || 0) })} />
+            </div>
+          )}
+        </div>
       </section>
 
       {/* ---------- الوصف والتجهيزات ---------- */}
@@ -440,6 +499,40 @@ export function EditListing({ listingRef }: { listingRef: string }) {
           </label>
           <textarea id="ed-desc" className="field min-h-32" value={form.description}
             onChange={(ev) => set({ description: ev.target.value })} />
+        </div>
+        <div>
+          <label className="label" htmlFor="ed-sale-reason">{e.saleReasonLabel}</label>
+          <input id="ed-sale-reason" className="field" value={form.saleReason} maxLength={300}
+            onChange={(ev) => set({ saleReason: ev.target.value })} />
+        </div>
+        <div>
+          <label className="label" htmlFor="ed-keys">{e.keysCountLabel}</label>
+          <input id="ed-keys" type="number" min={0} max={10} className="field num" dir="ltr"
+            value={form.keysCount}
+            onChange={(ev) => set({ keysCount: Math.max(0, Number(ev.target.value) || 0) })} />
+        </div>
+        <div>
+          <span className="label">{e.includedItemsLabel} ({form.includedItems.length})</span>
+          <div className="flex flex-wrap gap-1.5">
+            {INCLUDED_ITEMS.map((item) => {
+              const on = form.includedItems.includes(item);
+              return (
+                <button key={item} type="button" aria-pressed={on} className="chip transition"
+                  onClick={() => set({
+                    includedItems: on
+                      ? form.includedItems.filter((x) => x !== item)
+                      : [...form.includedItems, item],
+                  })}
+                  style={{
+                    background: on ? "var(--brand)" : "var(--surface-3)",
+                    color: on ? "var(--brand-ink)" : "var(--text-muted)",
+                    borderColor: "transparent",
+                  }}>
+                  {on ? <Check size={11} /> : <Plus size={11} />}{includedItemLabel(item, locale)}
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div>
           <span className="label">{e.equipmentLabel} ({form.equipment.length})</span>

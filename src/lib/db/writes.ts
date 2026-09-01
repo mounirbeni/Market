@@ -51,6 +51,13 @@ export interface NewListing {
   unpaidVignette: boolean;
   unpaidFines: boolean;
   underLien: boolean;
+  knownIssues: string[];
+  originalPaint: boolean;
+  paintedPanels?: number | null;
+  keysCount?: number | null;
+  includedItems: string[];
+  saleReason?: string | null;
+  sellerDeclared: boolean;
   description: string;
   equipment: string[];
   negotiable: boolean;
@@ -115,7 +122,9 @@ export async function createListing(sellerId: string, v: NewListing) {
        equipment, negotiable, exchange_accepted, trust_score, fair_price_mad,
        fair_price_delta, photo_count, has_video, drivetrain, origin,
        accident_declared, accident_note,
-       unpaid_vignette, unpaid_fines, under_lien, published_at)
+       unpaid_vignette, unpaid_fines, under_lien,
+       known_issues, original_paint, painted_panels, keys_count,
+       included_items, sale_reason, seller_declared, published_at)
      SELECT
        r.ref,
        $2 || '-' || $3 || '-' || $4::text || '-' || r.ref,
@@ -127,7 +136,9 @@ export async function createListing(sellerId: string, v: NewListing) {
        $32::bool, $33::smallint, $34::int, $35::numeric, $36::smallint,
        $37::bool, $38::drivetrain_type, $39::origin_type,
        $40::bool, $41,
-       $42::bool, $43::bool, $44::bool, now()
+       $42::bool, $43::bool, $44::bool,
+       $45::text[], $46::bool, $47::smallint, $48::smallint,
+       $49::text[], $50, $51::bool, now()
      FROM r
      RETURNING id, ref, slug`,
     [
@@ -142,6 +153,8 @@ export async function createListing(sellerId: string, v: NewListing) {
       v.photoCount, v.hasVideo, v.drivetrain ?? null, v.origin ?? null,
       v.accidentDeclared, v.accidentNote ?? null,
       v.unpaidVignette, v.unpaidFines, v.underLien,
+      v.knownIssues, v.originalPaint, v.paintedPanels ?? null, v.keysCount ?? null,
+      v.includedItems, v.saleReason ?? null, v.sellerDeclared,
     ],
   );
   if (!row) throw new WriteError("INSERT_FAILED");
@@ -262,6 +275,12 @@ export interface ListingEdit {
   unpaidVignette: boolean;
   unpaidFines: boolean;
   underLien: boolean;
+  knownIssues: string[];
+  originalPaint: boolean;
+  paintedPanels: number | null;
+  keysCount: number | null;
+  includedItems: string[];
+  saleReason: string | null;
   description: string;
   equipment: string[];
   negotiable: boolean;
@@ -298,6 +317,9 @@ export async function updateListing(sellerId: string, ref: string, p: ListingEdi
        drivetrain = $27::drivetrain_type, origin = $28::origin_type,
        accident_declared = $29::bool, accident_note = $30,
        unpaid_vignette = $31::bool, unpaid_fines = $32::bool, under_lien = $33::bool,
+       known_issues = $34::text[], original_paint = $35::bool,
+       painted_panels = $36::smallint, keys_count = $37::smallint,
+       included_items = $38::text[], sale_reason = $39,
        updated_at = now()
      WHERE id = $1`,
     [
@@ -309,6 +331,8 @@ export async function updateListing(sellerId: string, ref: string, p: ListingEdi
       p.fairPriceDelta.toFixed(4), p.drivetrain, p.origin,
       p.accidentDeclared, p.accidentNote,
       p.unpaidVignette, p.unpaidFines, p.underLien,
+      p.knownIssues, p.originalPaint, p.paintedPanels, p.keysCount,
+      p.includedItems, p.saleReason,
     ],
   );
   return { slug: l.slug };

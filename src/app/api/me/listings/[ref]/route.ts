@@ -109,6 +109,15 @@ export async function PATCH(
   const accidentDeclared = Boolean(e.accidentDeclared);
   const accidentNote = accidentDeclared ? text(e.accidentNote, 500) : "";
 
+  const knownIssues = (Array.isArray(e.knownIssues) ? e.knownIssues : [])
+    .slice(0, 20).map((x) => text(x, 60)).filter(Boolean);
+  const includedItems = (Array.isArray(e.includedItems) ? e.includedItems : [])
+    .slice(0, 20).map((x) => text(x, 60)).filter(Boolean);
+  const originalPaint = e.originalPaint !== false;
+  const paintedPanels = originalPaint ? null : clampInt(e.paintedPanels, 0, 20, 0);
+  const keysCount = Number.isFinite(Number(e.keysCount)) ? clampInt(e.keysCount, 0, 10, 2) : null;
+  const saleReason = text(e.saleReason, 300) || null;
+
   /* نفس منطق النشر: الثقة والثمن المرجعي كيتحسبو فالخادم من
      إعلانات حقيقية — بلا هادشي المستخدم كيقدر يبعث نقطة مزوّرة. */
   const draft: Vehicle = {
@@ -146,6 +155,13 @@ export async function PATCH(
     unpaidVignette: Boolean(e.unpaidVignette),
     unpaidFines: Boolean(e.unpaidFines),
     underLien: Boolean(e.underLien),
+    knownIssues,
+    originalPaint,
+    paintedPanels,
+    keysCount,
+    includedItems,
+    saleReason,
+    sellerDeclared: true,
     description: text(e.description, 4000),
     equipment: (Array.isArray(e.equipment) ? e.equipment : [])
       .slice(0, 40).map((x) => text(x, 60)).filter(Boolean),
@@ -201,6 +217,12 @@ export async function PATCH(
       unpaidVignette: draft.unpaidVignette,
       unpaidFines: draft.unpaidFines,
       underLien: draft.underLien,
+      knownIssues: draft.knownIssues,
+      originalPaint: draft.originalPaint,
+      paintedPanels: draft.paintedPanels ?? null,
+      keysCount: draft.keysCount ?? null,
+      includedItems: draft.includedItems,
+      saleReason: draft.saleReason ?? null,
       description: draft.description,
       equipment: draft.equipment,
       negotiable: draft.negotiable,
