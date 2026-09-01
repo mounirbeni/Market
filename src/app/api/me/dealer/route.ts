@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-import { body, dbMissing, ok, unauthorized, writeFail } from "@/lib/api";
+import { body, dbMissing, fail, ok, unauthorized, writeFail } from "@/lib/api";
 import { CITIES } from "@/lib/cities";
 
 export const runtime = "nodejs";
@@ -26,6 +26,9 @@ export async function POST(req: Request) {
 
   const user = await getCurrentUser();
   if (!user) return unauthorized();
+  /* المعرض مخصص للبائعين المحترفين — حساب "خاص" خاصو يبدّل النوع
+     فالإعدادات أولاً (دفاع مضاعف: الواجهة كتخبّي الفورمير كيفكيف) */
+  if (user.type !== "professionnel") return fail("خاصك تبدّل الحساب لـ«بائع محترف» أولاً باش تصاوب معرض.", 403);
 
   const b = await body<Record<string, unknown>>(req);
   const name = text(b?.name, 80);

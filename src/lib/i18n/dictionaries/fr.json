@@ -2358,6 +2358,9 @@
   },
   "dealerForm": {
     "metaTitle": "Ma concession",
+    "needsProTitle": "La concession est réservée aux vendeurs professionnels",
+    "needsProLead": "Pour créer une concession, votre compte doit être « vendeur professionnel ». Changez le type de compte dans les paramètres, puis revenez ici.",
+    "goToSettings": "Changer le type de compte",
     "defaultHours": "Lundi – Samedi · 9h00 — 19h00",
     "editTitle": "Le profil de votre concession",
     "createTitle": "Créez un profil de concession",
