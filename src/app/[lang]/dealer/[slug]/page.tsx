@@ -81,7 +81,7 @@ export default async function DealerPage({ params }: { params: Promise<{ lang: s
       </div>
 
       <div className="mx-auto max-w-[1200px] px-4">
-        <div className="-mt-14 flex flex-wrap items-end gap-4">
+        <div className="relative z-10 -mt-14 flex flex-wrap items-end gap-4">
           <span
             className="grid h-24 w-24 shrink-0 place-items-center rounded-3xl border-4 text-4xl font-extrabold"
             style={{ background: "var(--surface-1)", borderColor: "var(--bg)", color: "var(--brand)" }}

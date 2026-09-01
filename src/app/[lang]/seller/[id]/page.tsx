@@ -77,7 +77,7 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
       </div>
 
       <div className="mx-auto max-w-[1200px] px-4">
-        <div className="-mt-12 flex flex-wrap items-end gap-4">
+        <div className="relative z-10 -mt-12 flex flex-wrap items-end gap-4">
           <Avatar
             src={seller.avatarUrl}
             name={displayName}
