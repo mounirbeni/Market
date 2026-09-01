@@ -36,7 +36,7 @@ const text = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
  */
 function isOwnBlobUrl(url: string, userId: string) {
   // غير الرابط الوسيط ديالنا مقبول؛ الرابط المباشر لـBlob أو أي موقع آخر
-  // يقدر يجيب صورة بلا علامة مائية، لذلك كنرفضوه حتى لو كان HTTPS.
+  // يقدر يجيب صورة خارجة على النطاق ديالنا أو رابط تتبّع، لذلك كنرفضوه حتى لو كان HTTPS.
   const pathname = pathnameFromMediaUrl(url);
   return Boolean(pathname && pathname.startsWith(`listings/${userId}/`));
 }

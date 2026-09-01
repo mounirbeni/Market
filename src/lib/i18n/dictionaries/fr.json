@@ -2715,7 +2715,6 @@
     "disabledA": "Le téléversement de photos n'est pas configuré dans cette version (nécessite",
     "disabledB": "). Vous pouvez compléter l'annonce maintenant et ajouter les photos plus tard.",
     "label": "Photos du véhicule",
-    "watermarkNote": "Vos photos sont enregistrées avec un filigrane TRIQ pour compliquer leur réutilisation.",
     "cover": "Couverture",
     "makeCoverAria": "Définir comme photo de couverture",
     "removePhotoAria": "Supprimer la photo",

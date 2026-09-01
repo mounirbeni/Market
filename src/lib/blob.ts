@@ -77,7 +77,7 @@ export function mediaPath(userId: string, filename: string) {
   return `listings/${userId}/${Date.now()}.${ext || "jpg"}`;
 }
 
-/** مسار صورة الملف الشخصي / شعار النشاط — بلا علامة مائية */
+/** مسار صورة الملف الشخصي / شعار النشاط */
 export function avatarPath(userId: string, filename: string) {
   const ext = (filename.split(".").pop() ?? "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
   return `avatars/${userId}/${Date.now()}.${ext || "jpg"}`;
