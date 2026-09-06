@@ -128,7 +128,7 @@ export default async function RootLayout({
           </a>
           <Header />
           <InstallPrompt />
-          <main id="main" className="pb-[calc(4rem+env(safe-area-inset-bottom))] sm:pb-0">
+          <main id="main" className="pb-[calc(6.5rem+env(safe-area-inset-bottom))] sm:pb-0">
             {children}
           </main>
           <Footer />

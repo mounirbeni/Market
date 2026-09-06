@@ -276,30 +276,40 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 px-3 sm:hidden"
       style={{
-        background: "var(--surface-1)",
-        borderColor: "var(--line-soft)",
         // بلا هادشي الأزرار كتّغطّى بمقبض الإيماءة ديال آيفون ملي
         // التطبيق مزاد للشاشة الرئيسية
-        paddingBottom: "env(safe-area-inset-bottom)",
+        paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))",
         viewTransitionName: "site-mobile-nav",
       }}
       aria-label={t.quickNav}
     >
-      <div className="mx-auto grid max-w-md grid-cols-5">
+      <div
+        className="mx-auto grid max-w-md grid-cols-5 rounded-[26px] backdrop-blur-xl"
+        style={{
+          background:
+            "linear-gradient(100deg, rgba(8,25,47,0.94) 0%, rgba(13,42,85,0.94) 55%, rgba(18,58,114,0.94) 100%)",
+          boxShadow: "0 16px 40px -14px rgba(4,12,26,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
         {items.map(({ href, label, Icon, primary, count }) => {
           const active = pathname === href;
           if (primary) {
             return (
-              <Link key={href} href={href} className="flex flex-col items-center gap-1 py-2">
+              <Link key={href} href={href} className="relative flex flex-col items-center">
                 <span
-                  className="grid h-9 w-9 place-items-center rounded-xl"
-                  style={{ background: "var(--brand)", color: "#fff" }}
+                  className="absolute -top-6 grid h-14 w-14 place-items-center rounded-full"
+                  style={{
+                    background: "linear-gradient(145deg, #5a8ef7 0%, #1f5fe0 60%, #103fa3 100%)",
+                    boxShadow:
+                      "0 0 0 5px rgba(13,26,50,0.92), 0 10px 26px -4px rgba(31,95,224,0.75), 0 0 22px rgba(90,142,247,0.55)",
+                  }}
                 >
-                  <Icon size={19} />
+                  <Icon size={24} style={{ color: "#fff" }} />
                 </span>
-                <span className="text-[9.5px] font-bold" style={{ color: "var(--brand)" }}>{label}</span>
+                <span className="mt-8 pb-2.5 text-[9.5px] font-bold" style={{ color: "#eaf1ff" }}>{label}</span>
               </Link>
             );
           }
@@ -307,14 +317,14 @@ export function MobileNav() {
             <Link
               key={href}
               href={href}
-              className="relative flex flex-col items-center gap-1 py-2.5"
-              style={{ color: active ? "var(--brand)" : "var(--text-dim)" }}
+              className="relative flex flex-col items-center gap-1 py-3"
+              style={{ color: active ? "#8fb4ff" : "rgba(210,222,242,0.65)" }}
             >
               <Icon size={19} filled={active && href === "/favorites"} />
               <span className="text-[9.5px] font-bold">{label}</span>
               {count ? (
                 <span
-                  className="num absolute end-1/2 top-1 translate-x-4 rounded-full px-1 text-[8.5px] font-bold"
+                  className="num absolute end-1/2 top-1.5 translate-x-4 rounded-full px-1 text-[8.5px] font-bold"
                   style={{ background: "var(--bad)", color: "#fff" }}
                 >
                   {count}
