@@ -300,12 +300,17 @@ export function MobileNav() {
                   style={{
                     background: "linear-gradient(145deg, #5a8ef7 0%, #1f5fe0 60%, #103fa3 100%)",
                     boxShadow:
-                      "0 0 0 5px rgba(13,26,50,0.92), 0 10px 26px -4px rgba(31,95,224,0.75), 0 0 22px rgba(90,142,247,0.55)",
+                      "0 0 0 5px rgba(13,26,50,0.92), 0 8px 20px -4px rgba(31,95,224,0.75), 0 0 14px rgba(90,142,247,0.5)",
                   }}
                 >
                   <Icon size={24} style={{ color: "#fff" }} />
                 </span>
-                <span className="mt-8 pb-2.5 text-[9.5px] font-bold" style={{ color: "#eaf1ff" }}>{label}</span>
+                <span
+                  className="relative z-10 mt-10 pb-2.5 text-[10px] font-extrabold"
+                  style={{ color: "#ffffff", textShadow: "0 1px 3px rgba(3,9,20,0.85)" }}
+                >
+                  {label}
+                </span>
               </Link>
             );
           }
