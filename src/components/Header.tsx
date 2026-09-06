@@ -276,31 +276,27 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 px-3 sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid max-w-md grid-cols-5 rounded-t-[26px] backdrop-blur-xl sm:hidden"
       style={{
+        marginInline: "auto",
+        background:
+          "linear-gradient(100deg, rgba(8,25,47,0.97) 0%, rgba(13,42,85,0.97) 55%, rgba(18,58,114,0.97) 100%)",
+        boxShadow: "0 -6px 24px -10px rgba(4,12,26,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
         // بلا هادشي الأزرار كتّغطّى بمقبض الإيماءة ديال آيفون ملي
-        // التطبيق مزاد للشاشة الرئيسية
-        paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))",
+        // التطبيق مزاد للشاشة الرئيسية — الخلفية كتكمّل تحت المقبض
+        paddingBottom: "env(safe-area-inset-bottom)",
         viewTransitionName: "site-mobile-nav",
       }}
       aria-label={t.quickNav}
     >
-      <div
-        className="mx-auto grid max-w-md grid-cols-5 rounded-[26px] backdrop-blur-xl"
-        style={{
-          background:
-            "linear-gradient(100deg, rgba(8,25,47,0.94) 0%, rgba(13,42,85,0.94) 55%, rgba(18,58,114,0.94) 100%)",
-          boxShadow: "0 16px 40px -14px rgba(4,12,26,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
-          border: "1px solid rgba(255,255,255,0.08)",
-        }}
-      >
-        {items.map(({ href, label, Icon, primary, count }) => {
+      {items.map(({ href, label, Icon, primary, count }) => {
           const active = pathname === href;
           if (primary) {
             return (
               <Link key={href} href={href} className="relative flex flex-col items-center">
                 <span
-                  className="absolute -top-6 grid h-14 w-14 place-items-center rounded-full"
+                  className="absolute -top-6 left-1/2 grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full"
                   style={{
                     background: "linear-gradient(145deg, #5a8ef7 0%, #1f5fe0 60%, #103fa3 100%)",
                     boxShadow:
@@ -333,7 +329,6 @@ export function MobileNav() {
             </Link>
           );
         })}
-      </div>
     </nav>
   );
 }
