@@ -196,6 +196,17 @@
       "inspected": "Inspectées",
       "advSearch": "Recherche avancée"
     },
+    "quickCats": {
+      "cars": "Voitures",
+      "motos": "Motos",
+      "commercial": "Véhicules utilitaires",
+      "favorites": "Favoris"
+    },
+    "valuationBanner": {
+      "title": "Connaissez la vraie valeur avant d'acheter",
+      "subtitle": "Estimez n'importe quel véhicule en quelques secondes — un prix de référence calculé à partir d'annonces réelles similaires.",
+      "cta": "Estimer maintenant"
+    },
     "pillars": {
       "trust": {
         "title": "Indice de confiance",

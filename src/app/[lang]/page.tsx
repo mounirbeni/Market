@@ -19,9 +19,9 @@ import { findAll, getBrands, getDealerCounts, getDealers, getStats } from "@/lib
 import { CAR_BODIES, MOTO_BODIES } from "@/lib/vehicle-options";
 import { cityLabel, localizeOptions } from "@/lib/i18n/labels";
 import {
-  ArrowLeft, BadgeCheck, Calculator, Car, Clock, Coins, FileText, GUIDE_ICONS, Lock,
+  ArrowLeft, BadgeCheck, Calculator, Car, Clock, Coins, FileText, GUIDE_ICONS, Heart, Lock,
   MapPin, Message, Moto, Phone, Scale, Search, ShieldCheck, Sparkle, Star, TrendingDown,
-  Users, Wallet, Wrench,
+  Users, Van, Wallet, Wrench,
 } from "@/components/icons";
 
 const PILLARS_META = [
@@ -36,6 +36,13 @@ const QUICK_META = [
   { href: "/cars?deals=1", key: "deals", Icon: TrendingDown },
   { href: "/cars?inspected=1", key: "inspected", Icon: BadgeCheck },
   { href: "/search", key: "advSearch", Icon: Search },
+] as const;
+
+const QUICK_CATS_META = [
+  { href: "/cars", key: "cars", Icon: Car },
+  { href: "/motorcycles", key: "motos", Icon: Moto },
+  { href: "/cars?body=utilitaire", key: "commercial", Icon: Van },
+  { href: "/favorites", key: "favorites", Icon: Heart },
 ] as const;
 
 const CATEGORIES = [
@@ -93,6 +100,7 @@ export default async function HomePage() {
   const locale = await getLocale();
   const topGuides = guidesFor(locale).slice(0, 4);
   const quick = QUICK_META.map((q) => ({ ...q, label: t.quick[q.key] }));
+  const quickCats = QUICK_CATS_META.map((q) => ({ ...q, label: t.quickCats[q.key] }));
   const pillars = PILLARS_META.map((p) => ({ ...p, ...t.pillars[p.key] }));
   const trustPoints = TRUST_POINTS_META.map((p) => ({ ...p, ...t.trustPoints[p.key] }));
   const categories = localizeOptions(CATEGORIES, locale);
@@ -243,6 +251,26 @@ export default async function HomePage() {
         <div className="relative z-10 mx-auto -mt-28 max-w-[1400px] px-4 sm:-mt-32">
           <HeroSearch carBrands={carBrands} motoBrands={motoBrands} cities={topCities} />
 
+          {/* صف أيقونات فئات سريع — تجربة بحال تطبيق الهاتف */}
+          <div className="mt-6 grid grid-cols-4 gap-2.5 sm:hidden">
+            {quickCats.map(({ href, label, Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                transitionTypes={["nav-forward"]}
+                className="card card-hover flex flex-col items-center gap-2 py-4"
+              >
+                <span
+                  className="grid h-11 w-11 place-items-center rounded-full"
+                  style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+                >
+                  <Icon size={19} />
+                </span>
+                <span className="text-[11px] font-bold">{label}</span>
+              </Link>
+            ))}
+          </div>
+
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             {quick.map(({ href, label, Icon }) => (
               <Link
@@ -261,6 +289,36 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
+
+          {/* بانر التقييم — دعوة بارزة لمعرفة القيمة الحقيقية قبل الشراء */}
+          <Link
+            href="/valuation"
+            transitionTypes={["nav-forward"]}
+            className="card card-hover mt-6 flex items-center gap-4 overflow-hidden p-5"
+            style={{ background: "var(--brand-soft)", borderColor: "var(--line-soft)" }}
+          >
+            <span
+              className="grid h-12 w-12 shrink-0 place-items-center rounded-xl"
+              style={{ background: "var(--surface-1)", color: "var(--brand)" }}
+            >
+              <Wallet size={22} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[13.5px] font-bold leading-snug">{t.valuationBanner.title}</h3>
+              <p
+                className="mt-1 overflow-hidden text-[11.5px] leading-relaxed"
+                style={{ color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
+              >
+                {t.valuationBanner.subtitle}
+              </p>
+            </div>
+            <span
+              className="flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2.5 text-[12px] font-bold"
+              style={{ background: "var(--brand)", color: "#fff" }}
+            >
+              {t.valuationBanner.cta} <ArrowLeft size={13} className="dir-flip" />
+            </span>
+          </Link>
         </div>
 
         {/* الإحصائيات */}
