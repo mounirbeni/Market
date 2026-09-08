@@ -533,6 +533,11 @@
     "paintOriginal": "D'origine",
     "paintRepainted": "{n} élément(s) repeint(s)",
     "descTitle": "Description du vendeur",
+    "quickStats": {
+      "trust": "Indice de confiance",
+      "vsMarket": "Vs marché",
+      "perMonth": "DH / mois"
+    },
     "spec": {
       "year": "Année",
       "km": "Kilométrage",

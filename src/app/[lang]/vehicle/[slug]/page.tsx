@@ -7,6 +7,7 @@ import {
 } from "@/lib/source";
 import { fairPriceFrom, trustOf, trustScore } from "@/lib/market";
 import { vehicleHighlights } from "@/lib/highlights";
+import { computeTco } from "@/lib/tco";
 import { formatNumber } from "@/lib/format";
 import { jsonLdHtml } from "@/lib/jsonLd";
 import { dictionaryOf, getDictionary, getLocale } from "@/lib/i18n/server";
@@ -31,9 +32,9 @@ import { Price } from "@/components/Price";
 import { Mixed } from "@/components/Mixed";
 import { TrustRing } from "@/components/TrustBadge";
 import {
-  AlertTriangle, AutoGear, BadgeCheck, Calendar, Check, ChevronLeft, ClipboardCheck, Clock, Door,
+  AlertTriangle, AutoGear, BadgeCheck, Calculator, Calendar, Check, ChevronLeft, ClipboardCheck, Clock, Door,
   Driveshaft, Droplet, EQUIPMENT_ICONS, Eye, Flag, FUEL_ICONS, Heart, Horsepower, Key, MapPin,
-  Odometer, OilCan, Palette, Piston, Road, Scale, Seat, Sparkle,
+  Odometer, OilCan, Palette, Piston, Road, Scale, Seat, ShieldCheck, Sparkle,
   Transmission, TrendingDown, Users,
 } from "@/components/icons";
 import { VehicleGlyph } from "@/components/VehicleArt";
@@ -102,6 +103,7 @@ export default async function VehiclePage({
   // إشارة التكرار كتحتاج الإعلانات الأخرى ديال نفس البائع
   const duplicates = await getDuplicateCount(v);
   const trust = trustScore(v, seller, fp);
+  const tco = computeTco(v, { kmPerYear: 15000, years: 3, coverage: "tiers", includeDepreciation: false });
   // المشابهة: نفس الماركة/الهيكل/المدينة وقرب الثمن والسنة
   const similar = await getSimilarVehicles(v, 4);
   const sellerStats = await getSellerStats(v.sellerId);
@@ -237,6 +239,28 @@ export default async function VehiclePage({
               </div>
             </div>
           </header>
+
+          {/* صف بطاقات سريع: مؤشر الثقة، مقابل السوق، التكلفة الشهرية */}
+          <div className="grid grid-cols-3 gap-2.5 sm:hidden">
+            {[
+              { label: t.vehicle.quickStats.trust, value: `${trust.score}/100`, color: "var(--good)", Icon: ShieldCheck },
+              {
+                label: t.vehicle.quickStats.vsMarket,
+                value: `${fp.delta < 0 ? "−" : "+"}${Math.abs(Math.round(fp.delta * 100))}${t.fairPrice.percent}`,
+                color: fp.delta < 0 ? "var(--good)" : "var(--bad)",
+                Icon: Scale,
+              },
+              { label: t.vehicle.quickStats.perMonth, value: formatNumber(tco.perMonth), color: "var(--data)", Icon: Calculator },
+            ].map((st) => (
+              <div key={st.label} className="card p-3 text-center">
+                <st.Icon size={16} className="mx-auto" style={{ color: st.color }} />
+                <div className="num mt-1.5 text-[14px] font-extrabold" style={{ color: st.color }}>
+                  {st.value}
+                </div>
+                <div className="mt-0.5 truncate text-[9.5px]" style={{ color: "var(--text-dim)" }}>{st.label}</div>
+              </div>
+            ))}
+          </div>
 
           <FairPriceMeter fp={fp} />
 

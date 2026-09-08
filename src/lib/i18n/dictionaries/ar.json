@@ -533,6 +533,11 @@
     "paintOriginal": "أصلية",
     "paintRepainted": "{n} جزء متصبّغ",
     "descTitle": "وصف البائع",
+    "quickStats": {
+      "trust": "مؤشر الثقة",
+      "vsMarket": "مقابل السوق",
+      "perMonth": "د.م / شهر"
+    },
     "spec": {
       "year": "سنة الصنع",
       "km": "الكيلومتراج",
