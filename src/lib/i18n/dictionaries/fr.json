@@ -843,6 +843,11 @@
     "registerTitle": "Créer un compte",
     "registerDesc": "Créez un compte gratuit sur TRIQ : publiez vos annonces, enregistrez des véhicules et recevez des alertes de prix.",
     "genericError": "Une erreur est survenue.",
+    "welcome": {
+      "title": "Bienvenue sur tariq",
+      "lead": "tariq est le marché marocain des voitures et motos. Découvrez en quelques étapes comment chercher, acheter ou vendre en toute confiance.",
+      "getStarted": "Commencer"
+    },
     "heading": {
       "login": "Connexion",
       "register": "Créer un compte"
