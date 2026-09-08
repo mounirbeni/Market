@@ -56,23 +56,50 @@ export default async function InspectionPage() {
 
   const total = SECTIONS.reduce((s, x) => s + x.points, 0);
 
+  const BENEFITS = [
+    { Icon: ShieldCheck, label: `${total} ${t.inspectionPage.benefits.points}` },
+    { Icon: FileText, label: t.inspectionPage.benefits.report },
+    { Icon: Wrench, label: t.inspectionPage.benefits.mechanic },
+    { Icon: MapPin, label: t.inspectionPage.benefits.coverage },
+  ];
+
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-12">
-      <header className="mb-14 max-w-2xl">
+      <header className="mb-10 flex max-w-2xl flex-col items-center text-center sm:mx-auto">
+        <span
+          className="mb-5 grid h-16 w-16 place-items-center rounded-2xl"
+          style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+        >
+          <Shield size={30} />
+        </span>
         <span className="eyebrow"><Wrench size={13} /> {t.inspectionPage.eyebrow}</span>
         <h1 className="h-page mt-4">{t.inspectionPage.title}</h1>
         <p className="mt-4 text-[15px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
           <span className="num">{total}</span> {t.inspectionPage.leadA}
         </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link href="/vehicles?inspected=1" className="btn btn-primary">
-            <BadgeCheck size={16} /> {t.inspectionPage.seeInspected}
-          </Link>
-          <Link href="/vehicles" className="btn btn-ghost">
+        <div className="mt-7 flex flex-wrap justify-center gap-3">
+          <Link href="/vehicles" className="btn btn-primary btn-lg">
             {t.inspectionPage.requestInspection} <ArrowLeft size={15} className="dir-flip" />
+          </Link>
+          <Link href="/vehicles?inspected=1" className="btn btn-ghost btn-lg">
+            <BadgeCheck size={16} /> {t.inspectionPage.seeInspected}
           </Link>
         </div>
       </header>
+
+      <div className="mb-16 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {BENEFITS.map((b) => (
+          <div key={b.label} className="card flex flex-col items-center gap-2.5 p-5 text-center">
+            <span
+              className="grid h-11 w-11 place-items-center rounded-xl"
+              style={{ background: "var(--brand-soft)", color: "var(--brand)" }}
+            >
+              <b.Icon size={20} />
+            </span>
+            <span className="text-[12px] font-bold leading-snug">{b.label}</span>
+          </div>
+        ))}
+      </div>
 
       <section className="mb-16">
         <h2 className="h-section mb-7">{t.inspectionPage.howTitle}</h2>

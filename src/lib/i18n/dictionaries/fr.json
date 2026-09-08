@@ -1324,6 +1324,12 @@
     "metaDesc": "Demandez une inspection mécanique indépendante de 120 points avant d'acheter une voiture ou moto d'occasion au Maroc : rapport détaillé avec photos et lecture des codes défaut.",
     "eyebrow": "Service indépendant · pas du vendeur",
     "title": "N'achetez pas les yeux fermés — achetez avec un rapport",
+    "benefits": {
+      "points": "points de contrôle",
+      "report": "Rapport détaillé avec photos",
+      "mechanic": "Mécanicien indépendant certifié",
+      "coverage": "Disponible dans la plupart des villes"
+    },
     "leadA": "points de contrôle réalisés par un mécanicien indépendant, sans aucun lien avec le vendeur. Le résultat vous parvient directement, et reste joint à l'annonce pour rassurer les autres acheteurs.",
     "seeInspected": "Voir les véhicules inspectés",
     "requestInspection": "Demander une inspection pour une annonce",
