@@ -269,14 +269,14 @@ export function MobileNav() {
   const items = [
     { href: "/", label: t.home, Icon: ShieldCheck },
     { href: "/search", label: t.searchShort, Icon: Search },
-    { href: "/sell", label: t.sellShort, Icon: Plus, primary: true },
+    { href: "/sell", label: t.sellShort, Icon: Plus },
     { href: "/favorites", label: t.favorites, Icon: Heart, count: favorites.length },
     { href: user ? "/dashboard" : "/login", label: t.account, Icon: Users },
   ];
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 grid max-w-md grid-cols-5 rounded-t-[26px] backdrop-blur-xl sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 grid max-w-md grid-cols-5 backdrop-blur-xl sm:hidden"
       style={{
         marginInline: "auto",
         background:
@@ -290,50 +290,36 @@ export function MobileNav() {
       }}
       aria-label={t.quickNav}
     >
-      {items.map(({ href, label, Icon, primary, count }) => {
-          const active = pathname === href;
-          if (primary) {
-            return (
-              <Link key={href} href={href} className="relative flex flex-col items-center">
-                <span
-                  className="absolute -top-6 left-1/2 grid h-14 w-14 -translate-x-1/2 place-items-center rounded-full"
-                  style={{
-                    background: "linear-gradient(145deg, #5a8ef7 0%, #1f5fe0 60%, #103fa3 100%)",
-                    boxShadow:
-                      "0 0 0 5px rgba(13,26,50,0.92), 0 8px 20px -4px rgba(31,95,224,0.75), 0 0 14px rgba(90,142,247,0.5)",
-                  }}
-                >
-                  <Icon size={24} style={{ color: "#fff" }} />
-                </span>
-                <span
-                  className="relative z-10 mt-10 pb-2.5 text-[10px] font-extrabold"
-                  style={{ color: "#ffffff", textShadow: "0 1px 3px rgba(3,9,20,0.85)" }}
-                >
-                  {label}
-                </span>
-              </Link>
-            );
-          }
-          return (
-            <Link
-              key={href}
-              href={href}
-              className="relative flex flex-col items-center gap-1 py-3"
-              style={{ color: active ? "#8fb4ff" : "rgba(210,222,242,0.65)" }}
+      {items.map(({ href, label, Icon, count }) => {
+        const active = pathname === href;
+        return (
+          <Link key={href} href={href} className="relative flex flex-col items-center gap-1 py-2.5">
+            <span
+              className="grid h-8 w-8 place-items-center rounded-xl transition"
+              style={{
+                background: active ? "rgba(90,142,247,0.22)" : "transparent",
+                color: active ? "#8fb4ff" : "rgba(210,222,242,0.65)",
+              }}
             >
               <Icon size={19} filled={active && href === "/favorites"} />
-              <span className="text-[9.5px] font-bold">{label}</span>
-              {count ? (
-                <span
-                  className="num absolute end-1/2 top-1.5 translate-x-4 rounded-full px-1 text-[8.5px] font-bold"
-                  style={{ background: "var(--bad)", color: "#fff" }}
-                >
-                  {count}
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
+            </span>
+            <span
+              className="text-[9.5px] font-bold"
+              style={{ color: active ? "#8fb4ff" : "rgba(210,222,242,0.65)" }}
+            >
+              {label}
+            </span>
+            {count ? (
+              <span
+                className="num absolute end-1/2 top-1 translate-x-4 rounded-full px-1 text-[8.5px] font-bold"
+                style={{ background: "var(--bad)", color: "#fff" }}
+              >
+                {count}
+              </span>
+            ) : null}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
