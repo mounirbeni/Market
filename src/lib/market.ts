@@ -1,32 +1,9 @@
 import type { Condition, Seller, Vehicle } from "./types";
 import { formatNumber } from "./format";
 
-export const CURRENT_YEAR = 2026;
+import { controlIsValid, todayInMorocco } from "./dates";
 
-/* ============================================================
-   الفحص التقني
-
-   كانت المقارنة بتاريخ ثابت مكتوب فالكود ("2026-08-24") — يعني
-   فحص منتهي كيبقى محسوب صالحاً كل ما مشا الوقت. القاعدة وحدة
-   وفبلاصة وحدة دابا: صالح = التاريخ مازال جاي.
-   ============================================================ */
-
-/** واش الفحص التقني مازال صالح دابا؟ */
-export const technicalControlValid = (date: string | null | undefined): boolean => {
-  const t = date ? new Date(date).getTime() : NaN;
-  return Number.isFinite(t) && t > Date.now();
-};
-
-/**
- * البائع كيصرّح ببوليان («الفحص التقني صالح») ماشي بتاريخ. حتى
- * يولّي عندنا حقل تاريخ حقيقي، كنصنعو تاريخاً نسبياً للوقت الحالي
- * — بلا هادشي التواريخ الثابتة كتقادم وكتقلب المعنى وحدها.
- */
-export const technicalControlDate = (valid: boolean, now = new Date()): string => {
-  const d = new Date(now);
-  d.setMonth(d.getMonth() + (valid ? 12 : -1));
-  return d.toISOString().slice(0, 10);
-};
+export const CURRENT_YEAR = Number(todayInMorocco().slice(0, 4));
 
 const COND_MULT: Record<Condition, number> = {
   excellent: 1.07,
@@ -290,40 +267,13 @@ const verdictOf = (delta: number): PriceVerdict =>
  */
 export function fairPriceOf(v: Vehicle): FairPrice {
   const mid = v.fairPriceMad ?? 0;
-  if (!mid) {
-    return {
-      estimate: { low: 0, mid: 0, high: 0, confidence: 0, sampleSize: 0, comparables: [] },
-      weak: true,
-      delta: 0,
-      deltaDh: 0,
-      verdict: "juste",
-      label: "مراجع محدودة",
-      position: 0.5,
-    };
-  }
-
-  const delta = v.fairPriceDelta ?? (v.price - mid) / mid;
-  const spread = 0.1;
-  const estimate: Estimate = {
-    low: Math.round((mid * (1 - spread)) / 500) * 500,
-    mid,
-    high: Math.round((mid * (1 + spread)) / 500) * 500,
-    confidence: 0.7,
-    sampleSize: 3,
+  const meta = v.fairPriceMeta;
+  // Legacy rows have no evidence metadata. Keep them explicitly weak.
+  return fairPriceFrom(v, {
+    low: meta?.low ?? mid, mid, high: meta?.high ?? mid,
+    confidence: meta?.confidence ?? 0, sampleSize: meta?.sampleSize ?? 0,
     comparables: [],
-  };
-  const verdict = verdictOf(delta);
-  const span = estimate.high - estimate.low || 1;
-
-  return {
-    estimate,
-    weak: false,
-    delta,
-    deltaDh: Math.round(v.price - mid),
-    verdict,
-    label: VERDICTS[verdict],
-    position: Math.max(0, Math.min(1, (v.price - estimate.low) / span)),
-  };
+  });
 }
 
 /** حساب كامل — كيحتاج إعلانات مشابهة حقيقية، فكيتّنادى غير فالخادم */
@@ -376,15 +326,17 @@ export interface TrustResult {
   strengths: string[];
 }
 
-function kmPerYear(v: Vehicle) {
-  return v.km / Math.max(1, CURRENT_YEAR - v.year);
+function kmPerYear(v: Vehicle, year: number) {
+  return v.km / Math.max(1, year - v.year);
 }
 
 export function trustScore(
   v: Vehicle,
   sellerOverride?: Seller,
   fairPriceOverride?: FairPrice,
+  today = todayInMorocco(),
 ): TrustResult {
+  const currentYear = Number(today.slice(0, 4));
   /* بلا معلومات على البائع كنحسبو بأقل التقديرات — بائع جديد
      بلا توثيق. أحسن من أن نفترض سمعة ماكايناش. */
   const seller: Seller = sellerOverride ??
@@ -393,7 +345,7 @@ export function trustScore(
       name: "بائع",
       type: "particulier",
       city: v.city,
-      since: CURRENT_YEAR,
+      since: currentYear,
       idVerified: false,
       phoneVerified: false,
       rating: null,
@@ -414,7 +366,7 @@ export function trustScore(
   // على رقم مختلق. seller.rating == null فكل الحسابات دابا (لا
   // كتابة حقيقية للعمود)، فهاد الجزء مؤقتاً معطّل.
   if (seller.rating != null) sellerScore += Math.round(((seller.rating - 3.5) / 1.5) * 4);
-  const seniority = Math.min(4, Math.max(0, CURRENT_YEAR - seller.since));
+  const seniority = Math.min(4, Math.max(0, currentYear - seller.since));
   sellerScore += seniority;
   sellerScore = Math.max(0, Math.min(20, sellerScore));
   parts.push({
@@ -436,7 +388,7 @@ export function trustScore(
   if (v.papersOk) docs += 8;
   else flags.push({ level: "danger", k: "papersBad" });
   if (v.vinChecked) docs += 6;
-  const tcValid = technicalControlValid(v.technicalControl);
+  const tcValid = controlIsValid(v.technicalControl, today);
   if (tcValid) docs += 6;
   else flags.push({ level: "warn", k: "tcExpiring" });
   /* التزامات مالية/قانونية معلّقة كتنتقل للمشتري — خصم حقيقي من
@@ -460,7 +412,7 @@ export function trustScore(
   let history = 0;
   if (v.serviceBook) history += 7;
   history += v.owners === 1 ? 7 : v.owners === 2 ? 5 : v.owners === 3 ? 2 : 0;
-  const accident = v.history.some((h) => h.type === "accident");
+  const accident = v.hasAccidentHistory || v.history.some((h) => h.type === "accident");
   if (!accident) history += 4;
   else flags.push({ level: "info", k: "accidentDeclared" });
   if (v.owners >= 4) flags.push({ level: "warn", k: "manyOwners", vars: { n: String(v.owners) } });
@@ -482,7 +434,8 @@ export function trustScore(
      ولكن ماشي شرط، الهدف بائع يقدر يوصل للنقطة الكاملة بسرعة */
   transp += v.photos >= 6 ? 7 : v.photos >= 3 ? 4 : 2;
   if (v.hasVideo) transp += 4;
-  transp += v.description.length > 220 ? 3 : v.description.length > 120 ? 2 : 0;
+  const descriptionLength = Array.from(v.description).length;
+  transp += descriptionLength > 220 ? 3 : descriptionLength > 120 ? 2 : 0;
   transp += v.equipment.length >= 8 ? 4 : v.equipment.length >= 4 ? 2 : 1;
   transp = Math.min(18, transp);
   if (v.photos < 3) flags.push({ level: "warn", k: "fewPhotos" });
@@ -504,7 +457,7 @@ export function trustScore(
 
   // 5) اتساق المعطيات — 14
   let coherence = 0;
-  const kpy = kmPerYear(v);
+  const kpy = kmPerYear(v, currentYear);
   const lo = v.kind === "car" ? 6000 : 2500;
   const hi = v.kind === "car" ? 30000 : 14000;
   if (kpy >= lo && kpy <= hi) coherence += 8;
@@ -571,13 +524,13 @@ export function trustColor(score: number): string {
    حساب جديد. ونفس الكائن (إعادة رسم React) كيرجع من الذاكرة.
    والكائنات القديمة كيمسحهم جامع القمامة بوحدو.
    ------------------------------------------------ */
-const tsCache = new WeakMap<Vehicle, TrustResult>();
+const tsCache = new WeakMap<Vehicle, { day: string; value: TrustResult }>();
 
 export function trustOf(v: Vehicle): TrustResult {
-  let x = tsCache.get(v);
-  if (!x) {
-    x = trustScore(v);
-    tsCache.set(v, x);
-  }
-  return x;
+  const day = todayInMorocco();
+  const cached = tsCache.get(v);
+  if (cached?.day === day) return cached.value;
+  const value = trustScore(v, undefined, undefined, day);
+  tsCache.set(v, { day, value });
+  return value;
 }

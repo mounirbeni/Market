@@ -1,6 +1,8 @@
+import { technicalControlDate } from "@/lib/dates";
+import { rowToSeller, sellerById } from "@/lib/db/listings";
 import { getCurrentUser } from "@/lib/auth";
 import { body, dbMissing, fail, ok, unauthorized, writeFail } from "@/lib/api";
-import { fairPrice, technicalControlDate, trustScore } from "@/lib/market";
+import { fairPrice, trustScore } from "@/lib/market";
 import { comparablesFor } from "@/lib/source";
 import type { Body, Condition, Fuel, Gearbox, Vehicle } from "@/lib/types";
 import type { NewListing } from "@/lib/db/writes";
@@ -63,7 +65,8 @@ export interface CreateBody {
   city?: string;
   condition?: string;
   papersOk?: boolean;
-  technicalControlValid?: boolean;
+  technicalControl?: string | null;
+  inspected?: boolean;
   serviceBook?: boolean;
   vinChecked?: boolean;
   accidentDeclared?: boolean;
@@ -132,6 +135,9 @@ export async function POST(req: Request) {
   if (price < 1000) return fail("الثمن ماشي معقول.");
 
   const owners = clampInt(b.owners, 1, 20, 1);
+  let technicalControl: string | null;
+  try { technicalControl = technicalControlDate(b.technicalControl); }
+  catch { return fail("تاريخ انتهاء الفحص التقني ماشي صحيح.", 400); }
 
   /* التصريح بحادث/إصلاح كبير — النص الحر ماعندوش معنى بلا التبويب */
   const accidentDeclared = Boolean(b.accidentDeclared);
@@ -194,11 +200,7 @@ export async function POST(req: Request) {
     condition,
     firstHand: owners === 1,
     papersOk: b.papersOk !== false,
-    technicalControl: technicalControlDate(Boolean(b.technicalControlValid)),
-    /* شارة «فحص مستقل» ماكتجيش من البائع: كانت `Boolean(b.inspected)`،
-       يعني أي واحد كيبعث inspected:true كيربح الشارة و+10 نقط ثقة بلا
-       ما يتفحص شي حاجة. الإعلان الجديد ديما بلا فحص — الإشراف وحدو
-       اللي كيمنح الشارة من `listing:inspect` من بعد ما يتم الفحص. */
+    technicalControl: technicalControl ?? "",
     inspected: false,
     photos,
     hasVideo,
@@ -241,7 +243,8 @@ export async function POST(req: Request) {
      وكيتخزّن مع الإعلان — البطاقات كيقراوه بلا ما يعاودو الحساب. */
   const pool = await comparablesFor(kind, make);
   const fp = fairPrice(draft, pool);
-  const trust = trustScore(draft, undefined, fp);
+  const sellerRow = await sellerById(user.id);
+  const trust = trustScore(draft, sellerRow ? rowToSeller(sellerRow) : undefined, fp);
 
   const payload: NewListing = {
     kind,
@@ -266,7 +269,7 @@ export async function POST(req: Request) {
     condition,
     firstHand: draft.firstHand,
     papersOk: draft.papersOk,
-    technicalControl: draft.technicalControl,
+    technicalControl,
     inspected: draft.inspected,
     serviceBook: draft.serviceBook,
     vinChecked: draft.vinChecked,
@@ -292,6 +295,7 @@ export async function POST(req: Request) {
     trustScore: trust.score,
     fairPriceMad: fp.estimate.mid,
     fairPriceDelta: fp.delta,
+    fairPriceMeta: { low: fp.estimate.low, high: fp.estimate.high, confidence: fp.estimate.confidence, sampleSize: fp.estimate.sampleSize },
   };
 
   try {

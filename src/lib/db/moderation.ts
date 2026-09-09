@@ -132,7 +132,6 @@ export interface AdminListing {
   city: string;
   photo_count: number;
   trust_score: number | null;
-  inspected: boolean;
   views: number;
   promo: string | null;
   created_at: string;
@@ -146,8 +145,8 @@ export interface AdminListing {
 export async function listListings(q = "", status = "all", limit = 60) {
   return sql<AdminListing>(
     `SELECT l.ref, l.slug, l.make || ' ' || l.model || ' ' || l.year AS title,
-            l.status::text, l.price_mad, l.city, l.photo_count, l.trust_score,
-            l.inspected, l.views, l.promo::text, l.created_at,
+            l.status::text, l.price_mad, l.city, l.photo_count, listing_trust_score(l, u) AS trust_score,
+            l.views, l.promo::text, l.created_at,
             u.id::text AS seller_id, u.name AS seller_name, u.email AS seller_email,
             u.banned_at AS seller_banned,
             (SELECT count(*)::text FROM reports r WHERE r.listing_id = l.id AND r.status='open') AS reports
@@ -168,34 +167,6 @@ export async function setListingStatus(
   const r = await one<{ id: string }>(
     "UPDATE listings SET status = $2::listing_status, updated_at = now() WHERE ref = $1 RETURNING id::text",
     [ref, status],
-  );
-  return Boolean(r);
-}
-
-/**
- * شارة «فحص مستقل» — الإشراف وحدو.
- *
- * كانت كتجي من جسم الطلب ديال البائع، يعني أي واحد كيقدر يمنحها
- * لراسو ويربح 10 نقط ثقة بلا فحص. دابا كتتحط هنا من بعد ما
- * الفحص يتدار بجدّ.
- *
- * نقطة الثقة مخزّنة كعمود (كتتحسب وقت النشر/التعديل)، فخاصنا
- * نعدّلوها معاها — الفحص فـtrustScore() هو 10 نقط ثابتة، فالفرق
- * ديما ±10 بالضبط. وكنحسبوه غير إلا القيمة تبدّلات بجدّ.
- */
-export async function setListingInspected(ref: string, inspected: boolean) {
-  const r = await one<{ id: string }>(
-    `UPDATE listings SET
-       trust_score = CASE
-         WHEN trust_score IS NULL OR inspected = $2::bool THEN trust_score
-         WHEN $2::bool THEN least(100, trust_score + 10)
-         ELSE greatest(0, trust_score - 10)
-       END,
-       inspected = $2::bool,
-       updated_at = now()
-      WHERE ref = $1
-      RETURNING id::text`,
-    [ref, inspected],
   );
   return Boolean(r);
 }
