@@ -87,6 +87,7 @@ const AR_MONTHS = [
 
 export function fmtDate(iso: string, locale: Locale): string {
   const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return locale === "fr" ? "Non renseigné" : "غير محدد";
   const months = locale === "fr" ? FR_MONTHS : AR_MONTHS;
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }

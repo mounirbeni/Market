@@ -2,6 +2,8 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { sql, one } from "./db/client";
+import { consumeOtp } from "./db/otp";
+import { takeRateLimit } from "./db/rateLimit";
 import { adminOtpMail, mailConfigured, send } from "./mail";
 
 /* ============================================================
@@ -24,7 +26,7 @@ const COOKIE = "triq_admin";
 const SESSION_HOURS = 8;
 const CODE_TTL_MIN = 10;
 const CODE_MAX_ATTEMPTS = 5;
-/** أقصى محاولات دخول فاشلة فالساعة — على كل الموقع */
+/** أقصى محاولات دخول فاشلة فالساعة — لكل إيميل، بلا قفل الدخول الصحيح */
 const MAX_FAILS_PER_HOUR = 12;
 
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -125,10 +127,11 @@ export interface AdminAuthResult {
   devCode?: string;
 }
 
-async function tooManyFails(): Promise<boolean> {
+async function tooManyFails(email: string): Promise<boolean> {
   const r = await one<{ n: string }>(
     `SELECT count(*)::text AS n FROM admin_attempts
-      WHERE NOT ok AND created_at > now() - interval '1 hour'`,
+      WHERE email = $1 AND NOT ok AND created_at > now() - interval '1 hour'`,
+    [email],
   );
   return Number(r?.n ?? 0) >= MAX_FAILS_PER_HOUR;
 }
@@ -140,12 +143,13 @@ const record = (email: string | null, ok: boolean) =>
 export async function startAdminLogin(
   rawEmail: string,
   password: string,
+  source?: string | null,
 ): Promise<AdminAuthResult> {
   if (!adminConfigured()) return { ok: false, error: "الإشراف ماشي مضبوط." };
 
   const email = rawEmail.trim().toLowerCase();
 
-  if (await tooManyFails()) {
+  if (source && !(await takeRateLimit(`admin-source:${source}`, 30, 600))) {
     return { ok: false, error: "محاولات بزاف. عاود من بعد ساعة." };
   }
 
@@ -155,9 +159,14 @@ export async function startAdminLogin(
   const emailOk = admins().has(email);
   const pwOk = passwordOk(password);
   if (!emailOk || !pwOk) {
+    if (await tooManyFails(email)) return { ok: false, error: "محاولات بزاف. عاود من بعد ساعة." };
     await record(email || null, false);
     return { ok: false, error: "الإيميل ولا كلمة السر ماشي صحاح." };
   }
+
+  // Only a correct password can spend this email's delivery quota.
+  if (!(await takeRateLimit(`admin-mail:${email}`, 5, 3600)))
+    return { ok: false, error: "طلبتي رموز بزاف. عاود من بعد ساعة." };
 
   const code = String(randomBytes(4).readUInt32BE(0) % 1_000_000).padStart(6, "0");
   await sql(
@@ -190,26 +199,13 @@ export async function finishAdminLogin(
   const email = rawEmail.trim().toLowerCase();
   if (!admins().has(email)) return { ok: false, error: "الرمز ماشي صحيح." };
 
-  const row = await one<{ id: string; code_hash: string; attempts: number }>(
-    `SELECT id, code_hash, attempts FROM otp_codes
-      WHERE identifier = $1 AND consumed_at IS NULL AND expires_at > now()
-      ORDER BY created_at DESC LIMIT 1`,
-    [`admin:${email}`],
-  );
-  if (!row) return { ok: false, error: "الرمز منتهي. عاود الدخول." };
-  if (row.attempts >= CODE_MAX_ATTEMPTS) {
-    return { ok: false, error: "محاولات بزاف. عاود الدخول." };
+  const result = await consumeOtp(`admin:${email}`, code.trim(), CODE_MAX_ATTEMPTS);
+  if (result !== "OK") {
+    if (result === "BAD_CODE") await record(email, false);
+    return { ok: false, error: result === "TOO_MANY_ATTEMPTS"
+      ? "محاولات بزاف. عاود الدخول." : "الرمز منتهي ولا ماشي صحيح. عاود الدخول." };
   }
 
-  const a = Buffer.from(sha256(code.trim()));
-  const b = Buffer.from(row.code_hash);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    await sql("UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1", [row.id]);
-    await record(email, false);
-    return { ok: false, error: "الرمز ماشي صحيح." };
-  }
-
-  await sql("UPDATE otp_codes SET consumed_at = now() WHERE id = $1", [row.id]);
   await record(email, true);
   await createAdminSession(email, userAgent);
   await logAdmin(email, "login");

@@ -1,7 +1,8 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { sql, one } from "./db/client";
+import { consumeOtp } from "./db/otp";
 import { mailConfigured, otpMail, send } from "./mail";
 
 /* ============================================================
@@ -172,27 +173,14 @@ export interface OtpCheck {
 
 /** التحقق من الرمز واستهلاكه */
 export async function verifyOtp(email: string, code: string): Promise<OtpCheck> {
-  const row = await one<{ id: string; code_hash: string; attempts: number }>(
-    `SELECT id, code_hash, attempts FROM otp_codes
-     WHERE identifier = $1 AND consumed_at IS NULL AND expires_at > now()
-     ORDER BY created_at DESC LIMIT 1`,
-    [email],
-  );
-  if (!row) return { ok: false, error: "الرمز منتهي ولا ماكاينش. اطلب واحد جديد.", code: "CODE_EXPIRED" };
-  if (row.attempts >= OTP_MAX_ATTEMPTS) {
-    return { ok: false, error: "محاولات بزاف. اطلب رمزاً جديداً.", code: "TOO_MANY_ATTEMPTS" };
-  }
-
-  const a = Buffer.from(sha256(code));
-  const b = Buffer.from(row.code_hash);
-  const good = a.length === b.length && timingSafeEqual(a, b);
-
-  if (!good) {
-    await sql("UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1", [row.id]);
-    return { ok: false, error: "الرمز ماشي صحيح.", code: "BAD_CODE" };
-  }
-  await sql("UPDATE otp_codes SET consumed_at = now() WHERE id = $1", [row.id]);
-  return { ok: true };
+  const result = await consumeOtp(email, code, OTP_MAX_ATTEMPTS);
+  if (result === "OK") return { ok: true };
+  const errors = {
+    CODE_EXPIRED: "الرمز منتهي ولا ماكاينش. اطلب واحد جديد.",
+    TOO_MANY_ATTEMPTS: "محاولات بزاف. اطلب رمزاً جديداً.",
+    BAD_CODE: "الرمز ماشي صحيح.",
+  };
+  return { ok: false, error: errors[result], code: result };
 }
 
 /** إيجاد المستخدم بالإيميل ولا إنشاؤه */

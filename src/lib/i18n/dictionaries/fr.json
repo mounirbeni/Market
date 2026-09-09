@@ -1624,7 +1624,9 @@
         "Documentez au moins 8 équipements",
         4
       ]
-    ]
+    ],
+    "controlExpires": "Date d’expiration du contrôle technique (facultatif)",
+    "inspectionNotice": "Le badge d’inspection indépendante nécessite un rapport validé par la plateforme."
   },
   "guidesPage": {
     "metaTitle": "Conseils et guides d'achat de véhicules au Maroc",

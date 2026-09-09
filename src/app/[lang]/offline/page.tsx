@@ -34,6 +34,8 @@ export default async function OfflinePage() {
         {o.text}
       </p>
       <div className="mt-7 flex flex-wrap justify-center gap-3">
+        {/* A full navigation retries the network after the offline fallback. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a href="/" className="btn btn-primary"><Reset size={16} /> {o.retry}</a>
         <Link href="/" className="btn btn-ghost">{o.home}</Link>
       </div>

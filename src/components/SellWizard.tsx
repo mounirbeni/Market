@@ -50,7 +50,7 @@ interface Draft {
   papersOk: boolean;
   vinChecked: boolean;
   serviceBook: boolean;
-  technicalControlValid: boolean;
+  technicalControl: string;
   accident: boolean;
   accidentNote: string;
   unpaidVignette: boolean;
@@ -67,7 +67,6 @@ interface Draft {
   hasVideo: boolean;
   description: string;
   equipment: string[];
-  inspected: boolean;
   price: number;
   negotiable: boolean;
   exchangeAccepted: boolean;
@@ -98,7 +97,7 @@ const initialDraft: Draft = {
   papersOk: true,
   vinChecked: false,
   serviceBook: false,
-  technicalControlValid: true,
+  technicalControl: "",
   accident: false,
   accidentNote: "",
   unpaidVignette: false,
@@ -115,7 +114,6 @@ const initialDraft: Draft = {
   hasVideo: false,
   description: "",
   equipment: ["مكيف الهواء", "نظام ABS"],
-  inspected: false,
   price: 120000,
   negotiable: true,
   exchangeAccepted: false,
@@ -149,8 +147,8 @@ function draftToVehicle(d: Draft): Vehicle {
     condition: d.condition,
     firstHand: d.owners === 1,
     papersOk: d.papersOk,
-    technicalControl: d.technicalControlValid ? "2027-01-01" : "2026-01-01",
-    inspected: d.inspected,
+    technicalControl: d.technicalControl,
+    inspected: false,
     photos: d.photos,
     hasVideo: d.hasVideo,
     serviceBook: d.serviceBook,
@@ -333,7 +331,7 @@ export function SellWizard() {
   const tips = useMemo(() => {
     const done = [
       d.idVerified, d.vinChecked, d.photos >= 6, d.hasVideo,
-      d.serviceBook, d.inspected, d.description.length > 220, d.equipment.length >= 8,
+      d.serviceBook, false, d.description.length > 220, d.equipment.length >= 8,
     ];
     const list = (t.sellWizard.tips as [string, number][]).map(([text, gain], i) => ({ text, gain, done: done[i] }));
     return list.sort((a, b) => Number(a.done) - Number(b.done) || b.gain - a.gain);
@@ -355,8 +353,8 @@ export function SellWizard() {
           doors: d.kind === "car" ? d.doors : undefined,
           drivetrain: d.drivetrain || undefined, origin: d.origin || undefined,
           city: d.city, condition: d.condition,
-          papersOk: d.papersOk, technicalControlValid: d.technicalControlValid,
-          inspected: d.inspected, serviceBook: d.serviceBook,
+          papersOk: d.papersOk, technicalControl: d.technicalControl,
+          inspected: false, serviceBook: d.serviceBook,
           vinChecked: d.vinChecked,
           accidentDeclared: d.accident,
           accidentNote: d.accident ? d.accidentNote.trim() : "",
@@ -690,10 +688,17 @@ export function SellWizard() {
                   onChange={(e) => set({ owners: Number(e.target.value) })} className="w-full " />
               </div>
 
+              <div>
+                <label className="label" htmlFor="sw-control">{t.sellWizard.controlExpires}</label>
+                <input id="sw-control" type="date" className="field" value={d.technicalControl ?? ""}
+                  onChange={(event) => set({ technicalControl: event.target.value })} />
+                <p className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>{t.sellWizard.inspectionNotice}</p>
+              </div>
+
               <div className="space-y-2">
                 {([
-                  ["papersOk", 0], ["vinChecked", 1], ["technicalControlValid", 2],
-                  ["serviceBook", 3], ["inspected", 4],
+                  ["papersOk", 0], ["vinChecked", 1],
+                  ["serviceBook", 3],
                 ] as const).map(([key, i]) => {
                   const [label, gain] = t.sellWizard.checks[i];
                   return (
