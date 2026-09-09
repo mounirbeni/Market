@@ -5,7 +5,7 @@
   "description": "TRIQ — سوق السيارات والدراجات النارية المستعملة في المغرب",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm test && npm run typecheck && npm run lint && next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
