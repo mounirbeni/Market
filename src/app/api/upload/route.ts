@@ -1,7 +1,7 @@
 import { del, put } from "@vercel/blob";
 import sharp from "sharp";
 import { getCurrentUser } from "@/lib/auth";
-import { body, fail, ok, unauthorized } from "@/lib/api";
+import { body, fail, forbidden, ok, unauthorized } from "@/lib/api";
 import {
   BLOB_ACCESS,
   PHOTO_TYPES,
@@ -159,11 +159,19 @@ export async function DELETE(req: Request) {
  * `?selftest=1` كيكتب بكسل واحد فالخزّان — كيبيّن واش الخادم
  * كيوصل للخزّان، بلا ما نحتاجو متصفح. المسار ثابت وكيتكتب فوقو،
  * فحتى إلا تنادى بزاف ماكيزيدش غير 68 بايت فالخزّان.
+ *
+ * الكتابة محصورة على الإشراف: كانت مفتوحة لأي زائر، يعني أي واحد
+ * كيقدر يشغّل كتابة فالخزّان (وطلبات على مزوّد التخزين) بلا حساب
+ * ولا حدّ. الرد العادي (`enabled`) كيبقى عام حيت واجهة الرفع
+ * كتسقسي بيه واش الخدمة مضبوطة قبل ما توري زر الرفع.
  */
 export async function GET(req: Request) {
   const enabled = blobConfigured();
   if (!enabled || new URL(req.url).searchParams.get("selftest") !== "1")
     return ok({ enabled });
+
+  const { getAdmin } = await import("@/lib/admin");
+  if (!(await getAdmin())) return forbidden();
 
   // بكسل شفّاف — أصغر PNG صالح
   const png = Buffer.from(

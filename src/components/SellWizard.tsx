@@ -2,7 +2,7 @@
 
 import { Link } from "@/components/Link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { trustScore } from "@/lib/market";
+import { technicalControlDate, trustScore } from "@/lib/market";
 import { useEstimate } from "@/hooks/useEstimate";
 import { useCatalog } from "@/lib/useCatalog";
 import { PhotoUploader, type UploadedPhoto } from "@/components/sell/PhotoUploader";
@@ -25,7 +25,7 @@ import {
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, Bookmark, Calendar,
   Car, Check, CircleDot, Coins, Door, FileText, Gauge, Horsepower, Info,
-  MapPin, Moto, Palette, Sparkle, Plus, TrendingDown, Wrench,
+  MapPin, Moto, Palette, ShieldCheck, Sparkle, Plus, TrendingDown, Wrench,
 } from "@/components/icons";
 import type { Body, Condition, Drivetrain, Origin, Seller, Vehicle } from "@/lib/types";
 
@@ -67,7 +67,6 @@ interface Draft {
   hasVideo: boolean;
   description: string;
   equipment: string[];
-  inspected: boolean;
   price: number;
   negotiable: boolean;
   exchangeAccepted: boolean;
@@ -115,7 +114,6 @@ const initialDraft: Draft = {
   hasVideo: false,
   description: "",
   equipment: ["مكيف الهواء", "نظام ABS"],
-  inspected: false,
   price: 120000,
   negotiable: true,
   exchangeAccepted: false,
@@ -149,8 +147,9 @@ function draftToVehicle(d: Draft): Vehicle {
     condition: d.condition,
     firstHand: d.owners === 1,
     papersOk: d.papersOk,
-    technicalControl: d.technicalControlValid ? "2027-01-01" : "2026-01-01",
-    inspected: d.inspected,
+    technicalControl: technicalControlDate(d.technicalControlValid),
+    // إعلان جديد ديما بلا شارة فحص — الإشراف كيمنحها من بعد الفحص
+    inspected: false,
     photos: d.photos,
     hasVideo: d.hasVideo,
     serviceBook: d.serviceBook,
@@ -333,7 +332,8 @@ export function SellWizard() {
   const tips = useMemo(() => {
     const done = [
       d.idVerified, d.vinChecked, d.photos >= 6, d.hasVideo,
-      d.serviceBook, d.inspected, d.description.length > 220, d.equipment.length >= 8,
+      // الفحص المستقل: اقتراح ديما مفتوح — الشارة كتجي من بعد الفحص، ماشي من هنا
+      d.serviceBook, false, d.description.length > 220, d.equipment.length >= 8,
     ];
     const list = (t.sellWizard.tips as [string, number][]).map(([text, gain], i) => ({ text, gain, done: done[i] }));
     return list.sort((a, b) => Number(a.done) - Number(b.done) || b.gain - a.gain);
@@ -356,7 +356,7 @@ export function SellWizard() {
           drivetrain: d.drivetrain || undefined, origin: d.origin || undefined,
           city: d.city, condition: d.condition,
           papersOk: d.papersOk, technicalControlValid: d.technicalControlValid,
-          inspected: d.inspected, serviceBook: d.serviceBook,
+          serviceBook: d.serviceBook,
           vinChecked: d.vinChecked,
           accidentDeclared: d.accident,
           accidentNote: d.accident ? d.accidentNote.trim() : "",
@@ -693,7 +693,7 @@ export function SellWizard() {
               <div className="space-y-2">
                 {([
                   ["papersOk", 0], ["vinChecked", 1], ["technicalControlValid", 2],
-                  ["serviceBook", 3], ["inspected", 4],
+                  ["serviceBook", 3],
                 ] as const).map(([key, i]) => {
                   const [label, gain] = t.sellWizard.checks[i];
                   return (
@@ -708,6 +708,23 @@ export function SellWizard() {
                   );
                 })}
               </div>
+
+              {/* الفحص المستقل كان مربّع تشيك كيقول «بغيت فحص طريق
+                  المستقل» وكيعطي الشارة و+10 نقط بمجرد ما تسنّه —
+                  يعني كل واحد كيقدر يمنح لراسو شارة فحص ماتدارش.
+                  دابا: رابط للخدمة، والشارة كتجي من بعد الفحص. */}
+              <Link
+                href="/inspection"
+                className="flex items-start gap-2.5 rounded-lg p-2.5 transition hover:bg-[var(--brand-soft)]"
+                style={{ background: "var(--surface-3)" }}
+              >
+                <ShieldCheck size={16} className="mt-0.5 shrink-0" style={{ color: "var(--brand)" }} />
+                <span className="flex-1 text-xs">
+                  <b className="block font-bold">{t.sellWizard.inspectionCta}</b>
+                  <span style={{ color: "var(--text-dim)" }}>{t.sellWizard.inspectionNote}</span>
+                </span>
+                <ArrowLeft size={13} className="dir-flip mt-0.5 shrink-0" style={{ color: "var(--brand)" }} />
+              </Link>
 
               {/* الإفصاح عن الحوادث والإصلاحات — قسم منفصل ومبرز، ماشي
                   غير مربّع فقائمة، حيت الهدف الشفافية ماشي نقط ثقة */}

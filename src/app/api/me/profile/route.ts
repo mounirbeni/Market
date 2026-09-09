@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   if (!user) return unauthorized();
 
   const b = await body<{
-    name?: string; phone?: string; city?: string; type?: string; avatarUrl?: string | null;
+    name?: string; phone?: string | null; city?: string; type?: string; avatarUrl?: string | null;
   }>(req);
   const name = String(b?.name ?? "").trim().slice(0, 80);
   const rawPhone = String(b?.phone ?? "").trim();
@@ -41,6 +41,15 @@ export async function POST(req: Request) {
   if (name.length < 2) return fail("الاسم قصير بزاف.", 400);
   if (city && !CITIES.some((c) => c.slug === city)) return fail("المدينة ماشي معروفة.", 400);
 
+  /* ثلاث حالات، بحال avatarUrl تحت:
+       الحقل غايب     → ماكنمسّوش الرقم المسجّل
+       الحقل فارغ/null → المستخدم مسحو بنيّتو
+       فيه رقم        → كنتحققو منو وكنسجّلوه
+
+     قبل كانت حالة وحدة: أي طلب بلا رقم كيمسح الرقم من قاعدة
+     البيانات، والرد كيرجع الرقم القديم وكأنه مازال محفوظ — يعني
+     الواجهة كتوري رقماً تمسح. */
+  const phoneProvided = typeof b === "object" && b !== null && "phone" in b;
   let phone: string | null = null;
   if (rawPhone) {
     phone = normalizePhone(rawPhone);
@@ -68,7 +77,8 @@ export async function POST(req: Request) {
   }
 
   const finalCity = city || user.city;
-  const finalPhone = phone ?? user.phone;
+  /* اللي غادي يتسجّل بجدّ — وهو راه اللي كيرجع فالرد */
+  const finalPhone = phoneProvided ? phone : user.phone;
   /* استكمال الملف الشخصي: الاسم حقيقي (ماشي الافتراضي) والمدينة
      كافيين. الهاتف ماشي إلزامي هنا — ماكاينش مزوّد SMS يتحقق منو
      أصلاً، فما كاينش داعي نجبرو المستخدم يدخلو باش ينشر إعلان. */
@@ -76,14 +86,16 @@ export async function POST(req: Request) {
 
   await sql(
     `UPDATE users SET
-       name = $2, phone = $3, city = coalesce(nullif($4,''), city),
+       name = $2,
+       phone = CASE WHEN $8::bool THEN $3::text ELSE phone END,
+       city = coalesce(nullif($4,''), city),
        type = coalesce($5::seller_type, type),
        avatar_url = CASE WHEN $6::text IS NULL THEN avatar_url
                           WHEN $6::text = '' THEN NULL ELSE $6::text END,
        onboarded = onboarded OR $7::bool,
        updated_at = now()
       WHERE id = $1::uuid`,
-    [user.id, name, phone, city, type ?? null, avatarUrl ?? null, complete],
+    [user.id, name, phone, city, type ?? null, avatarUrl ?? null, complete, phoneProvided],
   );
 
   return ok({ name, phone: finalPhone, city: finalCity, type: type ?? user.type, onboarded: user.onboarded || complete });

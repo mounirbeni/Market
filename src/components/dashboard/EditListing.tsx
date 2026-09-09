@@ -55,7 +55,6 @@ interface Form {
   vinChecked: boolean;
   technicalControlValid: boolean;
   serviceBook: boolean;
-  inspected: boolean;
   accidentDeclared: boolean;
   accidentNote: string;
   unpaidVignette: boolean;
@@ -111,7 +110,6 @@ export function EditListing({ listingRef }: { listingRef: string }) {
       vinChecked: v.vinChecked,
       technicalControlValid: new Date(v.technicalControl).getTime() > Date.now(),
       serviceBook: v.serviceBook,
-      inspected: v.inspected,
       accidentDeclared: v.accidentDeclared,
       accidentNote: v.accidentNote ?? "",
       unpaidVignette: v.unpaidVignette,
@@ -389,7 +387,6 @@ export function EditListing({ listingRef }: { listingRef: string }) {
           ["vinChecked", e.docs.vinChecked],
           ["technicalControlValid", e.docs.technicalControlValid],
           ["serviceBook", e.docs.serviceBook],
-          ["inspected", e.docs.inspected],
         ] as const).map(([key, label]) => (
           <label key={key} className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2.5"
             style={{ background: "var(--surface-3)" }}>

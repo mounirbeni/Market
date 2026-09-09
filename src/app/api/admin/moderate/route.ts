@@ -40,6 +40,16 @@ export async function POST(req: Request) {
         await logAdmin(admin.email, action, ref);
         break;
       }
+      /* ---- شارة الفحص المستقل ---- */
+      case "listing:inspect":
+      case "listing:uninspect": {
+        const ref = need("ref");
+        const on = action === "listing:inspect";
+        if (!(await m.setListingInspected(ref, on))) return fail("ماكاينش الإعلان.", 404);
+        await logAdmin(admin.email, action, ref);
+        break;
+      }
+
       /* ---- الترويج ---- */
       case "promo:activate": {
         const id = need("promoId");

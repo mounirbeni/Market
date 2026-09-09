@@ -3,6 +3,31 @@ import { formatNumber } from "./format";
 
 export const CURRENT_YEAR = 2026;
 
+/* ============================================================
+   الفحص التقني
+
+   كانت المقارنة بتاريخ ثابت مكتوب فالكود ("2026-08-24") — يعني
+   فحص منتهي كيبقى محسوب صالحاً كل ما مشا الوقت. القاعدة وحدة
+   وفبلاصة وحدة دابا: صالح = التاريخ مازال جاي.
+   ============================================================ */
+
+/** واش الفحص التقني مازال صالح دابا؟ */
+export const technicalControlValid = (date: string | null | undefined): boolean => {
+  const t = date ? new Date(date).getTime() : NaN;
+  return Number.isFinite(t) && t > Date.now();
+};
+
+/**
+ * البائع كيصرّح ببوليان («الفحص التقني صالح») ماشي بتاريخ. حتى
+ * يولّي عندنا حقل تاريخ حقيقي، كنصنعو تاريخاً نسبياً للوقت الحالي
+ * — بلا هادشي التواريخ الثابتة كتقادم وكتقلب المعنى وحدها.
+ */
+export const technicalControlDate = (valid: boolean, now = new Date()): string => {
+  const d = new Date(now);
+  d.setMonth(d.getMonth() + (valid ? 12 : -1));
+  return d.toISOString().slice(0, 10);
+};
+
 const COND_MULT: Record<Condition, number> = {
   excellent: 1.07,
   "tres-bon": 1.0,
@@ -411,7 +436,7 @@ export function trustScore(
   if (v.papersOk) docs += 8;
   else flags.push({ level: "danger", k: "papersBad" });
   if (v.vinChecked) docs += 6;
-  const tcValid = new Date(v.technicalControl).getTime() > Date.parse("2026-08-24");
+  const tcValid = technicalControlValid(v.technicalControl);
   if (tcValid) docs += 6;
   else flags.push({ level: "warn", k: "tcExpiring" });
   /* التزامات مالية/قانونية معلّقة كتنتقل للمشتري — خصم حقيقي من

@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { body, dbMissing, fail, ok, unauthorized, writeFail } from "@/lib/api";
-import { fairPrice, trustScore } from "@/lib/market";
+import { fairPrice, technicalControlDate, trustScore } from "@/lib/market";
 import { comparablesFor } from "@/lib/source";
 import type { Body, Condition, Fuel, Gearbox, Vehicle } from "@/lib/types";
 import type { NewListing } from "@/lib/db/writes";
@@ -64,7 +64,6 @@ export interface CreateBody {
   condition?: string;
   papersOk?: boolean;
   technicalControlValid?: boolean;
-  inspected?: boolean;
   serviceBook?: boolean;
   vinChecked?: boolean;
   accidentDeclared?: boolean;
@@ -195,8 +194,12 @@ export async function POST(req: Request) {
     condition,
     firstHand: owners === 1,
     papersOk: b.papersOk !== false,
-    technicalControl: b.technicalControlValid ? "2027-01-01" : "2026-01-01",
-    inspected: Boolean(b.inspected),
+    technicalControl: technicalControlDate(Boolean(b.technicalControlValid)),
+    /* شارة «فحص مستقل» ماكتجيش من البائع: كانت `Boolean(b.inspected)`،
+       يعني أي واحد كيبعث inspected:true كيربح الشارة و+10 نقط ثقة بلا
+       ما يتفحص شي حاجة. الإعلان الجديد ديما بلا فحص — الإشراف وحدو
+       اللي كيمنح الشارة من `listing:inspect` من بعد ما يتم الفحص. */
+    inspected: false,
     photos,
     hasVideo,
     serviceBook: Boolean(b.serviceBook),

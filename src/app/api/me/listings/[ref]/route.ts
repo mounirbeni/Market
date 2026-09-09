@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { body, dbMissing, fail, ok, unauthorized, writeFail } from "@/lib/api";
-import { fairPrice, trustScore } from "@/lib/market";
+import { fairPrice, technicalControlDate, trustScore } from "@/lib/market";
 import { comparablesFor } from "@/lib/source";
 import { CITIES } from "@/lib/cities";
 import { pathnameFromMediaUrl } from "@/lib/blob";
@@ -86,9 +86,9 @@ export async function PATCH(
   const { one } = await import("@/lib/db/client");
   const row = await one<{
     kind: string; make: string; model: string; year: number; status: string;
-    photo_count: number; has_video: boolean;
+    photo_count: number; has_video: boolean; inspected: boolean;
   }>(
-    `SELECT kind::text, make, model, year, status::text, photo_count, has_video
+    `SELECT kind::text, make, model, year, status::text, photo_count, has_video, inspected
        FROM listings WHERE ref = $1 AND seller_id = $2::uuid`,
     [ref, user.id],
   );
@@ -105,7 +105,7 @@ export async function PATCH(
   const km = clampInt(e.km, 0, 2000000, 0);
   const owners = clampInt(e.owners, 1, 20, 1);
   const condition = pick(CONDITIONS, e.condition, "bon");
-  const technicalControl = e.technicalControlValid ? "2027-01-01" : "2026-01-01";
+  const technicalControl = technicalControlDate(Boolean(e.technicalControlValid));
   const accidentDeclared = Boolean(e.accidentDeclared);
   const accidentNote = accidentDeclared ? text(e.accidentNote, 500) : "";
 
@@ -145,7 +145,10 @@ export async function PATCH(
     firstHand: owners === 1,
     papersOk: e.papersOk !== false,
     technicalControl,
-    inspected: Boolean(e.inspected),
+    /* بحال الماركة والموديل: الشارة كتتقرا من الصف ماشي من الطلب.
+       كانت `Boolean(e.inspected)` — يعني تعديل الإعلان كيقدر يمنح
+       شارة «فحص مستقل» و+10 نقط ثقة بلا فحص. الإشراف وحدو كيبدّلها. */
+    inspected: row.inspected,
     photos: row.photo_count,
     hasVideo: row.has_video,
     serviceBook: Boolean(e.serviceBook),

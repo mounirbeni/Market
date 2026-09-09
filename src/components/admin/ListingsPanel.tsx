@@ -8,11 +8,12 @@ import { Toolbar } from "./Toolbar";
 import { formatNumber } from "@/lib/format";
 import { useDict, useLocale } from "@/lib/i18n/client";
 import { cityLabel, dhUnit, fmtTimeAgo } from "@/lib/i18n/labels";
-import { AlertTriangle, Camera, Close, Eye, Star, Trash } from "@/components/icons";
+import { AlertTriangle, BadgeCheck, Camera, Close, Eye, Star, Trash } from "@/components/icons";
 
 interface Row {
   ref: string; slug: string; title: string; status: string; price_mad: number;
-  city: string; photo_count: number; trust_score: number | null; views: number;
+  city: string; photo_count: number; trust_score: number | null; inspected: boolean;
+  views: number;
   promo: string | null; created_at: string; seller_id: string; seller_name: string;
   seller_email: string | null; seller_banned: string | null; reports: string;
 }
@@ -95,6 +96,11 @@ export function ListingsPanel({ rows }: { rows: Row[] }) {
                           <AlertTriangle size={10} /> <span className="num">{open}</span> {p.reportsSuffix}
                         </span>
                       )}
+                      {r.inspected && (
+                        <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
+                          <BadgeCheck size={10} /> {p.inspected}
+                        </span>
+                      )}
                     </div>
 
                     <Link href={`/vehicle/${r.slug}`} className="mt-1.5 block truncate text-[14px] font-bold">
@@ -151,6 +157,22 @@ export function ListingsPanel({ rows }: { rows: Row[] }) {
                       <option value="urgent">{p.promoUrgent}</option>
                       <option value="top">{p.promoTop}</option>
                     </select>
+
+                    {/* الشارة ماكيمنحهاش البائع — كتتحط هنا من بعد ما
+                        الفحص المستقل يتدار بجدّ */}
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      disabled={busy !== null}
+                      style={r.inspected ? { color: "var(--good)" } : undefined}
+                      onClick={() =>
+                        act(r.ref + "i", {
+                          action: r.inspected ? "listing:uninspect" : "listing:inspect",
+                          ref: r.ref,
+                        })
+                      }
+                    >
+                      <BadgeCheck size={13} /> {r.inspected ? p.uninspect : p.inspect}
+                    </button>
 
                     {confirming === r.ref ? (
                       <button className="btn btn-sm" style={{ background: "var(--bad)", color: "#fff" }}

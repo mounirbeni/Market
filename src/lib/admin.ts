@@ -24,7 +24,7 @@ const COOKIE = "triq_admin";
 const SESSION_HOURS = 8;
 const CODE_TTL_MIN = 10;
 const CODE_MAX_ATTEMPTS = 5;
-/** أقصى محاولات دخول فاشلة فالساعة — على كل الموقع */
+/** أقصى محاولات دخول فاشلة فالساعة — لكل إيميل مشرف على حدة */
 const MAX_FAILS_PER_HOUR = 12;
 
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -125,10 +125,22 @@ export interface AdminAuthResult {
   devCode?: string;
 }
 
-async function tooManyFails(): Promise<boolean> {
+/**
+ * الكبح كان على كل الموقع: `WHERE NOT ok` بلا حتى تخصيص. يعني 12
+ * محاولة فاشلة بأي إيميل — حتى إيميل مخترع من زائر — كتسدّ الدخول
+ * على *كل* المشرفين لمدة ساعة. هادي كانت خدمة إنكار (DoS) بـ12 طلب.
+ *
+ * دابا العدّاد لكل إيميل على حدة. والمحاولات بإيميلات ماشي ديال
+ * المشرفين ماكيتحسبوش أصلاً: ماعمرها تنجح مهما تكرّرات (الإيميل
+ * خاصو يكون فـADMIN_EMAILS)، فكبحها ماكيحمي والو وكيفتح الباب
+ * للتعطيل. كتبقى مسجّلة فـadmin_attempts للمراقبة.
+ */
+async function tooManyFails(email: string): Promise<boolean> {
+  if (!admins().has(email)) return false;
   const r = await one<{ n: string }>(
     `SELECT count(*)::text AS n FROM admin_attempts
-      WHERE NOT ok AND created_at > now() - interval '1 hour'`,
+      WHERE NOT ok AND email = $1 AND created_at > now() - interval '1 hour'`,
+    [email],
   );
   return Number(r?.n ?? 0) >= MAX_FAILS_PER_HOUR;
 }
@@ -145,7 +157,7 @@ export async function startAdminLogin(
 
   const email = rawEmail.trim().toLowerCase();
 
-  if (await tooManyFails()) {
+  if (await tooManyFails(email)) {
     return { ok: false, error: "محاولات بزاف. عاود من بعد ساعة." };
   }
 
