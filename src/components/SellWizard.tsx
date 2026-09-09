@@ -2,7 +2,7 @@
 
 import { Link } from "@/components/Link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { technicalControlDate, trustScore } from "@/lib/market";
+import { trustScore } from "@/lib/market";
 import { useEstimate } from "@/hooks/useEstimate";
 import { useCatalog } from "@/lib/useCatalog";
 import { PhotoUploader, type UploadedPhoto } from "@/components/sell/PhotoUploader";
@@ -25,7 +25,7 @@ import {
 import {
   AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, Bookmark, Calendar,
   Car, Check, CircleDot, Coins, Door, FileText, Gauge, Horsepower, Info,
-  MapPin, Moto, Palette, ShieldCheck, Sparkle, Plus, TrendingDown, Wrench,
+  MapPin, Moto, Palette, Sparkle, Plus, TrendingDown, Wrench,
 } from "@/components/icons";
 import type { Body, Condition, Drivetrain, Origin, Seller, Vehicle } from "@/lib/types";
 
@@ -50,7 +50,7 @@ interface Draft {
   papersOk: boolean;
   vinChecked: boolean;
   serviceBook: boolean;
-  technicalControlValid: boolean;
+  technicalControl: string;
   accident: boolean;
   accidentNote: string;
   unpaidVignette: boolean;
@@ -97,7 +97,7 @@ const initialDraft: Draft = {
   papersOk: true,
   vinChecked: false,
   serviceBook: false,
-  technicalControlValid: true,
+  technicalControl: "",
   accident: false,
   accidentNote: "",
   unpaidVignette: false,
@@ -147,8 +147,7 @@ function draftToVehicle(d: Draft): Vehicle {
     condition: d.condition,
     firstHand: d.owners === 1,
     papersOk: d.papersOk,
-    technicalControl: technicalControlDate(d.technicalControlValid),
-    // إعلان جديد ديما بلا شارة فحص — الإشراف كيمنحها من بعد الفحص
+    technicalControl: d.technicalControl,
     inspected: false,
     photos: d.photos,
     hasVideo: d.hasVideo,
@@ -332,7 +331,6 @@ export function SellWizard() {
   const tips = useMemo(() => {
     const done = [
       d.idVerified, d.vinChecked, d.photos >= 6, d.hasVideo,
-      // الفحص المستقل: اقتراح ديما مفتوح — الشارة كتجي من بعد الفحص، ماشي من هنا
       d.serviceBook, false, d.description.length > 220, d.equipment.length >= 8,
     ];
     const list = (t.sellWizard.tips as [string, number][]).map(([text, gain], i) => ({ text, gain, done: done[i] }));
@@ -355,8 +353,8 @@ export function SellWizard() {
           doors: d.kind === "car" ? d.doors : undefined,
           drivetrain: d.drivetrain || undefined, origin: d.origin || undefined,
           city: d.city, condition: d.condition,
-          papersOk: d.papersOk, technicalControlValid: d.technicalControlValid,
-          serviceBook: d.serviceBook,
+          papersOk: d.papersOk, technicalControl: d.technicalControl,
+          inspected: false, serviceBook: d.serviceBook,
           vinChecked: d.vinChecked,
           accidentDeclared: d.accident,
           accidentNote: d.accident ? d.accidentNote.trim() : "",
@@ -690,9 +688,16 @@ export function SellWizard() {
                   onChange={(e) => set({ owners: Number(e.target.value) })} className="w-full " />
               </div>
 
+              <div>
+                <label className="label" htmlFor="sw-control">{t.sellWizard.controlExpires}</label>
+                <input id="sw-control" type="date" className="field" value={d.technicalControl ?? ""}
+                  onChange={(event) => set({ technicalControl: event.target.value })} />
+                <p className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>{t.sellWizard.inspectionNotice}</p>
+              </div>
+
               <div className="space-y-2">
                 {([
-                  ["papersOk", 0], ["vinChecked", 1], ["technicalControlValid", 2],
+                  ["papersOk", 0], ["vinChecked", 1],
                   ["serviceBook", 3],
                 ] as const).map(([key, i]) => {
                   const [label, gain] = t.sellWizard.checks[i];
@@ -708,23 +713,6 @@ export function SellWizard() {
                   );
                 })}
               </div>
-
-              {/* الفحص المستقل كان مربّع تشيك كيقول «بغيت فحص طريق
-                  المستقل» وكيعطي الشارة و+10 نقط بمجرد ما تسنّه —
-                  يعني كل واحد كيقدر يمنح لراسو شارة فحص ماتدارش.
-                  دابا: رابط للخدمة، والشارة كتجي من بعد الفحص. */}
-              <Link
-                href="/inspection"
-                className="flex items-start gap-2.5 rounded-lg p-2.5 transition hover:bg-[var(--brand-soft)]"
-                style={{ background: "var(--surface-3)" }}
-              >
-                <ShieldCheck size={16} className="mt-0.5 shrink-0" style={{ color: "var(--brand)" }} />
-                <span className="flex-1 text-xs">
-                  <b className="block font-bold">{t.sellWizard.inspectionCta}</b>
-                  <span style={{ color: "var(--text-dim)" }}>{t.sellWizard.inspectionNote}</span>
-                </span>
-                <ArrowLeft size={13} className="dir-flip mt-0.5 shrink-0" style={{ color: "var(--brand)" }} />
-              </Link>
 
               {/* الإفصاح عن الحوادث والإصلاحات — قسم منفصل ومبرز، ماشي
                   غير مربّع فقائمة، حيت الهدف الشفافية ماشي نقط ثقة */}

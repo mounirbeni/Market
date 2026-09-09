@@ -102,7 +102,7 @@ export default async function VehiclePage({
   const fp = fairPriceFrom(v, estimate);
   // إشارة التكرار كتحتاج الإعلانات الأخرى ديال نفس البائع
   const duplicates = await getDuplicateCount(v);
-  const trust = trustScore(v, seller, fp);
+  const trust = trustScore(v, seller);
   const tco = computeTco(v, { kmPerYear: 15000, years: 3, coverage: "tiers", includeDepreciation: false });
   // المشابهة: نفس الماركة/الهيكل/المدينة وقرب الثمن والسنة
   const similar = await getSimilarVehicles(v, 4);
