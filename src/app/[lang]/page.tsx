@@ -388,7 +388,7 @@ export default async function HomePage() {
 
       {/* ================= قسم الفئات ================= */}
       {CATEGORY_TILES.length > 0 && (
-      <section className="mx-auto max-w-[1400px] px-4 py-16">
+      <section className="hidden mx-auto max-w-[1400px] px-4 py-16">
         <h2 className="h-section mb-2">{t.catTitle}</h2>
         <p className="mb-7 text-sm" style={{ color: "var(--text-muted)" }}>
           {t.catLead}
@@ -416,7 +416,7 @@ export default async function HomePage() {
       )}
 
       {/* ================= التصنيفات ================= */}
-      <section className="mx-auto max-w-[1400px] px-4 py-16">
+      <section className="hidden mx-auto max-w-[1400px] px-4 py-16">
         <h2 className="h-section mb-7">{t.byBody}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
           {categories.map((c) => {
