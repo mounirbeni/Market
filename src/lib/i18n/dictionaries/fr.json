@@ -2391,6 +2391,8 @@
     "cinCard": "la carte nationale d'identité",
     "uploadInstructionB": "et téléversez-la. Seule l'équipe de vérification voit le document — il n'apparaît jamais sur le site.",
     "frontLabel": "Face avant",
+    "selfieLabel": "Photo de vous avec votre document en main",
+    "selfieHint": "Photographiez-vous en tenant le document près de votre visage, texte lisible. Seule l'équipe de vérification la voit ; elle n'est jamais publiée.",
     "backLabel": "Face arrière (facultatif)",
     "uploading": "Téléversement…",
     "submitForReview": "Envoyer pour révision"
@@ -2589,7 +2591,7 @@
   },
   "verificationsPanel": {
     "title": "Vérification d'identité",
-    "leadA": "Consultez le document et vérifiez que le nom correspond à celui du compte. L'approbation accorde le badge « vérifié » et",
+    "leadA": "Comparez le nom du document avec celui du compte, et le visage de la photo personnelle avec la photo du document. L'approbation accorde le badge « vérifié » et",
     "leadB": "points dans l'indice de confiance de toutes ses annonces.",
     "tabs": {
       "pending": "En attente",
@@ -2609,6 +2611,14 @@
     "approve": "Approuver",
     "reject": "Refuser",
     "empty": "Aucune demande.",
+    "selfieLabel": "Titulaire du compte avec son document",
+    "avatarLabel": "Photo de profil",
+    "docFrontLabel": "Document — face avant",
+    "docBackLabel": "Document — face arrière",
+    "noSelfieLegacy": "Cette demande date d'avant l'obligation de la photo personnelle. Si vous ne pouvez pas confirmer le visage, refusez-la et demandez une nouvelle demande avec photo.",
+    "confirmName": "Le nom du document = le nom du compte",
+    "confirmFace": "Le visage sur la photo = la photo du document",
+    "confirmFirst": "Confirmez les deux correspondances avant d'approuver",
     "docAlt": "document",
     "zoomAria": "Agrandir le document"
   },

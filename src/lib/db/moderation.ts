@@ -515,6 +515,8 @@ export interface VerificationRow {
   kind: string;
   doc_path: string;
   doc_back_path: string | null;
+  /** صورة شخصية بالوثيقة فاليد — null فالطلبات اللي سبقو هاد الشرط */
+  selfie_path: string | null;
   status: string;
   note: string | null;
   created_at: string;
@@ -526,14 +528,17 @@ export interface VerificationRow {
   user_phone: string | null;
   user_type: string;
   user_verified: boolean;
+  /** صورة البروفايل — المشرف كيقارنها هي والوثيقة */
+  user_avatar: string | null;
 }
 
 export async function listVerifications(status = "pending", limit = 60) {
   return sql<VerificationRow>(
-    `SELECT v.id::text, v.kind::text, v.doc_path, v.doc_back_path, v.status::text,
-            v.note, v.created_at, v.reviewed_by, v.reviewed_at,
+    `SELECT v.id::text, v.kind::text, v.doc_path, v.doc_back_path, v.selfie_path,
+            v.status::text, v.note, v.created_at, v.reviewed_by, v.reviewed_at,
             u.id::text AS user_id, u.name AS user_name, u.email AS user_email,
-            u.phone AS user_phone, u.type::text AS user_type, u.id_verified AS user_verified
+            u.phone AS user_phone, u.type::text AS user_type, u.id_verified AS user_verified,
+            u.avatar_url AS user_avatar
        FROM verifications v JOIN users u ON u.id = v.user_id
       WHERE ($1 = 'all' OR v.status::text = $1)
       ORDER BY (v.status = 'pending') DESC, v.created_at DESC

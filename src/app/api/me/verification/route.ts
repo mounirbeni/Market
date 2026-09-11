@@ -24,9 +24,9 @@ export async function GET() {
 /**
  * طلب توثيق.
  *
- * الوثيقة تّرفعات قبل عبر /api/upload برأس x-purpose: doc، وكنقبلو
- * غير المسارات اللي تحت private/<المعرّف ديالو> — بلا هاد الفحص
- * شي واحد يقدر يعطينا مسار ديال واحد آخر.
+ * الوثيقة والصورة الشخصية تّرفعو قبل عبر /api/upload برأس
+ * x-purpose: doc، وكنقبلو غير المسارات اللي تحت private/<المعرّف
+ * ديالو> — بلا هاد الفحص شي واحد يقدر يعطينا مسار ديال واحد آخر.
  */
 export async function POST(req: Request) {
   const missing = dbMissing();
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return unauthorized();
 
-  const b = await body<{ kind?: string; doc?: string; back?: string }>(req);
+  const b = await body<{ kind?: string; doc?: string; back?: string; selfie?: string }>(req);
   const kind = b?.kind === "registre" ? "registre" : "cin";
   const mine = `${PRIVATE_PREFIX}${user.id}/`;
   const check = (p?: string) => (p && p.startsWith(mine) && !p.includes("..") ? p : null);
@@ -42,6 +42,11 @@ export async function POST(req: Request) {
   const doc = check(b?.doc);
   if (!doc) return fail("خاصك ترفع الوثيقة.", 400);
   const back = check(b?.back);
+  /* الصورة الشخصية بالوثيقة فاليد هي اللي كتخلّي المشرف يقدر يقارن
+     الوجه مع الصورة اللي فالبطاقة. بلاها، الوثيقة وحدها ماكتّثبتش
+     أنها ديال صاحب الحساب. */
+  const selfie = check(b?.selfie);
+  if (!selfie) return fail("خاصك ترفع صورة شخصية والوثيقة فيدك.", 400);
 
   const { sql, one } = await import("@/lib/db/client");
 
@@ -52,9 +57,9 @@ export async function POST(req: Request) {
   if (open) return fail("عندك طلب فانتظار المراجعة.", 409);
 
   await sql(
-    `INSERT INTO verifications (user_id, kind, doc_path, doc_back_path)
-     VALUES ($1::uuid, $2::verification_kind, $3, $4)`,
-    [user.id, kind, doc, back],
+    `INSERT INTO verifications (user_id, kind, doc_path, doc_back_path, selfie_path)
+     VALUES ($1::uuid, $2::verification_kind, $3, $4, $5)`,
+    [user.id, kind, doc, back, selfie],
   );
   return ok({ status: "pending" });
 }

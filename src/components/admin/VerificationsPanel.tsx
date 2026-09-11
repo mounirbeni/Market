@@ -11,10 +11,12 @@ import { BadgeCheck, Check, Close, IdCard } from "@/components/icons";
 
 interface Row {
   id: string; kind: string; doc_path: string; doc_back_path: string | null;
+  selfie_path: string | null;
   status: string; note: string | null; created_at: string;
   reviewed_by: string | null; reviewed_at: string | null;
   user_id: string; user_name: string; user_email: string | null;
   user_phone: string | null; user_type: string; user_verified: boolean;
+  user_avatar: string | null;
 }
 
 const docUrl = (p: string) => `/api/admin/doc/${p.split("/").map(encodeURIComponent).join("/")}`;
@@ -22,11 +24,15 @@ const docUrl = (p: string) => `/api/admin/doc/${p.split("/").map(encodeURICompon
 /* ============================================================
    مراجعة التوثيق
 
-   الوثيقة كتبان غير هنا: مسار /api/admin/doc كيتحقق من جلسة
+   الوثائق كتبان غير هنا: مسار /api/admin/doc كيتحقق من جلسة
    الإشراف، وبلا cache — وثيقة هوية ماخاصهاش تبقى فأي حافة.
 
-   القبول كيحط id_verified، وهي اللي كتعطي الشارة و8 نقط فمؤشر
-   الثقة. ولهذا خاصك تشوف الوثيقة بعينيك قبل ما تقبل.
+   المراجعة هي مقارنة بعينيك بين ثلاثة أشياء:
+     · الاسم المكتوب فالحساب  ↔  الاسم اللي فالوثيقة
+     · الصورة الشخصية بالوثيقة فاليد  ↔  الصورة اللي فالوثيقة
+   ولهذا زر القبول كيبقى مطفّي حتى تأكّد التطابقين بوحدك. القبول
+   كيحط id_verified، وهي اللي كتعطي الشارة و12 نقطة فمؤشر ثقة
+   الإعلان و35 فمؤشر ثقة الحساب — ماشي ضغطة ساهلة.
    ============================================================ */
 export function VerificationsPanel({
   rows,
@@ -43,13 +49,22 @@ export function VerificationsPanel({
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<Record<string, string>>({});
   const [zoom, setZoom] = useState<string | null>(null);
+  /* تأكيدات المشرف لكل طلب: الاسم والصورة. كيتصفّاو من بعد كل
+     إجراء باش الطلب الجاي مايرثش تأكيد ماشي ديالو. */
+  const [checked, setChecked] = useState<Record<string, { name?: boolean; face?: boolean }>>({});
+  const tick = (id: string, k: "name" | "face", v: boolean) =>
+    setChecked((c) => ({ ...c, [id]: { ...c[id], [k]: v } }));
+  const reviewed = (id: string) => Boolean(checked[id]?.name && checked[id]?.face);
 
   async function act(key: string, payload: Record<string, string>) {
     setBusy(key);
     setError(null);
     const err = await adminAction(payload);
     if (err) setError(err);
-    else router.refresh();
+    else {
+      setChecked((c) => ({ ...c, [payload.verifId ?? ""]: {} }));
+      router.refresh();
+    }
     setBusy(null);
   }
 
@@ -58,7 +73,7 @@ export function VerificationsPanel({
       <header className="mb-5">
         <h2 className="text-[17px] font-extrabold">{p.title}</h2>
         <p className="mt-1 text-[12.5px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
-          {p.leadA} <span className="num">8</span> {p.leadB}
+          {p.leadA} <span className="num">12</span> {p.leadB}
         </p>
       </header>
 
@@ -117,6 +132,20 @@ export function VerificationsPanel({
 
                   {pending && (
                     <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      {/* التأكيدان هما المراجعة نفسها، ماشي تزيين: بلاهم زر
+                          القبول مطفّي، باش ماتمرّش شي بطاقة ماشي ديال صاحب
+                          الحساب بضغطة بلا ما تتشاف. */}
+                      <div className="flex flex-col items-start gap-1 self-stretch rounded-lg p-2"
+                        style={{ background: "var(--surface-3)" }}>
+                        {([["name", p.confirmName], ["face", p.confirmFace]] as const).map(([k, label]) => (
+                          <label key={k} className="flex cursor-pointer items-center gap-2 text-[11.5px]">
+                            <input type="checkbox" className="h-3.5 w-3.5"
+                              checked={Boolean(checked[v.id]?.[k])}
+                              onChange={(e) => tick(v.id, k, e.target.checked)} />
+                            <span>{label}</span>
+                          </label>
+                        ))}
+                      </div>
                       <input
                         className="field h-8 w-[190px] py-0 text-[11.5px]"
                         placeholder={p.rejectReasonPlaceholder}
@@ -124,7 +153,9 @@ export function VerificationsPanel({
                         onChange={(e) => setNote((n) => ({ ...n, [v.id]: e.target.value }))}
                       />
                       <div className="flex gap-1.5">
-                        <button className="btn btn-primary btn-sm" disabled={busy !== null}
+                        <button className="btn btn-primary btn-sm"
+                          title={reviewed(v.id) ? undefined : p.confirmFirst}
+                          disabled={busy !== null || !reviewed(v.id)}
                           onClick={() => act(v.id + "a", { action: "verif:approve", verifId: v.id })}>
                           <Check size={13} /> {p.approve}
                         </button>
@@ -140,19 +171,44 @@ export function VerificationsPanel({
                   )}
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {[v.doc_path, v.doc_back_path].filter(Boolean).map((path) => (
-                    <button
-                      key={path as string}
-                      type="button"
-                      onClick={() => setZoom(docUrl(path as string))}
-                      className="overflow-hidden rounded-lg border"
-                      style={{ borderColor: "var(--line)" }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={docUrl(path as string)} alt={p.docAlt} className="h-28 w-auto object-cover" />
-                    </button>
-                  ))}
+                {/* الصور بترتيب المقارنة: الشخص الأول، من بعد الوثيقة.
+                    كل وحدة معنونة باش المشرف يعرف فاش كيشوف. */}
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {([
+                    [v.selfie_path, p.selfieLabel],
+                    [v.user_avatar, p.avatarLabel],
+                    [v.doc_path, p.docFrontLabel],
+                    [v.doc_back_path, p.docBackLabel],
+                  ] as const)
+                    .filter(([path]) => Boolean(path))
+                    .map(([path, label]) => {
+                      // صورة البروفايل عمومية؛ الصور الخاصة كتعدي من مسار الإشراف
+                      const src = (path as string).startsWith("private/")
+                        ? docUrl(path as string)
+                        : (path as string);
+                      return (
+                        <figure key={path as string} className="m-0">
+                          <button
+                            type="button"
+                            onClick={() => setZoom(src)}
+                            className="block overflow-hidden rounded-lg border"
+                            style={{ borderColor: "var(--line)" }}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={src} alt={label} className="h-28 w-auto object-cover" />
+                          </button>
+                          <figcaption className="mt-1 text-[10.5px]" style={{ color: "var(--text-dim)" }}>
+                            {label}
+                          </figcaption>
+                        </figure>
+                      );
+                    })}
+                  {!v.selfie_path && (
+                    <p className="self-center rounded-lg p-2.5 text-[11.5px] leading-relaxed"
+                      style={{ background: "var(--surface-3)", color: "var(--text-muted)", maxWidth: 260 }}>
+                      {p.noSelfieLegacy}
+                    </p>
+                  )}
                 </div>
               </li>
             );

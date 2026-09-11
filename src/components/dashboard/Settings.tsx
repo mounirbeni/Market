@@ -104,6 +104,7 @@ function VerificationCard({ verified, pro }: { verified: boolean; pro: boolean }
   const [error, setError] = useState<string | null>(null);
   const front = useRef<HTMLInputElement>(null);
   const back = useRef<HTMLInputElement>(null);
+  const selfie = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/me/verification")
@@ -131,18 +132,22 @@ function VerificationCard({ verified, pro }: { verified: boolean; pro: boolean }
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const f = front.current?.files?.[0];
-    if (!f) return;
+    const me = selfie.current?.files?.[0];
+    if (!f || !me) return;
     setError(null);
     setBusy(true);
     try {
       const doc = await upload(f);
       const b = back.current?.files?.[0];
       const backPath = b ? await upload(b) : undefined;
+      const selfiePath = await upload(me);
 
       const res = await fetch("/api/me/verification", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ kind: pro ? "registre" : "cin", doc, back: backPath }),
+        body: JSON.stringify({
+          kind: pro ? "registre" : "cin", doc, back: backPath, selfie: selfiePath,
+        }),
       });
       const json = await res.json();
       if (!json?.ok) throw new Error(json?.error ?? s.requestError);
@@ -204,6 +209,15 @@ function VerificationCard({ verified, pro }: { verified: boolean; pro: boolean }
               <input id="v-back" ref={back} type="file" accept="image/*" className="field" />
             </div>
           )}
+          {/* الوثيقة وحدها ماكتّثبتش أنها ديال صاحب الحساب — هاد الصورة
+              هي اللي كتخلّي المشرف يقارن الوجه مع اللي فالوثيقة. */}
+          <div>
+            <label className="label" htmlFor="v-selfie">{s.selfieLabel}</label>
+            <input id="v-selfie" ref={selfie} type="file" accept="image/*" required className="field" />
+            <p className="mt-1 text-[11.5px] leading-relaxed" style={{ color: "var(--text-dim)" }}>
+              {s.selfieHint}
+            </p>
+          </div>
           {error && <p className="text-[12px] font-bold" style={{ color: "var(--bad)" }}>{error}</p>}
           <button className="btn btn-primary btn-sm" disabled={busy}>
             {busy ? s.uploading : s.submitForReview}
