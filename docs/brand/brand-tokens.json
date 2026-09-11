@@ -1,0 +1,207 @@
+{
+  "brand": {
+    "name_ar": "طريق",
+    "name_latin": "Tarique",
+    "wordmark_latin": "TARIQUE",
+    "domain": "tarique.ma",
+    "market": "Morocco",
+    "categories": ["automotive", "shopping"],
+    "languages": {
+      "ar": { "direction": "rtl", "voice": "Moroccan Darija with precise standard-Arabic product terms" },
+      "fr": { "direction": "ltr", "voice": "clear consumer French" }
+    }
+  },
+  "positioning": {
+    "core": "Moroccan vehicle marketplace built around transparency and decision intelligence",
+    "pillars": [
+      "trust_score",
+      "reference_price",
+      "real_ownership_cost",
+      "verification",
+      "independent_inspection",
+      "safe_contact"
+    ],
+    "buyer_fee_message": "without buyer commission"
+  },
+  "logo": {
+    "master_vector": "src/app/icon.svg",
+    "designer_vector": "docs/brand/assets/tarique-mark.svg",
+    "runtime_lockup": "src/components/Logo.tsx",
+    "shape": "eight_point_zellige_star",
+    "inner_symbol": "white_road",
+    "gradient": [
+      { "offset": 0, "color": "#5A8EF7" },
+      { "offset": 0.55, "color": "#1F5FE0" },
+      { "offset": 1, "color": "#103FA3" }
+    ],
+    "legacy_names_forbidden": ["TRIQ", "Tariq", "tariqmaroc.ma"]
+  },
+  "color": {
+    "blue": {
+      "50": "#EFF5FF",
+      "100": "#DBE8FF",
+      "200": "#BCD3FF",
+      "300": "#8FB4FF",
+      "400": "#5A8EF7",
+      "500": "#1F5FE0",
+      "600": "#1550CC",
+      "700": "#103FA3",
+      "800": "#0D2F78"
+    },
+    "navy": {
+      "950": "#06152C",
+      "900": "#0A1E3D",
+      "800": "#0E2B56",
+      "700": "#14386E"
+    },
+    "slate": {
+      "50": "#F7F9FD",
+      "100": "#EEF3FB",
+      "200": "#DFE8F5",
+      "300": "#C6D4E8",
+      "400": "#93A5BF",
+      "500": "#6B7F9C",
+      "600": "#4A5C78",
+      "700": "#2F3F58"
+    },
+    "semantic": {
+      "green_500": "#16A34A",
+      "green_400": "#22C55E",
+      "amber_500": "#D97706",
+      "amber_400": "#F59E0B",
+      "red_500": "#DC2626",
+      "red_400": "#EF4444",
+      "teal_500": "#0D9488",
+      "violet_500": "#7C3AED",
+      "indigo_500": "#4F46E5"
+    }
+  },
+  "theme": {
+    "light": {
+      "bg": "#FFFFFF",
+      "bg_deep": "#F4F8FE",
+      "surface_1": "#FFFFFF",
+      "surface_2": "#F7FAFE",
+      "surface_3": "#EEF3FB",
+      "surface_hover": "#E3ECFA",
+      "line": "#DDE6F2",
+      "line_soft": "#E9EFF8",
+      "line_strong": "#C6D4E8",
+      "text": "#0A1E3D",
+      "text_muted": "#4A5C78",
+      "text_dim": "#7D8EA8",
+      "brand": "#1F5FE0",
+      "brand_soft": "#EAF1FF",
+      "brand_ink": "#FFFFFF",
+      "brand_hover": "#1550CC",
+      "nav_gradient": "linear-gradient(100deg, #08192F 0%, #0D2A55 55%, #123A72 100%)",
+      "nav_text": "#FFFFFF",
+      "nav_muted": "#A9C0E0",
+      "good": "#16A34A",
+      "good_soft": "#E8F7EE",
+      "warn": "#D97706",
+      "warn_soft": "#FDF3E3",
+      "bad": "#DC2626",
+      "bad_soft": "#FDECEB",
+      "data": "#4F46E5",
+      "data_soft": "#EEECFD"
+    },
+    "dark": {
+      "bg": "#071426",
+      "bg_deep": "#050F1D",
+      "surface_1": "#0C1C31",
+      "surface_2": "#0F2138",
+      "surface_3": "#162B46",
+      "surface_hover": "#1C3454",
+      "line": "#22395A",
+      "line_soft": "#1A2D49",
+      "line_strong": "#2E4A72",
+      "text": "#EEF4FD",
+      "text_muted": "#9DB1CD",
+      "text_dim": "#6E83A3",
+      "brand": "#5A8EF7",
+      "brand_soft": "rgba(90, 142, 247, 0.14)",
+      "brand_ink": "#05122A",
+      "brand_hover": "#8FB4FF",
+      "nav_gradient": "linear-gradient(100deg, #050F1D 0%, #0A1E3D 55%, #0E2B56 100%)",
+      "nav_text": "#FFFFFF",
+      "nav_muted": "#93AACB",
+      "good": "#22C55E",
+      "warn": "#F59E0B",
+      "bad": "#EF4444",
+      "data": "#818CF8"
+    }
+  },
+  "typography": {
+    "body": {
+      "family": "IBM Plex Sans Arabic",
+      "weights": [400, 500, 600, 700],
+      "subsets": ["arabic", "latin"]
+    },
+    "display": {
+      "family": "Noto Kufi Arabic",
+      "weights": [500, 700, 800],
+      "role": "headlines and Arabic brand character"
+    },
+    "numeric": {
+      "family": "Space Grotesk",
+      "weights": [500, 600, 700],
+      "features": ["tabular-nums", "ltr-isolation"]
+    }
+  },
+  "radius_rem": {
+    "xs": 0.375,
+    "sm": 0.5,
+    "md": 0.75,
+    "lg": 1,
+    "xl": 1.25,
+    "2xl": 1.75,
+    "pill": 99
+  },
+  "shadow": {
+    "light_sm": "0 1px 2px rgba(10, 30, 61, 0.06)",
+    "light_md": "0 10px 26px -14px rgba(10, 30, 61, 0.22)",
+    "light_lg": "0 24px 54px -26px rgba(10, 30, 61, 0.30)",
+    "dark_sm": "0 1px 2px rgba(0, 0, 0, 0.40)",
+    "dark_md": "0 10px 26px -14px rgba(0, 0, 0, 0.70)",
+    "dark_lg": "0 24px 54px -26px rgba(0, 0, 0, 0.85)"
+  },
+  "zellige": {
+    "tile_px": [72, 72],
+    "stroke": "#1F5FE0",
+    "light_opacity": 0.035,
+    "dark_opacity": 0.05,
+    "asset": "docs/brand/assets/zellige-pattern.svg"
+  },
+  "motion": {
+    "ease_out_soft": "cubic-bezier(0.22, 1, 0.36, 1)",
+    "ease_spring": "cubic-bezier(0.34, 1.4, 0.64, 1)",
+    "rise_ms": 500,
+    "rise_distance_px": 12,
+    "fade_ms": 400,
+    "card_hover_ms": 400,
+    "card_hover_y_px": -3,
+    "button_ms": 200,
+    "button_hover_y_px": -1,
+    "meter_ms": 500,
+    "marquee_seconds": 48
+  },
+  "copy": {
+    "hero_ar": ["شري طوموبيلك ولا موطورك", "وأنت عارف كلشي"],
+    "hero_fr": ["Achetez votre voiture ou votre moto", "en sachant tout"],
+    "badge_ar": "منصة مغربية · بدون عمولة على المشتري",
+    "badge_fr": "Plateforme marocaine · sans commission pour l'acheteur",
+    "core_terms_ar": ["مؤشر الثقة", "الثمن المرجعي", "التكلفة الحقيقية", "الفحص المستقل"],
+    "core_terms_fr": ["indice de confiance", "prix de référence", "coût réel", "inspection indépendante"]
+  },
+  "sources": [
+    "src/app/globals.css",
+    "src/components/Logo.tsx",
+    "src/app/icon.svg",
+    "src/app/[lang]/layout.tsx",
+    "src/app/manifest.ts",
+    "src/lib/site.ts",
+    "src/lib/i18n/dictionaries/ar.json",
+    "src/lib/i18n/dictionaries/fr.json"
+  ]
+}
