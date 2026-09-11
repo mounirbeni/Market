@@ -585,7 +585,13 @@ export function SellWizard() {
                         color: d.body === b.value ? "var(--brand)" : "var(--text)",
                       }}
                     >
-                      <VehicleGlyph shape={b.value as never} kind={d.kind} size={22} strokeWidth={10} />
+                      <VehicleGlyph
+                        shape={b.value as never}
+                        kind={d.kind}
+                        size={22}
+                        strokeWidth={10}
+                        style={d.body === b.value ? { filter: "drop-shadow(0 0 4px var(--brand))" } : undefined}
+                      />
                       {b.label}
                     </button>
                   ))}

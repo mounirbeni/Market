@@ -71,10 +71,10 @@ const CAR_SPECS: Record<string, CarSpec> = {
     axleY: 175, wheelR: 30, rearWheelX: 100, frontWheelX: 308,
   },
   citadine: {
-    tailX: 42, noseX: 372, beltY: 150, roofY: 102,
-    roofRearX: 96, roofFrontX: 244, rearGlassX: 48, windshieldX: 294,
+    tailX: 60, noseX: 354, beltY: 147, roofY: 94,
+    roofRearX: 118, roofFrontX: 242, rearGlassX: 68, windshieldX: 287,
     rear: "hatch",
-    axleY: 175, wheelR: 30, rearWheelX: 110, frontWheelX: 302,
+    axleY: 174, wheelR: 30, rearWheelX: 126, frontWheelX: 292,
   },
   break: {
     tailX: 26, noseX: 380, beltY: 148, roofY: 100,
