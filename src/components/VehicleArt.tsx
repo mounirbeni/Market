@@ -10,33 +10,67 @@ export type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
 /**
  * مجسمات السيارات الجديدة ديال Tarique.
- * الصورة Sprite وحدة باش نحافظو على تحميل خفيف وسريع فالموبايل.
+ * كنستعملو sprite واحد خفيف، ولكن كنرسموه كصورة حقيقية ونقصّو الخانة
+ * المطلوبة بدل background-image. هاد الطريقة كتضمن الظهور خصوصاً فـ iOS/PWA.
  * ترتيب الخانات: Citadine · Berline · SUV / Break · Utilitaire · Cabriolet.
  */
-const BODY_SPRITES: Partial<Record<ArtShape, string>> = {
-  citadine: "0% 0%",
-  berline: "50% 0%",
-  suv: "100% 0%",
-  break: "0% 100%",
-  utilitaire: "50% 100%",
-  cabriolet: "100% 100%",
+type SpriteCell = readonly [column: 0 | 1 | 2, row: 0 | 1];
+
+const BODY_SPRITES: Partial<Record<ArtShape, SpriteCell>> = {
+  citadine: [0, 0],
+  berline: [1, 0],
+  suv: [2, 0],
+  break: [0, 1],
+  utilitaire: [1, 1],
+  cabriolet: [2, 1],
 };
 
 const SPRITE_URL = "/vehicle-bodies/neon-sprite.webp";
 
-function spritePosition(shape: ArtShape, kind: VehicleKind) {
+function spriteCell(shape: ArtShape, kind: VehicleKind) {
   if (kind !== "car") return null;
   return BODY_SPRITES[shape] ?? null;
 }
 
+function CroppedSprite({ cell }: { cell: SpriteCell }) {
+  const [column, row] = cell;
+
+  return (
+    <span
+      aria-hidden="true"
+      style={{ position: "absolute", inset: 0, display: "block", overflow: "hidden" }}
+    >
+      <img
+        src={SPRITE_URL}
+        alt=""
+        draggable={false}
+        loading="eager"
+        decoding="async"
+        style={{
+          position: "absolute",
+          left: `${-column * 100}%`,
+          top: `${-row * 100}%`,
+          width: "300%",
+          height: "200%",
+          maxWidth: "none",
+          display: "block",
+          objectFit: "fill",
+          pointerEvents: "none",
+          userSelect: "none",
+        }}
+      />
+    </span>
+  );
+}
+
 function NeonVehicle({
-  position,
+  cell,
   className,
   style,
   label,
   variant = 0,
 }: {
-  position: string;
+  cell: SpriteCell;
   className?: string;
   style?: CSSProperties;
   label?: string;
@@ -49,7 +83,7 @@ function NeonVehicle({
       className={`relative block overflow-hidden ${className ?? ""}`}
       style={{
         background:
-          "radial-gradient(circle at 50% 46%, rgba(31,95,224,.16), transparent 52%), linear-gradient(145deg, #071225 0%, #0a1930 52%, #07111f 100%)",
+          "radial-gradient(circle at 50% 46%, rgba(31,95,224,.18), transparent 55%), linear-gradient(145deg, #071225 0%, #0a1930 52%, #07111f 100%)",
         ...style,
       }}
       role="img"
@@ -61,28 +95,26 @@ function NeonVehicle({
           position: "absolute",
           left: "50%",
           top: "50%",
-          width: "94%",
+          width: "96%",
           aspectRatio: "1 / 1",
           transform: `translate(-50%, -50%) scale(${scale})`,
           transformOrigin: "center",
-          backgroundImage: `url(${SPRITE_URL})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "300% 200%",
-          backgroundPosition: position,
-          filter: "drop-shadow(0 8px 18px rgba(31,95,224,.18))",
+          filter: "drop-shadow(0 7px 16px rgba(31,95,224,.24))",
         }}
-      />
+      >
+        <CroppedSprite cell={cell} />
+      </span>
     </span>
   );
 }
 
 export function VehicleArt(props: VehicleArtProps) {
-  const position = spritePosition(props.body, props.kind);
-  if (!position) return <LegacyVehicleArt {...props} />;
+  const cell = spriteCell(props.body, props.kind);
+  if (!cell) return <LegacyVehicleArt {...props} />;
 
   return (
     <NeonVehicle
-      position={position}
+      cell={cell}
       className={props.className}
       label={props.label}
       variant={props.variant}
@@ -105,8 +137,8 @@ export function VehicleGlyph({
   className?: string;
   style?: CSSProperties;
 }) {
-  const position = spritePosition(shape, kind);
-  if (!position) {
+  const cell = spriteCell(shape, kind);
+  if (!cell) {
     return (
       <LegacyVehicleGlyph
         shape={shape}
@@ -125,9 +157,11 @@ export function VehicleGlyph({
       style={{
         position: "relative",
         display: "inline-block",
-        width: size * 1.7,
-        height: size,
+        width: size * 2.4,
+        height: size * 1.45,
+        overflow: "hidden",
         flexShrink: 0,
+        filter: "drop-shadow(0 3px 8px rgba(31,95,224,.32))",
         ...style,
       }}
       aria-hidden="true"
@@ -139,13 +173,11 @@ export function VehicleGlyph({
           top: "50%",
           width: "100%",
           aspectRatio: "1 / 1",
-          transform: "translate(-50%, -50%)",
-          backgroundImage: `url(${SPRITE_URL})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "300% 200%",
-          backgroundPosition: position,
+          transform: "translate(-50%, -50%) scale(1.08)",
         }}
-      />
+      >
+        <CroppedSprite cell={cell} />
+      </span>
     </span>
   );
 }
