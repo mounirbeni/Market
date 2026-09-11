@@ -10,7 +10,7 @@ import type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
 export type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
-const BODY_IMAGE_VERSION = "20260911-8";
+const BODY_IMAGE_VERSION = "20260911-9";
 const BODY_IMAGES: Partial<Record<ArtShape, string>> = {
   citadine: `/vehicle-bodies/citadine.webp?v=${BODY_IMAGE_VERSION}`,
   berline: `/vehicle-bodies/berline.webp?v=${BODY_IMAGE_VERSION}`,
