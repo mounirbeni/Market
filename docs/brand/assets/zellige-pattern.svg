@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72" role="img" aria-labelledby="title desc">
+  <title id="title">Tarique zellige pattern tile</title>
+  <desc id="desc">The 72 by 72 pixel geometric tile used as Tarique's subtle visual signature.</desc>
+  <g fill="none" stroke="#1f5fe0" stroke-width="1">
+    <path d="M36 0 L72 36 L36 72 L0 36 Z"/>
+    <path d="M36 12 L60 36 L36 60 L12 36 Z"/>
+    <path d="M0 0 L12 12 M72 0 L60 12 M0 72 L12 60 M72 72 L60 60"/>
+    <circle cx="36" cy="36" r="6"/>
+  </g>
+</svg>
