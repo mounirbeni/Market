@@ -10,24 +10,52 @@ import type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
 export type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
-/**
- * صور carrosserie ديال Tarique.
- * كل نوع عندو صورة WebP مستقلة باش تبان بثبات على Safari / iPhone / PWA.
- * query version كيكسر أي cache قديم فيه نسخة فاسدة من الصور.
- */
-const BODY_IMAGE_VERSION = "20260911-2";
+const BODY_IMAGE_VERSION = "20260911-3";
 const BODY_IMAGES: Partial<Record<ArtShape, string>> = {
-  citadine: `/vehicle-bodies/citadine.webp?v=${BODY_IMAGE_VERSION}`,
   berline: `/vehicle-bodies/berline.webp?v=${BODY_IMAGE_VERSION}`,
-  suv: `/vehicle-bodies/suv.webp?v=${BODY_IMAGE_VERSION}`,
   break: `/vehicle-bodies/break.webp?v=${BODY_IMAGE_VERSION}`,
   utilitaire: `/vehicle-bodies/utilitaire.webp?v=${BODY_IMAGE_VERSION}`,
   cabriolet: `/vehicle-bodies/cabriolet.webp?v=${BODY_IMAGE_VERSION}`,
 };
 
+const SPRITE_SRC = `/vehicle-bodies/neon-sprite.webp?v=${BODY_IMAGE_VERSION}`;
+const SPRITE_POSITION: Partial<Record<ArtShape, string>> = {
+  citadine: "0% 0%",
+  suv: "100% 0%",
+};
+
 function bodyImage(shape: ArtShape, kind: VehicleKind) {
   if (kind !== "car") return null;
   return BODY_IMAGES[shape] ?? null;
+}
+
+function usesSprite(shape: ArtShape, kind: VehicleKind) {
+  return kind === "car" && Boolean(SPRITE_POSITION[shape]);
+}
+
+function SpriteVehicle({
+  shape,
+  className,
+  label,
+}: {
+  shape: ArtShape;
+  className?: string;
+  label?: string;
+}) {
+  return (
+    <span
+      className={`relative block overflow-hidden ${className ?? ""}`}
+      role="img"
+      aria-label={label ?? "مجسم المركبة"}
+      style={{
+        backgroundImage: `url(${SPRITE_SRC})`,
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "300% 200%",
+        backgroundPosition: SPRITE_POSITION[shape] ?? "0% 0%",
+        backgroundColor: "#071225",
+      }}
+    />
+  );
 }
 
 function NeonVehicle({
@@ -81,6 +109,11 @@ function NeonVehicle({
 
 export function VehicleArt(props: VehicleArtProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
+
+  if (usesSprite(props.body, props.kind)) {
+    return <SpriteVehicle shape={props.body} className={props.className} label={props.label} />;
+  }
+
   const src = bodyImage(props.body, props.kind);
   if (!src || failedSrc === src) return <LegacyVehicleArt {...props} />;
 
@@ -111,6 +144,28 @@ export function VehicleGlyph({
   style?: CSSProperties;
 }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
+
+  if (usesSprite(shape, kind)) {
+    return (
+      <span
+        aria-hidden="true"
+        className={className}
+        style={{
+          width: size * 2.55,
+          height: size * 1.5,
+          display: "inline-block",
+          flexShrink: 0,
+          backgroundImage: `url(${SPRITE_SRC})`,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "300% 200%",
+          backgroundPosition: SPRITE_POSITION[shape] ?? "0% 0%",
+          filter: "drop-shadow(0 3px 8px rgba(31,95,224,.34))",
+          ...style,
+        }}
+      />
+    );
+  }
+
   const src = bodyImage(shape, kind);
   if (!src || failedSrc === src) {
     return (
