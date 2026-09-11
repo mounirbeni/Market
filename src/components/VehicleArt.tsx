@@ -10,11 +10,11 @@ import type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
 export type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
-const BODY_IMAGE_VERSION = "20260911-7";
+const BODY_IMAGE_VERSION = "20260911-8";
 const BODY_IMAGES: Partial<Record<ArtShape, string>> = {
-  citadine: `/vehicle-bodies/citadine.svg?v=${BODY_IMAGE_VERSION}`,
+  citadine: `/vehicle-bodies/citadine.webp?v=${BODY_IMAGE_VERSION}`,
   berline: `/vehicle-bodies/berline.webp?v=${BODY_IMAGE_VERSION}`,
-  suv: `/vehicle-bodies/suv.svg?v=${BODY_IMAGE_VERSION}`,
+  suv: `/vehicle-bodies/suv.webp?v=${BODY_IMAGE_VERSION}`,
   break: `/vehicle-bodies/break.webp?v=${BODY_IMAGE_VERSION}`,
   utilitaire: `/vehicle-bodies/utilitaire.webp?v=${BODY_IMAGE_VERSION}`,
   cabriolet: `/vehicle-bodies/cabriolet.webp?v=${BODY_IMAGE_VERSION}`,
