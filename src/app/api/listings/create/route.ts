@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import { body, dbMissing, fail, ok, unauthorized, writeFail } from "@/lib/api";
+import { isFounder } from "@/lib/founder";
 import { fairPrice, technicalControlDate, trustScore } from "@/lib/market";
 import { comparablesFor } from "@/lib/source";
 import type { Body, Condition, Fuel, Gearbox, Vehicle } from "@/lib/types";
@@ -296,7 +297,9 @@ export async function POST(req: Request) {
 
   try {
     const { createListing } = await import("@/lib/db/writes");
-    const row = await createListing(user.id, payload);
+    /* الامتياز كيتقرّر من إيميل الجلسة فالخادم — ماشي من جسم
+       الطلب ولا من عمود يقدر يتبدّل بـUPDATE */
+    const row = await createListing(user.id, payload, { founder: isFounder(user.email) });
     return ok({ ref: row.ref, slug: row.slug, trust: trust.score });
   } catch (e) {
     return writeFail(e);

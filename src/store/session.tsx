@@ -25,6 +25,8 @@ export interface SessionUser {
   avatar_url: string | null;
   /** واش دار خطوة استكمال الملف الشخصي الإلزامية */
   onboarded: boolean;
+  /** صاحب المنصة — كيتقرّر فالخادم من FOUNDER_EMAILS */
+  founder: boolean;
   member_since: string;
 }
 

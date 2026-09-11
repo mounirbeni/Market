@@ -11,6 +11,7 @@ import { userBadges } from "@/lib/userBadges";
 import { ReportDialog } from "./ReportDialog";
 import { ContactSellerButton } from "./ContactSellerButton";
 import { AppointmentDialog } from "./AppointmentDialog";
+import { FounderBadge } from "@/components/FounderBadge";
 import {
   BadgeCheck, Calendar, Car, Check, Clock, Flag, MapPin, Phone, Share,
   ShieldAlert, Star, Whatsapp, Wrench,
@@ -92,6 +93,7 @@ export function SellerCard({
               {seller.idVerified && (
                 <BadgeCheck size={15} style={{ color: "var(--good)" }} aria-label={t.sellerCard.idVerified} />
               )}
+              {seller.founder && <FounderBadge size="sm" />}
             </div>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]" style={{ color: "var(--text-dim)" }}>
               <span>{specs(locale).seller[seller.type]}</span>

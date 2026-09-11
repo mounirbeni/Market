@@ -512,6 +512,11 @@
       "detail": "Le vendeur est ouvert à la discussion."
     }
   },
+  "founder": {
+    "badge": "Fondateur TRIQ",
+    "title": "Propriétaire de la plateforme",
+    "listingNote": "Annonce du fondateur de la plateforme"
+  },
   "vehicle": {
     "notFound": "Annonce introuvable",
     "metaIn": "à",

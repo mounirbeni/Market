@@ -8,6 +8,7 @@ import { DEFAULT_LOCALE, isLocale, localePath } from "@/lib/i18n/config";
 import { cityLabel, sellerDisplayName } from "@/lib/i18n/labels";
 import { VehicleCard } from "@/components/VehicleCard";
 import { Avatar } from "@/components/Avatar";
+import { FounderBadge } from "@/components/FounderBadge";
 import {
   BadgeCheck, Car, Clock, MapPin, ShieldCheck, Star, Users,
 } from "@/components/icons";
@@ -87,6 +88,7 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
           <div className="min-w-0 flex-1 pb-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="h-section">{displayName}</h1>
+              {seller.founder && <FounderBadge />}
               {seller.idVerified && (
                 <span className="tag" style={{ background: "var(--good)", color: "#fff" }}>
                   <BadgeCheck size={11} /> {p.verifiedAccount}

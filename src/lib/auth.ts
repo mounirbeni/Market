@@ -2,6 +2,7 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { sql, one } from "./db/client";
+import { isFounder } from "./founder";
 import { mailConfigured, otpMail, send } from "./mail";
 
 /* ============================================================
@@ -32,6 +33,8 @@ export interface CurrentUser {
   avatar_url: string | null;
   /** واش دار خطوة استكمال الملف الشخصي الإلزامية */
   onboarded: boolean;
+  /** صاحب المنصة — كيتقرّر من FOUNDER_EMAILS، ماشي من قاعدة البيانات */
+  founder: boolean;
   member_since: string;
 }
 
@@ -41,14 +44,26 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token) return null;
   try {
-    return await one<CurrentUser>(
+    const row = await one<CurrentUser & { founder: boolean }>(
       `SELECT u.id, u.name, u.email, u.phone, u.type, u.city, u.email_verified,
-              u.id_verified, u.phone_verified, u.avatar_url, u.onboarded,
+              u.id_verified, u.phone_verified, u.avatar_url, u.onboarded, u.founder,
               u.member_since::text
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.token_hash = $1 AND s.expires_at > now() AND u.banned_at IS NULL`,
       [sha256(token)],
     );
+    if (!row) return null;
+
+    /* المرجع هو متغيّر البيئة، ماشي العمود. العمود كاين غير باش
+       بطاقات البحث يعرفو صاحب الإعلان بلا استعلام زايد — فكنزامنوه
+       هنا: أي تبديل يدوي فقاعدة البيانات كيترجع، وأي تبديل
+       فـFOUNDER_EMAILS كيوصل للعرض من أول دخول. */
+    const founder = isFounder(row.email);
+    if (founder !== row.founder) {
+      await sql("UPDATE users SET founder = $2 WHERE id = $1::uuid", [row.id, founder])
+        .catch(() => { /* العرض ماخاصوش يوقف الجلسة */ });
+    }
+    return { ...row, founder };
   } catch {
     return null;
   }

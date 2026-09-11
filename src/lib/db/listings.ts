@@ -82,6 +82,7 @@ export interface ListingRow {
   seller_since: string;
   seller_id_ver: boolean;
   seller_phone_ver: boolean;
+  seller_founder: boolean;
   seller_rating: string | null;
   seller_sales: number;
   seller_resp: number | null;
@@ -123,7 +124,7 @@ const SELECT_COLS = `
   l.seller_id::text AS seller_ref,
   u.name AS seller_name, u.avatar_url AS seller_avatar, u.type AS seller_type, d.slug AS dealer_slug,
   u.city AS seller_city, u.member_since AS seller_since,
-  u.id_verified AS seller_id_ver, u.phone_verified AS seller_phone_ver,
+  u.id_verified AS seller_id_ver, u.phone_verified AS seller_phone_ver, u.founder AS seller_founder,
   u.rating AS seller_rating, u.sales_count AS seller_sales,
   u.response_minutes AS seller_resp, u.phone AS seller_phone,
   -- أول صورة باش البطاقات مايطلبوش الصور وحدة بوحدة.
@@ -418,6 +419,7 @@ export function rowToVehicle(
       since: new Date(r.seller_since).getFullYear(),
       idVerified: r.seller_id_ver,
       phoneVerified: r.seller_phone_ver,
+      founder: r.seller_founder,
       rating: r.seller_rating != null ? Number(r.seller_rating) : null,
       salesCount: r.seller_sales,
       responseMinutes: r.seller_resp,
@@ -436,6 +438,7 @@ export interface SellerRow {
   member_since: string;
   id_verified: boolean;
   phone_verified: boolean;
+  founder: boolean;
   rating: string | null;
   sales_count: number;
   response_minutes: number | null;
@@ -452,6 +455,7 @@ export function rowToSeller(r: SellerRow): Seller {
     since: new Date(r.member_since).getFullYear(),
     idVerified: r.id_verified,
     phoneVerified: r.phone_verified,
+    founder: r.founder,
     rating: r.rating != null ? Number(r.rating) : null,
     salesCount: r.sales_count,
     responseMinutes: r.response_minutes,
@@ -501,7 +505,7 @@ export async function findSimilarListings(v: SimilarInput, limit = 8): Promise<L
 export async function getSellerOf(listingRef: string): Promise<Seller | null> {
   const r = await one<SellerRow>(
     `SELECT u.id::text AS ref, u.name, u.avatar_url, u.type, u.city, u.member_since,
-            u.id_verified, u.phone_verified, u.rating, u.sales_count,
+            u.id_verified, u.phone_verified, u.founder, u.rating, u.sales_count,
             u.response_minutes, u.phone
      FROM listings l JOIN users u ON u.id = l.seller_id
      WHERE l.ref = $1 OR l.slug = $1`,
@@ -549,7 +553,7 @@ export async function sellerStats(userId: string): Promise<SellerStats> {
 export async function sellerById(userId: string): Promise<SellerRow | null> {
   return one<SellerRow>(
     `SELECT u.id::text AS ref, u.name, u.avatar_url, u.type, u.city, u.member_since,
-            u.id_verified, u.phone_verified, u.rating, u.sales_count,
+            u.id_verified, u.phone_verified, u.founder, u.rating, u.sales_count,
             u.response_minutes, u.phone
      FROM users u WHERE u.id = $1::uuid`,
     [userId],

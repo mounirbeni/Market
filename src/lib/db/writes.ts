@@ -1,5 +1,6 @@
 import "server-only";
 import { sql, one } from "./client";
+import { FOUNDER_PROMO_DAYS, FOUNDER_PROMO_TIER } from "@/lib/founder";
 import { slugify } from "@/lib/slug";
 import type { Vehicle } from "@/lib/types";
 
@@ -104,8 +105,14 @@ async function assertPublishAllowed(sellerId: string) {
   }
 }
 
-export async function createListing(sellerId: string, v: NewListing) {
-  await assertPublishAllowed(sellerId);
+export async function createListing(
+  sellerId: string,
+  v: NewListing,
+  /** امتيازات صاحب المنصة — كتتقرّر فالخادم من إيميل الجلسة */
+  opts: { founder?: boolean } = {},
+) {
+  // المؤسس كينشر بلا حدود — الحدّ كيحمي من السبام، ماشي من صاحبها
+  if (!opts.founder) await assertPublishAllowed(sellerId);
 
   const prefix = v.kind === "moto" ? "m" : "c";
   const row = await one<{ id: string; ref: string; slug: string }>(
@@ -180,7 +187,38 @@ export async function createListing(sellerId: string, v: NewListing) {
     );
   }
 
+  if (opts.founder) await grantFounderPromo(row.id, sellerId);
+
   return row;
+}
+
+/**
+ * ترويج مجاني دائم لإعلان المؤسس.
+ *
+ * كنعيدو استعمال نظام الترويج الموجود بدل ما نخترعو مسار ترتيب
+ * موازي: الدرجة «top» عندها ديجا رفعة 60 فالترتيب، إطار وشارة
+ * فالبطاقة، وحضور فقسم «مركبات مميزة».
+ *
+ * الصف فجدول promotions ضروري: سويعة expirePromotions() كتمسح
+ * كل promo ماعندوش ترويج مدفوع ساري. بثمن 0 ومدة طويلة، الإعلان
+ * كيبقى مميّز وكيبان فالسجل كـ«مؤسس» ماشي كبيعة وهمية.
+ */
+export async function grantFounderPromo(listingId: string, userId: string) {
+  await sql(
+    `INSERT INTO promotions
+       (listing_id, user_id, tier, amount_mad, days, provider, provider_ref,
+        paid_at, starts_at, ends_at)
+     VALUES ($1::uuid, $2::uuid, $3::promo_tier, 0, $4::int, 'founder', 'founder',
+             now(), now(), now() + ($4::text || ' days')::interval)`,
+    [listingId, userId, FOUNDER_PROMO_TIER, FOUNDER_PROMO_DAYS],
+  );
+  await sql(
+    `UPDATE listings SET promo = $2::promo_tier,
+       promo_expires_at = now() + ($3::text || ' days')::interval,
+       updated_at = now()
+      WHERE id = $1::uuid`,
+    [listingId, FOUNDER_PROMO_TIER, FOUNDER_PROMO_DAYS],
+  );
 }
 
 /** تعديل ثمن إعلان — كيسجّل التغيير فتاريخ الأثمنة */

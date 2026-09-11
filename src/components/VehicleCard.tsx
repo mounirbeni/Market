@@ -11,6 +11,7 @@ import { fairPriceOf, trustOf } from "@/lib/market";
 import { promoOf } from "@/lib/promo";
 import { useApp } from "@/store/app";
 import { VehicleCover } from "./VehicleCover";
+import { FounderBadge } from "./FounderBadge";
 import { TrustDot } from "./TrustBadge";
 import { FairPriceTag } from "./FairPriceMeter";
 import { Price } from "./Price";
@@ -105,6 +106,7 @@ function Badges({ v, featured = false }: { v: Vehicle; featured?: boolean }) {
           <BadgeCheck size={11} /> {t.card.inspected}
         </span>
       )}
+      {v.seller?.founder && <FounderBadge size="sm" />}
     </div>
   );
 }
