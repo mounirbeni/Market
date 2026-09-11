@@ -9,17 +9,17 @@ import type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 export type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
 /**
- * مجسمات carrosserie ديال Tarique.
- * كل نوع عندو SVG مستقل باش يبان بثبات على Safari / iPhone / PWA.
+ * صور carrosserie ديال Tarique.
+ * كل نوع عندو صورة WebP مستقلة باش تبان بثبات على Safari / iPhone / PWA.
  * ما بقيناش كنستعملو sprite ولا background-position ولا clipping.
  */
 const BODY_IMAGES: Partial<Record<ArtShape, string>> = {
-  citadine: "/vehicle-bodies/citadine.svg",
-  berline: "/vehicle-bodies/berline.svg",
-  suv: "/vehicle-bodies/suv.svg",
-  break: "/vehicle-bodies/break.svg",
-  utilitaire: "/vehicle-bodies/utilitaire.svg",
-  cabriolet: "/vehicle-bodies/cabriolet.svg",
+  citadine: "/vehicle-bodies/citadine.webp",
+  berline: "/vehicle-bodies/berline.webp",
+  suv: "/vehicle-bodies/suv.webp",
+  break: "/vehicle-bodies/break.webp",
+  utilitaire: "/vehicle-bodies/utilitaire.webp",
+  cabriolet: "/vehicle-bodies/cabriolet.webp",
 };
 
 function bodyImage(shape: ArtShape, kind: VehicleKind) {
