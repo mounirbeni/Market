@@ -53,7 +53,6 @@ export function SellerCard({
     : seller.idVerified ? "medium" as const : "low" as const;
   const badges = userBadges({
     idVerified: seller.idVerified,
-    phoneVerified: seller.phoneVerified,
     type: seller.type,
     dealerVerified,
     trustLevel,

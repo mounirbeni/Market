@@ -72,7 +72,7 @@
       ["L'indice de confiance", "Chaque annonce affiche un indice de confiance : photos réelles, détails complets, vendeur vérifié..."],
       ["Contactez en toute sécurité", "Échangez avec le vendeur directement depuis la plateforme sans donner votre numéro, et signalez toute annonce suspecte."],
       ["Vendez en quelques minutes", "Cliquez sur '+' pour publier une annonce — renseignez les infos du véhicule, ajoutez des photos, et TRIQ calcule un prix de référence pour vous."],
-      ["Compte vérifié", "Vérifier votre compte (téléphone, identité...) vous donne un badge de confiance visible par les acheteurs et augmente vos chances de vendre."],
+      ["Compte vérifié", "Vérifier votre identité vous donne un badge de confiance visible par les acheteurs et augmente vos chances de vendre."],
       ["Des outils utiles", "Calculateur de coût d'usage, comparaison d'annonces, demande d'inspection technique — tout pour acheter sans mauvaise surprise."]
     ]
   },
@@ -613,11 +613,11 @@
       "equipment": "{n} équipements documentés",
       "kmPerYear": "{km} km/an",
       "inspected": "120 points de contrôle · rapport disponible",
-      "notInspected": "Aucune inspection demandée"
+      "notInspected": "Aucune inspection demandée",
+      "founder": "Fondateur de la plateforme"
     },
     "flag": {
       "idNotVerified": "L'identité du vendeur n'est pas encore vérifiée",
-      "phoneNotVerified": "Le numéro de téléphone n'est pas confirmé",
       "papersBad": "Les documents ne sont pas au nom du vendeur ou sont incomplets",
       "tcExpiring": "La visite technique arrive à expiration",
       "accidentDeclared": "Accident déclaré dans l'historique du véhicule",
@@ -1564,13 +1564,9 @@
     "namePlaceholder": "Ex : Mounir B.",
     "particulier": "Particulier",
     "professionnel": "Professionnel",
-    "phoneVerifiedCheck": [
-      "Confirmer le numéro par SMS",
-      "+4"
-    ],
     "idVerifiedCheck": [
       "Vérifier l'identité avec la carte nationale",
-      "+8"
+      "+12"
     ],
     "publish": "Publier l'annonce gratuitement",
     "publishing": "Publication…",
@@ -1787,7 +1783,7 @@
       {
         "heading": "6. Sécurité",
         "body": [
-          "Nous appliquons des mesures techniques et organisationnelles pour protéger les données. Cependant, aucun système n'est sécurisé à 100 %, et nous vous recommandons d'utiliser un numéro de téléphone vérifié et de ne pas partager de données sensibles dans les messages."
+          "Nous appliquons des mesures techniques et organisationnelles pour protéger les données. Cependant, aucun système n'est sécurisé à 100 %, et nous vous recommandons de ne pas partager de données sensibles dans les messages."
         ]
       },
       {
@@ -2184,7 +2180,7 @@
     "email": "E-mail",
     "emailHint": "Toujours confirmé à la connexion",
     "phone": "Numéro de téléphone",
-    "phoneHintUnverified": "Pas encore confirmé",
+    "phoneSaved": "Enregistré dans votre compte",
     "phoneHintMissing": "Aucun numéro",
     "idVerification": "Vérification du compte",
     "idVerified": "Vérifié",

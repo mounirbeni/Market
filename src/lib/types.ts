@@ -34,7 +34,6 @@ export interface Seller {
   since: number;
   /** هوية موثقة عبر البطاقة الوطنية / السجل التجاري */
   idVerified: boolean;
-  phoneVerified: boolean;
   /** صاحب المنصة — شارة «مؤسس طريق» */
   founder?: boolean;
   /** رقم التواصل — كيبان غير ملي يضغط الزائر «أظهر الرقم» */

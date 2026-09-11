@@ -37,7 +37,6 @@ export default async function TrustCenterPage() {
   const result = userTrustScore({
     onboarded: user.onboarded,
     hasAvatar: Boolean(user.avatar_url),
-    phoneVerified: user.phone_verified,
     emailVerified: user.email_verified,
     idVerified: user.id_verified,
     memberSince: new Date(user.member_since),
@@ -48,7 +47,6 @@ export default async function TrustCenterPage() {
 
   const badges = userBadges({
     idVerified: user.id_verified,
-    phoneVerified: user.phone_verified,
     type: user.type,
     dealerVerified: Boolean(dealer?.verified),
     trustLevel: result.level,
@@ -93,7 +91,7 @@ export default async function TrustCenterPage() {
             <div className="grid gap-2 sm:grid-cols-3">
               {[
                 { Icon: Mail, label: p.email, done: user.email_verified, hint: p.emailHint },
-                { Icon: Phone, label: p.phone, done: user.phone_verified, hint: user.phone ? p.phoneHintUnverified : p.phoneHintMissing },
+                { Icon: Phone, label: p.phone, done: Boolean(user.phone), hint: user.phone ? p.phoneSaved : p.phoneHintMissing },
                 { Icon: IdCard, label: p.idVerification, done: user.id_verified, hint: user.id_verified ? p.idVerified : p.idOptional },
               ].map((s) => (
                 <div

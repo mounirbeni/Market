@@ -31,7 +31,6 @@ export interface CurrentUser {
   city: string | null;
   email_verified: boolean;
   id_verified: boolean;
-  phone_verified: boolean;
   avatar_url: string | null;
   /** واش دار خطوة استكمال الملف الشخصي الإلزامية */
   onboarded: boolean;
@@ -48,7 +47,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   try {
     const row = await one<CurrentUser & { founder: boolean }>(
       `SELECT u.id, u.name, u.email, u.phone, u.type, u.city, u.email_verified,
-              u.id_verified, u.phone_verified, u.avatar_url, u.onboarded, u.founder,
+              u.id_verified, u.avatar_url, u.onboarded, u.founder,
               u.member_since::text
        FROM sessions s JOIN users u ON u.id = s.user_id
        WHERE s.token_hash = $1 AND s.expires_at > now() AND u.banned_at IS NULL`,
@@ -61,11 +60,17 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
        هنا: أي تبديل يدوي فقاعدة البيانات كيترجع، وأي تبديل
        فـFOUNDER_EMAILS كيوصل للعرض من أول دخول. */
     const founder = isFounder(row.email);
-    if (founder !== row.founder) {
-      await sql("UPDATE users SET founder = $2 WHERE id = $1::uuid", [row.id, founder])
-        .catch(() => { /* العرض ماخاصوش يوقف الجلسة */ });
+    /* هوية المؤسس معروفة للمنصة بحكم كونو صاحبها — id_verified هنا
+       كيعكس واقع، ماشي مجاملة. باقي المستعملين كيبقاو كيمرّو من طلب
+       توثيق عند الإشراف. */
+    const idVerified = row.id_verified || founder;
+    if (founder !== row.founder || idVerified !== row.id_verified) {
+      await sql(
+        "UPDATE users SET founder = $2, id_verified = $3 WHERE id = $1::uuid",
+        [row.id, founder, idVerified],
+      ).catch(() => { /* العرض ماخاصوش يوقف الجلسة */ });
     }
-    return { ...row, founder };
+    return { ...row, founder, id_verified: idVerified };
   } catch {
     return null;
   }

@@ -347,7 +347,6 @@ export function trustScore(
       city: v.city,
       since: currentYear,
       idVerified: false,
-      phoneVerified: false,
       rating: null,
       salesCount: 0,
       responseMinutes: null,
@@ -356,25 +355,32 @@ export function trustScore(
   const flags: TrustResult["flags"] = [];
   const strengths: string[] = [];
 
-  // 1) البائع — 20
+  /* 1) البائع — 20
+     المؤسس هو الحساب الرسمي ديال المنصة: الهوية معروفة والمسؤولية
+     مباشرة، فهاد الجزء كامل. باقي الأجزاء (الوثائق، الفحص، جودة
+     الإعلان) كتبقى مكتسبة بحال أي بائع — الشارة كتشهد على مَن هو
+     البائع، ماشي على السيارة. */
   let sellerScore = 0;
-  if (seller.idVerified) sellerScore += 8;
-  else flags.push({ level: "warn", k: "idNotVerified" });
-  if (seller.phoneVerified) sellerScore += 4;
-  else flags.push({ level: "warn", k: "phoneNotVerified" });
-  // بلا نظام مراجعات حقيقي، ماكاينش تقييم — بلا هادشي كنعطيو نقط
-  // على رقم مختلق. seller.rating == null فكل الحسابات دابا (لا
-  // كتابة حقيقية للعمود)، فهاد الجزء مؤقتاً معطّل.
-  if (seller.rating != null) sellerScore += Math.round(((seller.rating - 3.5) / 1.5) * 4);
-  const seniority = Math.min(4, Math.max(0, currentYear - seller.since));
-  sellerScore += seniority;
-  sellerScore = Math.max(0, Math.min(20, sellerScore));
+  if (seller.founder) {
+    sellerScore = 20;
+  } else {
+    if (seller.idVerified) sellerScore += 12;
+    else flags.push({ level: "warn", k: "idNotVerified" });
+    // بلا نظام مراجعات حقيقي، ماكاينش تقييم — بلا هادشي كنعطيو نقط
+    // على رقم مختلق. seller.rating == null فكل الحسابات دابا (لا
+    // كتابة حقيقية للعمود)، فهاد الجزء مؤقتاً معطّل.
+    if (seller.rating != null) sellerScore += Math.round(((seller.rating - 3.5) / 1.5) * 4);
+    sellerScore += Math.min(4, Math.max(0, currentYear - seller.since));
+    sellerScore = Math.max(0, Math.min(20, sellerScore));
+  }
   parts.push({
     key: "seller",
     score: sellerScore,
     max: 20,
     detail: [
-      { k: seller.idVerified ? "idVerified" : "noVerify" },
+      seller.founder
+        ? { k: "founder" }
+        : { k: seller.idVerified ? "idVerified" : "noVerify" },
       ...(seller.rating != null ? [{ k: "rating", vars: { r: seller.rating.toFixed(1) } }] : []),
       { k: "since", vars: { y: String(seller.since) } },
     ],

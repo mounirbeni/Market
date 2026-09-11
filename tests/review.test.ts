@@ -54,8 +54,11 @@ test("code review regressions against an isolated PostgreSQL engine", async (t) 
 
   try {
     await t.test("all migrations apply; legacy declarations are retained without verification", async () => {
+      // 0013 carries a data migration, so it has to run against the schema and
+      // rows that preceded it — later migrations then apply on top, in order.
       const files = readdirSync("db/migrations").filter((f) => f.endsWith(".sql")).sort();
-      for (const file of files.filter((f) => !f.startsWith("0013")))
+      const rollout = files.findIndex((f) => f.startsWith("0013"));
+      for (const file of files.slice(0, rollout))
         await db.exec(readFileSync(`db/migrations/${file}`, "utf8"));
       await db.exec(`INSERT INTO users (id, email, name, city, onboarded, member_since)
         VALUES ('00000000-0000-4000-8000-000000000001', 'seller@example.test', 'Seller', 'casablanca', true, CURRENT_DATE);
@@ -64,6 +67,8 @@ test("code review regressions against an isolated PostgreSQL engine", async (t) 
         VALUES ('legacy', 'legacy', '00000000-0000-4000-8000-000000000001', 'car', 'Renault', 'Clio', 2018, 120000,
           100000, 'diesel', 'manuelle', 'citadine', 6, 'casablanca', 'bon', true, '2027-01-01');`);
       await db.exec(readFileSync("db/migrations/0013_review_security_trust.sql", "utf8"));
+      for (const file of files.slice(rollout + 1))
+        await db.exec(readFileSync(`db/migrations/${file}`, "utf8"));
       const { rows: [row] } = await db.query<{ inspected: boolean; seller_inspection_claimed: boolean; technical_control: string | null; legacy_technical_control: string }>(
         "SELECT inspected, seller_inspection_claimed, technical_control, legacy_technical_control::text FROM listings WHERE ref='legacy'",
       );
@@ -155,8 +160,10 @@ test("code review regressions against an isolated PostgreSQL engine", async (t) 
     });
 
     await t.test("live SQL/search/facets agree with displayed trust after seller verification", async () => {
-      for (const verified of [false, true, false]) {
-        await db.query("UPDATE users SET id_verified=$2 WHERE id=$1", [userId, verified]);
+      // The founder case is in here on purpose: the seller component is the only
+      // one the founder flag may fill, and SQL and TypeScript have to agree on it.
+      for (const [verified, founder] of [[false, false], [true, false], [false, true], [true, true], [false, false]]) {
+        await db.query("UPDATE users SET id_verified=$2, founder=$3 WHERE id=$1", [userId, verified, founder]);
         const listing = (await getListingBySlug(slug))!.listing;
         const vehicle = rowToVehicle(listing);
         const expected = trustScore(vehicle, (await sellerOf(ref))!).score;

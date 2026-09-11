@@ -1,4 +1,4 @@
-import { Award, BadgeCheck, Phone, ShieldCheck, Star } from "@/components/icons";
+import { Award, BadgeCheck, ShieldCheck, Star } from "@/components/icons";
 import type { TrustLevel } from "./userTrust";
 
 /* ============================================================
@@ -11,7 +11,6 @@ import type { TrustLevel } from "./userTrust";
 
 export interface UserBadgeInput {
   idVerified: boolean;
-  phoneVerified: boolean;
   type: "particulier" | "professionnel";
   dealerVerified: boolean;
   trustLevel: TrustLevel;
@@ -37,9 +36,6 @@ export function userBadges(input: UserBadgeInput): UserBadge[] {
     badges.push({ key: "company", Icon: Award, color: "var(--brand)" });
   } else if (input.type === "professionnel") {
     badges.push({ key: "pro", Icon: BadgeCheck, color: "var(--data)" });
-  }
-  if (input.phoneVerified) {
-    badges.push({ key: "phone", Icon: Phone, color: "var(--good)" });
   }
 
   return badges;

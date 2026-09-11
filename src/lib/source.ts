@@ -391,7 +391,7 @@ function toDealer(r: {
   brands: string[]; cover_from: string | null; cover_to: string | null;
   owner_ref: string; rating: string | null; sales_count: number;
   response_minutes: number | null; member_since: string;
-  id_verified: boolean; phone_verified: boolean;
+  id_verified: boolean;
   owner_type: "particulier" | "professionnel"; phone: string | null;
 }): Dealer {
   return {
@@ -401,7 +401,6 @@ function toDealer(r: {
     city: r.city,
     since: new Date(r.member_since).getFullYear(),
     idVerified: r.id_verified,
-    phoneVerified: r.phone_verified,
     rating: r.rating != null ? Number(r.rating) : null,
     salesCount: r.sales_count,
     responseMinutes: r.response_minutes,

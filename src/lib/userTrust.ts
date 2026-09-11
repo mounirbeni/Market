@@ -6,6 +6,10 @@
    شحال كمّل من الملف الشخصي، واش موثّق، واش نشيط، وواش الإعلانات
    ديالو نظيفة وبلا بلاغات. توثيق الهوية عامل واحد من بزاف، ماشي
    الوحيد — بحال ما تطلب.
+
+   المجموع 100: الملف 20 + البريد 15 + الهوية 35 + النشاط 10 +
+   الإعلانات 15 + البلاغات 5. ماكاينش توثيق الهاتف — المنصة
+   ماعندهاش مزوّد SMS، فماكانش عدل نطالبو بحاجة ماكيناش.
    ============================================================ */
 
 import type { Locale } from "./i18n/config";
@@ -15,7 +19,6 @@ export type TrustLevel = "low" | "medium" | "high";
 export interface UserTrustInput {
   onboarded: boolean;
   hasAvatar: boolean;
-  phoneVerified: boolean;
   emailVerified: boolean;
   idVerified: boolean;
   /** تاريخ إنشاء الحساب */
@@ -83,26 +86,18 @@ export function userTrustScore(input: UserTrustInput, locale: Locale = "ar"): Us
           : null,
     },
     {
-      key: "phone",
-      label: fr ? "Téléphone confirmé" : "تأكيد رقم الهاتف",
-      score: input.phoneVerified ? 15 : 0,
-      max: 15,
-      done: input.phoneVerified,
-      action: input.phoneVerified ? null : (fr ? "Confirmez votre numéro de téléphone" : "أكّد رقم الهاتف ديالك"),
-    },
-    {
       key: "email",
       label: fr ? "E-mail confirmé" : "تأكيد البريد الإلكتروني",
-      score: input.emailVerified ? 10 : 0,
-      max: 10,
+      score: input.emailVerified ? 15 : 0,
+      max: 15,
       done: input.emailVerified,
       action: input.emailVerified ? null : (fr ? "Confirmez votre adresse e-mail" : "أكّد البريد الإلكتروني ديالك"),
     },
     {
       key: "id",
       label: fr ? "Identité vérifiée" : "توثيق الهوية",
-      score: input.idVerified ? 25 : 0,
-      max: 25,
+      score: input.idVerified ? 35 : 0,
+      max: 35,
       done: input.idVerified,
       action: input.idVerified ? null : (fr ? "Vérifiez votre compte (facultatif) — augmente beaucoup la confiance" : "وثّق حسابك (اختياري) — كيرفع الثقة بزاف"),
     },

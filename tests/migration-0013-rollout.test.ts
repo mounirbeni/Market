@@ -8,8 +8,11 @@ import { unaccent } from "@electric-sql/pglite/contrib/unaccent";
 test("0013 preserves logged admin inspection and archives generated control dates", async () => {
   const db = new PGlite({ extensions: { pg_trgm, unaccent } });
   try {
+    // The rollout is replayed exactly as production saw it: the schema as it
+    // stood before 0013, seeded with legacy rows, then 0013 itself. Later
+    // migrations are deliberately left out — they build on 0013's schema.
     const files = readdirSync("db/migrations").filter((f) => f.endsWith(".sql")).sort();
-    for (const file of files.filter((f) => !f.startsWith("0013")))
+    for (const file of files.slice(0, files.findIndex((f) => f.startsWith("0013"))))
       await db.exec(readFileSync(`db/migrations/${file}`, "utf8"));
 
     await db.exec(`

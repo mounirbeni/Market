@@ -73,7 +73,6 @@ interface Draft {
   sellerName: string;
   sellerType: "particulier" | "professionnel";
   idVerified: boolean;
-  phoneVerified: boolean;
 }
 
 const initialDraft: Draft = {
@@ -120,7 +119,6 @@ const initialDraft: Draft = {
   sellerName: "",
   sellerType: "particulier",
   idVerified: false,
-  phoneVerified: true,
 };
 
 function draftToVehicle(d: Draft): Vehicle {
@@ -193,7 +191,6 @@ function draftSeller(d: Draft): Seller {
     city: d.city,
     since: 2026,
     idVerified: d.idVerified,
-    phoneVerified: d.phoneVerified,
     rating: null,
     salesCount: 0,
     responseMinutes: null,
@@ -1048,7 +1045,6 @@ export function SellWizard() {
               </div>
               <div className="space-y-2">
                 {([
-                  ["phoneVerified", t.sellWizard.phoneVerifiedCheck[0], t.sellWizard.phoneVerifiedCheck[1]],
                   ["idVerified", t.sellWizard.idVerifiedCheck[0], t.sellWizard.idVerifiedCheck[1]],
                 ] as const).map(([key, label, gain]) => (
                   <label key={key} className="flex cursor-pointer items-center gap-2.5 rounded-lg p-2.5"

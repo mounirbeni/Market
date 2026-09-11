@@ -59,7 +59,6 @@ export default async function SellerPage({ params }: { params: Promise<{ id: str
     : seller.idVerified ? "medium" as const : "low" as const;
   const badges = userBadges({
     idVerified: seller.idVerified,
-    phoneVerified: seller.phoneVerified,
     type: seller.type,
     dealerVerified: false,
     trustLevel,
