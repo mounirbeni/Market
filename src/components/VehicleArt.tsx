@@ -10,64 +10,19 @@ import type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
 export type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
-const BODY_IMAGE_VERSION = "20260911-6";
+const BODY_IMAGE_VERSION = "20260911-7";
 const BODY_IMAGES: Partial<Record<ArtShape, string>> = {
+  citadine: `/vehicle-bodies/citadine.svg?v=${BODY_IMAGE_VERSION}`,
   berline: `/vehicle-bodies/berline.webp?v=${BODY_IMAGE_VERSION}`,
+  suv: `/vehicle-bodies/suv.svg?v=${BODY_IMAGE_VERSION}`,
   break: `/vehicle-bodies/break.webp?v=${BODY_IMAGE_VERSION}`,
   utilitaire: `/vehicle-bodies/utilitaire.webp?v=${BODY_IMAGE_VERSION}`,
   cabriolet: `/vehicle-bodies/cabriolet.webp?v=${BODY_IMAGE_VERSION}`,
 };
 
-const SPRITE_SRC = `/vehicle-bodies/neon-sprite.webp?v=${BODY_IMAGE_VERSION}`;
-const SPRITE_COLUMN: Partial<Record<ArtShape, number>> = {
-  citadine: 0,
-  suv: 2,
-};
-
 function bodyImage(shape: ArtShape, kind: VehicleKind) {
   if (kind !== "car") return null;
   return BODY_IMAGES[shape] ?? null;
-}
-
-function spriteColumn(shape: ArtShape, kind: VehicleKind) {
-  if (kind !== "car") return null;
-  return SPRITE_COLUMN[shape] ?? null;
-}
-
-function SpriteSvg({
-  shape,
-  className,
-  style,
-  label,
-}: {
-  shape: ArtShape;
-  className?: string;
-  style?: CSSProperties;
-  label?: string;
-}) {
-  const col = SPRITE_COLUMN[shape];
-  if (col === undefined) return null;
-
-  return (
-    <svg
-      viewBox="0 0 512 512"
-      className={className}
-      role={label ? "img" : undefined}
-      aria-label={label}
-      aria-hidden={label ? undefined : "true"}
-      preserveAspectRatio="xMidYMid meet"
-      style={{ display: "inline-block", overflow: "hidden", ...style }}
-    >
-      <image
-        href={SPRITE_SRC}
-        x={-col * 512}
-        y={0}
-        width={1536}
-        height={1024}
-        preserveAspectRatio="none"
-      />
-    </svg>
-  );
 }
 
 function NeonVehicle({
@@ -121,27 +76,6 @@ function NeonVehicle({
 
 export function VehicleArt(props: VehicleArtProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const col = spriteColumn(props.body, props.kind);
-
-  if (col !== null) {
-    return (
-      <span
-        className={`relative block overflow-hidden ${props.className ?? ""}`}
-        style={{
-          background:
-            "radial-gradient(circle at 50% 46%, rgba(31,95,224,.18), transparent 58%), linear-gradient(145deg, #071225 0%, #0a1930 52%, #07111f 100%)",
-        }}
-        role="img"
-        aria-label={props.label ?? "مجسم المركبة"}
-      >
-        <SpriteSvg
-          shape={props.body}
-          style={{ width: "100%", height: "100%", display: "block" }}
-        />
-      </span>
-    );
-  }
-
   const src = bodyImage(props.body, props.kind);
   if (!src || failedSrc === src) return <LegacyVehicleArt {...props} />;
 
@@ -172,25 +106,6 @@ export function VehicleGlyph({
   style?: CSSProperties;
 }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const col = spriteColumn(shape, kind);
-
-  if (col !== null) {
-    return (
-      <SpriteSvg
-        shape={shape}
-        className={className}
-        style={{
-          width: size * 2.55,
-          height: size * 1.5,
-          verticalAlign: "middle",
-          flexShrink: 0,
-          filter: "drop-shadow(0 3px 8px rgba(31,95,224,.34))",
-          ...style,
-        }}
-      />
-    );
-  }
-
   const src = bodyImage(shape, kind);
   if (!src || failedSrc === src) {
     return (
