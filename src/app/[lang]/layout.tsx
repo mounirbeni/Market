@@ -15,6 +15,7 @@ import { CompareBar } from "@/components/CompareBar";
 import { PwaRegister } from "@/components/PwaRegister";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { Tour } from "@/components/Tour";
+import { siteUrl } from "@/lib/site";
 
 /** نص المتن */
 const body = IBM_Plex_Sans_Arabic({
@@ -48,7 +49,7 @@ export async function generateMetadata({
   const t = await dictionaryOf(locale);
   const m = t.siteMeta;
   return {
-    metadataBase: new URL("https://tariqmaroc.com"),
+    metadataBase: new URL(siteUrl()),
     title: {
       default: m.title,
       template: locale === "fr" ? "%s · tariq" : "%s · طريق tariq",

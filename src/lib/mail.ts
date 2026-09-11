@@ -1,5 +1,6 @@
 import "server-only";
 import { formatDh, formatNumber } from "./format";
+import { absoluteUrl } from "./site";
 
 /* ============================================================
    إرسال الإيميل
@@ -225,18 +226,9 @@ const esc = (s: string) =>
 const oneLine = (s: string, max = 90) =>
   s.replace(/[\r\n\t]+/g, " ").trim().slice(0, max);
 
-/**
- * جذر الموقع للروابط المطلقة.
- *
- * الإيميل ماكيقدرش يستعمل روابط نسبية — خاصو النطاق كامل. نفس
- * القيمة ديال sitemap.ts وrobots.ts، مع إمكانية تبديلها فالبيئة
- * (مفيد للتجريب على نطاق مؤقت ديال Vercel).
- */
-const siteUrl = () =>
-  (process.env.NEXT_PUBLIC_SITE_URL || "https://tariqmaroc.com").replace(/\/+$/, "");
-
-/** رابط مطلق من مسار داخلي: "/messages" → "https://tariqmaroc.com/messages" */
-const abs = (path: string) => `${siteUrl()}${path.startsWith("/") ? path : `/${path}`}`;
+/* الإيميل ماكيقدرش يستعمل روابط نسبية — خاصو النطاق كامل.
+   النطاق كيجي من lib/site باش يبقى نفسو ف sitemap وrobots وmetadata. */
+const abs = absoluteUrl;
 
 /**
  * زر CTA — جدول ماشي <a> مصفّف.

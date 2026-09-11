@@ -2,9 +2,10 @@ import type { MetadataRoute } from "next";
 import { TOP_CITIES } from "@/lib/cities";
 import { GUIDES } from "@/lib/data/guides";
 import { brandsOf } from "@/lib/slug";
+import { siteUrl } from "@/lib/site";
 import { getDealers, getSitemapEntries } from "@/lib/source";
 
-const BASE = "https://tariqmaroc.com";
+const BASE = siteUrl();
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries = await getSitemapEntries();
