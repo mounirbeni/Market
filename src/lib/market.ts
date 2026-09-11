@@ -298,7 +298,8 @@ export function fairPrice(v: Vehicle, pool: Vehicle[]): FairPrice {
 }
 
 /* ============================================================
-   مؤشر الثقة — 100 نقطة موزعة على ست ركائز
+   مؤشر الثقة ديال الإعلان — 100 نقطة موزعة على خمس ركائز.
+   ثقة الحساب (ومنها توثيق الهوية) مستقلة وكتتحسب فـuserTrust.ts.
    ============================================================ */
 
 /* النص كيتبنى فالعرض ماشي هنا: كنرجّعو مفاتيح وأرقام، والقاموس
@@ -332,70 +333,25 @@ function kmPerYear(v: Vehicle, year: number) {
 
 export function trustScore(
   v: Vehicle,
-  sellerOverride?: Seller,
+  _sellerOverride?: Seller,
   fairPriceOverride?: FairPrice,
   today = todayInMorocco(),
 ): TrustResult {
   const currentYear = Number(today.slice(0, 4));
-  /* بلا معلومات على البائع كنحسبو بأقل التقديرات — بائع جديد
-     بلا توثيق. أحسن من أن نفترض سمعة ماكايناش. */
-  const seller: Seller = sellerOverride ??
-    v.seller ?? {
-      id: v.sellerId,
-      name: "بائع",
-      type: "particulier",
-      city: v.city,
-      since: currentYear,
-      idVerified: false,
-      rating: null,
-      salesCount: 0,
-      responseMinutes: null,
-    };
   const parts: TrustPart[] = [];
   const flags: TrustResult["flags"] = [];
   const strengths: string[] = [];
 
-  /* 1) البائع — 20
-     المؤسس هو الحساب الرسمي ديال المنصة: الهوية معروفة والمسؤولية
-     مباشرة، فهاد الجزء كامل. باقي الأجزاء (الوثائق، الفحص، جودة
-     الإعلان) كتبقى مكتسبة بحال أي بائع — الشارة كتشهد على مَن هو
-     البائع، ماشي على السيارة. */
-  let sellerScore = 0;
-  if (seller.founder) {
-    sellerScore = 20;
-  } else {
-    if (seller.idVerified) sellerScore += 12;
-    else flags.push({ level: "warn", k: "idNotVerified" });
-    // بلا نظام مراجعات حقيقي، ماكاينش تقييم — بلا هادشي كنعطيو نقط
-    // على رقم مختلق. seller.rating == null فكل الحسابات دابا (لا
-    // كتابة حقيقية للعمود)، فهاد الجزء مؤقتاً معطّل.
-    if (seller.rating != null) sellerScore += Math.round(((seller.rating - 3.5) / 1.5) * 4);
-    sellerScore += Math.min(4, Math.max(0, currentYear - seller.since));
-    sellerScore = Math.max(0, Math.min(20, sellerScore));
-  }
-  parts.push({
-    key: "seller",
-    score: sellerScore,
-    max: 20,
-    detail: [
-      seller.founder
-        ? { k: "founder" }
-        : { k: seller.idVerified ? "idVerified" : "noVerify" },
-      ...(seller.rating != null ? [{ k: "rating", vars: { r: seller.rating.toFixed(1) } }] : []),
-      { k: "since", vars: { y: String(seller.since) } },
-    ],
-  });
-  if (seller.idVerified && seller.rating != null && seller.rating >= 4.5) {
-    strengths.push("verifiedHighRating");
-  }
+  /* توثيق الهوية، صفة المؤسس، التقييم وعمر الحساب ماكيدخلوش هنا.
+     هاد المؤشر خاص بالإعلان والمركبة فقط؛ ثقة الحساب عندها مؤشر مستقل. */
 
-  // 2) الوثائق — 20
+  // 1) الوثائق — 28
   let docs = 0;
-  if (v.papersOk) docs += 8;
+  if (v.papersOk) docs += 12;
   else flags.push({ level: "danger", k: "papersBad" });
   if (v.vinChecked) docs += 6;
   const tcValid = controlIsValid(v.technicalControl, today);
-  if (tcValid) docs += 6;
+  if (tcValid) docs += 10;
   else flags.push({ level: "warn", k: "tcExpiring" });
   /* التزامات مالية/قانونية معلّقة كتنتقل للمشتري — خصم حقيقي من
      نقطة الثقة، ماشي غير علَم إعلامي */
@@ -406,7 +362,7 @@ export function trustScore(
   parts.push({
     key: "docs",
     score: docs,
-    max: 20,
+    max: 28,
     detail: [
       { k: v.papersOk ? "papersOk" : "papersMissing" },
       ...(v.vinChecked ? [{ k: "vinChecked" }] : []),
@@ -414,18 +370,18 @@ export function trustScore(
   });
   if (v.vinChecked) strengths.push("vinChecked");
 
-  // 3) تاريخ المركبة — 18
+  // 2) تاريخ المركبة — 24
   let history = 0;
   if (v.serviceBook) history += 7;
-  history += v.owners === 1 ? 7 : v.owners === 2 ? 5 : v.owners === 3 ? 2 : 0;
+  history += v.owners === 1 ? 10 : v.owners === 2 ? 7 : v.owners === 3 ? 3 : 0;
   const accident = v.hasAccidentHistory || v.history.some((h) => h.type === "accident");
-  if (!accident) history += 4;
+  if (!accident) history += 7;
   else flags.push({ level: "info", k: "accidentDeclared" });
   if (v.owners >= 4) flags.push({ level: "warn", k: "manyOwners", vars: { n: String(v.owners) } });
   parts.push({
     key: "history",
     score: history,
-    max: 18,
+    max: 24,
     detail: [
       { k: v.owners === 1 ? "owner1" : "ownerN", vars: { n: String(v.owners) } },
       { k: v.serviceBook ? "serviceBook" : "noServiceBook" },
@@ -434,21 +390,22 @@ export function trustScore(
   });
   if (v.firstHand && v.serviceBook) strengths.push("firstHandServiceBook");
 
-  // 4) شفافية الإعلان — 18
+  // 3) شفافية الإعلان — 22
   let transp = 0;
-  /* 6 صور كافية باش توصل للنقطة الكاملة — رفع لـ20 يبقى متاح
-     ولكن ماشي شرط، الهدف بائع يقدر يوصل للنقطة الكاملة بسرعة */
+  /* 6 صور كافية باش توصل للنقطة الكاملة ديال الصور — رفع لـ20 يبقى
+     متاح ولكن ماشي شرط، الهدف بائع يقدر يوصل للنقطة بسرعة. */
   transp += v.photos >= 6 ? 7 : v.photos >= 3 ? 4 : 2;
   if (v.hasVideo) transp += 4;
   const descriptionLength = Array.from(v.description).length;
   transp += descriptionLength > 220 ? 3 : descriptionLength > 120 ? 2 : 0;
   transp += v.equipment.length >= 8 ? 4 : v.equipment.length >= 4 ? 2 : 1;
-  transp = Math.min(18, transp);
+  if (v.sellerDeclared) transp += 4;
+  transp = Math.min(22, transp);
   if (v.photos < 3) flags.push({ level: "warn", k: "fewPhotos" });
   parts.push({
     key: "transparency",
     score: transp,
-    max: 18,
+    max: 22,
     detail: [
       { k: "photos", vars: { n: String(v.photos) } },
       ...(v.hasVideo ? [{ k: "video" }] : []),
@@ -457,21 +414,21 @@ export function trustScore(
   });
   if (v.hasVideo) strengths.push("realVideo");
   /* إقرار البائع بصحة المعلومات كيبان كـbadge منفصل جنب لوحة الثقة
-     (صفحة تفاصيل المركبة) — ماشي فلاغات "الانتباه" حيت هادي إشارة
-     إيجابية، ماشي تحذير */
+     (صفحة تفاصيل المركبة) — دابا حتى النقطة كتعتبره جزءاً من شفافية
+     الإعلان، وهو خاص بهاد الإعلان ماشي بالحساب. */
   if (v.sellerDeclared) strengths.push("sellerDeclared");
 
-  // 5) اتساق المعطيات — 14
+  // 4) اتساق المعطيات — 16
   let coherence = 0;
   const kpy = kmPerYear(v, currentYear);
   const lo = v.kind === "car" ? 6000 : 2500;
   const hi = v.kind === "car" ? 30000 : 14000;
-  if (kpy >= lo && kpy <= hi) coherence += 8;
+  if (kpy >= lo && kpy <= hi) coherence += 10;
   else if (kpy < lo) {
-    coherence += 3;
+    coherence += 4;
     flags.push({ level: "warn", k: "lowKmUnusual", vars: { km: formatNumber(kpy) } });
   } else {
-    coherence += 5;
+    coherence += 6;
     flags.push({ level: "info", k: "highKmYear" });
   }
 
@@ -485,14 +442,14 @@ export function trustScore(
   parts.push({
     key: "coherence",
     score: coherence,
-    max: 14,
+    max: 16,
     detail: [
       { k: "kmPerYear", vars: { km: formatNumber(kpy) } },
       { k: "fp", vars: { verdict: fp.weak ? "weak" : fp.verdict } },
     ],
   });
 
-  // 6) الفحص المستقل — 10
+  // 5) الفحص المستقل — 10
   const inspection = v.inspected ? 10 : 0;
   parts.push({
     key: "inspection",
