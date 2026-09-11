@@ -21,9 +21,31 @@ const dictionaries = {
 /** شكل القاموس — العربية هي المرجع، والفرنسية خاصها تطابقو */
 export type Dictionary = Awaited<ReturnType<typeof dictionaries.ar>>;
 
+/*
+ * الأرقام داخل نصوص القاموس بقات باش يبقى نفس الشكل بين اللغات،
+ * ولكن مصدر الحقيقة ديال نقطة الإعلان هو market.ts. كنطبّعو القيم هنا
+ * باش «كيفاش ترفع النقطة» يبقى دائماً مطابق للحساب الفعلي.
+ *
+ * أول عنصر هو توثيق الهوية: تابع للحساب وماكيبقاش ظاهر فمعالج البيع،
+ * لذلك ربحو صفر. الباقي بالترتيب: VIN، الصور، الفيديو، دفتر الصيانة،
+ * الفحص المستقل، الوصف، التجهيزات.
+ */
+const LISTING_TRUST_TIP_GAINS = [0, 12, 7, 4, 10, 20, 3, 3] as const;
+
+function normalizeListingTrustTips(dict: Dictionary): Dictionary {
+  return {
+    ...dict,
+    sellWizard: {
+      ...dict.sellWizard,
+      tips: dict.sellWizard.tips.map(([text], i) => [text, LISTING_TRUST_TIP_GAINS[i] ?? 0]),
+    },
+  } as Dictionary;
+}
+
 /** القاموس ديال لغة معيّنة — كيتستعمل ملي اللغة معروفة سلفاً */
 export async function dictionaryOf(locale: Locale): Promise<Dictionary> {
-  return dictionaries[locale]() as Promise<Dictionary>;
+  const dict = await dictionaries[locale]();
+  return normalizeListingTrustTips(dict as Dictionary);
 }
 
 /**
