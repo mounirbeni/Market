@@ -146,7 +146,7 @@ export interface AdminListing {
 export async function listListings(q = "", status = "all", limit = 60) {
   return sql<AdminListing>(
     `SELECT l.ref, l.slug, l.make || ' ' || l.model || ' ' || l.year AS title,
-            l.status::text, l.price_mad, l.city, l.photo_count, l.trust_score,
+            l.status::text, l.price_mad, l.city, l.photo_count, listing_trust_score(l, u) AS trust_score,
             l.inspected, l.views, l.promo::text, l.created_at,
             u.id::text AS seller_id, u.name AS seller_name, u.email AS seller_email,
             u.banned_at AS seller_banned,

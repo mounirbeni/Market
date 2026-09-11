@@ -108,6 +108,8 @@ export interface Vehicle {
   vinChecked: boolean;
   /** حادث أو إصلاح كبير صرّح بيه البائع وقت النشر */
   accidentDeclared: boolean;
+  /** Whether the database contains a recorded accident event. */
+  hasAccidentHistory?: boolean;
   /** تفاصيل الحادث/الإصلاح — نص حر من البائع */
   accidentNote?: string | null;
   /** الضريبة السنوية (الفينيت) غير مؤداة */
@@ -155,6 +157,7 @@ export interface Vehicle {
    */
   fairPriceMad?: number;
   fairPriceDelta?: number;
+  fairPriceMeta?: { low: number; high: number; confidence: number; sampleSize: number } | null;
   /** مؤشر الثقة المخزّن — كيتحسب فالخادم حتى هو */
   trustScoreStored?: number;
 }

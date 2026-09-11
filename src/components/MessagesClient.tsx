@@ -1,5 +1,6 @@
 "use client";
 
+import { MessageFeed } from "@/lib/messageFeed";
 import { Link } from "@/components/Link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { VehicleArt } from "@/components/VehicleArt";
@@ -63,7 +64,7 @@ export function MessagesClient() {
   const [needLogin, setNeedLogin] = useState(false);
   const [q, setQ] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
-  const lastId = useRef<string>("");
+  const feedRef = useRef<MessageFeed | null>(null);
 
   /* ---- تحميل المحادثات ---- */
   const loadThreads = useCallback(async () => {
@@ -94,48 +95,46 @@ export function MessagesClient() {
     })();
   }, [loadThreads]);
 
-  /* ---- تحميل رسائل المحادثة المختارة ---- */
+  /* One sequential reader per conversation. Late replies from a previous
+     conversation cannot mutate the current feed or its cursor. */
   useEffect(() => {
-    if (!activeId) return;
-    lastId.current = "";
+    if (!activeId) { feedRef.current = null; return; }
+    const feed = new MessageFeed(activeId);
+    feedRef.current = feed;
     setMessages([]);
+    const controller = new AbortController();
     let alive = true;
-    (async () => {
-      try {
-        const d = await api<{ messages: Msg[] }>(`/api/threads/${activeId}/messages`, undefined, tm.genericError);
-        if (!alive) return;
-        setMessages(d.messages);
-        lastId.current = d.messages.at(-1)?.id ?? "";
-        await fetch(`/api/threads/${activeId}/read`, { method: "POST" });
-        setThreads((ts) => ts?.map((t) => (t.id === activeId ? { ...t, unread: 0 } : t)) ?? ts);
-      } catch (e) {
-        if (alive) setErr((e as Error).message);
-      }
-    })();
-    return () => { alive = false; };
-  }, [activeId]);
-
-  /* ---- الاستقصاء ---- */
-  useEffect(() => {
-    if (!activeId) return;
-    const tick = async () => {
-      if (document.hidden) return;
+    let reading = false;
+    const read = async () => {
+      if (!alive || reading || document.hidden) return;
+      reading = true;
       try {
         const d = await api<{ messages: Msg[] }>(
-          `/api/threads/${activeId}/messages${lastId.current ? `?after=${lastId.current}` : ""}`,
+          `/api/threads/${activeId}/messages${feed.cursor ? `?after=${feed.cursor}` : ""}`,
+          { signal: controller.signal }, tm.genericError,
         );
-        if (d.messages.length === 0) return;
-        setMessages((m) => [...m.filter((x) => !x.pending), ...d.messages]);
-        lastId.current = d.messages.at(-1)!.id;
-        await fetch(`/api/threads/${activeId}/read`, { method: "POST" });
-        void loadThreads();
-      } catch {
-        /* الشبكة كتقطع — الدورة الجاية تعاود */
-      }
+        if (!alive) return;
+        feed.receive(d.messages);
+        setMessages(feed.snapshot());
+        if (d.messages.length) {
+          await fetch(`/api/threads/${activeId}/read`, { method: "POST", signal: controller.signal });
+          if (!alive) return;
+          setThreads((ts) => ts?.map((thread) => thread.id === activeId ? { ...thread, unread: 0 } : thread) ?? ts);
+          void loadThreads();
+        }
+      } catch (error) {
+        if (alive) setErr((error as Error).message);
+      } finally { reading = false; }
     };
-    const t = setInterval(tick, POLL_MS);
-    return () => clearInterval(t);
-  }, [activeId, loadThreads]);
+    void read();
+    const timer = setInterval(() => { void read(); }, POLL_MS);
+    return () => {
+      alive = false;
+      controller.abort();
+      clearInterval(timer);
+      if (feedRef.current === feed) feedRef.current = null;
+    };
+  }, [activeId, loadThreads, tm.genericError]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -144,24 +143,29 @@ export function MessagesClient() {
   async function send(e: React.FormEvent) {
     e.preventDefault();
     const text = draft.trim();
-    if (!text || !activeId) return;
+    const feed = feedRef.current;
+    if (!text || !activeId || !feed || feed.threadId !== activeId) return;
     setDraft("");
     setErr("");
     const temp: Msg = {
-      id: `tmp-${Date.now()}`, body: text,
+      id: `tmp-${crypto.randomUUID()}`, body: text,
       created_at: new Date().toISOString(), mine: true, pending: true,
     };
-    setMessages((m) => [...m, temp]);
+    feed.addPending(temp);
+    setMessages(feed.snapshot());
     try {
       const d = await api<{ message: Msg }>(`/api/threads/${activeId}/messages`, {
         method: "POST",
         body: JSON.stringify({ text }),
       }, tm.genericError);
-      setMessages((m) => m.map((x) => (x.id === temp.id ? { ...d.message, pending: false } : x)));
-      lastId.current = d.message.id;
+      if (feedRef.current !== feed) return;
+      feed.acknowledge(temp.id, d.message);
+      setMessages(feed.snapshot());
       void loadThreads();
     } catch (e) {
-      setMessages((m) => m.filter((x) => x.id !== temp.id));
+      if (feedRef.current !== feed) return;
+      feed.reject(temp.id);
+      setMessages(feed.snapshot());
       setDraft(text);
       setErr((e as Error).message);
     }

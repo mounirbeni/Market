@@ -12,8 +12,8 @@ import {
    استعلامات الإعلانات
 
    كيعكس نفس منطق applyFilters() اللي فـlib/search.ts، ولكن فـSQL.
-   القيم المحسوبة (trust_score, fair_price_delta) مخزّنة كأعمدة
-   حيت كتُستعمل فـWHERE و ORDER BY.
+   الثمن المرجعي مخزّن مع أدلته. الثقة كتتحسب بنفس المعطيات
+   الحالية فالبحث والعرض، بما فيها توثيق البائع وتاريخ اليوم.
    ============================================================ */
 
 export interface ListingRow {
@@ -46,6 +46,8 @@ export interface ListingRow {
   fair_price_mad: number | null;
   cover_url: string | null;
   fair_price_delta: string | null;
+  fair_price_meta: Vehicle["fairPriceMeta"];
+  has_accident_history: boolean;
   promo: "featured" | "urgent" | "top" | null;
   views: number;
   saves: number;
@@ -94,7 +96,7 @@ const PROMO_RANK_SQL = `CASE l.promo
   WHEN 'top' THEN 60 WHEN 'urgent' THEN 28 WHEN 'featured' THEN 12 ELSE 0 END`;
 
 const ORDER_BY: Record<SortKey, string> = {
-  pertinence: `(coalesce(l.trust_score,0) * 0.6
+  pertinence: `(coalesce(listing_trust_score(l, u),0) * 0.6
                 + ${PROMO_RANK_SQL}
                 + greatest(-20, least(20, -coalesce(l.fair_price_delta,0) * 120))
                 + extract(epoch from (l.published_at - timestamptz '2026-07-01')) / 345600
@@ -105,7 +107,7 @@ const ORDER_BY: Record<SortKey, string> = {
   "price-desc": "l.price_mad DESC",
   "km-asc": "l.km ASC",
   "year-desc": "l.year DESC",
-  "trust-desc": "l.trust_score DESC NULLS LAST",
+  "trust-desc": "listing_trust_score(l, u) DESC NULLS LAST",
 };
 
 const SELECT_COLS = `
@@ -113,9 +115,10 @@ const SELECT_COLS = `
   l.price_mad, l.fuel, l.gearbox, l.body, l.city, l.condition, l.color,
   l.drivetrain, l.origin,
   l.first_hand, l.papers_ok, l.vin_checked, l.inspected, l.photo_count,
-  l.has_video, l.trust_score, l.fair_price_mad, l.fair_price_delta, l.promo,
+  l.has_video, listing_trust_score(l, u) AS trust_score, l.fair_price_mad, l.fair_price_delta, l.fair_price_meta, l.promo,
+  EXISTS (SELECT 1 FROM listing_history h WHERE h.listing_id = l.id AND h.type = 'accident') AS has_accident_history,
   l.views, l.saves, l.published_at, l.updated_at, l.owners, l.fiscal_power, l.consumption,
-  l.displacement, l.doors, l.technical_control, l.service_book, l.description,
+  l.displacement, l.doors, l.technical_control::text AS technical_control, l.service_book, l.description,
   l.equipment, l.negotiable, l.exchange_accepted,
   l.accident_declared, l.accident_note,
   l.unpaid_vignette, l.unpaid_fines, l.under_lien,
@@ -171,7 +174,7 @@ function buildWhere(f: Filters) {
     const tags = f.equipment.split(",").map((t) => t.trim()).filter(Boolean);
     if (tags.length) add("l.equipment @> ?::text[]", tags);
   }
-  if (f.trustMin) add("l.trust_score >= ?", f.trustMin);
+  if (f.trustMin) add("listing_trust_score(l, u) >= ?", f.trustMin);
   if (f.inspectedOnly) where.push("l.inspected");
   if (f.firstHandOnly) where.push("l.first_hand");
   if (f.verifiedOnly) where.push("l.papers_ok AND l.vin_checked");
@@ -240,7 +243,7 @@ export async function getListingBySlug(slug: string) {
     seller_id_verified: boolean; seller_phone_verified: boolean;
   }>(
     `SELECT ${SELECT_COLS}, l.description, l.equipment, l.owners, l.fiscal_power,
-            l.consumption, l.displacement, l.doors, l.technical_control,
+            l.consumption, l.displacement, l.doors, l.technical_control::text AS technical_control,
             l.service_book, l.negotiable, l.exchange_accepted,
             u.id AS seller_id, u.city AS seller_city, u.rating AS seller_rating,
             u.sales_count AS seller_sales, u.response_minutes AS seller_response,
@@ -371,6 +374,7 @@ export function rowToVehicle(
     serviceBook: r.service_book,
     vinChecked: r.vin_checked,
     accidentDeclared: r.accident_declared,
+    hasAccidentHistory: r.has_accident_history,
     accidentNote: r.accident_note,
     unpaidVignette: r.unpaid_vignette,
     unpaidFines: r.unpaid_fines,
@@ -410,6 +414,7 @@ export function rowToVehicle(
     fairPriceMad: r.fair_price_mad ?? undefined,
     fairPriceDelta: r.fair_price_delta != null ? Number(r.fair_price_delta) : undefined,
     trustScoreStored: r.trust_score ?? undefined,
+    fairPriceMeta: r.fair_price_meta,
     seller: {
       id: r.seller_ref,
       name: r.seller_name,
@@ -495,7 +500,7 @@ export async function findSimilarListings(v: SimilarInput, limit = 8): Promise<L
     `SELECT ${SELECT_COLS}, (${SIMILARITY_SQL}) AS similarity
      ${FROM}
      WHERE l.status = 'active' AND l.kind = $1::vehicle_kind AND l.ref <> $7
-     ORDER BY similarity DESC, l.trust_score DESC NULLS LAST, l.ref ASC
+     ORDER BY similarity DESC, listing_trust_score(l, u) DESC NULLS LAST, l.ref ASC
      LIMIT $8`,
     [v.kind, v.make, v.body, v.city, v.price, v.year, v.ref, limit],
   );
@@ -525,8 +530,8 @@ export interface SellerStats {
 export async function sellerStats(userId: string): Promise<SellerStats> {
   const [listingRow, reportRow, soldRow] = await Promise.all([
     one<{ n: string; avg: string | null }>(
-      `SELECT count(*)::text AS n, round(avg(trust_score))::text AS avg
-       FROM listings WHERE seller_id = $1::uuid AND status = 'active'`,
+      `SELECT count(*)::text AS n, round(avg(listing_trust_score(l, u)))::text AS avg
+       FROM listings l JOIN users u ON u.id = l.seller_id WHERE l.seller_id = $1::uuid AND l.status = 'active'`,
       [userId],
     ),
     one<{ n: string }>(
@@ -596,7 +601,7 @@ export async function aggregates() {
     sql<{ make: string }>(
       "SELECT DISTINCT make FROM listings WHERE status='active' ORDER BY make"),
     one<{ avg: string | null }>(
-      "SELECT round(avg(trust_score))::text avg FROM listings WHERE status='active'"),
+      "SELECT round(avg(listing_trust_score(l, u)))::text avg FROM listings l JOIN users u ON u.id = l.seller_id WHERE l.status='active'"),
     sql<Record<string, string>>(
       `SELECT ${PRICE_BRACKETS.map((b) => `count(*) FILTER (WHERE ${b.sql})::text AS "${b.key}"`).join(", ")}
        FROM listings WHERE status='active'`,

@@ -1,3 +1,4 @@
+import { adminRequestSource } from "@/lib/db/rateLimit";
 import { body, dbMissing, fail, ok } from "@/lib/api";
 import { adminConfigured, adminLogout, finishAdminLogin, startAdminLogin } from "@/lib/admin";
 
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
   const r =
     b?.step === "code"
       ? await finishAdminLogin(email, String(b?.code ?? "").slice(0, 12), ua)
-      : await startAdminLogin(email, String(b?.password ?? "").slice(0, 200));
+      : await startAdminLogin(email, String(b?.password ?? "").slice(0, 200), adminRequestSource(req));
 
   if (!r.ok) return fail(r.error ?? "ماقدرناش.", 401);
   return ok({ step: b?.step === "code" ? "done" : "code", devCode: r.devCode });

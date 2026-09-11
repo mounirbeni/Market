@@ -77,6 +77,7 @@ export interface NewListing {
   trustScore: number;
   fairPriceMad: number;
   fairPriceDelta: number;
+  fairPriceMeta: NonNullable<Vehicle["fairPriceMeta"]>;
 }
 
 /**
@@ -131,7 +132,7 @@ export async function createListing(
        accident_declared, accident_note,
        unpaid_vignette, unpaid_fines, under_lien,
        known_issues, original_paint, painted_panels, keys_count,
-       included_items, sale_reason, seller_declared, published_at)
+       included_items, sale_reason, seller_declared, fair_price_meta, published_at)
      SELECT
        r.ref,
        $2 || '-' || $3 || '-' || $4::text || '-' || r.ref,
@@ -145,7 +146,7 @@ export async function createListing(
        $40::bool, $41,
        $42::bool, $43::bool, $44::bool,
        $45::text[], $46::bool, $47::smallint, $48::smallint,
-       $49::text[], $50, $51::bool, now()
+       $49::text[], $50, $51::bool, $52::jsonb, now()
      FROM r
      RETURNING id, ref, slug`,
     [
@@ -154,14 +155,14 @@ export async function createListing(
       v.price, v.owners, v.fuel, v.gearbox, v.body, v.fiscalPower,
       v.consumption ?? null, v.displacement ?? null, v.doors ?? null,
       v.color ?? null, v.city, v.condition, v.firstHand, v.papersOk,
-      v.technicalControl ?? null, v.inspected, v.serviceBook, v.vinChecked,
+      v.technicalControl ?? null, false, v.serviceBook, v.vinChecked,
       v.description, v.equipment, v.negotiable, v.exchangeAccepted,
       v.trustScore, v.fairPriceMad, v.fairPriceDelta.toFixed(4),
       v.photoCount, v.hasVideo, v.drivetrain ?? null, v.origin ?? null,
       v.accidentDeclared, v.accidentNote ?? null,
       v.unpaidVignette, v.unpaidFines, v.underLien,
       v.knownIssues, v.originalPaint, v.paintedPanels ?? null, v.keysCount ?? null,
-      v.includedItems, v.saleReason ?? null, v.sellerDeclared,
+      v.includedItems, v.saleReason ?? null, v.sellerDeclared, JSON.stringify(v.fairPriceMeta),
     ],
   );
   if (!row) throw new WriteError("INSERT_FAILED");
@@ -305,7 +306,6 @@ export interface ListingEdit {
   condition: string;
   papersOk: boolean;
   technicalControl: string | null;
-  inspected: boolean;
   serviceBook: boolean;
   vinChecked: boolean;
   accidentDeclared: boolean;
@@ -326,6 +326,7 @@ export interface ListingEdit {
   trustScore: number;
   fairPriceMad: number;
   fairPriceDelta: number;
+  fairPriceMeta: NonNullable<Vehicle["fairPriceMeta"]>;
 }
 
 export async function updateListing(sellerId: string, ref: string, p: ListingEdit) {
@@ -346,31 +347,31 @@ export async function updateListing(sellerId: string, ref: string, p: ListingEdi
        displacement = $10::int, doors = $11::smallint, color = $12,
        city = $13, condition = $14::condition_type,
        first_hand = ($4::smallint = 1), papers_ok = $15::bool,
-       technical_control = $16::date, inspected = $17::bool,
-       service_book = $18::bool, vin_checked = $19::bool,
-       description = $20, equipment = $21::text[],
-       negotiable = $22::bool, exchange_accepted = $23::bool,
-       trust_score = $24::smallint, fair_price_mad = $25::int,
-       fair_price_delta = $26::numeric,
-       drivetrain = $27::drivetrain_type, origin = $28::origin_type,
-       accident_declared = $29::bool, accident_note = $30,
-       unpaid_vignette = $31::bool, unpaid_fines = $32::bool, under_lien = $33::bool,
-       known_issues = $34::text[], original_paint = $35::bool,
-       painted_panels = $36::smallint, keys_count = $37::smallint,
-       included_items = $38::text[], sale_reason = $39,
+       technical_control = $16::date,
+       service_book = $17::bool, vin_checked = $18::bool,
+       description = $19, equipment = $20::text[],
+       negotiable = $21::bool, exchange_accepted = $22::bool,
+       trust_score = $23::smallint, fair_price_mad = $24::int,
+       fair_price_delta = $25::numeric,
+       drivetrain = $26::drivetrain_type, origin = $27::origin_type,
+       accident_declared = $28::bool, accident_note = $29,
+       unpaid_vignette = $30::bool, unpaid_fines = $31::bool, under_lien = $32::bool,
+       known_issues = $33::text[], original_paint = $34::bool,
+       painted_panels = $35::smallint, keys_count = $36::smallint,
+       included_items = $37::text[], sale_reason = $38, fair_price_meta = $39::jsonb,
        updated_at = now()
      WHERE id = $1`,
     [
       l.id, p.version, p.km, p.owners, p.fuel, p.gearbox, p.body,
       p.fiscalPower, p.consumption, p.displacement, p.doors, p.color,
-      p.city, p.condition, p.papersOk, p.technicalControl, p.inspected,
+      p.city, p.condition, p.papersOk, p.technicalControl,
       p.serviceBook, p.vinChecked, p.description, p.equipment,
       p.negotiable, p.exchangeAccepted, p.trustScore, p.fairPriceMad,
       p.fairPriceDelta.toFixed(4), p.drivetrain, p.origin,
       p.accidentDeclared, p.accidentNote,
       p.unpaidVignette, p.unpaidFines, p.underLien,
       p.knownIssues, p.originalPaint, p.paintedPanels, p.keysCount,
-      p.includedItems, p.saleReason,
+      p.includedItems, p.saleReason, JSON.stringify(p.fairPriceMeta),
     ],
   );
   return { slug: l.slug };
@@ -404,9 +405,10 @@ export async function setListingStatus(sellerId: string, ref: string, status: st
   const r = await one<{ id: string }>(
     `UPDATE listings
      SET status = $3::listing_status,
-         sold_at = CASE WHEN $3 = 'sold' THEN now() ELSE sold_at END,
+         sold_at = CASE WHEN $3 = 'sold' THEN now() ELSE NULL END,
          updated_at = now()
      WHERE ref = $1 AND seller_id = $2
+       AND status IN ('active', 'draft', 'sold', 'expired')
      RETURNING id`,
     [ref, sellerId, status],
   );

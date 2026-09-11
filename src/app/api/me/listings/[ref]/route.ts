@@ -1,6 +1,8 @@
+import { technicalControlDate } from "@/lib/dates";
+import { getSellerOf } from "@/lib/db/listings";
 import { getCurrentUser } from "@/lib/auth";
 import { body, dbMissing, fail, ok, unauthorized, writeFail } from "@/lib/api";
-import { fairPrice, technicalControlDate, trustScore } from "@/lib/market";
+import { fairPrice, trustScore } from "@/lib/market";
 import { comparablesFor } from "@/lib/source";
 import { CITIES } from "@/lib/cities";
 import { pathnameFromMediaUrl } from "@/lib/blob";
@@ -86,9 +88,9 @@ export async function PATCH(
   const { one } = await import("@/lib/db/client");
   const row = await one<{
     kind: string; make: string; model: string; year: number; status: string;
-    photo_count: number; has_video: boolean; inspected: boolean;
+    photo_count: number; has_video: boolean; inspected: boolean; technical_control: string | null;
   }>(
-    `SELECT kind::text, make, model, year, status::text, photo_count, has_video, inspected
+    `SELECT kind::text, make, model, year, status::text, photo_count, has_video, inspected, technical_control::text
        FROM listings WHERE ref = $1 AND seller_id = $2::uuid`,
     [ref, user.id],
   );
@@ -105,7 +107,9 @@ export async function PATCH(
   const km = clampInt(e.km, 0, 2000000, 0);
   const owners = clampInt(e.owners, 1, 20, 1);
   const condition = pick(CONDITIONS, e.condition, "bon");
-  const technicalControl = technicalControlDate(Boolean(e.technicalControlValid));
+  let technicalControl: string | null;
+  try { technicalControl = technicalControlDate(e.technicalControl === undefined ? row.technical_control : e.technicalControl); }
+  catch { return fail("تاريخ انتهاء الفحص التقني ماشي صحيح.", 400); }
   const accidentDeclared = Boolean(e.accidentDeclared);
   const accidentNote = accidentDeclared ? text(e.accidentNote, 500) : "";
 
@@ -144,10 +148,7 @@ export async function PATCH(
     condition,
     firstHand: owners === 1,
     papersOk: e.papersOk !== false,
-    technicalControl,
-    /* بحال الماركة والموديل: الشارة كتتقرا من الصف ماشي من الطلب.
-       كانت `Boolean(e.inspected)` — يعني تعديل الإعلان كيقدر يمنح
-       شارة «فحص مستقل» و+10 نقط ثقة بلا فحص. الإشراف وحدو كيبدّلها. */
+    technicalControl: technicalControl ?? "",
     inspected: row.inspected,
     photos: row.photo_count,
     hasVideo: row.has_video,
@@ -190,7 +191,8 @@ export async function PATCH(
   /* excludeId باش الإعلان مايقارنش براسو */
   const pool = (await comparablesFor(kind, row.make)).filter((c) => c.id !== ref);
   const fp = fairPrice(draft, pool);
-  const trust = trustScore(draft, undefined, fp);
+  const seller = await getSellerOf(ref);
+  const trust = trustScore(draft, seller ?? undefined, fp);
 
   try {
     const res = await writes.updateListing(user.id, ref, {
@@ -212,7 +214,6 @@ export async function PATCH(
       condition,
       papersOk: draft.papersOk,
       technicalControl,
-      inspected: draft.inspected,
       serviceBook: draft.serviceBook,
       vinChecked: draft.vinChecked,
       accidentDeclared: draft.accidentDeclared,
@@ -233,6 +234,7 @@ export async function PATCH(
       trustScore: trust.score,
       fairPriceMad: fp.estimate.mid,
       fairPriceDelta: fp.delta,
+      fairPriceMeta: { low: fp.estimate.low, high: fp.estimate.high, confidence: fp.estimate.confidence, sampleSize: fp.estimate.sampleSize },
     });
     return ok({ slug: res.slug, trust: trust.score });
   } catch (err) {

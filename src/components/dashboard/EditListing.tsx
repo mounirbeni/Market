@@ -53,7 +53,7 @@ interface Form {
   exchangeAccepted: boolean;
   papersOk: boolean;
   vinChecked: boolean;
-  technicalControlValid: boolean;
+  technicalControl: string;
   serviceBook: boolean;
   accidentDeclared: boolean;
   accidentNote: string;
@@ -108,7 +108,7 @@ export function EditListing({ listingRef }: { listingRef: string }) {
       exchangeAccepted: v.exchangeAccepted,
       papersOk: v.papersOk,
       vinChecked: v.vinChecked,
-      technicalControlValid: new Date(v.technicalControl).getTime() > Date.now(),
+      technicalControl: v.technicalControl?.slice(0, 10) ?? "",
       serviceBook: v.serviceBook,
       accidentDeclared: v.accidentDeclared,
       accidentNote: v.accidentNote ?? "",
@@ -382,10 +382,13 @@ export function EditListing({ listingRef }: { listingRef: string }) {
       {/* ---------- الوثائق ---------- */}
       <section className="card space-y-2 p-5">
         <h2 className="text-[14px] font-bold">{e.documentsTitle}</h2>
+        <label className="label" htmlFor="edit-control">{t.sellWizard.controlExpires}</label>
+        <input id="edit-control" type="date" className="field" value={form.technicalControl}
+          onChange={(event) => set({ technicalControl: event.target.value })} />
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>{t.sellWizard.inspectionNotice}</p>
         {([
           ["papersOk", e.docs.papersOk],
           ["vinChecked", e.docs.vinChecked],
-          ["technicalControlValid", e.docs.technicalControlValid],
           ["serviceBook", e.docs.serviceBook],
         ] as const).map(([key, label]) => (
           <label key={key} className="flex cursor-pointer items-start gap-2.5 rounded-lg p-2.5"
