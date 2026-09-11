@@ -300,6 +300,9 @@ export function fairPrice(v: Vehicle, pool: Vehicle[]): FairPrice {
 /* ============================================================
    مؤشر الثقة ديال الإعلان — 100 نقطة موزعة على خمس ركائز.
    ثقة الحساب (ومنها توثيق الهوية) مستقلة وكتتحسب فـuserTrust.ts.
+
+   المبدأ: تعمير المعلومة كيزيد شوية، والإثبات الخارجي كيزيد بزاف.
+   لذلك الفحص المستقل وVIN عندهم وزن أكبر من مجرد تصريح البائع.
    ============================================================ */
 
 /* النص كيتبنى فالعرض ماشي هنا: كنرجّعو مفاتيح وأرقام، والقاموس
@@ -345,24 +348,26 @@ export function trustScore(
   /* توثيق الهوية، صفة المؤسس، التقييم وعمر الحساب ماكيدخلوش هنا.
      هاد المؤشر خاص بالإعلان والمركبة فقط؛ ثقة الحساب عندها مؤشر مستقل. */
 
-  // 1) الوثائق — 28
+  // 1) الوثائق والتحقق من المركبة — 30
   let docs = 0;
-  if (v.papersOk) docs += 12;
+  /* تصريح سلامة الأوراق مهم، ولكن أقل وزناً من الإثبات القابل للتحقق. */
+  if (v.papersOk) docs += 8;
   else flags.push({ level: "danger", k: "papersBad" });
-  if (v.vinChecked) docs += 6;
+  /* VIN متحقق منه دليل أقوى، لذلك ولى أكبر عنصر فهاد الركيزة. */
+  if (v.vinChecked) docs += 12;
   const tcValid = controlIsValid(v.technicalControl, today);
   if (tcValid) docs += 10;
   else flags.push({ level: "warn", k: "tcExpiring" });
   /* التزامات مالية/قانونية معلّقة كتنتقل للمشتري — خصم حقيقي من
-     نقطة الثقة، ماشي غير علَم إعلامي */
+     نقطة الثقة، ماشي غير علَم إعلامي. */
   if (v.unpaidVignette) { docs -= 3; flags.push({ level: "danger", k: "unpaidVignette" }); }
   if (v.unpaidFines) { docs -= 3; flags.push({ level: "danger", k: "unpaidFines" }); }
   if (v.underLien) { docs -= 6; flags.push({ level: "danger", k: "underLien" }); }
-  docs = Math.max(0, docs);
+  docs = Math.max(0, Math.min(30, docs));
   parts.push({
     key: "docs",
     score: docs,
-    max: 28,
+    max: 30,
     detail: [
       { k: v.papersOk ? "papersOk" : "papersMissing" },
       ...(v.vinChecked ? [{ k: "vinChecked" }] : []),
@@ -370,18 +375,21 @@ export function trustScore(
   });
   if (v.vinChecked) strengths.push("vinChecked");
 
-  // 2) تاريخ المركبة — 24
+  // 2) تاريخ المركبة — 20
   let history = 0;
-  if (v.serviceBook) history += 7;
-  history += v.owners === 1 ? 10 : v.owners === 2 ? 7 : v.owners === 3 ? 3 : 0;
+  /* دفتر الصيانة دليل مستمر عبر الزمن، ولذلك عندو وزن أعلى. */
+  if (v.serviceBook) history += 10;
+  history += v.owners === 1 ? 6 : v.owners === 2 ? 4 : v.owners === 3 ? 2 : 0;
   const accident = v.hasAccidentHistory || v.history.some((h) => h.type === "accident");
-  if (!accident) history += 7;
+  /* عدم وجود حادث مجرد تصريح ماشي إثبات مستقل، لذلك نقص الوزن من 7 لـ4. */
+  if (!accident) history += 4;
   else flags.push({ level: "info", k: "accidentDeclared" });
   if (v.owners >= 4) flags.push({ level: "warn", k: "manyOwners", vars: { n: String(v.owners) } });
+  history = Math.min(20, history);
   parts.push({
     key: "history",
     score: history,
-    max: 24,
+    max: 20,
     detail: [
       { k: v.owners === 1 ? "owner1" : "ownerN", vars: { n: String(v.owners) } },
       { k: v.serviceBook ? "serviceBook" : "noServiceBook" },
@@ -390,22 +398,23 @@ export function trustScore(
   });
   if (v.firstHand && v.serviceBook) strengths.push("firstHandServiceBook");
 
-  // 3) شفافية الإعلان — 22
+  // 3) شفافية الإعلان — 20
   let transp = 0;
-  /* 6 صور كافية باش توصل للنقطة الكاملة ديال الصور — رفع لـ20 يبقى
-     متاح ولكن ماشي شرط، الهدف بائع يقدر يوصل للنقطة بسرعة. */
-  transp += v.photos >= 6 ? 7 : v.photos >= 3 ? 4 : 2;
+  /* 0–2 صور ماكتربح حتى نقطة: وجود إعلان ناقص ماخاصوش يكافأ.
+     6 صور كافية للنقطة الكاملة ديال الصور؛ الرفع لأكثر يبقى متاحاً. */
+  transp += v.photos >= 6 ? 7 : v.photos >= 3 ? 4 : 0;
   if (v.hasVideo) transp += 4;
   const descriptionLength = Array.from(v.description).length;
   transp += descriptionLength > 220 ? 3 : descriptionLength > 120 ? 2 : 0;
-  transp += v.equipment.length >= 8 ? 4 : v.equipment.length >= 4 ? 2 : 1;
-  if (v.sellerDeclared) transp += 4;
-  transp = Math.min(22, transp);
+  transp += v.equipment.length >= 8 ? 3 : v.equipment.length >= 4 ? 2 : v.equipment.length > 0 ? 1 : 0;
+  /* الإقرار مفيد، لكنه تصريح ذاتي؛ نخليه أقل من الصور والفيديو. */
+  if (v.sellerDeclared) transp += 3;
+  transp = Math.min(20, transp);
   if (v.photos < 3) flags.push({ level: "warn", k: "fewPhotos" });
   parts.push({
     key: "transparency",
     score: transp,
-    max: 22,
+    max: 20,
     detail: [
       { k: "photos", vars: { n: String(v.photos) } },
       ...(v.hasVideo ? [{ k: "video" }] : []),
@@ -413,48 +422,51 @@ export function trustScore(
     ],
   });
   if (v.hasVideo) strengths.push("realVideo");
-  /* إقرار البائع بصحة المعلومات كيبان كـbadge منفصل جنب لوحة الثقة
-     (صفحة تفاصيل المركبة) — دابا حتى النقطة كتعتبره جزءاً من شفافية
-     الإعلان، وهو خاص بهاد الإعلان ماشي بالحساب. */
+  /* إقرار البائع بصحة المعلومات كيبان كـbadge منفصل جنب لوحة الثقة.
+     كيبقى جزءاً صغيراً من شفافية هاد الإعلان، ماشي من ثقة الحساب. */
   if (v.sellerDeclared) strengths.push("sellerDeclared");
 
-  // 4) اتساق المعطيات — 16
+  // 4) اتساق المعطيات والسعر — 10
   let coherence = 0;
   const kpy = kmPerYear(v, currentYear);
   const lo = v.kind === "car" ? 6000 : 2500;
   const hi = v.kind === "car" ? 30000 : 14000;
-  if (kpy >= lo && kpy <= hi) coherence += 10;
+  /* كيلومتراج منطقي ماشي إثبات للثقة؛ غير إشارة اتساق، لذلك الحد الأقصى 6. */
+  if (kpy >= lo && kpy <= hi) coherence += 6;
   else if (kpy < lo) {
-    coherence += 4;
+    coherence += 2;
     flags.push({ level: "warn", k: "lowKmUnusual", vars: { km: formatNumber(kpy) } });
   } else {
-    coherence += 6;
+    coherence += 3;
     flags.push({ level: "info", k: "highKmYear" });
   }
 
   const fp = fairPriceOverride ?? fairPriceOf(v);
-  if (fp.weak) coherence += 4;
-  else if (fp.verdict === "juste" || fp.verdict === "bas" || fp.verdict === "haut") coherence += 6;
+  /* السعر القريب من السوق إشارة مفيدة ولكن ماشي دليل هوية أو سلامة المركبة. */
+  if (fp.weak) coherence += 2;
+  else if (fp.verdict === "juste" || fp.verdict === "bas" || fp.verdict === "haut") coherence += 4;
   else if (fp.verdict === "tres-bas") {
-    coherence += 2;
+    coherence += 1;
     flags.push({ level: "danger", k: "priceFarBelow" });
-  } else coherence += 3;
+  } else coherence += 2;
+  coherence = Math.min(10, coherence);
   parts.push({
     key: "coherence",
     score: coherence,
-    max: 16,
+    max: 10,
     detail: [
       { k: "kmPerYear", vars: { km: formatNumber(kpy) } },
       { k: "fp", vars: { verdict: fp.weak ? "weak" : fp.verdict } },
     ],
   });
 
-  // 5) الفحص المستقل — 10
-  const inspection = v.inspected ? 10 : 0;
+  // 5) الفحص المستقل — 20
+  /* أقوى دليل خارجي فالمؤشر: الإعلان غير المفحوص يقدر يوصل حتى 80 فقط. */
+  const inspection = v.inspected ? 20 : 0;
   parts.push({
     key: "inspection",
     score: inspection,
-    max: 10,
+    max: 20,
     detail: [{ k: v.inspected ? "inspected" : "notInspected" }],
   });
   if (v.inspected) strengths.push("inspected120");
