@@ -309,7 +309,7 @@ export function SellWizard() {
      الخطوات وزر النشر معطّلين حتى الخطوة الحالية تكمل */
   const stepValid = useMemo<[boolean, boolean, boolean, boolean, boolean]>(() => [
     Boolean(
-      d.make && d.model && d.version.trim() && d.color.trim()
+      d.make && d.model.trim() && d.version.trim() && d.color.trim()
       && (d.kind !== "car" || d.drivetrain) && d.origin,
     ),
     !d.accident || d.accidentNote.trim().length > 0,
@@ -465,7 +465,7 @@ export function SellWizard() {
                       const m = makesFor(k)[0];
                       priceTouched.current = false;
                       set({
-                        kind: k, make: m, model: modelsFor(m)[0] ?? "", version: "",
+                        kind: k, make: m, model: "", version: "",
                         body: k === "moto" ? "roadster" : "berline",
                         fiscalPower: k === "moto" ? 2 : 6,
                         drivetrain: "",
@@ -489,20 +489,26 @@ export function SellWizard() {
                   <select id="sw-make" className="field" value={d.make}
                     onChange={(e) => {
                       priceTouched.current = false;
-                      set({ make: e.target.value, model: modelsFor(e.target.value)[0] ?? "", version: "" });
+                      set({ make: e.target.value, model: "", version: "" });
                     }}>
                     {makes.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="label" htmlFor="sw-model">{t.sellWizard.model}</label>
-                  <select id="sw-model" className="field" value={d.model}
+                  {/* خانة مفتوحة ماشي قائمة: الموديلات ماكيسالوش، وقائمة
+                      مغلقة كتحبس البائع اللي عندو موديل ماكاينش فيها.
+                      الاقتراحات كتبان وكيقدر يختار منها، ولا يكتب اللي بغى. */}
+                  <label className="label" htmlFor="sw-model">{t.sellWizard.model}<Req /></label>
+                  <input id="sw-model" className="field" list="sw-model-list"
+                    value={d.model} autoComplete="off"
+                    placeholder={t.sellWizard.modelPlaceholder}
                     onChange={(e) => {
                       priceTouched.current = false;
                       set({ model: e.target.value, version: "" });
-                    }}>
-                    {models.map((m) => <option key={m} value={m}>{m}</option>)}
-                  </select>
+                    }} />
+                  <datalist id="sw-model-list">
+                    {models.map((m) => <option key={m} value={m} />)}
+                  </datalist>
                 </div>
               </div>
 

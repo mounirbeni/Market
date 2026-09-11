@@ -1466,6 +1466,7 @@
     "brand": "الماركة",
     "model": "الموديل",
     "version": "النسخة / المحرك",
+    "modelPlaceholder": "مثلاً: 3 Series ولا Sandero",
     "versionPlaceholder": "مثلاً: 1.5 dCi Ambiance",
     "year": "السنة",
     "km": "الكيلومتراج",

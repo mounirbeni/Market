@@ -1466,6 +1466,7 @@
     "brand": "Marque",
     "model": "Modèle",
     "version": "Version / Motorisation",
+    "modelPlaceholder": "ex. 3 Series ou Sandero",
     "versionPlaceholder": "Ex : 1.5 dCi Ambiance",
     "year": "Année",
     "km": "Kilométrage",

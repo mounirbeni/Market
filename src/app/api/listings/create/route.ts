@@ -112,9 +112,15 @@ export async function POST(req: Request) {
   if (!b) return fail("الطلب ماشي صحيح.");
 
   const kind = b.kind === "moto" ? "moto" : "car";
-  const make = text(b.make, 60);
-  const model = text(b.model, 60);
-  if (!make || !model) return fail("خاصك تحدّد الماركة والموديل.");
+  const rawMake = text(b.make, 60);
+  const rawModel = text(b.model, 60);
+  if (!rawMake || !rawModel) return fail("خاصك تحدّد الماركة والموديل.");
+  /* خانة الموديل مفتوحة — البائع كيكتب اللي بغى. كنوحّدو الكتابة
+     مع الكتالوج إلا كانت تطابق، باش الثمن المرجعي يلقى مقارنات
+     (كيطابق الموديل حرفياً). شوف lib/db/catalog.ts */
+  const { canonicalMake, canonicalModel } = await import("@/lib/db/catalog");
+  const make = await canonicalMake(kind, rawMake);
+  const model = await canonicalModel(kind, make, rawModel);
 
   /* أي قيمة ماشي من اللائحة كترجع للافتراضي — القيم كتمشي لـenum فقاعدة البيانات */
   const pick = <T extends string>(list: T[], v: unknown, fallback: T): T =>
