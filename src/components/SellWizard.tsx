@@ -324,13 +324,15 @@ export function SellWizard() {
   ];
   const missingSteps = STEPS.filter((_, i) => !stepValid[i]);
 
-  /** اقتراحات لرفع النقطة */
+  /** اقتراحات لرفع النقطة — توثيق الهوية تابع للحساب وماشي للإعلان */
   const tips = useMemo(() => {
     const done = [
       d.idVerified, d.vinChecked, d.photos >= 6, d.hasVideo,
       d.serviceBook, false, d.description.length > 220, d.equipment.length >= 8,
     ];
-    const list = (t.sellWizard.tips as [string, number][]).map(([text, gain], i) => ({ text, gain, done: done[i] }));
+    const list = (t.sellWizard.tips as [string, number][])
+      .slice(1)
+      .map(([text, gain], i) => ({ text, gain, done: done[i + 1] }));
     return list.sort((a, b) => Number(a.done) - Number(b.done) || b.gain - a.gain);
   }, [d, t]);
 
@@ -1049,7 +1051,8 @@ export function SellWizard() {
                   </button>
                 ))}
               </div>
-              <div className="space-y-2">
+              {/* توثيق الهوية تابع للحساب، لذلك ماكيبقاش اختياراً داخل نشر الإعلان. */}
+              <div className="hidden">
                 {([
                   ["idVerified", t.sellWizard.idVerifiedCheck[0], t.sellWizard.idVerifiedCheck[1]],
                 ] as const).map(([key, label, gain]) => (
@@ -1159,8 +1162,7 @@ export function SellWizard() {
               <span className="min-w-0 flex-1">{t.sellWizard.hasDraftNote}</span>
               <button onClick={restoreDraft} className="btn btn-ghost btn-sm">{t.sellWizard.restore}</button>
               <button onClick={dropDraft} className="btn btn-ghost btn-sm" style={{ color: "var(--bad)" }}>
-                {t.sellWizard.discard}
-              </button>
+                {t.sellWizard.discard}</button>
             </div>
           )}
         </div>
