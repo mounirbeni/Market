@@ -10,12 +10,12 @@
    Vercel بلا ما نبدّلو الكود.
    ============================================================ */
 
-const DEFAULT_SITE_URL = "https://tariqmaroc.ma";
+const DEFAULT_SITE_URL = "https://tarique.ma";
 
-/** جذر الموقع بلا شرطة مائلة فالآخر: "https://tariqmaroc.ma" */
+/** جذر الموقع بلا شرطة مائلة فالآخر: "https://tarique.ma" */
 export const siteUrl = (): string =>
   (process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).replace(/\/+$/, "");
 
-/** رابط مطلق من مسار داخلي: "/messages" → "https://tariqmaroc.ma/messages" */
+/** رابط مطلق من مسار داخلي: "/messages" → "https://tarique.ma/messages" */
 export const absoluteUrl = (path: string): string =>
   `${siteUrl()}${path.startsWith("/") ? path : `/${path}`}`;

@@ -2,7 +2,7 @@
   "name": "triq",
   "version": "1.0.0",
   "private": true,
-  "description": "TRIQ — سوق السيارات والدراجات النارية المستعملة في المغرب",
+  "description": "Tarique — سوق السيارات والدراجات النارية المستعملة في المغرب",
   "scripts": {
     "dev": "next dev",
     "build": "npm test && npm run typecheck && npm run lint && next build",

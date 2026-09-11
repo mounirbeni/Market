@@ -28,7 +28,7 @@ export async function generateMetadata({
   const city = cityLabel(seller.city, locale);
   return {
     title: `${seller.name} — ${city}`,
-    description: `${t.sellerPage.metaDescPrefix} ${seller.name} — TRIQ — ${city}.`,
+    description: `${t.sellerPage.metaDescPrefix} ${seller.name} — Tarique — ${city}.`,
     robots: { index: false, follow: true },
     alternates: { canonical: localePath(`/seller/${id}`, locale) },
   };

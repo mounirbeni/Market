@@ -229,7 +229,7 @@ export const fill = (template: string, vars: Record<string, string>) =>
 export const DEFAULT_SELLER_NAME = "مستعمل طريق";
 export const sellerDisplayName = (name: string, locale: Locale) =>
   name === DEFAULT_SELLER_NAME
-    ? (locale === "fr" ? "Utilisateur TRIQ" : DEFAULT_SELLER_NAME)
+    ? (locale === "fr" ? "Utilisateur Tarique" : DEFAULT_SELLER_NAME)
     : name;
 
 /* ============================================================

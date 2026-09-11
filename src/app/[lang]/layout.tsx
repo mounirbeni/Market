@@ -52,14 +52,14 @@ export async function generateMetadata({
     metadataBase: new URL(siteUrl()),
     title: {
       default: m.title,
-      template: locale === "fr" ? "%s · tariq" : "%s · طريق tariq",
+      template: locale === "fr" ? "%s · Tarique" : "%s · طريق Tarique",
     },
     description: m.description,
     keywords: m.keywords,
     openGraph: {
       type: "website",
       locale: locale === "fr" ? "fr_MA" : "ar_MA",
-      siteName: "tariq",
+      siteName: "Tarique",
       title: m.title,
       description: m.ogDescription,
       images: [{ url: "/hero-vehicles.webp", width: 1774, height: 887, alt: m.ogImageAlt }],

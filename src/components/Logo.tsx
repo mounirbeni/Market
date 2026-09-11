@@ -26,7 +26,7 @@ export function Logo({ size = 36, compact = false }: { size?: number; compact?: 
           >
             طريق
           </span>
-          <span className="num mt-1 text-[8.5px] tracking-[0.42em] opacity-45">TRIQ</span>
+          <span className="num mt-1 text-[8.5px] tracking-[0.26em] opacity-45">TARIQUE</span>
         </span>
       )}
     </span>

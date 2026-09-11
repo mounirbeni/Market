@@ -473,7 +473,7 @@ export function VehicleArt({ id, kind, body, color, variant = 0, className, labe
         direction="ltr"
         textAnchor="start"
       >
-        TRIQ
+        TARIQUE
       </text>
     </svg>
   );

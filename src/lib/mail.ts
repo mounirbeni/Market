@@ -288,7 +288,7 @@ function emailShell(opts: { heading: string; bodyHtml: string; footer?: string }
           <td style="padding-left:9px">${logoMarkSvg()}</td>
           <td style="text-align:right">
             <div style="font-size:18px;font-weight:800;color:${C.text};line-height:1.1">طريق</div>
-            <div style="font-size:10px;letter-spacing:.18em;color:${C.dim};line-height:1.4">TRIQ</div>
+            <div style="font-size:10px;letter-spacing:.18em;color:${C.dim};line-height:1.4">Tarique</div>
           </td>
         </tr>
       </table>

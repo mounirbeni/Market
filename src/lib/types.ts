@@ -95,7 +95,7 @@ export interface Vehicle {
   papersOk: boolean;
   /** تاريخ صلاحية الفحص التقني */
   technicalControl: string;
-  /** فحص TRIQ المستقل تم */
+  /** فحص Tarique المستقل تم */
   inspected: boolean;
   photos: number;
   hasVideo: boolean;

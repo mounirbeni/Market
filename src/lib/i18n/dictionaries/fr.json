@@ -1,6 +1,6 @@
 {
   "common": {
-    "brand": "TRIQ",
+    "brand": "Tarique",
     "currency": "DH",
     "km": "km",
     "year": "année",
@@ -59,7 +59,7 @@
     "searchShort": "Recherche"
   },
   "tour": {
-    "title": "Visite guidée de TRIQ",
+    "title": "Visite guidée de Tarique",
     "stepOfA": "Étape ",
     "stepOfB": " sur ",
     "skip": "Passer",
@@ -67,11 +67,11 @@
     "next": "Suivant",
     "done": "Compris, c'est parti",
     "steps": [
-      ["Bienvenue sur TRIQ", "TRIQ est la marketplace marocaine des voitures et motos. En quelques étapes, on vous montre comment chercher, acheter ou vendre en toute confiance."],
+      ["Bienvenue sur Tarique", "Tarique est la marketplace marocaine des voitures et motos. En quelques étapes, on vous montre comment chercher, acheter ou vendre en toute confiance."],
       ["Trouvez ce que vous cherchez", "Utilisez la recherche et les filtres (marque, prix, ville...) pour trouver rapidement les annonces qui vous correspondent."],
       ["L'indice de confiance", "Chaque annonce affiche un indice de confiance : photos réelles, détails complets, vendeur vérifié..."],
       ["Contactez en toute sécurité", "Échangez avec le vendeur directement depuis la plateforme sans donner votre numéro, et signalez toute annonce suspecte."],
-      ["Vendez en quelques minutes", "Cliquez sur '+' pour publier une annonce — renseignez les infos du véhicule, ajoutez des photos, et TRIQ calcule un prix de référence pour vous."],
+      ["Vendez en quelques minutes", "Cliquez sur '+' pour publier une annonce — renseignez les infos du véhicule, ajoutez des photos, et Tarique calcule un prix de référence pour vous."],
       ["Compte vérifié", "Vérifier votre identité vous donne un badge de confiance visible par les acheteurs et augmente vos chances de vendre."],
       ["Des outils utiles", "Calculateur de coût d'usage, comparaison d'annonces, demande d'inspection technique — tout pour acheter sans mauvaise surprise."]
     ]
@@ -121,7 +121,7 @@
       "cookies": "Cookies",
       "rules": "Règles de publication"
     },
-    "copyright": "TRIQ — la marketplace des véhicules d'occasion au Maroc. Les prix de référence sont calculés à partir des annonces publiées et restent indicatifs.",
+    "copyright": "Tarique — la marketplace des véhicules d'occasion au Maroc. Les prix de référence sont calculés à partir des annonces publiées et restent indicatifs.",
     "millionNote": "million =",
     "country": "Maroc"
   },
@@ -181,7 +181,7 @@
     "liveExampleLeadA": "Prenez cette",
     "liveExampleLeadB": " : plutôt que de deviner, vous voyez le score de confiance détaillé, la position du prix par rapport au marché, et ce qu'elle vous coûtera par an.",
     "seeFullListing": "Voir l'annonce complète",
-    "inspectedByTriq": "Inspectée par TRIQ",
+    "inspectedByTriq": "Inspectée par Tarique",
     "statVsMarket": "Face au marché",
     "statPerMonth": "DH / mois",
     "guidesEyebrow": "À savoir avant d'acheter",
@@ -259,7 +259,7 @@
     "citiesLeadA": "Les annonces sont réparties dans",
     "citiesLeadB": "villes marocaines.",
     "differenceEyebrow": "La différence",
-    "differenceTitle": "Pourquoi TRIQ n'est pas comme les autres",
+    "differenceTitle": "Pourquoi Tarique n'est pas comme les autres",
     "differenceLead": "Les autres sites vous montrent des annonces. Nous vous donnons les informations qui vous permettent de décider : la confiance, le prix, et le coût.",
     "aboutUs": "À propos",
     "heroImgAlt": "Voiture et moto en salle d'exposition"
@@ -375,7 +375,7 @@
     "guarantees": "Garanties",
     "goodDeals": "Sous le prix du marché",
     "goodDealsHint": "Prix inférieur à la référence calculée",
-    "inspected": "Inspectée par TRIQ",
+    "inspected": "Inspectée par Tarique",
     "inspectedHint": "120 points de contrôle indépendants",
     "verified": "Documents et châssis vérifiés",
     "firstHand": "Première main",
@@ -484,7 +484,7 @@
       "detail": "~{km} km par an — sous la moyenne."
     },
     "inspected": {
-      "label": "Inspectée par TRIQ",
+      "label": "Inspectée par Tarique",
       "detail": "Inspection indépendante de plus de 100 points avant publication."
     },
     "service-book": {
@@ -505,7 +505,7 @@
     },
     "seller": {
       "label": "Vendeur vérifié",
-      "detail": "Identité vérifiée par l'équipe TRIQ."
+      "detail": "Identité vérifiée par l'équipe Tarique."
     },
     "negotiable": {
       "label": "Prix négociable",
@@ -513,7 +513,7 @@
     }
   },
   "founder": {
-    "badge": "Fondateur TRIQ",
+    "badge": "Fondateur Tarique",
     "title": "Propriétaire de la plateforme",
     "listingNote": "Annonce du fondateur de la plateforme"
   },
@@ -593,7 +593,7 @@
       "history": "Historique du véhicule",
       "transparency": "Transparence de l'annonce",
       "coherence": "Cohérence des données",
-      "inspection": "Inspection TRIQ indépendante"
+      "inspection": "Inspection Tarique indépendante"
     },
     "d": {
       "idVerified": "Identité vérifiée",
@@ -685,7 +685,7 @@
     "allListings": "Voir toutes les annonces du vendeur",
     "revealPhone": "Afficher le numéro",
     "whatsapp": "Écrire sur WhatsApp",
-    "whatsappText": "Bonjour, j'ai vu votre annonce {title} sur TRIQ et je souhaite plus d'informations. Est-elle toujours disponible ?",
+    "whatsappText": "Bonjour, j'ai vu votre annonce {title} sur Tarique et je souhaite plus d'informations. Est-elle toujours disponible ?",
     "internalMessage": "Message interne",
     "bookVisit": "Demander un rendez-vous",
     "share": "Partager",
@@ -702,7 +702,7 @@
     "whatsapp": "WhatsApp",
     "call": "Appeler",
     "chat": "Discuter",
-    "whatsappText": "Bonjour, j'ai vu votre annonce {title} sur TRIQ. Est-elle toujours disponible ?"
+    "whatsappText": "Bonjour, j'ai vu votre annonce {title} sur Tarique. Est-elle toujours disponible ?"
   },
   "contact": {
     "label": "Contacter le vendeur",
@@ -793,7 +793,7 @@
     "zoom": "Agrandir la photo",
     "photoAlt": "photo",
     "enlarge": "Agrandir",
-    "inspected": "Inspectée par TRIQ",
+    "inspected": "Inspectée par Tarique",
     "firstHand": "Première main",
     "video": "Vidéo",
     "favorite": "Favoris",
@@ -844,13 +844,13 @@
   },
   "auth": {
     "loginTitle": "Connexion",
-    "loginDesc": "Connectez-vous à votre compte TRIQ pour accéder à vos annonces, messages et favoris.",
+    "loginDesc": "Connectez-vous à votre compte Tarique pour accéder à vos annonces, messages et favoris.",
     "registerTitle": "Créer un compte",
-    "registerDesc": "Créez un compte gratuit sur TRIQ : publiez vos annonces, enregistrez des véhicules et recevez des alertes de prix.",
+    "registerDesc": "Créez un compte gratuit sur Tarique : publiez vos annonces, enregistrez des véhicules et recevez des alertes de prix.",
     "genericError": "Une erreur est survenue.",
     "welcome": {
-      "title": "Bienvenue sur tariq",
-      "lead": "tariq est le marché marocain des voitures et motos. Découvrez en quelques étapes comment chercher, acheter ou vendre en toute confiance.",
+      "title": "Bienvenue sur Tarique",
+      "lead": "Tarique est le marché marocain des voitures et motos. Découvrez en quelques étapes comment chercher, acheter ou vendre en toute confiance.",
       "getStarted": "Commencer"
     },
     "heading": {
@@ -930,7 +930,7 @@
     "equipment": "Équipements et options",
     "guaranteesTitle": "Garanties supplémentaires",
     "goodDeals": "Sous le prix du marché",
-    "inspected": "Inspectée par TRIQ",
+    "inspected": "Inspectée par Tarique",
     "verified": "Documents vérifiés",
     "firstHand": "Première main",
     "summaryTitle": "Résumé de la recherche",
@@ -1138,7 +1138,7 @@
     "reason": {
       "belowPrice": "{pct} % sous le prix de référence",
       "trustScore": "Indice de confiance {score}/100",
-      "inspected": "Inspectée par TRIQ",
+      "inspected": "Inspectée par Tarique",
       "firstHand": "Première main",
       "yearlyCost": "~{v} DH de coût annuel",
       "sameCity": "Dans votre ville"
@@ -1236,7 +1236,7 @@
   },
   "promotePage": {
     "metaTitle": "Boostez votre annonce — vendez plus vite",
-    "metaDesc": "Options de mise en avant sur TRIQ : en tête de liste, vente urgente, annonce en vedette. Comparez les vues et le prix de chaque option.",
+    "metaDesc": "Options de mise en avant sur Tarique : en tête de liste, vente urgente, annonce en vedette. Comparez les vues et le prix de chaque option.",
     "loading": "Chargement…",
     "eyebrow": "Pour les vendeurs",
     "title": "Boostez votre annonce et vendez plus vite",
@@ -1507,7 +1507,7 @@
         "+7 pts"
       ],
       [
-        "Je souhaite l'inspection indépendante TRIQ (250 DH)",
+        "Je souhaite l'inspection indépendante Tarique (250 DH)",
         "+10 pts"
       ]
     ],
@@ -1614,7 +1614,7 @@
         7
       ],
       [
-        "Demandez l'inspection indépendante TRIQ",
+        "Demandez l'inspection indépendante Tarique",
         10
       ],
       [
@@ -1652,7 +1652,7 @@
     "minutesRead": "minutes de lecture",
     "updated": "Dernière mise à jour",
     "ctaTitle": "Prêt à commencer ?",
-    "ctaLead": "Chaque annonce sur TRIQ est accompagnée d'un indice de confiance et d'un prix de référence calculé — pour appliquer ces conseils avec des chiffres.",
+    "ctaLead": "Chaque annonce sur Tarique est accompagnée d'un indice de confiance et d'un prix de référence calculé — pour appliquer ces conseils avec des chiffres.",
     "browseCars": "Parcourir les voitures",
     "browseMotos": "Parcourir les motos",
     "otherGuides": "Autres guides",
@@ -1665,15 +1665,15 @@
   },
   "termsPage": {
     "metaTitle": "Conditions d'utilisation",
-    "metaDescription": "Conditions d'utilisation de la plateforme TRIQ pour vendre et acheter des voitures et motos.",
+    "metaDescription": "Conditions d'utilisation de la plateforme Tarique pour vendre et acheter des voitures et motos.",
     "title": "Conditions d'utilisation",
     "updated": "Août 2026",
-    "intro": "Ces conditions régissent votre utilisation de la plateforme TRIQ. En utilisant le site, vous les acceptez.",
+    "intro": "Ces conditions régissent votre utilisation de la plateforme Tarique. En utilisant le site, vous les acceptez.",
     "sections": [
       {
         "heading": "1. Nature du service",
         "body": [
-          "TRIQ est une plateforme d'annonces qui met en relation vendeurs et acheteurs de véhicules. La plateforme n'est pas partie à la transaction de vente et ne garantit ni l'état des véhicules ni l'exactitude des informations déclarées par les vendeurs.",
+          "Tarique est une plateforme d'annonces qui met en relation vendeurs et acheteurs de véhicules. La plateforme n'est pas partie à la transaction de vente et ne garantit ni l'état des véhicules ni l'exactitude des informations déclarées par les vendeurs.",
           "L'indice de confiance, le prix de référence et le coût estimé sont des outils d'aide à la décision, et non des garanties ni des évaluations contraignantes."
         ]
       },
@@ -1714,7 +1714,7 @@
       {
         "heading": "6. Propriété intellectuelle",
         "body": [
-          "Tous les éléments de la plateforme (design, logo, outils de calcul, code) appartiennent à TRIQ. Le contenu publié par les utilisateurs reste leur propriété, avec une licence accordée à la plateforme pour l'afficher."
+          "Tous les éléments de la plateforme (design, logo, outils de calcul, code) appartiennent à Tarique. Le contenu publié par les utilisateurs reste leur propriété, avec une licence accordée à la plateforme pour l'afficher."
         ]
       },
       {
@@ -1733,7 +1733,7 @@
   },
   "privacyPage": {
     "metaTitle": "Politique de confidentialité",
-    "metaDescription": "Comment nous collectons, utilisons et protégeons vos données personnelles sur la plateforme TRIQ.",
+    "metaDescription": "Comment nous collectons, utilisons et protégeons vos données personnelles sur la plateforme Tarique.",
     "title": "Politique de confidentialité",
     "updated": "Août 2026",
     "intro": "Cette politique explique quelles données nous collectons, pourquoi, et comment nous les protégeons.",
@@ -1796,10 +1796,10 @@
   },
   "aboutPage": {
     "metaTitle": "À propos",
-    "metaDescription": "TRIQ est une plateforme marocaine pour vendre et acheter voitures et motos, bâtie sur la transparence : indice de confiance, prix de référence et coût d'usage réel.",
+    "metaDescription": "Tarique est une plateforme marocaine pour vendre et acheter voitures et motos, bâtie sur la transparence : indice de confiance, prix de référence et coût d'usage réel.",
     "eyebrow": "À propos",
     "title": "Un marché de véhicules bâti sur la confiance",
-    "lead": "Le marché des véhicules d'occasion au Maroc est vaste, mais l'acheteur décide souvent sans information suffisante : ce prix est-il raisonnable ? Le vendeur est-il fiable ? Combien cette voiture va-t-elle réellement me coûter par an ? TRIQ a été créé pour répondre à ces trois questions avant tout contact.",
+    "lead": "Le marché des véhicules d'occasion au Maroc est vaste, mais l'acheteur décide souvent sans information suffisante : ce prix est-il raisonnable ? Le vendeur est-il fiable ? Combien cette voiture va-t-elle réellement me coûter par an ? Tarique a été créé pour répondre à ces trois questions avant tout contact.",
     "statVehicles": "véhicules en vente",
     "statDealers": "concessions vérifiées",
     "statCities": "villes marocaines",
@@ -1833,7 +1833,7 @@
   },
   "contactPage": {
     "metaTitle": "Nous contacter",
-    "metaDescription": "Contactez l'équipe TRIQ : questions, signalement d'annonce, ou partenariat pour votre concession.",
+    "metaDescription": "Contactez l'équipe Tarique : questions, signalement d'annonce, ou partenariat pour votre concession.",
     "eyebrow": "Nous sommes là",
     "title": "Nous contacter",
     "lead": "Vous avez une question, vous avez trouvé une annonce suspecte, ou vous voulez inscrire votre concession ? Envoyez-nous un message.",
@@ -1869,7 +1869,7 @@
   },
   "helpPage": {
     "metaTitle": "Centre d'aide",
-    "metaDescription": "Réponses aux questions les plus fréquentes sur la publication, la recherche, la confiance, les prix et l'inspection sur TRIQ.",
+    "metaDescription": "Réponses aux questions les plus fréquentes sur la publication, la recherche, la confiance, les prix et l'inspection sur Tarique.",
     "eyebrow": "Aide",
     "title": "Centre d'aide",
     "lead": "Réponses aux questions les plus fréquentes. Si vous ne trouvez pas votre réponse, contactez-nous directement.",
@@ -1939,7 +1939,7 @@
           },
           {
             "q": "La plateforme garantit-elle les véhicules ?",
-            "a": "Non. TRIQ est une plateforme d'annonces et n'est pas partie à la vente. Les outils (indice de confiance, prix de référence, inspection) vous aident à décider, mais la responsabilité finale de l'examen et de la vérification vous incombe."
+            "a": "Non. Tarique est une plateforme d'annonces et n'est pas partie à la vente. Les outils (indice de confiance, prix de référence, inspection) vous aident à décider, mais la responsabilité finale de l'examen et de la vérification vous incombe."
           }
         ]
       },
@@ -1956,7 +1956,7 @@
           },
           {
             "q": "Proposez-vous du financement ou des crédits ?",
-            "a": "Non. TRIQ est uniquement une plateforme d'annonces — nous mettons en relation l'acheteur et le vendeur, un point c'est tout. Nous ne finançons pas, ne prêtons pas, et ne donnons pas de conseils financiers. Pour un financement, contactez directement une banque ou une société de crédit."
+            "a": "Non. Tarique est uniquement une plateforme d'annonces — nous mettons en relation l'acheteur et le vendeur, un point c'est tout. Nous ne finançons pas, ne prêtons pas, et ne donnons pas de conseils financiers. Pour un financement, contactez directement une banque ou une société de crédit."
           }
         ]
       }
@@ -2042,7 +2042,7 @@
     ],
     "transferNote": "Après la vente, le transfert de propriété (demande de changement de titulaire) se fait au centre d'immatriculation de l'Agence nationale de la sécurité routière. L'acheteur dispose d'un délai légal court pour l'effectuer — s'il ne le fait pas, le vendeur reste responsable des infractions.",
     "ctaTitle": "N'y allez pas à l'aveugle",
-    "ctaLead": "L'inspection indépendante de TRIQ passe le véhicule au crible de 120 points avant que vous ne payiez. Pour moins cher qu'une petite réparation.",
+    "ctaLead": "L'inspection indépendante de Tarique passe le véhicule au crible de 120 points avant que vous ne payiez. Pour moins cher qu'une petite réparation.",
     "seeInspection": "Voir l'inspection indépendante",
     "verifiedVehicles": "Véhicules aux documents vérifiés"
   },
@@ -2053,7 +2053,7 @@
       {
         "title": "Avant de vous déplacer",
         "items": [
-          "Comparez le prix avec le prix de référence TRIQ",
+          "Comparez le prix avec le prix de référence Tarique",
           "Consultez l'indice de confiance et lisez toutes les alertes",
           "Demandez au vendeur le numéro de châssis (VIN) et vérifiez-le",
           "Demandez des photos supplémentaires du moteur et du plancher du coffre",
@@ -2221,7 +2221,7 @@
     "metaTitle": "Complétez les informations de votre compte",
     "title": "Complétez les informations de votre compte",
     "leadSelling": "Complétez d'abord les informations de votre compte pour pouvoir publier votre annonce et profiter de tous les services de la plateforme.",
-    "leadDefault": "Il vous reste une étape pour profiter de tous les services de TRIQ : le nom, la ville, et le type de compte. Le téléphone est facultatif mais facilite le contact avec vous.",
+    "leadDefault": "Il vous reste une étape pour profiter de tous les services de Tarique : le nom, la ville, et le type de compte. Le téléphone est facultatif mais facilite le contact avec vous.",
     "note": "Ces informations sont obligatoires pour garantir un échange réel entre vendeurs et acheteurs — la vérification d'identité reste totalement facultative.",
     "cta": "Continuer"
   },
@@ -2314,7 +2314,7 @@
       "vinChecked": "Accord pour vérifier le numéro de châssis (VIN)",
       "technicalControlValid": "Contrôle technique valide",
       "serviceBook": "J'ai le carnet d'entretien avec les factures",
-      "inspected": "L'inspection indépendante TRIQ a été réalisée",
+      "inspected": "L'inspection indépendante Tarique a été réalisée",
       "accidentDeclared": "Le véhicule a eu un accident ou une réparation majeure à déclarer",
       "accidentNoteLabel": "Description de l'accident ou de la réparation (facultatif)",
       "accidentNotePlaceholder": "Que s'est-il passé exactement ? Qu'est-ce qui a été changé ou réparé ? Quelle était l'ampleur des dégâts…",
@@ -2673,7 +2673,7 @@
     "removeTitle": "Supprimer du catalogue"
   },
   "siteMeta": {
-    "title": "tariq — Marché des voitures et motos d'occasion au Maroc",
+    "title": "Tarique — Marché des voitures et motos d'occasion au Maroc",
     "description": "Le premier marché marocain qui vous donne un indice de confiance pour chaque annonce, un prix de référence calculé à partir du marché, et un coût d'usage réel en dirhams avant d'acheter votre voiture ou moto.",
     "keywords": [
       "voiture occasion maroc",
@@ -2683,8 +2683,8 @@
       "prix voiture maroc"
     ],
     "ogDescription": "Indice de confiance, prix de référence, et coût d'usage réel pour chaque véhicule d'occasion au Maroc.",
-    "ogImageAlt": "tariq",
-    "appleTitle": "tariq"
+    "ogImageAlt": "Tarique",
+    "appleTitle": "Tarique"
   },
   "notFoundPage": {
     "title": "Vous vous êtes perdu en chemin",
@@ -2706,9 +2706,9 @@
   },
   "loadingResults": "Chargement des résultats",
   "installPrompt": {
-    "androidTitle": "Ajoutez TRIQ à l'écran d'accueil",
+    "androidTitle": "Ajoutez Tarique à l'écran d'accueil",
     "androidText": "Accès plus rapide, sans la barre du navigateur.",
-    "iosTitle": "Ajoutez TRIQ à l'écran d'accueil :",
+    "iosTitle": "Ajoutez Tarique à l'écran d'accueil :",
     "iosTextA": "Appuyez sur le bouton partager",
     "iosTextB": "en bas, puis « Sur l'écran d'accueil ».",
     "install": "Installer",
