@@ -10,95 +10,19 @@ import type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
 export type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
-const BODY_IMAGE_VERSION = "20260911-4";
+const BODY_IMAGE_VERSION = "20260911-5";
 const BODY_IMAGES: Partial<Record<ArtShape, string>> = {
+  citadine: `/vehicle-bodies/citadine.svg?v=${BODY_IMAGE_VERSION}`,
   berline: `/vehicle-bodies/berline.webp?v=${BODY_IMAGE_VERSION}`,
+  suv: `/vehicle-bodies/suv.svg?v=${BODY_IMAGE_VERSION}`,
   break: `/vehicle-bodies/break.webp?v=${BODY_IMAGE_VERSION}`,
   utilitaire: `/vehicle-bodies/utilitaire.webp?v=${BODY_IMAGE_VERSION}`,
   cabriolet: `/vehicle-bodies/cabriolet.webp?v=${BODY_IMAGE_VERSION}`,
 };
 
-const SPRITE_SRC = `/vehicle-bodies/neon-sprite.webp?v=${BODY_IMAGE_VERSION}`;
-const SPRITE_CELL: Partial<Record<ArtShape, { col: number; row: number }>> = {
-  citadine: { col: 0, row: 0 },
-  suv: { col: 2, row: 0 },
-};
-
 function bodyImage(shape: ArtShape, kind: VehicleKind) {
   if (kind !== "car") return null;
   return BODY_IMAGES[shape] ?? null;
-}
-
-function spriteCell(shape: ArtShape, kind: VehicleKind) {
-  if (kind !== "car") return null;
-  return SPRITE_CELL[shape] ?? null;
-}
-
-function SpriteCrop({
-  shape,
-  className,
-  style,
-  label,
-}: {
-  shape: ArtShape;
-  className?: string;
-  style?: CSSProperties;
-  label?: string;
-}) {
-  const cell = SPRITE_CELL[shape];
-  if (!cell) return null;
-
-  return (
-    <span
-      className={`relative overflow-hidden ${className ?? ""}`}
-      role={label ? "img" : undefined}
-      aria-label={label}
-      aria-hidden={label ? undefined : "true"}
-      style={{ display: "inline-block", ...style }}
-    >
-      <img
-        src={SPRITE_SRC}
-        alt=""
-        draggable={false}
-        loading="eager"
-        decoding="async"
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          width: "300%",
-          height: "200%",
-          maxWidth: "none",
-          left: `${-cell.col * 100}%`,
-          top: `${-cell.row * 100}%`,
-          objectFit: "fill",
-          pointerEvents: "none",
-          userSelect: "none",
-        }}
-      />
-    </span>
-  );
-}
-
-function SpriteVehicle({
-  shape,
-  className,
-  label,
-}: {
-  shape: ArtShape;
-  className?: string;
-  label?: string;
-}) {
-  return (
-    <SpriteCrop
-      shape={shape}
-      className={`block ${className ?? ""}`}
-      label={label ?? "مجسم المركبة"}
-      style={{
-        background:
-          "radial-gradient(circle at 50% 46%, rgba(31,95,224,.18), transparent 58%), linear-gradient(145deg, #071225 0%, #0a1930 52%, #07111f 100%)",
-      }}
-    />
-  );
 }
 
 function NeonVehicle({
@@ -152,12 +76,8 @@ function NeonVehicle({
 
 export function VehicleArt(props: VehicleArtProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-
-  if (spriteCell(props.body, props.kind)) {
-    return <SpriteVehicle shape={props.body} className={props.className} label={props.label} />;
-  }
-
   const src = bodyImage(props.body, props.kind);
+
   if (!src || failedSrc === src) return <LegacyVehicleArt {...props} />;
 
   return (
@@ -187,25 +107,8 @@ export function VehicleGlyph({
   style?: CSSProperties;
 }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-
-  if (spriteCell(shape, kind)) {
-    return (
-      <SpriteCrop
-        shape={shape}
-        className={className}
-        style={{
-          width: size * 2.55,
-          height: size * 1.5,
-          verticalAlign: "middle",
-          flexShrink: 0,
-          filter: "drop-shadow(0 3px 8px rgba(31,95,224,.34))",
-          ...style,
-        }}
-      />
-    );
-  }
-
   const src = bodyImage(shape, kind);
+
   if (!src || failedSrc === src) {
     return (
       <LegacyVehicleGlyph
