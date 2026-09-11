@@ -1,4 +1,6 @@
-import type { CSSProperties } from "react";
+"use client";
+
+import { useState, type CSSProperties } from "react";
 import type { VehicleKind } from "@/lib/types";
 import {
   VehicleArt as LegacyVehicleArt,
@@ -11,15 +13,16 @@ export type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 /**
  * صور carrosserie ديال Tarique.
  * كل نوع عندو صورة WebP مستقلة باش تبان بثبات على Safari / iPhone / PWA.
- * ما بقيناش كنستعملو sprite ولا background-position ولا clipping.
+ * query version كيكسر أي cache قديم فيه نسخة فاسدة من الصور.
  */
+const BODY_IMAGE_VERSION = "20260911-2";
 const BODY_IMAGES: Partial<Record<ArtShape, string>> = {
-  citadine: "/vehicle-bodies/citadine.webp",
-  berline: "/vehicle-bodies/berline.webp",
-  suv: "/vehicle-bodies/suv.webp",
-  break: "/vehicle-bodies/break.webp",
-  utilitaire: "/vehicle-bodies/utilitaire.webp",
-  cabriolet: "/vehicle-bodies/cabriolet.webp",
+  citadine: `/vehicle-bodies/citadine.webp?v=${BODY_IMAGE_VERSION}`,
+  berline: `/vehicle-bodies/berline.webp?v=${BODY_IMAGE_VERSION}`,
+  suv: `/vehicle-bodies/suv.webp?v=${BODY_IMAGE_VERSION}`,
+  break: `/vehicle-bodies/break.webp?v=${BODY_IMAGE_VERSION}`,
+  utilitaire: `/vehicle-bodies/utilitaire.webp?v=${BODY_IMAGE_VERSION}`,
+  cabriolet: `/vehicle-bodies/cabriolet.webp?v=${BODY_IMAGE_VERSION}`,
 };
 
 function bodyImage(shape: ArtShape, kind: VehicleKind) {
@@ -32,11 +35,13 @@ function NeonVehicle({
   className,
   label,
   variant = 0,
+  onError,
 }: {
   src: string;
   className?: string;
   label?: string;
   variant?: number;
+  onError?: () => void;
 }) {
   const scale = variant === 0 ? 1 : 1.01 + (variant % 3) * 0.01;
 
@@ -56,6 +61,7 @@ function NeonVehicle({
         draggable={false}
         loading="eager"
         decoding="async"
+        onError={onError}
         style={{
           width: "100%",
           height: "100%",
@@ -74,8 +80,9 @@ function NeonVehicle({
 }
 
 export function VehicleArt(props: VehicleArtProps) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const src = bodyImage(props.body, props.kind);
-  if (!src) return <LegacyVehicleArt {...props} />;
+  if (!src || failedSrc === src) return <LegacyVehicleArt {...props} />;
 
   return (
     <NeonVehicle
@@ -83,6 +90,7 @@ export function VehicleArt(props: VehicleArtProps) {
       className={props.className}
       label={props.label}
       variant={props.variant}
+      onError={() => setFailedSrc(src)}
     />
   );
 }
@@ -102,8 +110,9 @@ export function VehicleGlyph({
   className?: string;
   style?: CSSProperties;
 }) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const src = bodyImage(shape, kind);
-  if (!src) {
+  if (!src || failedSrc === src) {
     return (
       <LegacyVehicleGlyph
         shape={shape}
@@ -123,6 +132,7 @@ export function VehicleGlyph({
       draggable={false}
       loading="eager"
       decoding="async"
+      onError={() => setFailedSrc(src)}
       className={className}
       width={Math.round(size * 2.55)}
       height={Math.round(size * 1.5)}
