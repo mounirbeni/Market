@@ -1582,6 +1582,8 @@
     "restore": "Restaurer",
     "discard": "Supprimer",
     "publishedTitle": "Annonce publiée !",
+    "pendingTitle": "Votre annonce est en révision",
+    "pendingLead": "Nous avons reçu votre annonce. Nous la vérifions pour préserver la confiance sur Tarique et vous préviendrons dès sa publication.",
     "publishedLeadB": "au prix de",
     "publishedLeadC": "avec un indice de confiance",
     "publishedLeadD": "Les annonces avec une note supérieure à",
