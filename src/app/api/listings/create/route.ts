@@ -1,4 +1,5 @@
 import { technicalControlDate } from "@/lib/dates";
+import { CITIES } from "@/lib/cities";
 import { rowToSeller, sellerById } from "@/lib/db/listings";
 import { getCurrentUser } from "@/lib/auth";
 import { body, dbMissing, fail, ok, unauthorized, writeFail } from "@/lib/api";
@@ -22,11 +23,20 @@ const BODIES: Body[] = [
 const CONDITIONS: Condition[] = ["excellent", "tres-bon", "bon", "moyen"];
 const DRIVETRAINS = ["fwd", "rwd", "awd"] as const;
 const ORIGINS = ["maghribia", "mostawrada"] as const;
+const CITY_SET = new Set(CITIES.map((city) => city.slug));
+const CURRENT_YEAR = new Date().getUTCFullYear() + 1;
 
 /** كيقصّ ويحدّ رقم داخل مجال معقول */
 const clampInt = (v: unknown, min: number, max: number, fallback: number) => {
   const n = Math.trunc(Number(v));
   return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+};
+
+/** القيم الإلزامية ماخاصهاش تتبدّل بصمت لقيمة افتراضية.
+ * أي طلب مزوّر أو ناقص خاصو يترفض، باش مايدخلش إعلان مضلل للمنصة. */
+const requiredInt = (v: unknown, min: number, max: number) => {
+  const n = Number(v);
+  return Number.isInteger(n) && n >= min && n <= max ? n : null;
 };
 
 const text = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
@@ -111,7 +121,8 @@ export async function POST(req: Request) {
   const b = await body<CreateBody>(req);
   if (!b) return fail("الطلب ماشي صحيح.");
 
-  const kind = b.kind === "moto" ? "moto" : "car";
+  if (b.kind !== "car" && b.kind !== "moto") return fail("نوع المركبة ماشي صحيح.");
+  const kind = b.kind;
   const rawMake = text(b.make, 60);
   const rawModel = text(b.model, 60);
   if (!rawMake || !rawModel) return fail("خاصك تحدّد الماركة والموديل.");
@@ -122,26 +133,38 @@ export async function POST(req: Request) {
   const make = await canonicalMake(kind, rawMake);
   const model = await canonicalModel(kind, make, rawModel);
 
-  /* أي قيمة ماشي من اللائحة كترجع للافتراضي — القيم كتمشي لـenum فقاعدة البيانات */
-  const pick = <T extends string>(list: T[], v: unknown, fallback: T): T =>
-    list.includes(v as T) ? (v as T) : fallback;
   /* خيار اختياري — ماكاينش افتراضي، البقاء بلا قيمة أحسن من تخمين */
   const pickOptional = <T extends string>(list: readonly T[], v: unknown): T | undefined =>
     list.includes(v as T) ? (v as T) : undefined;
 
-  const fuel = pick(FUELS, b.fuel, "essence");
-  const gearbox = pick(GEARBOXES, b.gearbox, "manuelle");
-  const bodyType = pick(BODIES, b.body, kind === "moto" ? "scooter" : "berline");
-  const condition = pick(CONDITIONS, b.condition, "bon");
+  if (!FUELS.includes(b.fuel as Fuel)) return fail("نوع الوقود ماشي صحيح.");
+  if (!GEARBOXES.includes(b.gearbox as Gearbox)) return fail("ناقل الحركة ماشي صحيح.");
+  if (!BODIES.includes(b.body as Body)) return fail("نوع الهيكل ماشي صحيح.");
+  if (!CONDITIONS.includes(b.condition as Condition)) return fail("حالة المركبة ماشي صحيحة.");
+  const fuel = b.fuel as Fuel;
+  const gearbox = b.gearbox as Gearbox;
+  const bodyType = b.body as Body;
+  const condition = b.condition as Condition;
   const drivetrain = pickOptional(DRIVETRAINS, b.drivetrain);
   const origin = pickOptional(ORIGINS, b.origin);
 
-  const year = clampInt(b.year, 1950, 2100, 2018);
-  const km = clampInt(b.km, 0, 2000000, 0);
-  const price = clampInt(b.price, 0, 20000000, 0);
-  if (price < 1000) return fail("الثمن ماشي معقول.");
+  const year = requiredInt(b.year, 1950, CURRENT_YEAR);
+  const km = requiredInt(b.km, 0, 2000000);
+  const price = requiredInt(b.price, 1000, 20000000);
+  const owners = requiredInt(b.owners, 1, 20);
+  if (year === null) return fail("سنة الصنع ماشي صحيحة.");
+  if (km === null) return fail("الكيلومتراج ماشي صحيح.");
+  if (price === null) return fail("الثمن ماشي معقول.");
+  if (owners === null) return fail("عدد الملاك ماشي صحيح.");
+  if (!CITY_SET.has(text(b.city, 60))) return fail("اختار مدينة مغربية صحيحة.");
+  if (!text(b.version, 80) || !text(b.color, 40)) return fail("خاصك تعمّر النسخة ولون المركبة.");
+  if (!origin || (kind === "car" && !drivetrain)) return fail("خاصك تعمّر معلومات المركبة المطلوبة.");
+  if (text(b.description, 4000).length < 20) return fail("الوصف خاصو يكون فيه على الأقل 20 حرف.");
+  if (!Array.isArray(b.equipment) || b.equipment.filter(Boolean).length === 0)
+    return fail("خاصك تختار تجهيز واحد على الأقل.");
 
-  const owners = clampInt(b.owners, 1, 20, 1);
+  const displacement = kind === "moto" ? requiredInt(b.displacement, 49, 3000) : undefined;
+  if (kind === "moto" && displacement === null) return fail("سعة محرك الدراجة بالسم³ مطلوبة.");
   let technicalControl: string | null;
   try { technicalControl = technicalControlDate(b.technicalControl); }
   catch { return fail("تاريخ انتهاء الفحص التقني ماشي صحيح.", 400); }
@@ -178,7 +201,9 @@ export async function POST(req: Request) {
   }));
 
   const photoRows = media.filter((m) => m.kind === "photo").length;
-  if (photoRows < 1) return fail("خاصك ترفع على الأقل صورة وحدة باش تنشر الإعلان.", 400);
+  const minimumPhotos = kind === "car" ? 6 : 4;
+  if (photoRows < minimumPhotos)
+    return fail(`خاصك ترفع على الأقل ${minimumPhotos} صور باش تنشر الإعلان.`, 400);
   const photos = photoRows;
   const hasVideo = media.some((m) => m.kind === "video") || Boolean(b.hasVideo);
 
@@ -198,7 +223,7 @@ export async function POST(req: Request) {
     body: bodyType,
     fiscalPower: clampInt(b.fiscalPower, 1, 60, kind === "moto" ? 3 : 7),
     consumption: Number(b.consumption) || 6,
-    displacement: b.displacement ? clampInt(b.displacement, 49, 3000, 125) : undefined,
+    displacement: displacement ?? undefined,
     doors: b.doors ? clampInt(b.doors, 2, 7, 5) : undefined,
     color: text(b.color, 40) || "أبيض",
     drivetrain,
@@ -252,6 +277,10 @@ export async function POST(req: Request) {
   const fp = fairPrice(draft, pool);
   const sellerRow = await sellerById(user.id);
   const trust = trustScore(draft, sellerRow ? rowToSeller(sellerRow) : undefined, fp);
+  const priceLooksAbnormal = fp.estimate.sampleSize >= 3 && Math.abs(fp.delta) >= 0.35;
+  const requiresReview = !isFounder(user.email) && (
+    !sellerRow?.id_verified || trust.score < 70 || priceLooksAbnormal
+  );
 
   const payload: NewListing = {
     kind,
@@ -309,8 +338,11 @@ export async function POST(req: Request) {
     const { createListing } = await import("@/lib/db/writes");
     /* الامتياز كيتقرّر من إيميل الجلسة فالخادم — ماشي من جسم
        الطلب ولا من عمود يقدر يتبدّل بـUPDATE */
-    const row = await createListing(user.id, payload, { founder: isFounder(user.email) });
-    return ok({ ref: row.ref, slug: row.slug, trust: trust.score });
+    const row = await createListing(user.id, payload, {
+      founder: isFounder(user.email),
+      status: requiresReview ? "pending" : "active",
+    });
+    return ok({ ref: row.ref, slug: row.slug, trust: trust.score, status: row.status });
   } catch (e) {
     return writeFail(e);
   }
