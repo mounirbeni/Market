@@ -1582,6 +1582,8 @@
     "restore": "استرجعها",
     "discard": "حيّدها",
     "publishedTitle": "تنشر إعلانك!",
+    "pendingTitle": "إعلانك قيد المراجعة",
+    "pendingLead": "توصلنا بإعلانك. نراجعه للحفاظ على ثقة مستخدمي طريق، وسنخبرك فور نشره.",
     "publishedLeadB": "بثمن",
     "publishedLeadC": "بمؤشر ثقة",
     "publishedLeadD": "الإعلانات اللي نقطتها فوق",
