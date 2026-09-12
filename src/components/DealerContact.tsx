@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Dealer } from "@/lib/dealers";
-import { Calendar, Message, Phone, Share } from "./icons";
+import { Calendar, Phone, Share } from "./icons";
 import { useDict } from "@/lib/i18n/client";
 import { fill } from "@/lib/i18n/labels";
 
@@ -45,17 +45,6 @@ export function DealerContact({ dealer }: { dealer: Dealer }) {
             </button>
           )
         ) : null}
-        {dealer.phone && (
-          <a
-            href={`https://wa.me/${dealer.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(fill(t.dealerContact.whatsappText, { name: dealer.name }))}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn w-full"
-            style={{ background: "#25D366", color: "#fff" }}
-          >
-            <Message size={16} /> {t.dealerContact.whatsapp}
-          </a>
-        )}
         <div className="grid grid-cols-2 gap-2">
           <button className="btn btn-solid btn-sm"><Calendar size={14} /> {t.dealerContact.bookVisit}</button>
           <button onClick={share} className="btn btn-solid btn-sm">

@@ -6,16 +6,8 @@ import { useApp } from "@/store/app";
 import { Price } from "@/components/Price";
 import { trustColor, trustOf } from "@/lib/market";
 import { useDict } from "@/lib/i18n/client";
-import { fill } from "@/lib/i18n/labels";
-import { Heart, Phone, ShieldCheck, Whatsapp } from "@/components/icons";
+import { Heart, Phone, ShieldCheck } from "@/components/icons";
 import { ContactSellerButton } from "./ContactSellerButton";
-
-/* الرقم كان مولّداً من معرّف الإعلان — رقم مغربي حقيقي ديال شي
-   واحد آخر. دابا كيجي من حساب البائع، وإلا ماكانش كنخبّيو الأزرار. */
-const waNumber = (phone: string) => {
-  const d = phone.replace(/\D/g, "");
-  return d.startsWith("212") ? d : `212${d.replace(/^0/, "")}`;
-};
 
 export function StickyActionBar({ v }: { v: Vehicle }) {
   const t = useDict();
@@ -75,20 +67,6 @@ export function StickyActionBar({ v }: { v: Vehicle }) {
           <Heart size={17} filled={fav} />
         </button>
 
-        {phone && (
-          <a
-            href={`https://wa.me/${waNumber(phone)}?text=${encodeURIComponent(
-              fill(t.sticky.whatsappText, { title: `${v.make} ${v.model} ${v.year}` }),
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={t.sticky.whatsapp}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl"
-            style={{ background: "#25D366", color: "#062d16" }}
-          >
-            <Whatsapp size={18} />
-          </a>
-        )}
 
         {phone &&
           (revealed ? (

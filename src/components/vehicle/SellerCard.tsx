@@ -14,15 +14,8 @@ import { AppointmentDialog } from "./AppointmentDialog";
 import { FounderBadge } from "@/components/FounderBadge";
 import {
   BadgeCheck, Calendar, Car, Check, Clock, Flag, MapPin, Phone, Share,
-  ShieldAlert, Star, Whatsapp, Wrench,
+  ShieldAlert, Star, Wrench,
 } from "@/components/icons";
-
-/** رقم دولي للواتساب من نفس البذرة ديال الرقم المحلي */
-/** رقم واتساب من الرقم المغربي: 0612… ← 212612… */
-const waNumber = (phone: string) => {
-  const d = phone.replace(/\D/g, "");
-  return d.startsWith("212") ? d : `212${d.replace(/^0/, "")}`;
-};
 
 /* الرقم كان مولّداً من معرّف الإعلان — رقم مغربي حقيقي ديال شي
    واحد آخر. دابا كيجي من حساب البائع، وإلا ماكانش كنخبّيو الأزرار. */
@@ -59,7 +52,6 @@ export function SellerCard({
   });
 
   const title = `${v.make} ${v.model} ${v.year}`;
-  const waText = encodeURIComponent(fill(t.sellerCard.whatsappText, { title }));
 
   async function share() {
     const url = typeof window === "undefined" ? "" : window.location.origin + vehicleHref(v);
@@ -161,22 +153,9 @@ export function SellerCard({
               </button>
             )
           ) : null}
-          <div className="grid grid-cols-2 gap-2">
-            {seller.phone && (
-              <a
-                href={`https://wa.me/${waNumber(seller.phone)}?text=${waText}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-sm font-bold"
-                style={{ background: "#25D366", color: "#062d16" }}
-              >
-                <Whatsapp size={15} /> {t.sellerCard.whatsapp}
-              </a>
-            )}
-            <button onClick={() => setBooking(true)} className="btn btn-solid btn-sm">
-              <Calendar size={14} /> {t.sellerCard.bookVisit}
-            </button>
-          </div>
+          <button onClick={() => setBooking(true)} className="btn btn-solid btn-sm w-full">
+            <Calendar size={14} /> {t.sellerCard.bookVisit}
+          </button>
           <div className="grid grid-cols-2 gap-2">
             <button onClick={share} className="btn btn-solid btn-sm" aria-live="polite">
               {shared ? <Check size={14} style={{ color: "var(--good)" }} /> : <Share size={14} />}
