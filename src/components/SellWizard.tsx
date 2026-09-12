@@ -42,6 +42,7 @@ interface Draft {
   color: string;
   doors: number;
   fiscalPower: number;
+  displacement: number;
   drivetrain: Drivetrain | "";
   origin: Origin | "";
   city: string;
@@ -88,6 +89,7 @@ const initialDraft: Draft = {
   color: "أبيض",
   doors: 5,
   fiscalPower: 6,
+  displacement: 125,
   drivetrain: "",
   origin: "",
   city: "casablanca",
@@ -136,6 +138,7 @@ function draftToVehicle(d: Draft): Vehicle {
     gearbox: d.gearbox as Vehicle["gearbox"],
     body: d.body,
     fiscalPower: d.fiscalPower,
+    displacement: d.kind === "moto" ? d.displacement : undefined,
     consumption: d.kind === "moto" ? 3 : 5,
     doors: d.kind === "car" ? d.doors : undefined,
     color: d.color,
@@ -215,6 +218,7 @@ export function SellWizard() {
   const [step, setStep] = useState(0);
   const [d, setD] = useState<Draft>(initialDraft);
   const [published, setPublished] = useState(false);
+  const [pendingReview, setPendingReview] = useState(false);
   /* نتيجة النشر الحقيقية: الرابط ديال الإعلان، ولا رسالة الخطأ */
   const [publishing, setPublishing] = useState(false);
   const [publishedHref, setPublishedHref] = useState("");
@@ -236,7 +240,7 @@ export function SellWizard() {
 
   const saveDraft = () => {
     try {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ d, step }));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ d, step, uploaded, video }));
       setHasDraft(true);
       setDraftState("saved");
       setTimeout(() => setDraftState("idle"), 2400);
@@ -249,10 +253,12 @@ export function SellWizard() {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return;
-      const saved = JSON.parse(raw) as { d: Draft; step: number };
+      const saved = JSON.parse(raw) as { d: Draft; step: number; uploaded?: UploadedPhoto[]; video?: UploadedVideo | null };
       priceTouched.current = true;
       setD({ ...initialDraft, ...saved.d });
       setStep(Math.min(STEPS.length - 1, Math.max(0, saved.step ?? 0)));
+      setUploaded(Array.isArray(saved.uploaded) ? saved.uploaded : []);
+      setVideo(saved.video?.kind === "video" ? saved.video : null);
       setDraftState("restored");
       setTimeout(() => setDraftState("idle"), 2400);
     } catch {
@@ -270,6 +276,22 @@ export function SellWizard() {
   };
 
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }));
+
+  /* حفظ تلقائي قصير بعد التعديل، مع ملفات الوسائط التي رُفعت بالفعل. */
+  const initialSnapshot = useRef(JSON.stringify({ d: initialDraft, step: 0, uploaded: [], video: null }));
+  useEffect(() => {
+    const snapshot = JSON.stringify({ d, step, uploaded, video });
+    if (snapshot === initialSnapshot.current) return;
+    const timer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, snapshot);
+        setHasDraft(true);
+      } catch {
+        /* التخزين ممنوع */
+      }
+    }, 650);
+    return () => window.clearTimeout(timer);
+  }, [d, step, uploaded, video]);
 
   /* الماركات والموديلات كيجيو من قاعدة البيانات */
   const { makesFor, modelsFor } = useCatalog();
@@ -310,10 +332,11 @@ export function SellWizard() {
   const stepValid = useMemo<[boolean, boolean, boolean, boolean, boolean]>(() => [
     Boolean(
       d.make && d.model.trim() && d.version.trim() && d.color.trim()
-      && (d.kind !== "car" || d.drivetrain) && d.origin,
+      && (d.kind !== "car" || d.drivetrain) && d.origin
+      && (d.kind !== "moto" || (d.displacement >= 49 && d.displacement <= 3000)),
     ),
     !d.accident || d.accidentNote.trim().length > 0,
-    d.photos > 0 && d.description.trim().length >= 20 && d.equipment.length > 0,
+    d.photos >= (d.kind === "car" ? 6 : 4) && d.description.trim().length >= 20 && d.equipment.length > 0,
     d.price >= 1000,
     d.sellerName.trim().length > 0 && d.sellerDeclared,
   ], [d]);
@@ -349,6 +372,7 @@ export function SellWizard() {
           year: d.year, km: d.km, price: d.price, owners: d.owners,
           fuel: d.fuel, gearbox: d.gearbox, body: d.body,
           color: d.color, fiscalPower: d.fiscalPower,
+          displacement: d.kind === "moto" ? d.displacement : undefined,
           doors: d.kind === "car" ? d.doors : undefined,
           drivetrain: d.drivetrain || undefined, origin: d.origin || undefined,
           city: d.city, condition: d.condition,
@@ -377,7 +401,9 @@ export function SellWizard() {
         );
         return;
       }
-      setPublishedHref(href(`/vehicle/${json.data.slug}`));
+      const isPending = json.data.status === "pending";
+      setPendingReview(isPending);
+      setPublishedHref(isPending ? "" : href(`/vehicle/${json.data.slug}`));
       dropDraft();
       setPublished(true);
     } catch {
@@ -398,16 +424,19 @@ export function SellWizard() {
           >
             <BadgeCheck size={32} />
           </span>
-          <h2 className="h-section mt-5">{t.sellWizard.publishedTitle}</h2>
+          <h2 className="h-section mt-5">{pendingReview ? t.sellWizard.pendingTitle : t.sellWizard.publishedTitle}</h2>
           <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            {d.make} {d.model} {d.year} {t.sellWizard.publishedLeadB} <span className="num">{formatNumber(d.price)}</span> {locale === "fr" ? "DH" : "د.م"}, {t.sellWizard.publishedLeadC}{" "}
-            <b className="num">{trust.score}/100</b>. {t.sellWizard.publishedLeadD}{" "}
-            <span className="num">75</span> {t.sellWizard.publishedLeadE}<span className="num">3</span> {t.sellWizard.publishedLeadF}
+            {pendingReview ? t.sellWizard.pendingLead : <>
+              {d.make} {d.model} {d.year} {t.sellWizard.publishedLeadB} <span className="num">{formatNumber(d.price)}</span> {locale === "fr" ? "DH" : "د.م"}, {t.sellWizard.publishedLeadC}{" "}
+              <b className="num">{trust.score}/100</b>. {t.sellWizard.publishedLeadD}{" "}
+              <span className="num">75</span> {t.sellWizard.publishedLeadE}<span className="num">3</span> {t.sellWizard.publishedLeadF}
+            </>}
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <button
               onClick={() => {
                 setPublished(false);
+                setPendingReview(false);
                 setPublishedHref("");
                 setStep(0);
                 setD(initialDraft);
@@ -470,6 +499,7 @@ export function SellWizard() {
                         kind: k, make: m, model: "", version: "",
                         body: k === "moto" ? "roadster" : "berline",
                         fiscalPower: k === "moto" ? 2 : 6,
+                        displacement: k === "moto" ? 125 : d.displacement,
                         drivetrain: "",
                       });
                     }}
@@ -641,6 +671,16 @@ export function SellWizard() {
                     onChange={(e) => set({ fiscalPower: Number(e.target.value) })} className="w-full"
                   />
                 </div>
+                {d.kind === "moto" && (
+                  <div>
+                    <label className="label" htmlFor="sw-displacement"><Gauge size={13} /> {t.vehicle.spec.displacement}</label>
+                    <input
+                      id="sw-displacement" type="number" min={49} max={3000} inputMode="numeric"
+                      className="field num" dir="ltr" value={d.displacement}
+                      onChange={(e) => set({ displacement: Math.max(0, Number(e.target.value) || 0) })}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -1108,9 +1148,9 @@ export function SellWizard() {
                 <span className="flex-1 text-xs leading-relaxed">{t.sellWizard.sellerDeclaration}</span>
               </label>
 
-              {d.photos === 0 && (
+              {d.photos < (d.kind === "car" ? 6 : 4) && (
                 <p className="text-center text-[12px] font-semibold" style={{ color: "var(--bad)" }}>
-                  {t.sellWizard.photosRequired}
+                  {t.sellWizard.photosRequired} ({d.kind === "car" ? 6 : 4})
                 </p>
               )}
               {missingSteps.length > 0 && (
