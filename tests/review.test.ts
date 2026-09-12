@@ -79,14 +79,17 @@ test("code review regressions against an isolated PostgreSQL engine", async (t) 
     });
 
     const userId = "00000000-0000-4000-8000-000000000001";
+    await db.query("UPDATE users SET id_verified=true WHERE id=$1", [userId]);
     cookies.set("triq_session", "review-session");
     await db.query("INSERT INTO sessions(user_id, token_hash, expires_at) VALUES ($1,$2,now()+interval '1 hour')", [userId, hash("review-session")]);
     const payload = {
-      kind: "car", make: "Renault", model: "Clio", year: 2018, km: 120000,
+      kind: "car", make: "Renault", model: "Clio", version: "1.5 dCi", year: 2018, km: 120000,
       price: 100000, fuel: "diesel", gearbox: "manuelle", body: "citadine", fiscalPower: 6,
+      color: "أبيض", owners: 1, origin: "maghribia", drivetrain: "fwd",
       city: "casablanca", condition: "bon", sellerDeclared: true, inspected: true,
       technicalControl: "2028-06-30", serviceBook: true,
-      media: [{ url: `/api/media/listings/${userId}/test.jpg`, kind: "photo" }],
+      description: "سيارة بحالة جيدة ومجهزة وجاهزة للاستعمال اليومي.", equipment: ["مكيف الهواء"],
+      media: Array.from({ length: 6 }, (_, i) => ({ url: `/api/media/listings/${userId}/test-${i}.jpg`, kind: "photo" })),
     };
     const request = (data: unknown) => new Request("http://localhost/api/test", {
       method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(data),
@@ -98,6 +101,9 @@ test("code review regressions against an isolated PostgreSQL engine", async (t) 
       assert.equal(response.status, 200, await response.clone().text());
       const result = await response.json();
       ({ ref, slug } = result.data);
+      // الإعلان التجريبي يمر بمسار المراجعة الجديد؛ نفعّله هنا باش نختبر
+      // باقي ضمانات التعديل والحالة على نفس السجل.
+      await db.query("UPDATE listings SET status='active' WHERE ref=$1", [ref]);
       let row = (await getListingBySlug(slug))!.listing;
       assert.equal(row.inspected, false);
       assert.equal(row.technical_control, payload.technicalControl);
