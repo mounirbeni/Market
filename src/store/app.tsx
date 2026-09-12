@@ -62,7 +62,7 @@ interface Persisted {
 
 const initial: Persisted = {
   unit: "dh",
-  theme: "light",
+  theme: "dark",
   favorites: [],
   compare: [],
   searches: [],

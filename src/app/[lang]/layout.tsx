@@ -87,7 +87,7 @@ export const viewport: Viewport = {
 };
 
 /** يمنع وميض الوضع الفاتح/الداكن قبل التحميل */
-const themeScript = `(function(){try{var s=localStorage.getItem('triq:v1');var t=s?JSON.parse(s).theme:'light';document.documentElement.setAttribute('data-theme',t||'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
+const themeScript = `(function(){try{var s=localStorage.getItem('triq:v1');var t=s?JSON.parse(s).theme:'dark';document.documentElement.setAttribute('data-theme',t||'dark');}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`;
 
 /** كل لغة كتّبنى ساكنة — بلاها المسار الجذري كيبقى ديناميكي بلا داعي */
 export function generateStaticParams() {
@@ -110,7 +110,7 @@ export default async function RootLayout({
   const unread = user ? await unreadCount(user.id).catch(() => 0) : 0;
 
   return (
-    <html lang={HTML_LANG[lang]} dir={DIR[lang]} data-theme="light" className={`${body.variable} ${kufi.variable} ${num.variable}`}>
+    <html lang={HTML_LANG[lang]} dir={DIR[lang]} data-theme="dark" className={`${body.variable} ${kufi.variable} ${num.variable}`}>
       <head>
         {/* Next كيصيفط mobile-web-app-capable وحدو؛ آيفون قبل iOS 16.4
             كيقرا غير هاد الوسم القديم باش يفتح بلا شريط سفاري */}
