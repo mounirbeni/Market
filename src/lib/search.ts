@@ -28,6 +28,9 @@ export interface Filters {
   /** القوة الجبائية — من/إلى */
   powerMin?: number;
   powerMax?: number;
+  /** سعة محرك الدراجة بالسم³ — من/إلى */
+  displacementMin?: number;
+  displacementMax?: number;
   /** الدفع */
   drivetrain: string;
   /** مصدر السيارة */
@@ -140,6 +143,8 @@ export function applyFilters(filters: Partial<Filters>, source: Vehicle[]): Vehi
     if (f.doors && v.doors !== f.doors) return false;
     if (f.powerMin && v.fiscalPower < f.powerMin) return false;
     if (f.powerMax && v.fiscalPower > f.powerMax) return false;
+    if (f.displacementMin && (v.displacement ?? 0) < f.displacementMin) return false;
+    if (f.displacementMax && (v.displacement ?? 0) > f.displacementMax) return false;
     if (f.drivetrain && v.drivetrain !== f.drivetrain) return false;
     if (f.origin && v.origin !== f.origin) return false;
     if (f.equipment) {
@@ -207,6 +212,8 @@ export function filtersFromParams(sp: URLSearchParams): Partial<Filters> {
     doors: num("doors"),
     powerMin: num("powerMin"),
     powerMax: num("powerMax"),
+    displacementMin: num("displacementMin"),
+    displacementMax: num("displacementMax"),
     drivetrain: sp.get("drivetrain") || "",
     origin: sp.get("origin") || "",
     equipment: sp.get("equipment") || "",
@@ -244,6 +251,8 @@ export function paramsFromFilters(f: Partial<Filters>): URLSearchParams {
   set("doors", f.doors);
   set("powerMin", f.powerMin);
   set("powerMax", f.powerMax);
+  set("displacementMin", f.displacementMin);
+  set("displacementMax", f.displacementMax);
   set("drivetrain", f.drivetrain);
   set("origin", f.origin);
   set("equipment", f.equipment);
