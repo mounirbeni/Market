@@ -102,6 +102,7 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
     + [
       filters.priceMin, filters.priceMax, filters.yearMin, filters.yearMax, filters.kmMax,
       filters.trustMin, filters.doors, filters.powerMin, filters.powerMax,
+      filters.displacementMin, filters.displacementMax,
     ].filter((x) => x !== undefined).length
     + (filters.condition ? 1 : 0)
     + equipmentTags.length
@@ -208,6 +209,23 @@ export function FiltersPanel({ filters, set, reset, count, lockKind, lockBrand }
             </select>
           )}
         </FilterSection>
+
+        {filters.kind === "moto" && (
+        <FilterSection title="سعة المحرك" Icon={Gauge} activeCount={(filters.displacementMin ? 1 : 0) + (filters.displacementMax ? 1 : 0)}>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="number" min={49} max={3000} inputMode="numeric" className="field num" dir="ltr"
+              placeholder="من (سم³)" value={filters.displacementMin ?? ""}
+              onChange={(e) => set({ displacementMin: e.target.value ? Number(e.target.value) : undefined })}
+            />
+            <input
+              type="number" min={49} max={3000} inputMode="numeric" className="field num" dir="ltr"
+              placeholder="إلى (سم³)" value={filters.displacementMax ?? ""}
+              onChange={(e) => set({ displacementMax: e.target.value ? Number(e.target.value) : undefined })}
+            />
+          </div>
+        </FilterSection>
+        )}
 
         {/* الثمن */}
         <FilterSection
