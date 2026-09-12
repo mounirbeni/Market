@@ -110,13 +110,14 @@ export async function createListing(
   sellerId: string,
   v: NewListing,
   /** امتيازات صاحب المنصة — كتتقرّر فالخادم من إيميل الجلسة */
-  opts: { founder?: boolean } = {},
+  opts: { founder?: boolean; status?: "pending" | "active" } = {},
 ) {
   // المؤسس كينشر بلا حدود — الحدّ كيحمي من السبام، ماشي من صاحبها
   if (!opts.founder) await assertPublishAllowed(sellerId);
 
   const prefix = v.kind === "moto" ? "m" : "c";
-  const row = await one<{ id: string; ref: string; slug: string }>(
+  const status = opts.status ?? "pending";
+  const row = await one<{ id: string; ref: string; slug: string; status: "pending" | "active" }>(
     `WITH r AS (
        -- التسلسل كيبدا من 1000، فالرقم ديما 4 أرقام ولا أكثر.
        -- (lpad كيقصّ ملي يكون النص أطول من الطول المطلوب — علاش بلا lpad)
@@ -136,22 +137,22 @@ export async function createListing(
      SELECT
        r.ref,
        $2 || '-' || $3 || '-' || $4::text || '-' || r.ref,
-       $5::uuid, 'active', $6::vehicle_kind, $7, $8, $9, $4::smallint,
-       $10::int, $11::int, $12::smallint, $13::fuel_type, $14::gearbox_type,
-       $15::body_type, $16::smallint, $17::numeric, $18::int, $19::smallint,
-       $20, $21, $22::condition_type, $23::bool, $24::bool, $25::date,
-       $26::bool, $27::bool, $28::bool, $29, $30::text[], $31::bool,
-       $32::bool, $33::smallint, $34::int, $35::numeric, $36::smallint,
-       $37::bool, $38::drivetrain_type, $39::origin_type,
-       $40::bool, $41,
-       $42::bool, $43::bool, $44::bool,
-       $45::text[], $46::bool, $47::smallint, $48::smallint,
-       $49::text[], $50, $51::bool, $52::jsonb, now()
+       $5::uuid, $6::listing_status, $7::vehicle_kind, $8, $9, $10, $4::smallint,
+       $11::int, $12::int, $13::smallint, $14::fuel_type, $15::gearbox_type,
+       $16::body_type, $17::smallint, $18::numeric, $19::int, $20::smallint,
+       $21, $22, $23::condition_type, $24::bool, $25::bool, $26::date,
+       $27::bool, $28::bool, $29::bool, $30, $31::text[], $32::bool,
+       $33::bool, $34::smallint, $35::int, $36::numeric, $37::smallint,
+       $38::bool, $39::drivetrain_type, $40::origin_type,
+       $41::bool, $42,
+       $43::bool, $44::bool, $45::bool,
+       $46::text[], $47::bool, $48::smallint, $49::smallint,
+       $50::text[], $51, $52::bool, $53::jsonb, now()
      FROM r
-     RETURNING id, ref, slug`,
+     RETURNING id, ref, slug, status::text`,
     [
       prefix, slugify(v.make), slugify(v.model), v.year,
-      sellerId, v.kind, v.make, v.model, v.version, v.km,
+      sellerId, status, v.kind, v.make, v.model, v.version, v.km,
       v.price, v.owners, v.fuel, v.gearbox, v.body, v.fiscalPower,
       v.consumption ?? null, v.displacement ?? null, v.doors ?? null,
       v.color ?? null, v.city, v.condition, v.firstHand, v.papersOk,
