@@ -12,7 +12,7 @@ export type { ArtShape, VehicleArtProps } from "./VehicleArtLegacy";
 
 const BODY_IMAGE_VERSION = "20260911-10";
 const BODY_IMAGES: Partial<Record<ArtShape, string>> = {
-  citadine: `/vehicle-bodies/citadine.webp?v=${BODY_IMAGE_VERSION}`,
+  citadine: `/vehicle-bodies/citadine.svg`,
   berline: `/vehicle-bodies/berline.webp?v=${BODY_IMAGE_VERSION}`,
   suv: `/vehicle-bodies/suv.webp?v=${BODY_IMAGE_VERSION}`,
   break: `/vehicle-bodies/break.webp?v=${BODY_IMAGE_VERSION}`,
