@@ -155,6 +155,8 @@ export function VehiclesClient({
     if (filters.doors) out.push({ label: `${filters.doors} ${t.search.chipDoors}`, clear: { doors: undefined } });
     if (filters.powerMax) out.push({ label: `${t.search.chipUpTo} ${filters.powerMax} ${t.search.chipHp}`, clear: { powerMax: undefined } });
     if (filters.powerMin) out.push({ label: `${t.search.chipFrom} ${filters.powerMin} ${t.search.chipHp}`, clear: { powerMin: undefined } });
+    if (filters.displacementMin) out.push({ label: `${t.search.chipFrom} ${filters.displacementMin} سم³`, clear: { displacementMin: undefined } });
+    if (filters.displacementMax) out.push({ label: `${t.search.chipUpTo} ${filters.displacementMax} سم³`, clear: { displacementMax: undefined } });
     if (filters.drivetrain) {
       const d = DRIVETRAINS.find((x) => x.value === filters.drivetrain);
       out.push({
@@ -357,7 +359,7 @@ export function VehiclesClient({
       {mobileFilters && (
         <Modal onClose={() => setMobileFilters(false)} ariaLabel={t.search.filterResults} variant="drawer" maxWidth="max-w-sm">
           <MobileFiltersBody
-            filters={filters} set={set} reset={reset} count={results.length}
+            filters={filters} set={set} reset={reset} count={total}
             lockKind={lockKind} lockBrand={lockBrand}
           />
         </Modal>
