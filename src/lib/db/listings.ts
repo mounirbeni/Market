@@ -168,6 +168,8 @@ function buildWhere(f: Filters) {
   if (f.doors) add("l.doors = ?", f.doors);
   if (f.powerMin) add("l.fiscal_power >= ?", f.powerMin);
   if (f.powerMax) add("l.fiscal_power <= ?", f.powerMax);
+  if (f.displacementMin) add("l.displacement >= ?", f.displacementMin);
+  if (f.displacementMax) add("l.displacement <= ?", f.displacementMax);
   if (f.drivetrain) add("l.drivetrain = ?::drivetrain_type", f.drivetrain);
   if (f.origin) add("l.origin = ?::origin_type", f.origin);
   if (f.equipment?.trim()) {
